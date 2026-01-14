@@ -30,22 +30,26 @@ const STAGES: Stage[] = [
   { json: { key: "root", type: "Card", props: { title: "Welcome", description: "Get started with json-render" }, children: [{ key: "btn", type: "Button", props: { label: "Get Started", action: "start" } }] }, stream: '{"op":"replace","path":"/root/children/0/props","value":{"label":"Get Started"}}' },
 ];
 
-const CODE_EXAMPLE = `const registry = {
-  Card: ({ element, children }) => (
-    <div className="card">
-      <h3>{element.props.title}</h3>
-      <p>{element.props.description}</p>
-      {children}
-    </div>
-  ),
-  Button: ({ element, onAction }) => (
-    <button onClick={() => onAction(element.props.action)}>
-      {element.props.label}
-    </button>
-  ),
-};
+const CODE_EXAMPLE = `import { createCatalog } from '@json-render/core';
+import { z } from 'zod';
 
-<Renderer tree={tree} registry={registry} />`;
+export const catalog = createCatalog({
+  components: {
+    Card: {
+      props: z.object({
+        title: z.string(),
+        description: z.string().nullable(),
+      }),
+      hasChildren: true,
+    },
+    Button: {
+      props: z.object({
+        label: z.string(),
+        action: z.string(),
+      }),
+    },
+  },
+});`;
 
 type Phase = "typing" | "streaming" | "complete";
 type Tab = "stream" | "json" | "code";
@@ -238,12 +242,12 @@ export function Demo() {
                 )}
               </div>
             )}
-            {activeTab === "json" && (
+            <div className={activeTab === "json" ? "" : "hidden"}>
               <CodeBlock code={jsonCode} lang="json" />
-            )}
-            {activeTab === "code" && (
+            </div>
+            <div className={activeTab === "code" ? "" : "hidden"}>
               <CodeBlock code={CODE_EXAMPLE} lang="tsx" />
-            )}
+            </div>
           </div>
         </div>
 

@@ -100,3 +100,7 @@
     @apply bg-muted-foreground;
   }
 }
+
+button {
+  cursor: pointer;
+}
