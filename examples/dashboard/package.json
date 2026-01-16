@@ -13,6 +13,7 @@
     "@ai-sdk/gateway": "^3.0.13",
     "ai": "^6.0.33",
     "@json-render/core": "workspace:*",
+    "@json-render/react": "workspace:*",
     "next": "16.1.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",

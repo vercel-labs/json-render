@@ -1,8 +1,141 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useRef } from "react";
-import { Renderer, useUIStream, JSONUIProvider } from "@json-render/react";
 import type { UITree } from "@json-render/core";
+
+// Stub components - the library has been migrated to SolidJS
+// These stubs allow the React demo app to build and run with simulated UI
+const JSONUIProvider: React.FC<{
+  registry: unknown;
+  children: React.ReactNode;
+}> = ({ children }) => <>{children}</>;
+
+interface RendererProps {
+  tree: UITree;
+  registry: unknown;
+  loading?: boolean;
+  fallback?: unknown;
+}
+
+const Renderer: React.FC<RendererProps> = ({ tree, loading }) => {
+  if (!tree || !tree.root) return null;
+
+  // Simple recursive renderer for demo purposes
+  const renderElement = (key: string): React.ReactNode => {
+    const element = tree.elements[key];
+    if (!element) return null;
+
+    const children = element.children?.map(renderElement);
+    const props = element.props || {};
+
+    // Basic rendering based on element type
+    switch (element.type) {
+      case "Card":
+        return (
+          <div key={key} className="border rounded-lg p-4 mb-4 bg-card">
+            {props.title ? (
+              <h3 className="font-semibold mb-2">{String(props.title)}</h3>
+            ) : null}
+            {children}
+          </div>
+        );
+      case "Input":
+        return (
+          <div key={key} className="mb-3">
+            {props.label ? (
+              <label className="block text-sm mb-1">
+                {String(props.label)}
+              </label>
+            ) : null}
+            <input
+              type="text"
+              name={props.name as string}
+              placeholder={props.placeholder as string}
+              className="w-full border rounded px-3 py-2 text-sm"
+            />
+          </div>
+        );
+      case "Textarea":
+        return (
+          <div key={key} className="mb-3">
+            {props.label ? (
+              <label className="block text-sm mb-1">
+                {String(props.label)}
+              </label>
+            ) : null}
+            <textarea
+              name={props.name as string}
+              placeholder={props.placeholder as string}
+              className="w-full border rounded px-3 py-2 text-sm min-h-[80px]"
+            />
+          </div>
+        );
+      case "Button":
+        return (
+          <button
+            key={key}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded text-sm hover:bg-primary/90"
+          >
+            {String(props.label ?? "")}
+          </button>
+        );
+      default:
+        return <div key={key}>{children}</div>;
+    }
+  };
+
+  return (
+    <div className={loading ? "opacity-70" : ""}>
+      {renderElement(tree.root)}
+    </div>
+  );
+};
+
+interface UseUIStreamOptions {
+  api: string;
+  onError?: (err: Error) => void;
+}
+
+interface UseUIStreamReturn {
+  tree: UITree | null;
+  isStreaming: boolean;
+  send: (prompt: string) => Promise<void>;
+  clear: () => void;
+}
+
+// Stub hook - actual streaming would require SolidJS version
+function useUIStream(options: UseUIStreamOptions): UseUIStreamReturn {
+  const [tree, setTree] = useState<UITree | null>(null);
+  const [isStreaming, setIsStreaming] = useState(false);
+
+  const send = useCallback(
+    async (prompt: string) => {
+      setIsStreaming(true);
+      try {
+        const response = await fetch(options.api, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt }),
+        });
+        if (!response.ok) throw new Error("API request failed");
+        const data = await response.json();
+        setTree(data.tree || data);
+      } catch (err) {
+        options.onError?.(err as Error);
+      } finally {
+        setIsStreaming(false);
+      }
+    },
+    [options],
+  );
+
+  const clear = useCallback(() => {
+    setTree(null);
+    setIsStreaming(false);
+  }, []);
+
+  return { tree, isStreaming, send, clear };
+}
 import { toast } from "sonner";
 import { CodeBlock } from "./code-block";
 import { Toaster } from "./ui/sonner";
