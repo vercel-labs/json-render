@@ -24,13 +24,14 @@
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.1",
-    "@testing-library/react": "^16.3.1",
     "husky": "^9.1.7",
     "jsdom": "^27.4.0",
     "lint-staged": "^16.2.7",
     "prettier": "^3.7.4",
+    "solid-js": "^1.8.0",
     "turbo": "^2.7.4",
     "typescript": "5.9.2",
+    "vite-plugin-solid": "^2.10.0",
     "vitest": "^4.0.17"
   },
   "packageManager": "pnpm@9.0.0",

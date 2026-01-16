@@ -1,15 +1,14 @@
-"use client";
-
-import React, {
+import {
   createContext,
   useContext,
-  useState,
-  useCallback,
-  useMemo,
-  type ReactNode,
-} from "react";
+  createSignal,
+  onMount,
+  type JSX,
+  type Accessor,
+} from "solid-js";
 import {
   runValidation,
+  getByPath,
   type ValidationConfig,
   type ValidationFunction,
   type ValidationResult,
@@ -34,8 +33,8 @@ export interface FieldValidationState {
 export interface ValidationContextValue {
   /** Custom validation functions from catalog */
   customFunctions: Record<string, ValidationFunction>;
-  /** Validation state by field path */
-  fieldStates: Record<string, FieldValidationState>;
+  /** Validation state by field path (accessor) */
+  fieldStates: Accessor<Record<string, FieldValidationState>>;
   /** Validate a field */
   validate: (path: string, config: ValidationConfig) => ValidationResult;
   /** Mark field as touched */
@@ -48,7 +47,7 @@ export interface ValidationContextValue {
   registerField: (path: string, config: ValidationConfig) => void;
 }
 
-const ValidationContext = createContext<ValidationContextValue | null>(null);
+const ValidationContext = createContext<ValidationContextValue>();
 
 /**
  * Props for ValidationProvider
@@ -56,56 +55,53 @@ const ValidationContext = createContext<ValidationContextValue | null>(null);
 export interface ValidationProviderProps {
   /** Custom validation functions from catalog */
   customFunctions?: Record<string, ValidationFunction>;
-  children: ReactNode;
+  children: JSX.Element;
 }
 
 /**
  * Provider for validation
  */
-export function ValidationProvider({
-  customFunctions = {},
-  children,
-}: ValidationProviderProps) {
+export function ValidationProvider(props: ValidationProviderProps) {
   const { data, authState } = useData();
-  const [fieldStates, setFieldStates] = useState<
+  const customFunctions = props.customFunctions ?? {};
+
+  const [fieldStates, setFieldStates] = createSignal<
     Record<string, FieldValidationState>
   >({});
-  const [fieldConfigs, setFieldConfigs] = useState<
+  const [fieldConfigs, setFieldConfigs] = createSignal<
     Record<string, ValidationConfig>
   >({});
 
-  const registerField = useCallback(
-    (path: string, config: ValidationConfig) => {
-      setFieldConfigs((prev) => ({ ...prev, [path]: config }));
-    },
-    [],
-  );
+  const registerField = (path: string, config: ValidationConfig): void => {
+    setFieldConfigs((prev) => ({ ...prev, [path]: config }));
+  };
 
-  const validate = useCallback(
-    (path: string, config: ValidationConfig): ValidationResult => {
-      const value = data[path.split("/").filter(Boolean).join(".")];
-      const result = runValidation(config, {
-        value,
-        dataModel: data,
-        customFunctions,
-        authState,
-      });
+  const validate = (
+    path: string,
+    config: ValidationConfig,
+  ): ValidationResult => {
+    const dataModel = data();
+    const value = getByPath(dataModel, path);
+    const result = runValidation(config, {
+      value,
+      dataModel,
+      customFunctions,
+      authState: authState(),
+    });
 
-      setFieldStates((prev) => ({
-        ...prev,
-        [path]: {
-          touched: prev[path]?.touched ?? true,
-          validated: true,
-          result,
-        },
-      }));
+    setFieldStates((prev) => ({
+      ...prev,
+      [path]: {
+        touched: prev[path]?.touched ?? true,
+        validated: true,
+        result,
+      },
+    }));
 
-      return result;
-    },
-    [data, customFunctions, authState],
-  );
+    return result;
+  };
 
-  const touch = useCallback((path: string) => {
+  const touch = (path: string): void => {
     setFieldStates((prev) => ({
       ...prev,
       [path]: {
@@ -115,19 +111,19 @@ export function ValidationProvider({
         result: prev[path]?.result ?? null,
       },
     }));
-  }, []);
+  };
 
-  const clear = useCallback((path: string) => {
+  const clear = (path: string): void => {
     setFieldStates((prev) => {
       const { [path]: _, ...rest } = prev;
       return rest;
     });
-  }, []);
+  };
 
-  const validateAll = useCallback(() => {
+  const validateAll = (): boolean => {
     let allValid = true;
 
-    for (const [path, config] of Object.entries(fieldConfigs)) {
+    for (const [path, config] of Object.entries(fieldConfigs())) {
       const result = validate(path, config);
       if (!result.valid) {
         allValid = false;
@@ -135,32 +131,21 @@ export function ValidationProvider({
     }
 
     return allValid;
-  }, [fieldConfigs, validate]);
+  };
 
-  const value = useMemo<ValidationContextValue>(
-    () => ({
-      customFunctions,
-      fieldStates,
-      validate,
-      touch,
-      clear,
-      validateAll,
-      registerField,
-    }),
-    [
-      customFunctions,
-      fieldStates,
-      validate,
-      touch,
-      clear,
-      validateAll,
-      registerField,
-    ],
-  );
+  const value: ValidationContextValue = {
+    customFunctions,
+    fieldStates,
+    validate,
+    touch,
+    clear,
+    validateAll,
+    registerField,
+  };
 
   return (
     <ValidationContext.Provider value={value}>
-      {children}
+      {props.children}
     </ValidationContext.Provider>
   );
 }
@@ -183,12 +168,12 @@ export function useFieldValidation(
   path: string,
   config?: ValidationConfig,
 ): {
-  state: FieldValidationState;
+  state: () => FieldValidationState;
   validate: () => ValidationResult;
   touch: () => void;
   clear: () => void;
-  errors: string[];
-  isValid: boolean;
+  errors: () => string[];
+  isValid: () => boolean;
 } {
   const {
     fieldStates,
@@ -199,32 +184,34 @@ export function useFieldValidation(
   } = useValidation();
 
   // Register field on mount
-  React.useEffect(() => {
+  onMount(() => {
     if (config) {
       registerField(path, config);
     }
-  }, [path, config, registerField]);
+  });
 
-  const state = fieldStates[path] ?? {
-    touched: false,
-    validated: false,
-    result: null,
-  };
+  const state = (): FieldValidationState =>
+    fieldStates()[path] ?? {
+      touched: false,
+      validated: false,
+      result: null,
+    };
 
-  const validate = useCallback(
-    () => validateField(path, config ?? { checks: [] }),
-    [path, config, validateField],
-  );
+  const validate = (): ValidationResult =>
+    validateField(path, config ?? { checks: [] });
 
-  const touch = useCallback(() => touchField(path), [path, touchField]);
-  const clear = useCallback(() => clearField(path), [path, clearField]);
+  const touch = (): void => touchField(path);
+  const clear = (): void => clearField(path);
+
+  const errors = (): string[] => state().result?.errors ?? [];
+  const isValid = (): boolean => state().result?.valid ?? true;
 
   return {
     state,
     validate,
     touch,
     clear,
-    errors: state.result?.errors ?? [],
-    isValid: state.result?.valid ?? true,
+    errors,
+    isValid,
   };
 }

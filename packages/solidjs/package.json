@@ -1,12 +1,13 @@
 {
-  "name": "@json-render/react",
+  "name": "@json-render/solidjs",
   "version": "0.2.0",
   "license": "Apache-2.0",
-  "description": "React renderer for @json-render/core. JSON becomes React components.",
+  "description": "SolidJS renderer for @json-render/core. JSON becomes SolidJS components.",
   "keywords": [
     "json",
     "ui",
-    "react",
+    "solidjs",
+    "solid",
     "ai",
     "generative-ui",
     "llm",
@@ -17,7 +18,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vercel-labs/json-render.git",
-    "directory": "packages/react"
+    "directory": "packages/solidjs"
   },
   "homepage": "https://github.com/vercel-labs/json-render#readme",
   "bugs": {
@@ -49,11 +50,10 @@
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
-    "@types/react": "19.2.3",
     "tsup": "^8.0.2",
     "typescript": "^5.4.5"
   },
   "peerDependencies": {
-    "react": "^19.0.0"
+    "solid-js": "^1.8.0"
   }
 }

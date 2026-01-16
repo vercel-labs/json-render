@@ -1,6 +1,4 @@
-"use client";
-
-import { useState, useCallback, useRef, useEffect } from "react";
+import { createSignal, onCleanup, type Accessor } from "solid-js";
 import type { UITree, UIElement, JsonPatch } from "@json-render/core";
 import { setByPath } from "@json-render/core";
 
@@ -78,9 +76,9 @@ function applyPatch(tree: UITree, patch: JsonPatch): UITree {
 }
 
 /**
- * Options for useUIStream
+ * Options for createUIStream
  */
-export interface UseUIStreamOptions {
+export interface CreateUIStreamOptions {
   /** API endpoint */
   api: string;
   /** Callback when complete */
@@ -90,15 +88,15 @@ export interface UseUIStreamOptions {
 }
 
 /**
- * Return type for useUIStream
+ * Return type for createUIStream
  */
-export interface UseUIStreamReturn {
-  /** Current UI tree */
-  tree: UITree | null;
-  /** Whether currently streaming */
-  isStreaming: boolean;
-  /** Error if any */
-  error: Error | null;
+export interface CreateUIStreamReturn {
+  /** Current UI tree (accessor) */
+  tree: Accessor<UITree | null>;
+  /** Whether currently streaming (accessor) */
+  isStreaming: Accessor<boolean>;
+  /** Error if any (accessor) */
+  error: Accessor<Error | null>;
   /** Send a prompt to generate UI */
   send: (prompt: string, context?: Record<string, unknown>) => Promise<void>;
   /** Clear the current tree */
@@ -106,109 +104,110 @@ export interface UseUIStreamReturn {
 }
 
 /**
- * Hook for streaming UI generation
+ * Primitive for streaming UI generation
+ *
+ * Note: Renamed from useUIStream to createUIStream to follow SolidJS conventions.
+ * SolidJS uses "create" prefix for primitives that create reactive state.
  */
-export function useUIStream({
-  api,
-  onComplete,
-  onError,
-}: UseUIStreamOptions): UseUIStreamReturn {
-  const [tree, setTree] = useState<UITree | null>(null);
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
+export function createUIStream(
+  options: CreateUIStreamOptions,
+): CreateUIStreamReturn {
+  const [tree, setTree] = createSignal<UITree | null>(null);
+  const [isStreaming, setIsStreaming] = createSignal(false);
+  const [error, setError] = createSignal<Error | null>(null);
 
-  const clear = useCallback(() => {
+  // Use a plain variable for abort controller since it doesn't need reactivity
+  let abortController: AbortController | null = null;
+
+  const clear = (): void => {
     setTree(null);
     setError(null);
-  }, []);
+  };
 
-  const send = useCallback(
-    async (prompt: string, context?: Record<string, unknown>) => {
-      // Abort any existing request
-      abortControllerRef.current?.abort();
-      abortControllerRef.current = new AbortController();
+  const send = async (
+    prompt: string,
+    context?: Record<string, unknown>,
+  ): Promise<void> => {
+    // Abort any existing request
+    abortController?.abort();
+    abortController = new AbortController();
 
-      setIsStreaming(true);
-      setError(null);
+    setIsStreaming(true);
+    setError(null);
 
-      // Start with an empty tree
-      let currentTree: UITree = { root: "", elements: {} };
-      setTree(currentTree);
+    // Start with an empty tree
+    let currentTree: UITree = { root: "", elements: {} };
+    setTree(currentTree);
 
-      try {
-        const response = await fetch(api, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            prompt,
-            context,
-            currentTree,
-          }),
-          signal: abortControllerRef.current.signal,
-        });
+    try {
+      const response = await fetch(options.api, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt,
+          context,
+          currentTree,
+        }),
+        signal: abortController.signal,
+      });
 
-        if (!response.ok) {
-          throw new Error(`HTTP error: ${response.status}`);
-        }
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`);
+      }
 
-        const reader = response.body?.getReader();
-        if (!reader) {
-          throw new Error("No response body");
-        }
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error("No response body");
+      }
 
-        const decoder = new TextDecoder();
-        let buffer = "";
+      const decoder = new TextDecoder();
+      let buffer = "";
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-          buffer += decoder.decode(value, { stream: true });
+        buffer += decoder.decode(value, { stream: true });
 
-          // Process complete lines
-          const lines = buffer.split("\n");
-          buffer = lines.pop() ?? "";
+        // Process complete lines
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
 
-          for (const line of lines) {
-            const patch = parsePatchLine(line);
-            if (patch) {
-              currentTree = applyPatch(currentTree, patch);
-              setTree({ ...currentTree });
-            }
-          }
-        }
-
-        // Process any remaining buffer
-        if (buffer.trim()) {
-          const patch = parsePatchLine(buffer);
+        for (const line of lines) {
+          const patch = parsePatchLine(line);
           if (patch) {
             currentTree = applyPatch(currentTree, patch);
             setTree({ ...currentTree });
           }
         }
-
-        onComplete?.(currentTree);
-      } catch (err) {
-        if ((err as Error).name === "AbortError") {
-          return;
-        }
-        const error = err instanceof Error ? err : new Error(String(err));
-        setError(error);
-        onError?.(error);
-      } finally {
-        setIsStreaming(false);
       }
-    },
-    [api, onComplete, onError],
-  );
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      abortControllerRef.current?.abort();
-    };
-  }, []);
+      // Process any remaining buffer
+      if (buffer.trim()) {
+        const patch = parsePatchLine(buffer);
+        if (patch) {
+          currentTree = applyPatch(currentTree, patch);
+          setTree({ ...currentTree });
+        }
+      }
+
+      options.onComplete?.(currentTree);
+    } catch (err) {
+      if ((err as Error).name === "AbortError") {
+        return;
+      }
+      const streamError = err instanceof Error ? err : new Error(String(err));
+      setError(streamError);
+      options.onError?.(streamError);
+    } finally {
+      setIsStreaming(false);
+    }
+  };
+
+  // Cleanup on disposal
+  onCleanup(() => {
+    abortController?.abort();
+  });
 
   return {
     tree,
@@ -218,6 +217,13 @@ export function useUIStream({
     clear,
   };
 }
+
+// Re-export with old name for backwards compatibility
+export { createUIStream as useUIStream };
+
+// Re-export types with old names for backwards compatibility
+export type UseUIStreamOptions = CreateUIStreamOptions;
+export type UseUIStreamReturn = CreateUIStreamReturn;
 
 /**
  * Convert a flat element list to a UITree

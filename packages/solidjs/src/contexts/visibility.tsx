@@ -1,11 +1,10 @@
-"use client";
-
-import React, {
+import {
   createContext,
   useContext,
-  useMemo,
-  type ReactNode,
-} from "react";
+  createMemo,
+  type JSX,
+  type Accessor,
+} from "solid-js";
 import {
   evaluateVisibility,
   type VisibilityCondition,
@@ -19,47 +18,41 @@ import { useData } from "./data";
 export interface VisibilityContextValue {
   /** Evaluate a visibility condition */
   isVisible: (condition: VisibilityCondition | undefined) => boolean;
-  /** The underlying visibility context */
-  ctx: CoreVisibilityContext;
+  /** The underlying visibility context (accessor) */
+  ctx: Accessor<CoreVisibilityContext>;
 }
 
-const VisibilityContext = createContext<VisibilityContextValue | null>(null);
+const VisibilityContext = createContext<VisibilityContextValue>();
 
 /**
  * Props for VisibilityProvider
  */
 export interface VisibilityProviderProps {
-  children: ReactNode;
+  children: JSX.Element;
 }
 
 /**
  * Provider for visibility evaluation
  */
-export function VisibilityProvider({ children }: VisibilityProviderProps) {
+export function VisibilityProvider(props: VisibilityProviderProps) {
   const { data, authState } = useData();
 
-  const ctx: CoreVisibilityContext = useMemo(
-    () => ({
-      dataModel: data,
-      authState,
-    }),
-    [data, authState],
-  );
+  const ctx = createMemo<CoreVisibilityContext>(() => ({
+    dataModel: data(),
+    authState: authState(),
+  }));
 
-  const isVisible = useMemo(
-    () => (condition: VisibilityCondition | undefined) =>
-      evaluateVisibility(condition, ctx),
-    [ctx],
-  );
+  const isVisible = (condition: VisibilityCondition | undefined): boolean =>
+    evaluateVisibility(condition, ctx());
 
-  const value = useMemo<VisibilityContextValue>(
-    () => ({ isVisible, ctx }),
-    [isVisible, ctx],
-  );
+  const value: VisibilityContextValue = {
+    isVisible,
+    ctx,
+  };
 
   return (
     <VisibilityContext.Provider value={value}>
-      {children}
+      {props.children}
     </VisibilityContext.Provider>
   );
 }

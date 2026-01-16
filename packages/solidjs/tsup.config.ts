@@ -6,5 +6,9 @@ export default defineConfig({
   dts: true,
   sourcemap: true,
   clean: true,
-  external: ["react", "react-dom", "@json-render/core"],
+  external: ["solid-js", "@json-render/core"],
+  esbuildOptions(options) {
+    options.jsx = "preserve";
+    options.jsxImportSource = "solid-js";
+  },
 });

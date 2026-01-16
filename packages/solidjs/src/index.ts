@@ -48,10 +48,13 @@ export {
   type JSONUIProviderProps,
 } from "./renderer";
 
-// Hooks
+// Primitives (SolidJS naming convention: create* instead of use*)
 export {
-  useUIStream,
+  createUIStream,
+  useUIStream, // backwards compatibility alias
   flatToTree,
-  type UseUIStreamOptions,
-  type UseUIStreamReturn,
+  type CreateUIStreamOptions,
+  type CreateUIStreamReturn,
+  type UseUIStreamOptions, // backwards compatibility alias
+  type UseUIStreamReturn, // backwards compatibility alias
 } from "./hooks";

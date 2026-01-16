@@ -37,9 +37,11 @@ describe("flatToTree", () => {
 
     const tree = flatToTree(elements);
 
-    expect(tree.elements["root"].children).toHaveLength(2);
-    expect(tree.elements["root"].children).toContain("child1");
-    expect(tree.elements["root"].children).toContain("child2");
+    const rootElement = tree.elements["root"];
+    expect(rootElement).toBeDefined();
+    expect(rootElement?.children).toHaveLength(2);
+    expect(rootElement?.children).toContain("child1");
+    expect(rootElement?.children).toContain("child2");
   });
 
   it("handles single root element", () => {
@@ -69,9 +71,9 @@ describe("flatToTree", () => {
     const tree = flatToTree(elements);
 
     expect(tree.root).toBe("level0");
-    expect(tree.elements["level0"].children).toContain("level1");
-    expect(tree.elements["level1"].children).toContain("level2");
-    expect(tree.elements["level2"].children).toContain("level3");
+    expect(tree.elements["level0"]?.children).toContain("level1");
+    expect(tree.elements["level1"]?.children).toContain("level2");
+    expect(tree.elements["level2"]?.children).toContain("level3");
   });
 
   it("preserves element props", () => {
@@ -86,7 +88,7 @@ describe("flatToTree", () => {
 
     const tree = flatToTree(elements);
 
-    expect(tree.elements["btn"].props).toEqual({
+    expect(tree.elements["btn"]?.props).toEqual({
       label: "Click me",
       variant: "primary",
     });
@@ -105,7 +107,7 @@ describe("flatToTree", () => {
 
     const tree = flatToTree(elements);
 
-    expect(tree.elements["conditional"].visible).toEqual({
+    expect(tree.elements["conditional"]?.visible).toEqual({
       path: "/isVisible",
     });
   });
@@ -145,7 +147,7 @@ describe("flatToTree", () => {
 
     const tree = flatToTree(elements);
 
-    expect(tree.elements["parent"].children).toHaveLength(4);
-    expect(tree.elements["parent"].children).toEqual(["a", "b", "c", "d"]);
+    expect(tree.elements["parent"]?.children).toHaveLength(4);
+    expect(tree.elements["parent"]?.children).toEqual(["a", "b", "c", "d"]);
   });
 });
