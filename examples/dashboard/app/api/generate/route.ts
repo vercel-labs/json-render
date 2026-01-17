@@ -71,7 +71,7 @@ export async function POST(req: Request) {
   }
 
   const result = streamText({
-    model: process.env.AI_MODEL || DEFAULT_MODEL,
+    model: process.env.AI_GATEWAY_MODEL || DEFAULT_MODEL,
     system: SYSTEM_PROMPT,
     prompt: fullPrompt,
     temperature: 0.7,

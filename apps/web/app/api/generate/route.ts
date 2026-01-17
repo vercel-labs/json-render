@@ -86,7 +86,7 @@ export async function POST(req: Request) {
   const sanitizedPrompt = String(prompt || "").slice(0, MAX_PROMPT_LENGTH);
 
   const result = streamText({
-    model: process.env.AI_MODEL || DEFAULT_MODEL,
+    model: process.env.AI_GATEWAY_MODEL || DEFAULT_MODEL,
     system: SYSTEM_PROMPT,
     prompt: sanitizedPrompt,
     temperature: 0.7,

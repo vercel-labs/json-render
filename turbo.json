@@ -1,7 +1,7 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
   "ui": "tui",
-  "globalEnv": ["AI_MODEL"],
+  "globalEnv": ["AI_GATEWAY_MODEL"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
