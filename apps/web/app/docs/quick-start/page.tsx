@@ -121,14 +121,14 @@ import { DataProvider, ActionProvider, VisibilityProvider, Renderer, useUIStream
 import { registry } from '@/components/registry';
 
 export default function Page() {
-  const { tree, isLoading, generate } = useUIStream({
-    endpoint: '/api/generate',
+  const { tree, isStreaming, send } = useUIStream({
+    api: '/api/generate',
   });
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    generate(formData.get('prompt') as string);
+    send(formData.get('prompt') as string);
   };
 
   return (
@@ -144,7 +144,7 @@ export default function Page() {
               placeholder="Describe what you want..."
               className="border p-2 rounded"
             />
-            <button type="submit" disabled={isLoading}>
+            <button type="submit" disabled={isStreaming}>
               Generate
             </button>
           </form>

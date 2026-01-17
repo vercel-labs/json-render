@@ -55,17 +55,17 @@ export async function POST(req: Request) {
 import { useUIStream } from '@json-render/react';
 
 function GenerativeUI() {
-  const { tree, isLoading, error, generate } = useUIStream({
-    endpoint: '/api/generate',
+  const { tree, isStreaming, error, send } = useUIStream({
+    api: '/api/generate',
   });
 
   return (
     <div>
       <button 
-        onClick={() => generate('Create a dashboard with metrics')}
-        disabled={isLoading}
+        onClick={() => send('Create a dashboard with metrics')}
+        disabled={isStreaming}
       >
-        {isLoading ? 'Generating...' : 'Generate'}
+        {isStreaming ? 'Generating...' : 'Generate'}
       </button>
       
       {error && <p className="text-red-500">{error.message}</p>}

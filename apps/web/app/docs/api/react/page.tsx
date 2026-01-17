@@ -63,13 +63,12 @@ interface ComponentProps {
 
       <h3 className="text-lg font-semibold mt-8 mb-4">useUIStream</h3>
       <Code lang="typescript">{`const {
-  tree,       // UITree - current UI state
-  isLoading,  // boolean - true while streaming
-  error,      // Error | null
-  generate,   // (prompt: string) => void
-  abort,      // () => void
+  tree,         // UITree - current UI state
+  isStreaming,  // boolean - true while streaming
+  error,        // Error | null
+  send,         // (prompt: string) => void
 } = useUIStream({
-  endpoint: string,
+  api: string,
 });`}</Code>
 
       <h3 className="text-lg font-semibold mt-8 mb-4">useData</h3>

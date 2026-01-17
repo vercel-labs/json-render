@@ -30,12 +30,12 @@ export default function StreamingPage() {
 function App() {
   const {
     tree,        // Current UI tree state
-    isLoading,   // True while streaming
+    isStreaming, // True while streaming
     error,       // Any error that occurred
-    generate,    // Function to start generation
+    send,        // Function to start generation
     abort,       // Function to cancel streaming
   } = useUIStream({
-    endpoint: '/api/generate',
+    api: '/api/generate',
   });
 }`}</Code>
 
@@ -101,11 +101,11 @@ function App() {
         The Renderer automatically updates as the tree changes:
       </p>
       <Code lang="tsx">{`function App() {
-  const { tree, isLoading } = useUIStream({ endpoint: '/api/generate' });
+  const { tree, isStreaming } = useUIStream({ api: '/api/generate' });
 
   return (
     <div>
-      {isLoading && <LoadingIndicator />}
+      {isStreaming && <LoadingIndicator />}
       <Renderer tree={tree} registry={registry} />
     </div>
   );
@@ -113,16 +113,16 @@ function App() {
 
       <h2 className="text-xl font-semibold mt-12 mb-4">Aborting Streams</h2>
       <Code lang="tsx">{`function App() {
-  const { isLoading, generate, abort } = useUIStream({
-    endpoint: '/api/generate',
+  const { isStreaming, send, abort } = useUIStream({
+    api: '/api/generate',
   });
 
   return (
     <div>
-      <button onClick={() => generate('Create dashboard')}>
+      <button onClick={() => send('Create dashboard')}>
         Generate
       </button>
-      {isLoading && (
+      {isStreaming && (
         <button onClick={abort}>Cancel</button>
       )}
     </div>
