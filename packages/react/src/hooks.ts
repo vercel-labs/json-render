@@ -2,80 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import type { UITree, UIElement, JsonPatch } from "@json-render/core";
-import { setByPath } from "@json-render/core";
-
-/**
- * Parse a single JSON patch line
- */
-function parsePatchLine(line: string): JsonPatch | null {
-  try {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("//")) {
-      return null;
-    }
-    return JSON.parse(trimmed) as JsonPatch;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Apply a JSON patch to the current tree
- */
-function applyPatch(tree: UITree, patch: JsonPatch): UITree {
-  const newTree = { ...tree, elements: { ...tree.elements } };
-
-  switch (patch.op) {
-    case "set":
-    case "add":
-    case "replace": {
-      // Handle root path
-      if (patch.path === "/root") {
-        newTree.root = patch.value as string;
-        return newTree;
-      }
-
-      // Handle elements paths
-      if (patch.path.startsWith("/elements/")) {
-        const pathParts = patch.path.slice("/elements/".length).split("/");
-        const elementKey = pathParts[0];
-
-        if (!elementKey) return newTree;
-
-        if (pathParts.length === 1) {
-          // Setting entire element
-          newTree.elements[elementKey] = patch.value as UIElement;
-        } else {
-          // Setting property of element
-          const element = newTree.elements[elementKey];
-          if (element) {
-            const propPath = "/" + pathParts.slice(1).join("/");
-            const newElement = { ...element };
-            setByPath(
-              newElement as unknown as Record<string, unknown>,
-              propPath,
-              patch.value,
-            );
-            newTree.elements[elementKey] = newElement;
-          }
-        }
-      }
-      break;
-    }
-    case "remove": {
-      if (patch.path.startsWith("/elements/")) {
-        const elementKey = patch.path.slice("/elements/".length).split("/")[0];
-        if (elementKey) {
-          const { [elementKey]: _, ...rest } = newTree.elements;
-          newTree.elements = rest;
-        }
-      }
-      break;
-    }
-  }
-
-  return newTree;
-}
+import { parsePatchLine, processPatch } from "./utils";
 
 /**
  * Options for useUIStream
@@ -87,6 +14,8 @@ export interface UseUIStreamOptions {
   onComplete?: (tree: UITree) => void;
   /** Callback on error */
   onError?: (error: Error) => void;
+  /** Callback for data patches */
+  onDataPatch?: (patch: JsonPatch) => void;
 }
 
 /**
@@ -112,6 +41,7 @@ export function useUIStream({
   api,
   onComplete,
   onError,
+  onDataPatch,
 }: UseUIStreamOptions): UseUIStreamReturn {
   const [tree, setTree] = useState<UITree | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -173,8 +103,11 @@ export function useUIStream({
           for (const line of lines) {
             const patch = parsePatchLine(line);
             if (patch) {
-              currentTree = applyPatch(currentTree, patch);
-              setTree({ ...currentTree });
+              const nextTree = processPatch(patch, currentTree, onDataPatch);
+              if (nextTree !== currentTree) {
+                currentTree = nextTree;
+                setTree({ ...currentTree });
+              }
             }
           }
         }
@@ -183,8 +116,11 @@ export function useUIStream({
         if (buffer.trim()) {
           const patch = parsePatchLine(buffer);
           if (patch) {
-            currentTree = applyPatch(currentTree, patch);
-            setTree({ ...currentTree });
+            const nextTree = processPatch(patch, currentTree, onDataPatch);
+            if (nextTree !== currentTree) {
+              currentTree = nextTree;
+              setTree({ ...currentTree });
+            }
           }
         }
 
@@ -200,7 +136,7 @@ export function useUIStream({
         setIsStreaming(false);
       }
     },
-    [api, onComplete, onError],
+    [api, onComplete, onError, onDataPatch],
   );
 
   // Cleanup on unmount

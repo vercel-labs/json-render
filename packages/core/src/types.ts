@@ -134,7 +134,8 @@ export type PatchOp = "add" | "remove" | "replace" | "set";
  */
 export interface JsonPatch {
   op: PatchOp;
-  path: string;
+  path?: string;
+  dataPath?: string;
   value?: unknown;
 }
 
