@@ -73,7 +73,68 @@ const registry = {
 };
 ```
 
-### 3. Let AI Generate
+### 3. Create Your API Route (backend)
+`useUIStream` expects JSONL patches from your API in this exact format:
+```jsonl
+{"op":"set","path":"/root","value":"element-key"}
+{"op":"set","path":"/elements/{key}","value":{"key":"...","type":"...","props":{...},"children":[...]}}
+```
+
+#### useUIStream Reference
+```typescript
+const { tree, isStreaming, error, send, clear } = useUIStream({
+  api: "/api/generate",
+  onComplete: (tree) => {},
+  onError: (error) => {},
+});
+
+// send() takes a STRING, not an object
+await send("Create a dashboard");
+```
+
+#### Example API Route (Next.js + AI SDK)
+
+```typescript
+// app/api/generate/route.ts
+import { openai } from "@ai-sdk/openai";
+import { streamText } from "ai";
+
+const SYSTEM_PROMPT = `Output JSONL patches to build UI. Format:
+{"op":"set","path":"/root","value":"key"}
+{"op":"set","path":"/elements/key","value":{"key":"...","type":"...","props":{...},"children":[...]}}
+
+Rules: One JSON per line. No markdown. children is array of key strings.`;
+
+export async function POST(req: Request) {
+  const { prompt } = await req.json();
+  const result = streamText({
+    model: openai("gpt-4o"),
+    system: SYSTEM_PROMPT,
+    prompt,
+  });
+  return result.toTextStreamResponse();
+}
+```
+
+#### Rendering the Tree
+
+The `Renderer` component requires context providers – use `JSONUIProvider`:
+
+```tsx
+import { Renderer, JSONUIProvider } from "@json-render/react";
+
+function App() {
+  const { tree, isStreaming } = useUIStream({ api: "/api/generate" });
+
+  return (
+    <JSONUIProvider registry={registry}>
+      {tree && <Renderer tree={tree} registry={registry} loading={isStreaming} />}
+    </JSONUIProvider>
+  );
+}
+```
+
+### 4. Let AI Generate
 
 ```tsx
 import { DataProvider, ActionProvider, Renderer, useUIStream } from '@json-render/react';
