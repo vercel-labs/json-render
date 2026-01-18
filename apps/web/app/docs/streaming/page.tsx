@@ -17,9 +17,10 @@ export default function StreamingPage() {
         json-render uses JSONL (JSON Lines) streaming. As AI generates, each
         line represents a patch operation:
       </p>
-      <Code lang="json">{`{"op":"set","path":"/root","value":{"key":"root","type":"Card","props":{"title":"Dashboard"}}}
-{"op":"add","path":"/root/children","value":{"key":"metric-1","type":"Metric","props":{"label":"Revenue"}}}
-{"op":"add","path":"/root/children","value":{"key":"metric-2","type":"Metric","props":{"label":"Users"}}}`}</Code>
+      <Code lang="json">{`{"op":"set","path":"/root","value":"dashboard"}
+{"op":"set","path":"/elements/dashboard","value":{"key":"dashboard","type":"Card","props":{"title":"Dashboard"},"children":["metric-1","metric-2"]}}
+{"op":"set","path":"/elements/metric-1","value":{"key":"metric-1","type":"Metric","props":{"label":"Revenue"}}}
+{"op":"set","path":"/elements/metric-2","value":{"key":"metric-2","type":"Metric","props":{"label":"Users"}}}`}</Code>
 
       <h2 className="text-xl font-semibold mt-12 mb-4">useUIStream Hook</h2>
       <p className="text-sm text-muted-foreground mb-4">
