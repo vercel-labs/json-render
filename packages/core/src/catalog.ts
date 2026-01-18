@@ -222,6 +222,37 @@ export function createCatalog<
   };
 }
 
+
+
+/**
+ * Generate JSONL output format instructions
+ */
+export function generateOutputFormatInstructions(): string {
+  return `## Output Format
+
+Wrap your JSONL output in a code block:
+\`\`\`jsonl
+{"op":"set","path":"/root","value":"root-key"}
+{"op":"add","path":"/elements/key","value":{"key":"...","type":"...","props":{...},"children":[...]}}
+\`\`\`
+
+No text before or after - ONLY the wrapped JSONL.
+
+### Rules
+1. First line sets /root to root element key
+2. Add elements with /elements/{key}
+3. Children array contains string keys, not objects
+4. Parent first, then children
+5. Each element needs: key, type, props
+
+### Example
+\`\`\`jsonl
+{"op":"set","path":"/root","value":"main"}
+{"op":"add","path":"/elements/main","value":{"key":"main","type":"Card","props":{"title":"Hello"},"children":[]}}
+\`\`\`
+`;
+}
+
 /**
  * Generate a prompt for AI that describes the catalog
  */
@@ -284,7 +315,7 @@ export function generateCatalogPrompt<
   }
   lines.push("");
 
-  return lines.join("\n");
+  return lines.join("\n") + generateOutputFormatInstructions();
 }
 
 /**
@@ -295,3 +326,4 @@ export type InferCatalogComponentProps<
 > = {
   [K in keyof C["components"]]: z.infer<C["components"][K]["props"]>;
 };
+
