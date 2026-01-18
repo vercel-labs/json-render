@@ -20,7 +20,7 @@ export function Rating({ element }: ComponentRenderProps) {
         {Array.from({ length: maxRating }).map((_, i) => (
           <span
             key={i}
-            className={`text-sm ${i < ratingValue ? "text-yellow-400" : "text-muted"}`}
+            className={`text-sm ${i < ratingValue ? "text-yellow-400" : "text-foreground/30"}`}
           >
             *
           </span>
