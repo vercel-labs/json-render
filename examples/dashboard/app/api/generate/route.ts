@@ -15,7 +15,7 @@ COMPONENT DETAILS:
 - Metric: { label: string, valuePath: string, format?: "number"|"currency"|"percent", trend?: "up"|"down"|"neutral", trendValue?: string }
 - Chart: { type: "bar"|"line"|"pie"|"area", dataPath: string, title?: string, height?: number }
 - Table: { dataPath: string, columns: [{ key: string, label: string, format?: "text"|"currency"|"date"|"badge" }] }
-- Button: { label: string, action: string, variant?: "primary"|"secondary"|"danger"|"ghost" }
+- Button: { label: string, action: "export_report"|"refresh_data"|"view_details"|"apply_filter", variant?: "primary"|"secondary"|"danger"|"ghost" }
 - Heading: { text: string, level?: "h1"|"h2"|"h3"|"h4" }
 - Text: { content: string, variant?: "body"|"caption"|"label", color?: "default"|"muted"|"success"|"warning"|"danger" }
 - Badge: { text: string, variant?: "default"|"success"|"warning"|"danger"|"info" }

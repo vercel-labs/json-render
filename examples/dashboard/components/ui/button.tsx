@@ -7,7 +7,7 @@ export function Button({ element, onAction, loading }: ComponentRenderProps) {
   const { label, variant, action, disabled } = element.props as {
     label: string;
     variant?: string | null;
-    action: { name: string };
+    action: string;
     disabled?: boolean | null;
   };
 
@@ -28,7 +28,7 @@ export function Button({ element, onAction, loading }: ComponentRenderProps) {
 
   return (
     <button
-      onClick={() => !disabled && action && onAction?.(action)}
+      onClick={() => !disabled && action && onAction?.({ name: action })}
       disabled={!!disabled || loading}
       style={{
         padding: "8px 16px",
