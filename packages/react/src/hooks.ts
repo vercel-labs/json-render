@@ -108,7 +108,7 @@ export function useUITree(options?: UseUITreeOptions): UseUITreeReturn {
   );
 
   const applyPatchFn = useCallback((patch: JsonPatch) => {
-    setTree((current) => ({ ...applyPatch(current, patch) }));
+    setTree((current) => applyPatch(current, patch));
   }, []);
 
   const clear = useCallback(() => {
