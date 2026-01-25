@@ -78,6 +78,47 @@ function applyPatch(tree: UITree, patch: JsonPatch): UITree {
 }
 
 /**
+ * Options for useUITree
+ */
+export interface UseUITreeOptions {
+  /** Initial tree state */
+  initialTree?: UITree;
+}
+
+/**
+ * Return type for useUITree
+ */
+export interface UseUITreeReturn {
+  /** Current UI tree */
+  tree: UITree;
+  /** Apply a patch to the tree */
+  applyPatch: (patch: JsonPatch) => void;
+  /** Replace the entire tree */
+  setTree: (tree: UITree) => void;
+  /** Reset to empty tree */
+  clear: () => void;
+}
+
+/**
+ * Hook for managing a UI tree from external patch sources.
+ */
+export function useUITree(options?: UseUITreeOptions): UseUITreeReturn {
+  const [tree, setTree] = useState<UITree>(
+    options?.initialTree ?? { root: "", elements: {} },
+  );
+
+  const applyPatchFn = useCallback((patch: JsonPatch) => {
+    setTree((current) => applyPatch(current, patch));
+  }, []);
+
+  const clear = useCallback(() => {
+    setTree({ root: "", elements: {} });
+  }, []);
+
+  return { tree, applyPatch: applyPatchFn, setTree, clear };
+}
+
+/**
  * Options for useUIStream
  */
 export interface UseUIStreamOptions {

@@ -1,5 +1,40 @@
 import { describe, it, expect } from "vitest";
-import { flatToTree } from "./hooks";
+import { renderHook, act } from "@testing-library/react";
+import { flatToTree, useUITree } from "./hooks";
+import type { UITree } from "@json-render/core";
+
+describe("useUITree", () => {
+  it("starts with empty tree by default", () => {
+    const { result } = renderHook(() => useUITree());
+    expect(result.current.tree).toEqual({ root: "", elements: {} });
+  });
+
+  it("applies patches", () => {
+    const { result } = renderHook(() => useUITree());
+    act(() => {
+      result.current.applyPatch({ op: "set", path: "/root", value: "main" });
+      result.current.applyPatch({
+        op: "add",
+        path: "/elements/main",
+        value: { key: "main", type: "Stack", props: {} },
+      });
+    });
+    expect(result.current.tree.root).toBe("main");
+    expect(result.current.tree.elements["main"]).toBeDefined();
+  });
+
+  it("clears tree", () => {
+    const initialTree: UITree = {
+      root: "main",
+      elements: { main: { key: "main", type: "Stack", props: {} } },
+    };
+    const { result } = renderHook(() => useUITree({ initialTree }));
+    act(() => {
+      result.current.clear();
+    });
+    expect(result.current.tree).toEqual({ root: "", elements: {} });
+  });
+});
 
 describe("flatToTree", () => {
   it("converts array of elements to tree structure", () => {
