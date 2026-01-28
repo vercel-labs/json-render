@@ -1,23 +1,23 @@
-import Link from "next/link";
-import { Code } from "@/components/code";
+import Link from 'next/link';
+import { Code } from '@/components/code';
 
 export const metadata = {
-  title: "Validation | json-render",
+  title: 'Validation | json-render',
 };
 
 export default function ValidationPage() {
   return (
     <article>
-      <h1 className="text-3xl font-bold mb-4">Validation</h1>
+      <h1 className="mb-4 text-3xl font-bold">Validation</h1>
       <p className="text-muted-foreground mb-8">
         Validate form inputs with built-in and custom functions.
       </p>
 
-      <h2 className="text-xl font-semibold mt-12 mb-4">Built-in Validators</h2>
-      <p className="text-sm text-muted-foreground mb-4">
+      <h2 className="mt-12 mb-4 text-xl font-semibold">Built-in Validators</h2>
+      <p className="text-muted-foreground mb-4 text-sm">
         json-render includes common validation functions:
       </p>
-      <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 mb-4">
+      <ul className="text-muted-foreground mb-4 list-inside list-disc space-y-1 text-sm">
         <li>
           <code className="text-foreground">required</code> — Value must be
           non-empty
@@ -43,9 +43,18 @@ export default function ValidationPage() {
         <li>
           <code className="text-foreground">max</code> — Maximum numeric value
         </li>
+        <li>
+          <code className="text-foreground">numeric</code> — Numeric value
+        </li>
+        <li>
+          <code className="text-foreground">url</code> — Valid url format
+        </li>
+        <li>
+          <code className="text-foreground">matches</code> — Matches a value
+        </li>
       </ul>
 
-      <h2 className="text-xl font-semibold mt-12 mb-4">
+      <h2 className="mt-12 mb-4 text-xl font-semibold">
         Using Validation in JSON
       </h2>
       <Code lang="json">{`{
@@ -61,7 +70,7 @@ export default function ValidationPage() {
   }
 }`}</Code>
 
-      <h2 className="text-xl font-semibold mt-12 mb-4">
+      <h2 className="mt-12 mb-4 text-xl font-semibold">
         Validation with Parameters
       </h2>
       <Code lang="json">{`{
@@ -71,8 +80,8 @@ export default function ValidationPage() {
     "valuePath": "/form/password",
     "checks": [
       { "fn": "required", "message": "Password is required" },
-      { 
-        "fn": "minLength", 
+      {
+        "fn": "minLength",
         "args": { "length": 8 },
         "message": "Password must be at least 8 characters"
       },
@@ -85,10 +94,10 @@ export default function ValidationPage() {
   }
 }`}</Code>
 
-      <h2 className="text-xl font-semibold mt-12 mb-4">
+      <h2 className="mt-12 mb-4 text-xl font-semibold">
         Custom Validation Functions
       </h2>
-      <p className="text-sm text-muted-foreground mb-4">
+      <p className="text-muted-foreground mb-4 text-sm">
         Define custom validators in your catalog:
       </p>
       <Code lang="typescript">{`const catalog = createCatalog({
@@ -103,7 +112,7 @@ export default function ValidationPage() {
   },
 });`}</Code>
 
-      <p className="text-sm text-muted-foreground mb-4">
+      <p className="text-muted-foreground mb-4 text-sm">
         Then implement them in your ValidationProvider:
       </p>
       <Code lang="tsx">{`import { ValidationProvider } from '@json-render/react';
@@ -128,7 +137,7 @@ function App() {
   );
 }`}</Code>
 
-      <h2 className="text-xl font-semibold mt-12 mb-4">Using in Components</h2>
+      <h2 className="mt-12 mb-4 text-xl font-semibold">Using in Components</h2>
       <Code lang="tsx">{`import { useFieldValidation } from '@json-render/react';
 
 function TextField({ element }) {
@@ -152,12 +161,12 @@ function TextField({ element }) {
   );
 }`}</Code>
 
-      <h2 className="text-xl font-semibold mt-12 mb-4">Validation Timing</h2>
-      <p className="text-sm text-muted-foreground mb-4">
-        Control when validation runs with{" "}
+      <h2 className="mt-12 mb-4 text-xl font-semibold">Validation Timing</h2>
+      <p className="text-muted-foreground mb-4 text-sm">
+        Control when validation runs with{' '}
         <code className="text-foreground">validateOn</code>:
       </p>
-      <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+      <ul className="text-muted-foreground list-inside list-disc space-y-1 text-sm">
         <li>
           <code className="text-foreground">change</code> — Validate on every
           input change
@@ -172,9 +181,9 @@ function TextField({ element }) {
         </li>
       </ul>
 
-      <h2 className="text-xl font-semibold mt-12 mb-4">Next</h2>
-      <p className="text-sm text-muted-foreground">
-        Learn about{" "}
+      <h2 className="mt-12 mb-4 text-xl font-semibold">Next</h2>
+      <p className="text-muted-foreground text-sm">
+        Learn about{' '}
         <Link href="/docs/ai-sdk" className="text-foreground hover:underline">
           AI SDK integration
         </Link>
