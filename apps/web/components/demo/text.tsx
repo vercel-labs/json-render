@@ -16,7 +16,7 @@ export function Text({ element }: ComponentRenderProps) {
 
   return (
     <p className={`${textClass} text-left ${baseClass} ${customClass}`}>
-      {props.content as string}
+      {(props.text ?? props.content) as string}
     </p>
   );
 }

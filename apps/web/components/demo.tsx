@@ -1044,9 +1044,16 @@ Open [http://localhost:3000](http://localhost:3000) to view.
             ))}
           </div>
         ) : (
-          <div className="mt-2 text-xs text-muted-foreground text-center">
-            Try: &quot;Create a login form&quot; or &quot;Build a feedback form
-            with rating&quot;
+          <div className="mt-2 flex flex-wrap gap-1.5 justify-center">
+            {EXAMPLE_PROMPTS.slice(0, 2).map((prompt) => (
+              <button
+                key={prompt}
+                onClick={() => handleExampleClick(prompt)}
+                className="text-xs px-2 py-1 rounded-full border border-border text-muted-foreground hover:text-foreground hover:border-foreground/50 transition-colors"
+              >
+                {prompt}
+              </button>
+            ))}
           </div>
         )}
       </div>

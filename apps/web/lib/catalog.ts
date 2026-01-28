@@ -26,7 +26,11 @@ export const playgroundCatalog = createCatalog({
     Stack: {
       props: z.object({
         direction: z.enum(["horizontal", "vertical"]).optional(),
-        gap: z.enum(["sm", "md", "lg"]).optional(),
+        gap: z.enum(["none", "sm", "md", "lg"]).optional(),
+        align: z.enum(["start", "center", "end", "stretch"]).optional(),
+        justify: z
+          .enum(["start", "center", "end", "between", "around"])
+          .optional(),
         className: z.array(z.string()).optional(),
       }),
       hasChildren: true,
@@ -36,14 +40,20 @@ export const playgroundCatalog = createCatalog({
     Grid: {
       props: z.object({
         columns: z
-          .union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)])
+          .union([
+            z.literal(1),
+            z.literal(2),
+            z.literal(3),
+            z.literal(4),
+            z.literal(5),
+            z.literal(6),
+          ])
           .optional(),
         gap: z.enum(["sm", "md", "lg"]).optional(),
         className: z.array(z.string()).optional(),
       }),
       hasChildren: true,
-      description:
-        "Grid layout. ALWAYS use mobile-first: set columns:1 and use className for larger screens.",
+      description: "Grid layout (1-6 columns)",
     },
 
     Divider: {
@@ -152,7 +162,7 @@ export const playgroundCatalog = createCatalog({
 
     Text: {
       props: z.object({
-        content: z.string(),
+        text: z.string(),
         variant: z.enum(["body", "caption", "muted"]).optional(),
         className: z.array(z.string()).optional(),
       }),
@@ -162,13 +172,12 @@ export const playgroundCatalog = createCatalog({
     // Data Display
     Image: {
       props: z.object({
-        src: z.string(),
         alt: z.string(),
         width: z.number().optional(),
         height: z.number().optional(),
         className: z.array(z.string()).optional(),
       }),
-      description: "Image element",
+      description: "Placeholder image (displays alt text in a styled box)",
     },
 
     Avatar: {

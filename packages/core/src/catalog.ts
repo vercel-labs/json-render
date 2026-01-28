@@ -512,6 +512,7 @@ export function generateSystemPrompt<
     "Children array contains string keys, not objects",
     "Parent first, then children",
     "Each element needs: key, type, props",
+    "ONLY use props listed above - never invent new props",
   ];
   const allRules = [...baseRules, ...customRules];
   allRules.forEach((rule, i) => {

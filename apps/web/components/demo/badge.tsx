@@ -20,7 +20,7 @@ export function Badge({ element }: ComponentRenderProps) {
     <span
       className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${badgeClass} ${baseClass} ${customClass}`}
     >
-      {props.text as string}
+      {(props.text ?? props.label) as string}
     </span>
   );
 }
