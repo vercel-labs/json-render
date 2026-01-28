@@ -13,6 +13,7 @@ import {
   type ValidationConfig,
   type ValidationFunction,
   type ValidationResult,
+  getByPath,
 } from "@json-render/core";
 import { useData } from "./data";
 
@@ -83,7 +84,7 @@ export function ValidationProvider({
 
   const validate = useCallback(
     (path: string, config: ValidationConfig): ValidationResult => {
-      const value = data[path.split("/").filter(Boolean).join(".")];
+      const value = getByPath(data, path);
       const result = runValidation(config, {
         value,
         dataModel: data,
