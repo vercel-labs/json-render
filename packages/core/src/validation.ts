@@ -1,7 +1,7 @@
-import { z } from "zod";
-import type { DynamicValue, DataModel, LogicExpression } from "./types";
-import { DynamicValueSchema, resolveDynamicValue } from "./types";
-import { LogicExpressionSchema, evaluateLogicExpression } from "./visibility";
+import { z } from 'zod';
+import type { DynamicValue, DataModel, LogicExpression } from './types';
+import { DynamicValueSchema, resolveDynamicValue } from './types';
+import { LogicExpressionSchema, evaluateLogicExpression } from './visibility';
 
 /**
  * Validation check definition
@@ -22,7 +22,7 @@ export interface ValidationConfig {
   /** Array of checks to run */
   checks?: ValidationCheck[];
   /** When to run validation */
-  validateOn?: "change" | "blur" | "submit";
+  validateOn?: 'change' | 'blur' | 'submit';
   /** Condition for when validation is enabled */
   enabled?: LogicExpression;
 }
@@ -41,7 +41,7 @@ export const ValidationCheckSchema = z.object({
  */
 export const ValidationConfigSchema = z.object({
   checks: z.array(ValidationCheckSchema).optional(),
-  validateOn: z.enum(["change", "blur", "submit"]).optional(),
+  validateOn: z.enum(['change', 'blur', 'submit']).optional(),
   enabled: LogicExpressionSchema.optional(),
 });
 
@@ -50,7 +50,7 @@ export const ValidationConfigSchema = z.object({
  */
 export type ValidationFunction = (
   value: unknown,
-  args?: Record<string, unknown>,
+  args?: Record<string, unknown>
 ) => boolean;
 
 /**
@@ -72,7 +72,7 @@ export const builtInValidationFunctions: Record<string, ValidationFunction> = {
    */
   required: (value: unknown) => {
     if (value === null || value === undefined) return false;
-    if (typeof value === "string") return value.trim().length > 0;
+    if (typeof value === 'string') return value.trim().length > 0;
     if (Array.isArray(value)) return value.length > 0;
     return true;
   },
@@ -81,7 +81,7 @@ export const builtInValidationFunctions: Record<string, ValidationFunction> = {
    * Check if value is a valid email address
    */
   email: (value: unknown) => {
-    if (typeof value !== "string") return false;
+    if (typeof value !== 'string') return false;
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
   },
 
@@ -89,9 +89,13 @@ export const builtInValidationFunctions: Record<string, ValidationFunction> = {
    * Check minimum string length
    */
   minLength: (value: unknown, args?: Record<string, unknown>) => {
-    if (typeof value !== "string") return false;
+    if (typeof value !== 'string') return false;
     const min = args?.min;
-    if (typeof min !== "number") return false;
+    if (min === undefined) {
+      console.warn('minLength validation requires a min argument');
+      return false;
+    }
+    if (typeof min !== 'number') return false;
     return value.length >= min;
   },
 
@@ -99,9 +103,13 @@ export const builtInValidationFunctions: Record<string, ValidationFunction> = {
    * Check maximum string length
    */
   maxLength: (value: unknown, args?: Record<string, unknown>) => {
-    if (typeof value !== "string") return false;
+    if (typeof value !== 'string') return false;
     const max = args?.max;
-    if (typeof max !== "number") return false;
+    if (max === undefined) {
+      console.warn('maxLength validation requires a max argument');
+      return false;
+    }
+    if (typeof max !== 'number') return false;
     return value.length <= max;
   },
 
@@ -109,9 +117,13 @@ export const builtInValidationFunctions: Record<string, ValidationFunction> = {
    * Check if string matches a regex pattern
    */
   pattern: (value: unknown, args?: Record<string, unknown>) => {
-    if (typeof value !== "string") return false;
+    if (typeof value !== 'string') return false;
     const pattern = args?.pattern;
-    if (typeof pattern !== "string") return false;
+    if (pattern === undefined) {
+      console.warn('pattern validation requires a pattern argument');
+      return false;
+    }
+    if (typeof pattern !== 'string') return false;
     try {
       return new RegExp(pattern).test(value);
     } catch {
@@ -123,9 +135,13 @@ export const builtInValidationFunctions: Record<string, ValidationFunction> = {
    * Check minimum numeric value
    */
   min: (value: unknown, args?: Record<string, unknown>) => {
-    if (typeof value !== "number") return false;
+    if (typeof value !== 'number') return false;
     const min = args?.min;
-    if (typeof min !== "number") return false;
+    if (min === undefined) {
+      console.warn('min validation requires a min argument');
+      return false;
+    }
+    if (typeof min !== 'number') return false;
     return value >= min;
   },
 
@@ -133,9 +149,13 @@ export const builtInValidationFunctions: Record<string, ValidationFunction> = {
    * Check maximum numeric value
    */
   max: (value: unknown, args?: Record<string, unknown>) => {
-    if (typeof value !== "number") return false;
+    if (typeof value !== 'number') return false;
     const max = args?.max;
-    if (typeof max !== "number") return false;
+    if (max === undefined) {
+      console.warn('max validation requires a max argument');
+      return false;
+    }
+    if (typeof max !== 'number') return false;
     return value <= max;
   },
 
@@ -143,8 +163,8 @@ export const builtInValidationFunctions: Record<string, ValidationFunction> = {
    * Check if value is a number
    */
   numeric: (value: unknown) => {
-    if (typeof value === "number") return !isNaN(value);
-    if (typeof value === "string") return !isNaN(parseFloat(value));
+    if (typeof value === 'number') return !isNaN(value);
+    if (typeof value === 'string') return !isNaN(parseFloat(value));
     return false;
   },
 
@@ -152,7 +172,7 @@ export const builtInValidationFunctions: Record<string, ValidationFunction> = {
    * Check if value is a valid URL
    */
   url: (value: unknown) => {
-    if (typeof value !== "string") return false;
+    if (typeof value !== 'string') return false;
     try {
       new URL(value);
       return true;
@@ -166,6 +186,10 @@ export const builtInValidationFunctions: Record<string, ValidationFunction> = {
    */
   matches: (value: unknown, args?: Record<string, unknown>) => {
     const other = args?.other;
+    if (other === undefined) {
+      console.warn('matches validation requires a value argument');
+      return false;
+    }
     return value === other;
   },
 };
@@ -205,7 +229,7 @@ export interface ValidationContext {
  */
 export function runValidationCheck(
   check: ValidationCheck,
-  ctx: ValidationContext,
+  ctx: ValidationContext
 ): ValidationCheckResult {
   const { value, dataModel, customFunctions } = ctx;
 
@@ -244,7 +268,7 @@ export function runValidationCheck(
  */
 export function runValidation(
   config: ValidationConfig,
-  ctx: ValidationContext & { authState?: { isSignedIn: boolean } },
+  ctx: ValidationContext & { authState?: { isSignedIn: boolean } }
 ): ValidationResult {
   const checks: ValidationCheckResult[] = [];
   const errors: string[] = [];
@@ -282,56 +306,56 @@ export function runValidation(
  * Helper to create validation checks
  */
 export const check = {
-  required: (message = "This field is required"): ValidationCheck => ({
-    fn: "required",
+  required: (message = 'This field is required'): ValidationCheck => ({
+    fn: 'required',
     message,
   }),
 
-  email: (message = "Invalid email address"): ValidationCheck => ({
-    fn: "email",
+  email: (message = 'Invalid email address'): ValidationCheck => ({
+    fn: 'email',
     message,
   }),
 
   minLength: (min: number, message?: string): ValidationCheck => ({
-    fn: "minLength",
+    fn: 'minLength',
     args: { min },
     message: message ?? `Must be at least ${min} characters`,
   }),
 
   maxLength: (max: number, message?: string): ValidationCheck => ({
-    fn: "maxLength",
+    fn: 'maxLength',
     args: { max },
     message: message ?? `Must be at most ${max} characters`,
   }),
 
-  pattern: (pattern: string, message = "Invalid format"): ValidationCheck => ({
-    fn: "pattern",
+  pattern: (pattern: string, message = 'Invalid format'): ValidationCheck => ({
+    fn: 'pattern',
     args: { pattern },
     message,
   }),
 
   min: (min: number, message?: string): ValidationCheck => ({
-    fn: "min",
+    fn: 'min',
     args: { min },
     message: message ?? `Must be at least ${min}`,
   }),
 
   max: (max: number, message?: string): ValidationCheck => ({
-    fn: "max",
+    fn: 'max',
     args: { max },
     message: message ?? `Must be at most ${max}`,
   }),
 
-  url: (message = "Invalid URL"): ValidationCheck => ({
-    fn: "url",
+  url: (message = 'Invalid URL'): ValidationCheck => ({
+    fn: 'url',
     message,
   }),
 
   matches: (
     otherPath: string,
-    message = "Fields must match",
+    message = 'Fields must match'
   ): ValidationCheck => ({
-    fn: "matches",
+    fn: 'matches',
     args: { other: { path: otherPath } },
     message,
   }),
