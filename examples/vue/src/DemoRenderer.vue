@@ -49,6 +49,7 @@ const handlers = {
       }>
     ).slice();
     const item = todos[index];
+    console.log("item", item);
     if (item) {
       todos[index] = { ...item, completed: !item.completed };
     }

@@ -1,7 +1,7 @@
 import "./shared/styles.css";
 import { demoSpec } from "./spec";
 
-type Renderer = "vue" | "react";
+type Renderer = "vue" | "react" | "svelte";
 
 const container = document.getElementById("renderer-root") as HTMLElement;
 
@@ -14,8 +14,12 @@ async function switchTo(renderer: Renderer) {
     const mod = await import("./vue/mount.ts");
     mod.mount(container, renderer, demoSpec);
     unmountCurrent = mod.unmount;
-  } else {
+  } else if (renderer === "react") {
     const mod = await import("./react/mount.tsx");
+    mod.mount(container, renderer, demoSpec);
+    unmountCurrent = mod.unmount;
+  } else {
+    const mod = await import("./svelte/mount.ts");
     mod.mount(container, renderer, demoSpec);
     unmountCurrent = mod.unmount;
   }

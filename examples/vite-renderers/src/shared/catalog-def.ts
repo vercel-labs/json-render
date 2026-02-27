@@ -65,7 +65,7 @@ export const catalogDef = {
       props: z.object({ renderer: z.string() }),
       slots: [],
       description:
-        "Segmented tab control for switching between Vue and React renderers",
+        "Segmented tab control for switching between Vue, React, and Svelte renderers",
     },
     RendererBadge: {
       props: z.object({ renderer: z.string() }),
@@ -94,6 +94,10 @@ export const catalogDef = {
     switchToReact: {
       params: z.object({}),
       description: "Switch to the React renderer",
+    },
+    switchToSvelte: {
+      params: z.object({}),
+      description: "Switch to the Svelte renderer",
     },
   },
 };

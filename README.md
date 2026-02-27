@@ -9,6 +9,8 @@ Generate dynamic, personalized UIs from prompts without sacrificing reliability.
 npm install @json-render/core @json-render/react
 # for React with pre-built shadcn/ui components
 npm install @json-render/shadcn
+# for Svelte with pre-built shadcn-svelte components
+npm install @json-render/shadcn-svelte
 # or for React Native
 npm install @json-render/core @json-render/react-native
 # or for video
@@ -113,8 +115,10 @@ function Dashboard({ spec }) {
 |---------|-------------|
 | `@json-render/core` | Schemas, catalogs, AI prompts, dynamic props, SpecStream utilities |
 | `@json-render/react` | React renderer, contexts, hooks |
+| `@json-render/svelte` | Svelte 5 renderer, providers, and helpers |
 | `@json-render/vue` | Vue 3 renderer, composables, providers |
 | `@json-render/shadcn` | 36 pre-built shadcn/ui components (Radix UI + Tailwind CSS) |
+| `@json-render/shadcn-svelte` | 36 pre-built shadcn-svelte components (Svelte 5 + Tailwind CSS) |
 | `@json-render/react-native` | React Native renderer with standard mobile components |
 | `@json-render/remotion` | Remotion video renderer, timeline schema |
 | `@json-render/react-pdf` | React PDF renderer for generating PDF documents from specs |
@@ -394,8 +398,9 @@ pnpm dev
 - http://dashboard-demo.json-render.localhost:1355 - Example Dashboard
 - http://remotion-demo.json-render.localhost:1355 - Remotion Video Example
 - Chat Example: run `pnpm dev` in `examples/chat`
+- Svelte Example: run `pnpm dev` in `examples/svelte` or `examples/svelte-chat`
 - Vue Example: run `pnpm dev` in `examples/vue`
-- Vite Renderers (React + Vue): run `pnpm dev` in `examples/vite-renderers`
+- Vite Renderers (React + Vue + Svelte): run `pnpm dev` in `examples/vite-renderers`
 - React Native example: run `npx expo start` in `examples/react-native`
 
 ## How It Works

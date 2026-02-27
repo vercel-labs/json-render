@@ -1,0 +1,11 @@
+{
+  "extends": "@internal/typescript-config/base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "types": ["svelte"],
+    "verbatimModuleSyntax": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist", "./**/*.test.ts"]
+}

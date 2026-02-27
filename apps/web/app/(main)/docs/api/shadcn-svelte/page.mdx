@@ -1,0 +1,59 @@
+import { pageMetadata } from "@/lib/page-metadata"
+export const metadata = pageMetadata("docs/api/shadcn-svelte")
+
+# @json-render/shadcn-svelte
+
+Pre-built [shadcn-svelte](https://www.shadcn-svelte.com/) components for json-render. 36 components built on Svelte 5 + Tailwind CSS, ready to use with `schema.createCatalog` and `defineRegistry`.
+
+## Installation
+
+```bash
+npm install @json-render/shadcn-svelte @json-render/core @json-render/svelte zod
+```
+
+Your app must have Tailwind CSS configured.
+
+## Entry Points
+
+| Entry Point | Exports | Use For |
+|-------------|---------|---------|
+| `@json-render/shadcn-svelte` | `shadcnComponents`, `shadcnComponentDefinitions` | Svelte implementations + shared definitions |
+| `@json-render/shadcn-svelte/catalog` | `shadcnComponentDefinitions` | Catalog schemas (server-safe, no renderer dependency) |
+
+## Usage
+
+Pick the components you need from the standard definitions:
+
+```typescript
+import { schema } from "@json-render/svelte/schema";
+import { shadcnComponentDefinitions } from "@json-render/shadcn-svelte/catalog";
+import { defineRegistry } from "@json-render/svelte";
+import { shadcnComponents } from "@json-render/shadcn-svelte";
+
+const catalog = schema.createCatalog({
+  components: {
+    Card: shadcnComponentDefinitions.Card,
+    Stack: shadcnComponentDefinitions.Stack,
+    Heading: shadcnComponentDefinitions.Heading,
+    Button: shadcnComponentDefinitions.Button,
+    Input: shadcnComponentDefinitions.Input,
+  },
+  actions: {},
+});
+
+const { registry } = defineRegistry(catalog, {
+  components: {
+    Card: shadcnComponents.Card,
+    Stack: shadcnComponents.Stack,
+    Heading: shadcnComponents.Heading,
+    Button: shadcnComponents.Button,
+    Input: shadcnComponents.Input,
+  },
+});
+```
+
+## Notes
+
+- Built-in state actions (`setState`, `pushState`, `removeState`, `validateForm`) come from `@json-render/svelte`
+- Components rely on Tailwind utility classes and design tokens
+- Form components support `checks` and `validateOn` validation timing

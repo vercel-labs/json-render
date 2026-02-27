@@ -128,7 +128,11 @@ export const components: Components<AppCatalog> = {
   RendererBadge: ({ props }) =>
     h("span", { class: "json-render-renderer-badge" }, [
       h("span", { class: "json-render-renderer-dot" }),
-      props.renderer === "vue" ? "Rendered with Vue" : "Rendered with React",
+      props.renderer === "vue"
+        ? "Rendered with Vue"
+        : props.renderer === "react"
+          ? "Rendered with React"
+          : "Rendered with Svelte",
     ]),
 
   RendererTabs: ({ props, emit }) =>
@@ -160,6 +164,19 @@ export const components: Components<AppCatalog> = {
               .join(" "),
           },
           "React",
+        ),
+        h(
+          "button",
+          {
+            onClick: () => emit("pressSvelte"),
+            class: [
+              "json-render-renderer-tab",
+              props.renderer === "svelte" && "json-render-renderer-tab--active",
+            ]
+              .filter(Boolean)
+              .join(" "),
+          },
+          "Svelte",
         ),
       ]),
     ]),

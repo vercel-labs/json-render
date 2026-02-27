@@ -11,7 +11,7 @@
     "@json-render/core": "workspace:*",
     "@json-render/vue": "workspace:*",
     "vue": "^3.5.0",
-    "zod": "^4.3.6"
+    "zod": "4.3.5"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.4",

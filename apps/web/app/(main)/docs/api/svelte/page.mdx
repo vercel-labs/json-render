@@ -1,0 +1,126 @@
+import { pageMetadata } from "@/lib/page-metadata"
+export const metadata = pageMetadata("docs/api/svelte")
+
+# @json-render/svelte
+
+Svelte 5 components, providers, and helpers for rendering json-render specs.
+
+## Installation
+
+<PackageInstall packages="@json-render/core @json-render/svelte" />
+
+Peer dependencies: `svelte ^5.0.0` and `zod ^4.0.0`.
+
+<PackageInstall packages="svelte zod" />
+
+## Components
+
+### Renderer
+
+```svelte
+<Renderer
+  spec={spec}       // Spec | null
+  registry={registry}
+  loading={false}
+/>
+```
+
+Renders a spec with your component registry. If `spec` is `null`, it renders nothing.
+
+### JsonUIProvider
+
+Convenience wrapper around `StateProvider`, `VisibilityProvider`, `ValidationProvider`, and `ActionProvider`.
+
+```svelte
+<JsonUIProvider
+  initialState={{}}
+  handlers={handlers}
+  validationFunctions={validationFunctions}
+>
+  <Renderer {spec} {registry} />
+</JsonUIProvider>
+```
+
+## defineRegistry
+
+Create a typed component registry and action handlers from a catalog.
+
+```typescript
+import { defineRegistry } from "@json-render/svelte";
+
+const { registry, handlers, executeAction } = defineRegistry(catalog, {
+  components: {
+    Card,
+    Button,
+  },
+  actions: {
+    submit: async (params, setState, state) => {
+      // custom action logic
+    },
+  },
+});
+```
+
+`handlers` is designed for `JsonUIProvider`/`ActionProvider`. `executeAction` is an imperative helper.
+
+## Component Props
+
+Registry components receive `BaseComponentProps<TProps>`:
+
+```typescript
+interface BaseComponentProps<TProps> {
+  props: TProps;
+  children?: Snippet;
+  emit: (event: string) => void;
+  bindings?: Record<string, string>;
+  loading?: boolean;
+}
+```
+
+Use `emit("eventName")` to trigger handlers declared in the spec `on` bindings.
+
+## Context Helpers
+
+Use these helpers inside Svelte components:
+
+- `getStateValue(path)` - read/write state via `.current`
+- `getBoundProp(() => value, () => bindingPath)` - write back resolved `$bindState` / `$bindItem` values
+- `isVisible(condition)` - evaluate visibility via `.current`
+- `getAction(name)` - read a registered action handler via `.current`
+- `getFieldValidation(ctx, path, config)` - get field validation state + actions
+
+For advanced usage, access full contexts:
+
+- `getStateContext()`
+- `getActionContext()`
+- `getVisibilityContext()`
+- `getValidationContext()`
+- `getOptionalValidationContext()`
+
+## Streaming
+
+### createUIStream
+
+```typescript
+const stream = createUIStream({
+  api: "/api/generate-ui",
+  onComplete: (spec) => console.log(spec),
+});
+
+await stream.send("Create a login form");
+
+console.log(stream.spec);
+console.log(stream.isStreaming);
+```
+
+### createChatUI
+
+```typescript
+const chat = createChatUI({ api: "/api/chat-ui" });
+await chat.send("Build a settings panel");
+console.log(chat.messages, chat.isStreaming);
+```
+
+## Schema Export
+
+Use `schema` from `@json-render/svelte` when defining catalogs for Svelte specs.
