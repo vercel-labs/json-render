@@ -35,7 +35,6 @@
     "husky": "^9.1.7",
     "jsdom": "^27.4.0",
     "lint-staged": "^16.2.7",
-    "portless": "^0.4.1",
     "prettier": "^3.7.4",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
