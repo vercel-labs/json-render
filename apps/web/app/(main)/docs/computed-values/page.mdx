@@ -1,0 +1,119 @@
+import { pageMetadata } from "@/lib/page-metadata"
+export const metadata = pageMetadata("docs/computed-values")
+
+# Computed Values
+
+Derive dynamic prop values using registered functions or string templates.
+
+## `$template` — String Interpolation
+
+Use `{ "$template": "..." }` to embed state values into a string. References use `${/path}` syntax where the path is a JSON Pointer:
+
+```json
+{
+  "type": "Text",
+  "props": {
+    "text": { "$template": "Hello, ${/user/name}! You have ${/inbox/count} messages." }
+  },
+  "children": []
+}
+```
+
+If state is `{ "user": { "name": "Alice" }, "inbox": { "count": 3 } }`, the text renders as "Hello, Alice! You have 3 messages."
+
+Missing paths resolve to an empty string.
+
+## `$computed` — Registered Functions
+
+Use `{ "$computed": "<name>", "args": { ... } }` to call a named function registered in your catalog. Each arg can be a literal value or any prop expression (`$state`, `$item`, `$cond`, etc.):
+
+```json
+{
+  "type": "Text",
+  "props": {
+    "text": {
+      "$computed": "fullName",
+      "args": {
+        "first": { "$state": "/form/firstName" },
+        "last": { "$state": "/form/lastName" }
+      }
+    }
+  },
+  "children": []
+}
+```
+
+### Registering Functions
+
+Functions are registered in the catalog and provided at runtime.
+
+**Catalog definition (for AI prompt generation):**
+
+```typescript
+import { defineCatalog } from '@json-render/core';
+import { schema } from '@json-render/react/schema';
+
+const catalog = defineCatalog(schema, {
+  components: { /* ... */ },
+  functions: {
+    fullName: {
+      description: 'Combines first and last name into a full name',
+    },
+    formatCurrency: {
+      description: 'Formats a number as currency',
+    },
+  },
+});
+```
+
+**Runtime implementation:**
+
+```tsx
+import { JSONUIProvider } from '@json-render/react';
+
+const functions = {
+  fullName: (args) => `${args.first ?? ''} ${args.last ?? ''}`.trim(),
+  formatCurrency: (args) => {
+    const value = Number(args.value ?? 0);
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: (args.currency as string) ?? 'USD',
+    }).format(value);
+  },
+};
+
+<JSONUIProvider registry={registry} functions={functions}>
+  <Renderer spec={spec} registry={registry} />
+</JSONUIProvider>
+```
+
+### Using with `createRenderer`
+
+```tsx
+const MyRenderer = createRenderer(catalog, components);
+
+<MyRenderer
+  spec={spec}
+  functions={functions}
+/>
+```
+
+## Combining Expressions
+
+`$computed` args can use any expression type. This example computes a total from repeat item fields:
+
+```json
+{
+  "$computed": "lineTotal",
+  "args": {
+    "price": { "$item": "price" },
+    "quantity": { "$item": "quantity" }
+  }
+}
+```
+
+## Next
+
+- [Watchers](/docs/watchers) — react to state changes with cascading actions
+- [Data Binding](/docs/data-binding) — all expression types
+- [Validation](/docs/validation) — validate form inputs

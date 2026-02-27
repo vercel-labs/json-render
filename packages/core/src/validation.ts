@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { DynamicValue, StateModel, VisibilityCondition } from "./types";
 import { DynamicValueSchema, resolveDynamicValue } from "./types";
 import { VisibilityConditionSchema, evaluateVisibility } from "./visibility";
+import { resolvePropValue } from "./props";
 
 /**
  * Validation check definition
@@ -62,6 +63,14 @@ export interface ValidationFunctionDefinition {
   /** Description for AI */
   description?: string;
 }
+
+const matchesImpl: ValidationFunction = (
+  value: unknown,
+  args?: Record<string, unknown>,
+) => {
+  const other = args?.other;
+  return value === other;
+};
 
 /**
  * Built-in validation functions
@@ -164,9 +173,64 @@ export const builtInValidationFunctions: Record<string, ValidationFunction> = {
   /**
    * Check if value matches another field
    */
-  matches: (value: unknown, args?: Record<string, unknown>) => {
+  matches: matchesImpl,
+
+  /**
+   * Alias for matches with a more descriptive name for cross-field equality
+   */
+  equalTo: matchesImpl,
+
+  /**
+   * Check if value is less than another field's value.
+   * Supports numbers, strings (useful for ISO date comparison), and
+   * cross-type numeric coercion (e.g. string "3" vs number 5).
+   */
+  lessThan: (value: unknown, args?: Record<string, unknown>) => {
     const other = args?.other;
-    return value === other;
+    if (value == null || other == null || value === "" || other === "")
+      return false;
+    if (typeof value === "number" && typeof other === "number")
+      return value < other;
+    if (typeof value === "string" && typeof other === "string")
+      return value < other;
+    const numVal = Number(value);
+    const numOther = Number(other);
+    if (!isNaN(numVal) && !isNaN(numOther)) return numVal < numOther;
+    return false;
+  },
+
+  /**
+   * Check if value is greater than another field's value.
+   * Supports numbers, strings (useful for ISO date comparison), and
+   * cross-type numeric coercion (e.g. string "7" vs number 5).
+   */
+  greaterThan: (value: unknown, args?: Record<string, unknown>) => {
+    const other = args?.other;
+    if (value == null || other == null || value === "" || other === "")
+      return false;
+    if (typeof value === "number" && typeof other === "number")
+      return value > other;
+    if (typeof value === "string" && typeof other === "string")
+      return value > other;
+    const numVal = Number(value);
+    const numOther = Number(other);
+    if (!isNaN(numVal) && !isNaN(numOther)) return numVal > numOther;
+    return false;
+  },
+
+  /**
+   * Required only when a condition is met.
+   * Uses JS truthiness: 0, false, "", null, and undefined are all
+   * treated as "condition not met" (field not required), matching
+   * the visibility system's bare-condition semantics.
+   */
+  requiredIf: (value: unknown, args?: Record<string, unknown>) => {
+    const condition = args?.field;
+    if (!condition) return true;
+    if (value === null || value === undefined) return false;
+    if (typeof value === "string") return value.trim().length > 0;
+    if (Array.isArray(value)) return value.length > 0;
+    return true;
   },
 };
 
@@ -209,11 +273,12 @@ export function runValidationCheck(
 ): ValidationCheckResult {
   const { value, stateModel, customFunctions } = ctx;
 
-  // Resolve args
+  // Resolve args using resolvePropValue so nested $state refs (and any other
+  // prop expressions) are handled consistently with the rest of the system.
   const resolvedArgs: Record<string, unknown> = {};
   if (check.args) {
     for (const [key, argValue] of Object.entries(check.args)) {
-      resolvedArgs[key] = resolveDynamicValue(argValue, stateModel);
+      resolvedArgs[key] = resolvePropValue(argValue, { stateModel });
     }
   }
 
@@ -326,12 +391,47 @@ export const check = {
     message,
   }),
 
+  numeric: (message = "Must be a number"): ValidationCheck => ({
+    type: "numeric",
+    message,
+  }),
+
   matches: (
     otherPath: string,
     message = "Fields must match",
   ): ValidationCheck => ({
     type: "matches",
     args: { other: { $state: otherPath } },
+    message,
+  }),
+
+  equalTo: (
+    otherPath: string,
+    message = "Fields must match",
+  ): ValidationCheck => ({
+    type: "equalTo",
+    args: { other: { $state: otherPath } },
+    message,
+  }),
+
+  lessThan: (otherPath: string, message?: string): ValidationCheck => ({
+    type: "lessThan",
+    args: { other: { $state: otherPath } },
+    message: message ?? "Must be less than the compared field",
+  }),
+
+  greaterThan: (otherPath: string, message?: string): ValidationCheck => ({
+    type: "greaterThan",
+    args: { other: { $state: otherPath } },
+    message: message ?? "Must be greater than the compared field",
+  }),
+
+  requiredIf: (
+    fieldPath: string,
+    message = "This field is required",
+  ): ValidationCheck => ({
+    type: "requiredIf",
+    args: { field: { $state: fieldPath } },
     message,
   }),
 };

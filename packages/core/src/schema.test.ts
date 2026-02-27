@@ -169,7 +169,11 @@ describe("catalog.prompt", () => {
     const catalog = defineCatalog(testSchema, {
       components: {
         Card: {
-          props: z.object({ title: z.string() }),
+          props: z.object({
+            title: z.string(),
+            names: z.array(z.string()),
+            users: z.array(z.object({ name: z.string(), age: z.number() })),
+          }),
           description: "A card container",
           slots: ["default"],
         },
@@ -180,6 +184,9 @@ describe("catalog.prompt", () => {
     expect(prompt).toContain("AVAILABLE COMPONENTS");
     expect(prompt).toContain("Card");
     expect(prompt).toContain("A card container");
+    expect(prompt).toContain("title: string");
+    expect(prompt).toContain("names: Array<string>");
+    expect(prompt).toContain("users: Array<{ name: string, age: number }>");
   });
 
   it("includes AVAILABLE ACTIONS when present", () => {

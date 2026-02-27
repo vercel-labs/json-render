@@ -1,0 +1,54 @@
+{
+  "name": "@json-render/zustand",
+  "version": "0.10.0",
+  "license": "Apache-2.0",
+  "description": "Zustand adapter for json-render StateStore",
+  "keywords": [
+    "json-render",
+    "zustand",
+    "state-management",
+    "adapter"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vercel-labs/json-render.git",
+    "directory": "packages/zustand"
+  },
+  "homepage": "https://github.com/vercel-labs/json-render#readme",
+  "bugs": {
+    "url": "https://github.com/vercel-labs/json-render/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@json-render/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "zustand": ">=5.0.0"
+  },
+  "devDependencies": {
+    "@internal/typescript-config": "workspace:*",
+    "tsup": "^8.0.2",
+    "typescript": "^5.4.5",
+    "zustand": "^5.0.11"
+  }
+}

@@ -154,6 +154,19 @@ All render functions accept an optional second argument with:
 - `state` - Initial state for `$state` / `$cond` dynamic prop resolution
 - `handlers` - Action handlers
 
+## External Store (Controlled Mode)
+
+For full control over state, pass a `StateStore` to `StateProvider`, `JSONUIProvider`, or `createRenderer`. When `store` is provided, `initialState` and `onStateChange` are ignored and the store is the single source of truth:
+
+```tsx
+import { createStateStore, type StateStore } from "@json-render/react-pdf";
+
+const store = createStateStore({ invoice: { total: 100 } });
+
+// Mutate from anywhere — components re-render automatically:
+store.set("/invoice/total", 200);
+```
+
 ## Server-Safe Import
 
 Import schema and catalog definitions without pulling in React:

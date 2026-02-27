@@ -1,0 +1,166 @@
+import { h } from "vue";
+import type { Components } from "@json-render/vue";
+import type { AppCatalog } from "./catalog";
+
+export const components: Components<AppCatalog> = {
+  Stack: ({ props, children }) =>
+    h(
+      "div",
+      {
+        class: [
+          "json-render-stack",
+          props.direction === "horizontal" && "json-render-stack--horizontal",
+          props.align && `json-render-stack--align-${props.align}`,
+        ]
+          .filter(Boolean)
+          .join(" "),
+        style: {
+          gap: props.gap ? `${props.gap}px` : undefined,
+          padding: props.padding ? `${props.padding}px` : undefined,
+        },
+      },
+      children,
+    ),
+
+  Card: ({ props, children }) =>
+    h("div", { class: "json-render-card" }, [
+      props.title &&
+        h("div", { class: "json-render-card-title-wrap" }, [
+          h("h2", { class: "json-render-card-title" }, props.title),
+        ]),
+      props.subtitle &&
+        h("p", { class: "json-render-card-subtitle" }, props.subtitle),
+      children,
+    ]),
+
+  Text: ({ props }) =>
+    h(
+      "span",
+      {
+        class: [
+          "json-render-text",
+          props.size &&
+            props.size !== "md" &&
+            `json-render-text--${props.size}`,
+          props.weight &&
+            props.weight !== "normal" &&
+            `json-render-text--${props.weight}`,
+        ]
+          .filter(Boolean)
+          .join(" "),
+        style: props.color ? { color: props.color } : undefined,
+      },
+      String(props.content ?? ""),
+    ),
+
+  Button: ({ props, emit }) =>
+    h(
+      "button",
+      {
+        disabled: props.disabled,
+        onClick: () => emit("press"),
+        class: [
+          "json-render-button",
+          props.variant && `json-render-button--${props.variant}`,
+        ]
+          .filter(Boolean)
+          .join(" "),
+      },
+      props.label,
+    ),
+
+  Badge: ({ props }) =>
+    h(
+      "span",
+      {
+        class: "json-render-badge",
+        style: props.color
+          ? {
+              backgroundColor: `${props.color}20`,
+              color: props.color,
+              borderColor: `${props.color}40`,
+            }
+          : undefined,
+      },
+      props.label,
+    ),
+
+  ListItem: ({ props, emit }) =>
+    h(
+      "div",
+      {
+        onClick: () => emit("press"),
+        class: [
+          "json-render-list-item",
+          props.completed && "json-render-list-item--done",
+        ]
+          .filter(Boolean)
+          .join(" "),
+      },
+      [
+        h(
+          "div",
+          {
+            class: [
+              "json-render-list-item-check",
+              props.completed && "json-render-list-item-check--done",
+            ]
+              .filter(Boolean)
+              .join(" "),
+          },
+          props.completed ? "✓" : "",
+        ),
+        h(
+          "span",
+          {
+            class: [
+              "json-render-list-item-text",
+              props.completed && "json-render-list-item-text--done",
+            ]
+              .filter(Boolean)
+              .join(" "),
+          },
+          props.title,
+        ),
+      ],
+    ),
+
+  RendererBadge: ({ props }) =>
+    h("span", { class: "json-render-renderer-badge" }, [
+      h("span", { class: "json-render-renderer-dot" }),
+      props.renderer === "vue" ? "Rendered with Vue" : "Rendered with React",
+    ]),
+
+  RendererTabs: ({ props, emit }) =>
+    h("div", { class: "json-render-renderer-tabs-wrapper" }, [
+      h("span", { class: "json-render-renderer-tabs-label" }, "Render"),
+      h("div", { class: "json-render-renderer-tabs" }, [
+        h(
+          "button",
+          {
+            onClick: () => emit("pressVue"),
+            class: [
+              "json-render-renderer-tab",
+              props.renderer === "vue" && "json-render-renderer-tab--active",
+            ]
+              .filter(Boolean)
+              .join(" "),
+          },
+          "Vue",
+        ),
+        h(
+          "button",
+          {
+            onClick: () => emit("pressReact"),
+            class: [
+              "json-render-renderer-tab",
+              props.renderer === "react" && "json-render-renderer-tab--active",
+            ]
+              .filter(Boolean)
+              .join(" "),
+          },
+          "React",
+        ),
+      ]),
+    ]),
+};

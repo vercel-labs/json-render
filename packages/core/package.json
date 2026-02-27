@@ -1,6 +1,6 @@
 {
   "name": "@json-render/core",
-  "version": "0.8.0",
+  "version": "0.10.0",
   "license": "Apache-2.0",
   "description": "JSON becomes real things. Define your catalog, register your components, let AI generate.",
   "keywords": [
@@ -34,6 +34,11 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
+    },
+    "./store-utils": {
+      "types": "./dist/store-utils.d.ts",
+      "import": "./dist/store-utils.mjs",
+      "require": "./dist/store-utils.js"
     }
   },
   "files": [
@@ -48,7 +53,7 @@
     "zod": "^4.0.0"
   },
   "devDependencies": {
-    "@repo/typescript-config": "workspace:*",
+    "@internal/typescript-config": "workspace:*",
     "tsup": "^8.0.2",
     "typescript": "^5.4.5"
   },

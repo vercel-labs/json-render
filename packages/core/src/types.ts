@@ -69,6 +69,12 @@ export interface UIElement<
   on?: Record<string, ActionBinding | ActionBinding[]>;
   /** Repeat children once per item in a state array */
   repeat?: { statePath: string; key?: string };
+  /**
+   * State watchers — maps JSON Pointer state paths to action bindings.
+   * When the value at a watched path changes, the bound actions fire.
+   * Useful for cascading dependencies (e.g. country → city option loading).
+   */
+  watch?: Record<string, ActionBinding | ActionBinding[]>;
 }
 
 /**
@@ -179,6 +185,36 @@ export interface Spec {
 export type StateModel = Record<string, unknown>;
 
 /**
+ * An abstract store that owns state and notifies subscribers on change.
+ *
+ * Consumers can supply their own implementation (backed by Redux, Zustand,
+ * XState, etc.) or use the built-in {@link createStateStore} for a simple
+ * in-memory store.
+ */
+export interface StateStore {
+  /** Read a value by JSON Pointer path. */
+  get: (path: string) => unknown;
+  /**
+   * Write a value by JSON Pointer path and notify subscribers.
+   * Equality is checked by reference (`===`), not deep comparison.
+   * Callers must pass a new object/array reference for changes to be detected.
+   */
+  set: (path: string, value: unknown) => void;
+  /**
+   * Write multiple values at once and notify subscribers (single notification).
+   * Each value is compared by reference (`===`); only paths whose value
+   * actually changed are applied.
+   */
+  update: (updates: Record<string, unknown>) => void;
+  /** Return the full state object (used by `useSyncExternalStore`). */
+  getSnapshot: () => StateModel;
+  /** Optional server snapshot for SSR (passed to `useSyncExternalStore`). Falls back to `getSnapshot` when omitted. */
+  getServerSnapshot?: () => StateModel;
+  /** Register a listener that is called on every state change. Returns an unsubscribe function. */
+  subscribe: (listener: () => void) => () => void;
+}
+
+/**
  * Component schema definition using Zod
  */
 export type ComponentSchema = z.ZodType<Record<string, unknown>>;
@@ -236,7 +272,7 @@ function unescapeJsonPointer(token: string): string {
 /**
  * Parse a JSON Pointer path into unescaped segments.
  */
-function parseJsonPointer(path: string): string[] {
+export function parseJsonPointer(path: string): string[] {
   const raw = path.startsWith("/") ? path.slice(1).split("/") : path.split("/");
   return raw.map(unescapeJsonPointer);
 }

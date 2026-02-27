@@ -12,7 +12,7 @@ Create a catalog that defines what components AI can use:
 ```typescript
 // lib/catalog.ts
 import { defineCatalog } from '@json-render/core';
-import { schema } from '@json-render/react';
+import { schema } from '@json-render/react/schema';
 import { z } from 'zod';
 
 export const catalog = defineCatalog(schema, {

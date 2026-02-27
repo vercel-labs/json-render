@@ -22,6 +22,10 @@ import { evaluateVisibility, type VisibilityContext } from "./visibility";
  *    repeat item — resolves via `repeatBasePath + path` and exposes the
  *    absolute state path for write-back.
  * - `{ $cond, $then, $else }` conditionally picks a value
+ * - `{ $computed: string, args?: Record<string, PropExpression> }` calls a
+ *    registered function with resolved args and returns the result
+ * - `{ $template: string }` interpolates `${/path}` references in the
+ *    string with values from the state model
  * - Any other value is a literal (passthrough)
  */
 export type PropExpression<T = unknown> =
@@ -35,7 +39,15 @@ export type PropExpression<T = unknown> =
       $cond: VisibilityCondition;
       $then: PropExpression<T>;
       $else: PropExpression<T>;
-    };
+    }
+  | { $computed: string; args?: Record<string, unknown> }
+  | { $template: string };
+
+/**
+ * Function signature for `$computed` expressions.
+ * Receives a record of resolved argument values and returns a computed result.
+ */
+export type ComputedFunction = (args: Record<string, unknown>) => unknown;
 
 /**
  * Context for resolving prop expressions.
@@ -45,6 +57,8 @@ export type PropExpression<T = unknown> =
 export interface PropResolutionContext extends VisibilityContext {
   /** Absolute state path to the current repeat item (e.g. "/todos/0"). Set inside repeat scopes. */
   repeatBasePath?: string;
+  /** Named functions available for `$computed` expressions. */
+  functions?: Record<string, ComputedFunction>;
 }
 
 // =============================================================================
@@ -108,6 +122,47 @@ function isCondExpression(
     "$then" in value &&
     "$else" in value
   );
+}
+
+function isComputedExpression(
+  value: unknown,
+): value is { $computed: string; args?: Record<string, unknown> } {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "$computed" in value &&
+    typeof (value as Record<string, unknown>).$computed === "string"
+  );
+}
+
+function isTemplateExpression(value: unknown): value is { $template: string } {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "$template" in value &&
+    typeof (value as Record<string, unknown>).$template === "string"
+  );
+}
+
+// Module-level set to avoid spamming console.warn on every render for the same
+// unknown $computed function name. Once the set reaches WARNED_COMPUTED_MAX,
+// new names are no longer deduplicated (warnings still fire) but the set stops
+// growing, preventing unbounded memory use in long-lived processes (e.g. SSR).
+const WARNED_COMPUTED_MAX = 100;
+const warnedComputedFns = new Set<string>();
+
+/** @internal Test-only: clear the deduplication set for $computed warnings. */
+export function _resetWarnedComputedFns(): void {
+  warnedComputedFns.clear();
+}
+
+// Same deduplication pattern for $template paths that don't start with "/".
+const WARNED_TEMPLATE_MAX = 100;
+const warnedTemplatePaths = new Set<string>();
+
+/** @internal Test-only: clear the deduplication set for $template warnings. */
+export function _resetWarnedTemplatePaths(): void {
+  warnedTemplatePaths.clear();
 }
 
 // =============================================================================
@@ -191,6 +246,50 @@ export function resolvePropValue(
   if (isCondExpression(value)) {
     const result = evaluateVisibility(value.$cond, ctx);
     return resolvePropValue(result ? value.$then : value.$else, ctx);
+  }
+
+  // $computed: call a registered function with resolved args
+  if (isComputedExpression(value)) {
+    const fn = ctx.functions?.[value.$computed];
+    if (!fn) {
+      if (!warnedComputedFns.has(value.$computed)) {
+        if (warnedComputedFns.size < WARNED_COMPUTED_MAX) {
+          warnedComputedFns.add(value.$computed);
+        }
+        console.warn(`Unknown $computed function: "${value.$computed}"`);
+      }
+      return undefined;
+    }
+    const resolvedArgs: Record<string, unknown> = {};
+    if (value.args) {
+      for (const [key, arg] of Object.entries(value.args)) {
+        resolvedArgs[key] = resolvePropValue(arg, ctx);
+      }
+    }
+    return fn(resolvedArgs);
+  }
+
+  // $template: interpolate ${/path} references with state values
+  if (isTemplateExpression(value)) {
+    return value.$template.replace(
+      /\$\{([^}]+)\}/g,
+      (_match, rawPath: string) => {
+        let path = rawPath;
+        if (!path.startsWith("/")) {
+          if (!warnedTemplatePaths.has(path)) {
+            if (warnedTemplatePaths.size < WARNED_TEMPLATE_MAX) {
+              warnedTemplatePaths.add(path);
+            }
+            console.warn(
+              `$template path "${path}" should be a JSON Pointer starting with "/". Automatically resolving as "/${path}".`,
+            );
+          }
+          path = "/" + path;
+        }
+        const resolved = getByPath(ctx.stateModel, path);
+        return resolved != null ? String(resolved) : "";
+      },
+    );
   }
 
   // Arrays: resolve each element

@@ -3,3 +3,4 @@ packages:
   - "examples/*"
   - "examples/stripe-app/*"
   - "packages/*"
+  - "tests/*"

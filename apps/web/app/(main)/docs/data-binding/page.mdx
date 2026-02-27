@@ -213,6 +213,22 @@ Use `$cond` / `$then` / `$else` to pick a prop value based on a condition:
 
 The condition uses the same [visibility](/docs/visibility) expression format.
 
+## Template Strings
+
+Use `{ "$template": "..." }` to interpolate state values into a string using `${/path}` syntax:
+
+```json
+{
+  "type": "Text",
+  "props": {
+    "text": { "$template": "Welcome back, ${/user/name}!" }
+  },
+  "children": []
+}
+```
+
+See [Computed Values](/docs/computed-values) for details on `$template` and `$computed` expressions.
+
 ## Quick Reference
 
 <div className="my-6 overflow-x-auto">
@@ -255,9 +271,38 @@ The condition uses the same [visibility](/docs/visibility) expression format.
         <td><code>{'{ "$bindItem": "field" }'}</code></td>
         <td>Form components inside repeat</td>
       </tr>
+      <tr>
+        <td><code>{"$template"}</code></td>
+        <td><code>{'{ "$template": "Hello, ${/name}!" }'}</code></td>
+        <td>Anywhere (string props)</td>
+      </tr>
+      <tr>
+        <td><code>{"$computed"}</code></td>
+        <td><code>{'{ "$computed": "fn", "args": { ... } }'}</code></td>
+        <td>Anywhere (requires registered function)</td>
+      </tr>
     </tbody>
   </table>
 </div>
+
+## External Store (Controlled Mode)
+
+For advanced use cases, you can pass a `StateStore` to `StateProvider` to use your own state management (Redux, Zustand, XState, etc.) instead of the built-in internal store:
+
+```tsx
+import { createStateStore, type StateStore } from "@json-render/react";
+
+const store = createStateStore({ user: { name: "Alice" } });
+
+<StateProvider store={store}>
+  {children}
+</StateProvider>
+
+// Mutate from anywhere — React re-renders automatically:
+store.set("/user/name", "Bob");
+```
+
+When `store` is provided, `initialState` and `onStateChange` are ignored. The store is the single source of truth. See the [React API reference](/docs/api/react#external-store-controlled-mode) for the full `StateStore` interface.
 
 ## Next
 

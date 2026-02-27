@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@json-render multi-renderer demo</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: #f3f4f6;
+        min-height: 100vh;
+      }
+
+      #renderer-root {
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="renderer-root"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

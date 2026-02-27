@@ -11,6 +11,7 @@ import type {
   ActionBinding,
   Catalog,
   SchemaDefinition,
+  StateStore,
 } from "@json-render/core";
 import {
   resolveElementProps,
@@ -122,6 +123,7 @@ const ElementRenderer = React.memo(function ElementRenderer({
   const repeatScope = useRepeatScope();
   const { ctx } = useVisibility();
   const { execute } = useActions();
+  const { getSnapshot } = useStateStore();
 
   const fullCtx: PropResolutionContext = useMemo(
     () =>
@@ -143,23 +145,29 @@ const ElementRenderer = React.memo(function ElementRenderer({
 
   const onBindings = element.on;
   const emit = useCallback(
-    (eventName: string) => {
+    async (eventName: string) => {
       const binding = onBindings?.[eventName];
       if (!binding) return;
       const actionBindings = Array.isArray(binding) ? binding : [binding];
       for (const b of actionBindings) {
         if (!b.params) {
-          execute(b);
+          await execute(b);
           continue;
         }
+        // Build a fresh context with live store state so that $state
+        // references in later actions see mutations from earlier ones.
+        const liveCtx: PropResolutionContext = {
+          ...fullCtx,
+          stateModel: getSnapshot(),
+        };
         const resolved: Record<string, unknown> = {};
         for (const [key, val] of Object.entries(b.params)) {
-          resolved[key] = resolveActionParam(val, fullCtx);
+          resolved[key] = resolveActionParam(val, liveCtx);
         }
-        execute({ ...b, params: resolved });
+        await execute({ ...b, params: resolved });
       }
     },
-    [onBindings, execute, fullCtx],
+    [onBindings, execute, fullCtx, getSnapshot],
   );
 
   if (!isVisible) {
@@ -343,6 +351,7 @@ export function Renderer({
 
 export interface JSONUIProviderProps {
   registry?: ComponentRegistry;
+  store?: StateStore;
   initialState?: Record<string, unknown>;
   handlers?: Record<
     string,
@@ -353,11 +362,12 @@ export interface JSONUIProviderProps {
     string,
     (value: unknown, args?: Record<string, unknown>) => boolean
   >;
-  onStateChange?: (path: string, value: unknown) => void;
+  onStateChange?: (changes: Array<{ path: string; value: unknown }>) => void;
   children: ReactNode;
 }
 
 export function JSONUIProvider({
+  store,
   initialState,
   handlers,
   navigate,
@@ -366,7 +376,11 @@ export function JSONUIProvider({
   children,
 }: JSONUIProviderProps) {
   return (
-    <StateProvider initialState={initialState} onStateChange={onStateChange}>
+    <StateProvider
+      store={store}
+      initialState={initialState}
+      onStateChange={onStateChange}
+    >
       <VisibilityProvider>
         <ActionProvider handlers={handlers} navigate={navigate}>
           <ValidationProvider customFunctions={validationFunctions}>
@@ -430,9 +444,10 @@ export function defineRegistry<C extends Catalog>(
 
 export interface CreateRendererProps {
   spec: Spec | null;
+  store?: StateStore;
   state?: Record<string, unknown>;
   onAction?: (actionName: string, params?: Record<string, unknown>) => void;
-  onStateChange?: (path: string, value: unknown) => void;
+  onStateChange?: (changes: Array<{ path: string; value: unknown }>) => void;
   loading?: boolean;
   fallback?: ComponentRenderer;
 }
@@ -461,6 +476,7 @@ export function createRenderer<
 
   return function CatalogRenderer({
     spec,
+    store,
     state,
     onAction,
     onStateChange,
@@ -484,7 +500,11 @@ export function createRenderer<
       : undefined;
 
     return (
-      <StateProvider initialState={state} onStateChange={onStateChange}>
+      <StateProvider
+        store={store}
+        initialState={state}
+        onStateChange={onStateChange}
+      >
         <VisibilityProvider>
           <ActionProvider handlers={actionHandlers}>
             <ValidationProvider>

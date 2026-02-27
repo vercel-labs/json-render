@@ -2,7 +2,8 @@
 export { schema, type ReactPdfSchema, type ReactPdfSpec } from "./schema";
 
 // Core types (re-exported for convenience)
-export type { Spec } from "@json-render/core";
+export type { Spec, StateStore } from "@json-render/core";
+export { createStateStore } from "@json-render/core";
 
 // Catalog-aware types
 export type {

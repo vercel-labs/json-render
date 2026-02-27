@@ -664,11 +664,12 @@ export const shadcnComponents = {
     const isBound = !!bindings?.value;
     const value = isBound ? (boundValue ?? "") : localValue;
     const setValue = isBound ? setBoundValue : setLocalValue;
+    const validateOn = props.validateOn ?? "blur";
 
     const hasValidation = !!(bindings?.value && props.checks?.length);
     const { errors, validate } = useFieldValidation(
       bindings?.value ?? "",
-      hasValidation ? { checks: props.checks ?? [] } : undefined,
+      hasValidation ? { checks: props.checks ?? [], validateOn } : undefined,
     );
 
     return (
@@ -682,13 +683,16 @@ export const shadcnComponents = {
           type={props.type ?? "text"}
           placeholder={props.placeholder ?? ""}
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={(e) => {
+            setValue(e.target.value);
+            if (hasValidation && validateOn === "change") validate();
+          }}
           onKeyDown={(e) => {
             if (e.key === "Enter") emit("submit");
           }}
           onFocus={() => emit("focus")}
           onBlur={() => {
-            if (hasValidation) validate();
+            if (hasValidation && validateOn === "blur") validate();
             emit("blur");
           }}
         />
@@ -711,11 +715,12 @@ export const shadcnComponents = {
     const isBound = !!bindings?.value;
     const value = isBound ? (boundValue ?? "") : localValue;
     const setValue = isBound ? setBoundValue : setLocalValue;
+    const validateOn = props.validateOn ?? "blur";
 
     const hasValidation = !!(bindings?.value && props.checks?.length);
     const { errors, validate } = useFieldValidation(
       bindings?.value ?? "",
-      hasValidation ? { checks: props.checks ?? [] } : undefined,
+      hasValidation ? { checks: props.checks ?? [], validateOn } : undefined,
     );
 
     return (
@@ -729,9 +734,12 @@ export const shadcnComponents = {
           placeholder={props.placeholder ?? ""}
           rows={props.rows ?? 3}
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={(e) => {
+            setValue(e.target.value);
+            if (hasValidation && validateOn === "change") validate();
+          }}
           onBlur={() => {
-            if (hasValidation) validate();
+            if (hasValidation && validateOn === "blur") validate();
           }}
         />
         {errors.length > 0 && (
@@ -758,11 +766,12 @@ export const shadcnComponents = {
     const options = rawOptions.map((opt) =>
       typeof opt === "string" ? opt : String(opt ?? ""),
     );
+    const validateOn = props.validateOn ?? "change";
 
     const hasValidation = !!(bindings?.value && props.checks?.length);
     const { errors, validate } = useFieldValidation(
       bindings?.value ?? "",
-      hasValidation ? { checks: props.checks ?? [] } : undefined,
+      hasValidation ? { checks: props.checks ?? [], validateOn } : undefined,
     );
 
     return (
@@ -772,7 +781,8 @@ export const shadcnComponents = {
           value={value}
           onValueChange={(v) => {
             setValue(v);
-            if (hasValidation) validate();
+            // Select has no native blur event, so only validate on "change"
+            if (hasValidation && validateOn === "change") validate();
             emit("change");
           }}
         >
@@ -808,19 +818,32 @@ export const shadcnComponents = {
     const checked = isBound ? (boundChecked ?? false) : localChecked;
     const setChecked = isBound ? setBoundChecked : setLocalChecked;
 
+    const validateOn = props.validateOn ?? "change";
+    const hasValidation = !!(bindings?.checked && props.checks?.length);
+    const { errors, validate } = useFieldValidation(
+      bindings?.checked ?? "",
+      hasValidation ? { checks: props.checks ?? [], validateOn } : undefined,
+    );
+
     return (
-      <div className="flex items-center space-x-2">
-        <Checkbox
-          id={props.name ?? undefined}
-          checked={checked}
-          onCheckedChange={(c) => {
-            setChecked(c === true);
-            emit("change");
-          }}
-        />
-        <Label htmlFor={props.name ?? undefined} className="cursor-pointer">
-          {props.label}
-        </Label>
+      <div className="space-y-1">
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id={props.name ?? undefined}
+            checked={checked}
+            onCheckedChange={(c) => {
+              setChecked(c === true);
+              if (hasValidation && validateOn === "change") validate();
+              emit("change");
+            }}
+          />
+          <Label htmlFor={props.name ?? undefined} className="cursor-pointer">
+            {props.label}
+          </Label>
+        </div>
+        {errors.length > 0 && (
+          <p className="text-sm text-destructive">{errors[0]}</p>
+        )}
       </div>
     );
   },
@@ -843,6 +866,13 @@ export const shadcnComponents = {
     const value = isBound ? (boundValue ?? "") : localValue;
     const setValue = isBound ? setBoundValue : setLocalValue;
 
+    const validateOn = props.validateOn ?? "change";
+    const hasValidation = !!(bindings?.value && props.checks?.length);
+    const { errors, validate } = useFieldValidation(
+      bindings?.value ?? "",
+      hasValidation ? { checks: props.checks ?? [], validateOn } : undefined,
+    );
+
     return (
       <div className="space-y-2">
         {props.label && <Label>{props.label}</Label>}
@@ -850,6 +880,7 @@ export const shadcnComponents = {
           value={value}
           onValueChange={(v) => {
             setValue(v);
+            if (hasValidation && validateOn === "change") validate();
             emit("change");
           }}
         >
@@ -868,6 +899,9 @@ export const shadcnComponents = {
             </div>
           ))}
         </RadioGroup>
+        {errors.length > 0 && (
+          <p className="text-sm text-destructive">{errors[0]}</p>
+        )}
       </div>
     );
   },
@@ -886,19 +920,32 @@ export const shadcnComponents = {
     const checked = isBound ? (boundChecked ?? false) : localChecked;
     const setChecked = isBound ? setBoundChecked : setLocalChecked;
 
+    const validateOn = props.validateOn ?? "change";
+    const hasValidation = !!(bindings?.checked && props.checks?.length);
+    const { errors, validate } = useFieldValidation(
+      bindings?.checked ?? "",
+      hasValidation ? { checks: props.checks ?? [], validateOn } : undefined,
+    );
+
     return (
-      <div className="flex items-center justify-between space-x-2">
-        <Label htmlFor={props.name ?? undefined} className="cursor-pointer">
-          {props.label}
-        </Label>
-        <Switch
-          id={props.name ?? undefined}
-          checked={checked}
-          onCheckedChange={(c) => {
-            setChecked(c);
-            emit("change");
-          }}
-        />
+      <div className="space-y-1">
+        <div className="flex items-center justify-between space-x-2">
+          <Label htmlFor={props.name ?? undefined} className="cursor-pointer">
+            {props.label}
+          </Label>
+          <Switch
+            id={props.name ?? undefined}
+            checked={checked}
+            onCheckedChange={(c) => {
+              setChecked(c);
+              if (hasValidation && validateOn === "change") validate();
+              emit("change");
+            }}
+          />
+        </div>
+        {errors.length > 0 && (
+          <p className="text-sm text-destructive">{errors[0]}</p>
+        )}
       </div>
     );
   },

@@ -143,10 +143,26 @@ The `setState` action is handled automatically by `ActionProvider` and updates t
 
 | Provider | Purpose |
 |----------|---------|
-| `StateProvider` | Share state across components (JSON Pointer paths) |
+| `StateProvider` | Share state across components (JSON Pointer paths). Accepts optional `store` prop for controlled mode. |
 | `ActionProvider` | Handle actions dispatched from components |
 | `VisibilityProvider` | Enable conditional rendering based on state |
 | `ValidationProvider` | Form field validation |
+
+### External Store (Controlled Mode)
+
+Pass a `StateStore` to `StateProvider` (or `JSONUIProvider` / `createRenderer`) to use external state management:
+
+```tsx
+import { createStateStore, type StateStore } from "@json-render/react-native";
+
+const store = createStateStore({ count: 0 });
+
+<StateProvider store={store}>{children}</StateProvider>
+
+store.set("/count", 1); // React re-renders automatically
+```
+
+When `store` is provided, `initialState` and `onStateChange` are ignored.
 
 ## Key Exports
 
@@ -166,3 +182,5 @@ The `setState` action is handled automatically by `ActionProvider` and updates t
 | `useActions` | Access actions context |
 | `useAction` | Get a single action dispatch function |
 | `useUIStream` | Stream specs from an API endpoint |
+| `createStateStore` | Create a framework-agnostic in-memory `StateStore` |
+| `StateStore` | Interface for plugging in external state management |

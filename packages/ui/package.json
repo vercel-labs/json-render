@@ -1,5 +1,5 @@
 {
-  "name": "@repo/ui",
+  "name": "@internal/ui",
   "version": "0.0.0",
   "private": true,
   "license": "Apache-2.0",
@@ -12,8 +12,8 @@
     "check-types": "tsc --noEmit"
   },
   "devDependencies": {
-    "@repo/eslint-config": "workspace:*",
-    "@repo/typescript-config": "workspace:*",
+    "@internal/eslint-config": "workspace:*",
+    "@internal/typescript-config": "workspace:*",
     "@types/node": "^22.15.3",
     "@types/react": "19.2.3",
     "@types/react-dom": "19.2.3",

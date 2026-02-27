@@ -28,7 +28,8 @@ export interface SpecIssue {
     | "orphaned_element"
     | "empty_spec"
     | "on_in_props"
-    | "repeat_in_props";
+    | "repeat_in_props"
+    | "watch_in_props";
 }
 
 /**
@@ -151,6 +152,16 @@ export function validateSpec(
         code: "repeat_in_props",
       });
     }
+
+    // 3e. `watch` inside props (should be a top-level field)
+    if (props && "watch" in props && props.watch !== undefined) {
+      issues.push({
+        severity: "error",
+        message: `Element "${key}" has "watch" inside "props". It should be a top-level field on the element (sibling of type/props/children).`,
+        elementKey: key,
+        code: "watch_in_props",
+      });
+    }
   }
 
   // 4. Orphaned elements (optional)
@@ -246,6 +257,21 @@ export function autoFixSpec(spec: Spec): {
         repeat: repeat as UIElement["repeat"],
       };
       fixes.push(`Moved "repeat" from props to element level on "${key}".`);
+    }
+
+    currentProps = fixed.props as Record<string, unknown> | undefined;
+    if (
+      currentProps &&
+      "watch" in currentProps &&
+      currentProps.watch !== undefined
+    ) {
+      const { watch, ...restProps } = currentProps;
+      fixed = {
+        ...fixed,
+        props: restProps,
+        watch: watch as UIElement["watch"],
+      };
+      fixes.push(`Moved "watch" from props to element level on "${key}".`);
     }
 
     fixedElements[key] = fixed;

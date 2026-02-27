@@ -13,4 +13,13 @@ export const catalog = defineCatalog(schema, {
       description: "Fire confetti",
     },
   },
+  functions: {
+    formatAddress: {
+      description:
+        "Formats country and city into a single address string like 'City, Country'",
+    },
+    citiesForCountry: {
+      description: "Returns an array of city names for the given country code",
+    },
+  },
 });

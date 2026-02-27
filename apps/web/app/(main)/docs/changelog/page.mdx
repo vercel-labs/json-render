@@ -5,6 +5,183 @@ export const metadata = pageMetadata("docs/changelog")
 
 Notable changes and updates to json-render.
 
+## v0.10.0
+
+February 2026
+
+### New: `@json-render/vue`
+
+Vue 3 renderer for json-render with full feature parity with `@json-render/react`. Data binding, visibility conditions, actions, validation, repeat scopes, streaming, and external store support.
+
+```bash
+npm install @json-render/core @json-render/vue
+```
+
+```typescript
+import { h } from "vue";
+import { defineRegistry, Renderer } from "@json-render/vue";
+import { schema } from "@json-render/vue/schema";
+
+const { registry } = defineRegistry(catalog, {
+  components: {
+    Card: ({ props, children }) =>
+      h("div", { class: "card" }, [h("h3", null, props.title), children]),
+    Button: ({ props, emit }) =>
+      h("button", { onClick: () => emit("press") }, props.label),
+  },
+});
+```
+
+Providers: `StateProvider`, `ActionProvider`, `VisibilityProvider`, `ValidationProvider`. Composables: `useStateStore`, `useStateValue`, `useActions`, `useAction`, `useIsVisible`, `useFieldValidation`, `useBoundProp`, `useUIStream`, `useChatUI`.
+
+See the [Vue API reference](/docs/api/vue) for details.
+
+### New: `@json-render/xstate`
+
+[XState Store](https://stately.ai/docs/xstate-store) (atom) adapter for json-render's `StateStore` interface. Wire an `@xstate/store` atom as the state backend for any renderer.
+
+```bash
+npm install @json-render/xstate @xstate/store
+```
+
+```typescript
+import { createAtom } from "@xstate/store";
+import { xstateStoreStateStore } from "@json-render/xstate";
+
+const atom = createAtom({ count: 0 });
+const store = xstateStoreStateStore({ atom });
+```
+
+Requires `@xstate/store` v3+.
+
+### New: `$computed` and `$template` Expressions
+
+Two new prop expression types for dynamic values:
+
+- **`$template`** -- interpolate state values into strings: `{ "$template": "Hello, ${/user/name}!" }`
+- **`$computed`** -- call registered functions: `{ "$computed": "fullName", "args": { "first": { "$state": "/form/firstName" } } }`
+
+Register functions via the `functions` prop on `JSONUIProvider` or `createRenderer`. See [Computed Values](/docs/computed-values) for details.
+
+### New: State Watchers
+
+Elements can declare a `watch` field to trigger actions when state values change. Useful for cascading dependencies like country/city selects.
+
+```json
+{
+  "type": "Select",
+  "props": { "value": { "$bindState": "/form/country" }, "options": ["US", "Canada"] },
+  "watch": {
+    "/form/country": { "action": "loadCities", "params": { "country": { "$state": "/form/country" } } }
+  }
+}
+```
+
+`watch` is a top-level field on elements (sibling of type/props/children), not inside props. Watchers only fire on value changes, not on initial render. See [Watchers](/docs/watchers) for details.
+
+### New: Cross-Field Validation
+
+New built-in validation functions for cross-field comparisons:
+
+- `equalTo` -- alias for `matches` with clearer semantics
+- `lessThan` -- value must be less than another field
+- `greaterThan` -- value must be greater than another field
+- `requiredIf` -- required only when a condition field is truthy
+
+Validation check args now resolve through `resolvePropValue`, so `$state` expressions work consistently.
+
+### New: `validateForm` Action
+
+Built-in action (React) that validates all registered form fields at once and writes `{ valid, errors }` to state:
+
+```json
+{
+  "on": {
+    "press": [
+      { "action": "validateForm", "params": { "statePath": "/formResult" } },
+      { "action": "submitForm" }
+    ]
+  }
+}
+```
+
+### Improved: shadcn/ui Validation
+
+All form components now support `checks` and `validateOn` props:
+- Checkbox, Radio, Switch added validation support
+- `validateOn` controls timing: `"change"` (default for Select, Checkbox, Radio, Switch), `"blur"` (default for Input, Textarea), or `"submit"`
+
+### New Examples
+
+- **Vue example** -- standalone Vue 3 app with custom components
+- **Vite Renderers** -- side-by-side React and Vue renderers with shared catalog
+
+---
+
+## v0.9.1
+
+February 2026
+
+### Fixed: Install failure due to private dependency
+
+`@json-render/react`, `@json-render/react-pdf`, and `@json-render/react-native` v0.9.0 failed to install because `@internal/react-state` (a private workspace package) was published as a dependency. The internal package is now bundled into each renderer at build time, so it no longer needs to be resolved from npm.
+
+---
+
+## v0.9.0
+
+February 2026
+
+### New: External State Store
+
+The `StateStore` interface lets you plug in your own state management (Redux, Zustand, Jotai, XState, etc.) instead of the built-in internal store. Pass a `store` prop to `StateProvider`, `JSONUIProvider`, or `createRenderer` for controlled mode.
+
+- Added `StateStore` interface and `createStateStore()` factory to `@json-render/core`
+- `StateProvider`, `JSONUIProvider`, and `createRenderer` now accept an optional `store` prop
+- When `store` is provided, it becomes the single source of truth (`initialState`/`onStateChange` are ignored)
+- When `store` is omitted, everything works exactly as before (fully backward compatible)
+- Applied across all platform packages: react, react-native, react-pdf
+- Store utilities (`createStoreAdapter`, `immutableSetByPath`, `flattenToPointers`) available via `@json-render/core/store-utils` for building custom adapters
+
+New adapter packages: `@json-render/redux`, `@json-render/zustand`, `@json-render/jotai`.
+
+See the [Data Binding](/docs/data-binding#external-store-controlled-mode) guide for usage.
+
+### Changed: `onStateChange` signature updated (breaking)
+
+The `onStateChange` callback now receives a single array of changed entries instead of being called once per path. This makes batch updates via `update()` easier to handle:
+
+```ts
+// Before
+onStateChange?: (path: string, value: unknown) => void
+
+// After
+onStateChange?: (changes: Array<{ path: string; value: unknown }>) => void
+```
+
+The callback is only called when a `set()` or `update()` call actually changes the state. A `set()` call produces a single-element array; an `update()` call produces one array with all changed paths.
+
+### Fixed: Server-safe schema import
+
+`@json-render/react` barrel-imports React contexts that call `createContext`, which crashes in Next.js App Router API routes (RSC runtime strips `createContext`). All docs, examples, and skills now import `schema` from `@json-render/react/schema` instead of `@json-render/react`.
+
+For combined imports, split into separate `schema` (subpath) and client API (main entry) lines:
+
+```ts
+import { schema } from "@json-render/react/schema";
+import { defineRegistry, Renderer } from "@json-render/react";
+```
+
+### Fixed: Chaining actions
+
+Fixed an issue where chaining multiple actions on the same event (e.g. `setState` followed by a custom action) did not execute all actions. Affected `@json-render/react`, `@json-render/react-native`, and `@json-render/react-pdf`.
+
+### Fixed: Zod array inner type resolution
+
+Fixed safely resolving the inner type for Zod arrays in schema introspection, preventing errors when catalog component props use `z.array()`.
+
+---
+
 ## v0.8.0
 
 February 2026

@@ -1,0 +1,22 @@
+{
+  "name": "example-vue",
+  "version": "0.1.1",
+  "private": true,
+  "scripts": {
+    "dev": "portless vue.json-render vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@json-render/core": "workspace:*",
+    "@json-render/vue": "workspace:*",
+    "vue": "^3.5.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.4",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1",
+    "vue-tsc": "^3.2.5"
+  }
+}

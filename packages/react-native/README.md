@@ -214,6 +214,26 @@ const systemPrompt = catalog.prompt({
 });
 ```
 
+## External Store (Controlled Mode)
+
+For full control over state, pass a `StateStore` to bypass the internal state and wire json-render to any state management library (Redux, Zustand, XState, etc.):
+
+```tsx
+import { createStateStore, type StateStore } from "@json-render/react-native";
+
+// Use the built-in store outside of React
+const store = createStateStore({ count: 0 });
+
+<StateProvider store={store}>
+  {children}
+</StateProvider>
+
+// Mutate from anywhere — React will re-render automatically:
+store.set("/count", 1);
+```
+
+When `store` is provided, `initialState` and `onStateChange` are ignored. The store is the single source of truth. The same `store` prop is available on `createRenderer`, `JSONUIProvider`, and `StateProvider`.
+
 ## Hooks
 
 | Hook | Purpose |
@@ -227,3 +247,4 @@ const systemPrompt = catalog.prompt({
 | `useAction(name)` | Get a single action dispatch function |
 | `useUIStream(options)` | Stream specs from an API endpoint |
 | `createStandardActionHandlers(options)` | Create handlers for standard actions |
+| `createStateStore(initialState)` | Create a framework-agnostic in-memory `StateStore` |

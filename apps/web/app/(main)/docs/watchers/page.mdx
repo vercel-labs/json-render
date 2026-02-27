@@ -1,0 +1,167 @@
+import { pageMetadata } from "@/lib/page-metadata"
+export const metadata = pageMetadata("docs/watchers")
+
+# Watchers
+
+React to state changes by triggering actions when watched paths update.
+
+## The `watch` Field
+
+Elements can have an optional `watch` field that maps state paths to action bindings. When the value at a watched path changes, the bound actions fire automatically.
+
+`watch` is a **top-level field** on the element (sibling of `type`, `props`, `children`) — not inside `props`.
+
+```json
+{
+  "type": "Select",
+  "props": {
+    "label": "Country",
+    "value": { "$bindState": "/form/country" },
+    "options": ["US", "Canada", "UK"]
+  },
+  "watch": {
+    "/form/country": {
+      "action": "loadCities",
+      "params": { "country": { "$state": "/form/country" } }
+    }
+  },
+  "children": []
+}
+```
+
+When the user selects a different country, the `loadCities` action fires with the new country value. The action handler can fetch city data and update state, causing a dependent city Select to re-render with new options.
+
+## Cascading Selects
+
+A common pattern is cascading dropdowns where selecting a value in one field loads options for another:
+
+```json
+{
+  "root": "form",
+  "elements": {
+    "form": {
+      "type": "Stack",
+      "props": { "direction": "vertical", "gap": "md" },
+      "children": ["country-select", "city-select"]
+    },
+    "country-select": {
+      "type": "Select",
+      "props": {
+        "label": "Country",
+        "value": { "$bindState": "/form/country" },
+        "options": ["US", "Canada", "UK"]
+      },
+      "watch": {
+        "/form/country": [
+          { "action": "loadCities", "params": { "country": { "$state": "/form/country" } } },
+          { "action": "setState", "params": { "statePath": "/form/city", "value": "" } }
+        ]
+      },
+      "children": []
+    },
+    "city-select": {
+      "type": "Select",
+      "props": {
+        "label": "City",
+        "value": { "$bindState": "/form/city" },
+        "options": { "$state": "/availableCities" },
+        "placeholder": "Select a city"
+      },
+      "children": []
+    }
+  },
+  "state": {
+    "form": { "country": "", "city": "" },
+    "availableCities": []
+  }
+}
+```
+
+The watcher on `country-select` fires two actions when the country changes:
+1. `loadCities` — fetches and writes city options to `/availableCities`
+2. `setState` — resets the city selection
+
+The city Select reads its options from `{ "$state": "/availableCities" }`, so it automatically updates when the data is loaded.
+
+### Action Handler
+
+```typescript
+const handlers = {
+  loadCities: async (params) => {
+    const cities = await fetchCities(params.country);
+    // setState is called by the runtime to write the result
+    return cities;
+  },
+};
+```
+
+Or with `defineRegistry`:
+
+```typescript
+const { registry, handlers } = defineRegistry(catalog, {
+  components: { /* ... */ },
+  actions: {
+    loadCities: async (params, setState) => {
+      const response = await fetch(`/api/cities?country=${params.country}`);
+      const cities = await response.json();
+      setState('/availableCities', cities);
+    },
+  },
+});
+```
+
+## Multiple Watchers
+
+An element can watch multiple state paths. Each path maps to one or more action bindings:
+
+```json
+{
+  "watch": {
+    "/form/startDate": { "action": "validateDateRange" },
+    "/form/endDate": { "action": "validateDateRange" },
+    "/form/quantity": [
+      { "action": "recalculateTotal" },
+      { "action": "checkInventory", "params": { "qty": { "$state": "/form/quantity" } } }
+    ]
+  }
+}
+```
+
+## Behavior
+
+- Watchers only fire on **value changes**, not on the initial render
+- Comparison is by reference (`===`), not deep equality
+- Action params support the same expressions as event bindings (`$state`, `$item`, `$index`)
+- Multiple action bindings on the same path execute sequentially
+
+## When to Use `watch` vs `on`
+
+<table>
+<thead>
+<tr>
+<th>Mechanism</th>
+<th>Trigger</th>
+<th>Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>on</code></td>
+<td>User interaction (press, change, blur)</td>
+<td>Button clicks, input changes, form submissions</td>
+</tr>
+<tr>
+<td><code>watch</code></td>
+<td>State value change (any source)</td>
+<td>Cascading data, derived state, cross-field sync</td>
+</tr>
+</tbody>
+</table>
+
+Use `on` when reacting to direct user actions. Use `watch` when a state change (from any source — user input, action handler, or external store update) should trigger side effects.
+
+## Next
+
+- [Data Binding](/docs/data-binding) — connect elements to state
+- [Computed Values](/docs/computed-values) — derive prop values
+- [Visibility](/docs/visibility) — conditionally show or hide elements

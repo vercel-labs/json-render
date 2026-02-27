@@ -10,10 +10,56 @@ React components, providers, and hooks.
 ### StateProvider
 
 ```tsx
-<StateProvider initialState={object}>
+<StateProvider initialState={object} onStateChange={fn}>
   {children}
 </StateProvider>
 ```
+
+<table>
+  <thead>
+    <tr>
+      <th>Prop</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>store</code></td>
+      <td><code>StateStore</code></td>
+      <td>External store (controlled mode). When provided, <code>initialState</code> and <code>onStateChange</code> are ignored.</td>
+    </tr>
+    <tr>
+      <td><code>initialState</code></td>
+      <td><code>Record&lt;string, unknown&gt;</code></td>
+      <td>Initial state model (uncontrolled mode).</td>
+    </tr>
+    <tr>
+      <td><code>onStateChange</code></td>
+      <td><code>{'(changes: Array<{ path: string; value: unknown }>) => void'}</code></td>
+      <td>Callback when state changes (uncontrolled mode). Called once per <code>set</code> or <code>update</code> with all changed entries.</td>
+    </tr>
+  </tbody>
+</table>
+
+#### External Store (Controlled Mode)
+
+Pass a `StateStore` to bypass the internal state and wire json-render to any state management library:
+
+```tsx
+import { createStateStore, type StateStore } from "@json-render/react";
+
+const store = createStateStore({ count: 0 });
+
+<StateProvider store={store}>
+  {children}
+</StateProvider>
+
+// Mutate from anywhere — React re-renders automatically:
+store.set("/count", 1);
+```
+
+The `store` prop is also available on `JSONUIProvider` and `createRenderer`.
 
 ### ActionProvider
 
@@ -83,6 +129,40 @@ const { registry } = defineRegistry(catalog, {
 
 type Registry = Record<string, React.ComponentType<ComponentRenderProps>>;
 ```
+
+### JSONUIProvider
+
+Convenience wrapper that combines `StateProvider`, `VisibilityProvider`, `ValidationProvider`, and `ActionProvider`. Accepts all their props plus:
+
+<table>
+  <thead>
+    <tr>
+      <th>Prop</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>functions</code></td>
+      <td><code>Record&lt;string, ComputedFunction&gt;</code></td>
+      <td>Named functions for <code>$computed</code> expressions in props</td>
+    </tr>
+  </tbody>
+</table>
+
+```tsx
+<JSONUIProvider
+  spec={spec}
+  catalog={catalog}
+  handlers={{ submit: async () => { /* ... */ } }}
+  functions={{ fullName: (args) => `${args.first} ${args.last}` }}
+>
+  <Renderer spec={spec} registry={registry} />
+</JSONUIProvider>
+```
+
+The `functions` prop is also available on `createRenderer`.
 
 ### Component Props (via defineRegistry)
 
@@ -211,6 +291,15 @@ const {
 ```
 
 `ValidationConfig` is `{ checks?: ValidationCheck[], validateOn?: 'change' | 'blur' | 'submit' }`.
+
+### useOptionalValidation
+
+Non-throwing variant of `useValidation()`. Returns `null` when no `ValidationProvider` is present, instead of throwing. Useful in components that may or may not be rendered inside a validation context.
+
+```typescript
+const validation = useOptionalValidation();
+// ValidationContextValue | null
+```
 
 ### useBoundProp
 

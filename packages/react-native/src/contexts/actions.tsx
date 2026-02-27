@@ -135,7 +135,7 @@ export function ActionProvider({
   navigate,
   children,
 }: ActionProviderProps) {
-  const { state, get, set } = useStateStore();
+  const { get, set, getSnapshot } = useStateStore();
   const [handlers, setHandlers] =
     useState<Record<string, ActionHandler>>(initialHandlers);
   const [loadingActions, setLoadingActions] = useState<Set<string>>(new Set());
@@ -151,7 +151,7 @@ export function ActionProvider({
 
   const execute = useCallback(
     async (binding: ActionBinding) => {
-      const resolved = resolveAction(binding, state);
+      const resolved = resolveAction(binding, getSnapshot());
 
       // Built-in: setState updates the StateProvider state directly
       if (resolved.action === "setState" && resolved.params) {
@@ -298,7 +298,7 @@ export function ActionProvider({
         });
       }
     },
-    [state, handlers, get, set, navigate],
+    [handlers, get, set, getSnapshot, navigate],
   );
 
   const confirm = useCallback(() => {

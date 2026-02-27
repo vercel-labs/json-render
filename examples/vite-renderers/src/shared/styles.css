@@ -1,0 +1,248 @@
+/* ---- Stack ---------------------------------------------------------------- */
+
+.json-render-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.json-render-stack--horizontal {
+  flex-direction: row;
+  align-items: center;
+}
+
+.json-render-stack--align-start  { align-items: flex-start; }
+.json-render-stack--align-center { align-items: center; }
+.json-render-stack--align-end    { align-items: flex-end; }
+
+/* ---- Card ----------------------------------------------------------------- */
+
+.json-render-card {
+  background-color: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.json-render-card-title-wrap {
+  margin-bottom: 4px;
+}
+
+.json-render-card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.json-render-card-subtitle {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0 0 12px 0;
+}
+
+/* ---- Text ----------------------------------------------------------------- */
+
+.json-render-text {
+  font-size: 14px;
+  font-weight: 400;
+  color: #111827;
+}
+
+.json-render-text--sm { font-size: 12px; }
+.json-render-text--lg { font-size: 16px; }
+.json-render-text--xl { font-size: 24px; }
+
+.json-render-text--medium { font-weight: 500; }
+.json-render-text--bold   { font-weight: 700; }
+
+/* ---- Button --------------------------------------------------------------- */
+
+.json-render-button {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  transition: background 0.15s;
+  background-color: #3b82f6;
+  color: white;
+}
+
+.json-render-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.json-render-button--primary {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.json-render-button--secondary {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.json-render-button--danger {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+/* ---- Badge ---------------------------------------------------------------- */
+
+.json-render-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  background-color: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+/* ---- ListItem ------------------------------------------------------------- */
+
+.json-render-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+}
+
+.json-render-list-item--done {
+  background-color: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.json-render-list-item-check {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #d1d5db;
+  background-color: transparent;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: white;
+}
+
+.json-render-list-item-check--done {
+  border-color: #16a34a;
+  background-color: #16a34a;
+}
+
+.json-render-list-item-text {
+  font-size: 14px;
+  color: #111827;
+  text-decoration: none;
+}
+
+.json-render-list-item-text--done {
+  color: #6b7280;
+  text-decoration: line-through;
+}
+
+/* ---- RendererBadge -------------------------------------------------------- */
+
+.json-render-renderer-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 10px 15px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  /* default colors; overridden by renderer parent class below */
+  background-color: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.json-render-renderer-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  /* background overridden by renderer parent class below */
+  background-color: #0369a1;
+}
+
+/* ---- RendererTabs --------------------------------------------------------- */
+
+.json-render-renderer-tabs-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.json-render-renderer-tabs-label {
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.json-render-renderer-tabs {
+  display: inline-flex;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+.json-render-renderer-tab {
+  padding: 6px 16px;
+  border: none;
+  border-right: 0;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  background-color: white;
+  color: #374151;
+  transition: background 0.15s;
+}
+
+.json-render-renderer-tab:first-child {
+  border-right: 1px solid #e5e7eb;
+}
+
+/* ---- Renderer-specific overrides ----------------------------------------- */
+
+.renderer-vue .json-render-renderer-badge {
+  color: #42b883;
+  background-color: #42b88318;
+  border-color: #42b88340;
+}
+
+.renderer-vue .json-render-renderer-dot {
+  background-color: #42b883;
+}
+
+.renderer-vue .json-render-renderer-tab--active {
+  background-color: #42b883;
+  color: white;
+}
+
+.renderer-react .json-render-renderer-badge {
+  color: #149eca;
+  background-color: #149eca18;
+  border-color: #149eca40;
+}
+
+.renderer-react .json-render-renderer-dot {
+  background-color: #149eca;
+}
+
+.renderer-react .json-render-renderer-tab--active {
+  background-color: #149eca;
+  color: white;
+}

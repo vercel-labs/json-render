@@ -24,7 +24,7 @@ interface DashboardRendererProps {
   spec: Spec | null;
   state?: Record<string, unknown>;
   setState?: SetState;
-  onStateChange?: (path: string, value: unknown) => void;
+  onStateChange?: (changes: Array<{ path: string; value: unknown }>) => void;
   loading?: boolean;
 }
 

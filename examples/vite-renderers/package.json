@@ -1,0 +1,27 @@
+{
+  "name": "vite-renderers",
+  "version": "0.1.1",
+  "private": true,
+  "scripts": {
+    "dev": "portless vite-renderers.json-render vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@json-render/core": "workspace:*",
+    "@json-render/react": "workspace:*",
+    "@json-render/vue": "workspace:*",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "vue": "^3.5.29",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.4",
+    "@vitejs/plugin-vue": "^6.0.4",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1"
+  }
+}

@@ -6,7 +6,6 @@ import React, {
   useState,
   useCallback,
   useMemo,
-  useRef,
   type ReactNode,
 } from "react";
 import {
@@ -18,6 +17,7 @@ import {
   type ResolvedAction,
 } from "@json-render/core";
 import { useStateStore } from "./state";
+import { useOptionalValidation } from "./validation";
 
 /**
  * Generate a unique ID for use with the "$id" token.
@@ -137,11 +137,8 @@ export function ActionProvider({
   navigate,
   children,
 }: ActionProviderProps) {
-  const { state, get, set } = useStateStore();
-  // Keep a ref to the latest state so `execute` doesn't change on every
-  // state update — preventing the entire action context from churning.
-  const stateRef = useRef(state);
-  stateRef.current = state;
+  const { get, set, getSnapshot } = useStateStore();
+  const validation = useOptionalValidation();
 
   const [handlers, setHandlers] =
     useState<Record<string, ActionHandler>>(initialHandlers);
@@ -158,7 +155,7 @@ export function ActionProvider({
 
   const execute = useCallback(
     async (binding: ActionBinding) => {
-      const resolved = resolveAction(binding, stateRef.current);
+      const resolved = resolveAction(binding, getSnapshot());
 
       // Built-in: setState updates the StateProvider state directly
       if (resolved.action === "setState" && resolved.params) {
@@ -232,10 +229,37 @@ export function ActionProvider({
           if (previousScreen) {
             set("/currentScreen", previousScreen);
           } else {
-            // Sentinel empty string = clear currentScreen (return to default)
             set("/currentScreen", undefined);
           }
         }
+        return;
+      }
+
+      // Built-in: validateForm triggers validateAll from the ValidationProvider
+      // and writes the result to a state path (default: /formValidation).
+      // IMPORTANT: validateAll() is synchronous — it runs all registered field
+      // validations and returns immediately. This guarantees that the next action
+      // in a sequential list (e.g. [validateForm, submitForm]) can read the
+      // validation result from state without awaiting an extra tick.
+      if (resolved.action === "validateForm") {
+        const validateAll = validation?.validateAll;
+        if (!validateAll) {
+          console.warn(
+            "validateForm action was dispatched but no ValidationProvider is connected. " +
+              "Ensure ValidationProvider is rendered inside the provider tree.",
+          );
+          return;
+        }
+        const valid = validateAll();
+        const errors: Record<string, string[]> = {};
+        for (const [path, fs] of Object.entries(validation.fieldStates)) {
+          if (fs.result && !fs.result.valid) {
+            errors[path] = fs.result.errors;
+          }
+        }
+        const statePath =
+          (resolved.params?.statePath as string) || "/formValidation";
+        set(statePath, { valid, errors });
         return;
       }
 
@@ -305,7 +329,7 @@ export function ActionProvider({
         });
       }
     },
-    [handlers, get, set, navigate],
+    [handlers, get, set, getSnapshot, navigate, validation],
   );
 
   const confirm = useCallback(() => {

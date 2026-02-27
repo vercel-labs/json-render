@@ -15,10 +15,27 @@ Your app must have Tailwind CSS configured.
 
 ## Entry Points
 
-| Entry Point | Exports | Use For |
-|-------------|---------|---------|
-| `@json-render/shadcn` | `shadcnComponents` | React implementations |
-| `@json-render/shadcn/catalog` | `shadcnComponentDefinitions` | Catalog schemas (no React dependency, safe for server) |
+<table>
+<thead>
+<tr>
+<th>Entry Point</th>
+<th>Exports</th>
+<th>Use For</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>@json-render/shadcn</code></td>
+<td><code>shadcnComponents</code></td>
+<td>React implementations</td>
+</tr>
+<tr>
+<td><code>@json-render/shadcn/catalog</code></td>
+<td><code>shadcnComponentDefinitions</code></td>
+<td>Catalog schemas (no React dependency, safe for server)</td>
+</tr>
+</tbody>
+</table>
 
 ## Usage
 
@@ -103,69 +120,225 @@ const { registry } = defineRegistry(catalog, {
 
 ### Layout
 
-| Component | Description |
-|-----------|-------------|
-| `Card` | Container card with optional title, description, maxWidth, centered |
-| `Stack` | Flex container with direction, gap, align, justify |
-| `Grid` | Grid layout with columns (1-6) and gap |
-| `Separator` | Visual separator line with orientation |
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Card</code></td>
+<td>Container card with optional title, description, maxWidth, centered</td>
+</tr>
+<tr>
+<td><code>Stack</code></td>
+<td>Flex container with direction, gap, align, justify</td>
+</tr>
+<tr>
+<td><code>Grid</code></td>
+<td>Grid layout with columns (1-6) and gap</td>
+</tr>
+<tr>
+<td><code>Separator</code></td>
+<td>Visual separator line with orientation</td>
+</tr>
+</tbody>
+</table>
 
 ### Navigation
 
-| Component | Description |
-|-----------|-------------|
-| `Tabs` | Tabbed navigation with tabs array, defaultValue, value |
-| `Accordion` | Collapsible sections with items array and type (single/multiple) |
-| `Collapsible` | Single collapsible section with title and defaultOpen |
-| `Pagination` | Page navigation with totalPages and page |
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Tabs</code></td>
+<td>Tabbed navigation with tabs array, defaultValue, value</td>
+</tr>
+<tr>
+<td><code>Accordion</code></td>
+<td>Collapsible sections with items array and type (single/multiple)</td>
+</tr>
+<tr>
+<td><code>Collapsible</code></td>
+<td>Single collapsible section with title and defaultOpen</td>
+</tr>
+<tr>
+<td><code>Pagination</code></td>
+<td>Page navigation with totalPages and page</td>
+</tr>
+</tbody>
+</table>
 
 ### Overlay
 
-| Component | Description |
-|-----------|-------------|
-| `Dialog` | Modal dialog with title, description, openPath |
-| `Drawer` | Bottom drawer with title, description, openPath |
-| `Tooltip` | Hover tooltip with content and text |
-| `Popover` | Click-triggered popover with trigger and content |
-| `DropdownMenu` | Dropdown menu with label and items array |
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Dialog</code></td>
+<td>Modal dialog with title, description, openPath</td>
+</tr>
+<tr>
+<td><code>Drawer</code></td>
+<td>Bottom drawer with title, description, openPath</td>
+</tr>
+<tr>
+<td><code>Tooltip</code></td>
+<td>Hover tooltip with content and text</td>
+</tr>
+<tr>
+<td><code>Popover</code></td>
+<td>Click-triggered popover with trigger and content</td>
+</tr>
+<tr>
+<td><code>DropdownMenu</code></td>
+<td>Dropdown menu with label and items array</td>
+</tr>
+</tbody>
+</table>
 
 ### Content
 
-| Component | Description |
-|-----------|-------------|
-| `Heading` | Heading text with level (h1-h4) |
-| `Text` | Paragraph with variant (body, caption, muted, lead, code) |
-| `Image` | Image with alt, width, height |
-| `Avatar` | User avatar with src, name, size |
-| `Badge` | Status badge with text and variant |
-| `Alert` | Alert banner with title, message, type |
-| `Carousel` | Horizontally scrollable carousel with items |
-| `Table` | Data table with columns and rows |
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Heading</code></td>
+<td>Heading text with level (h1-h4)</td>
+</tr>
+<tr>
+<td><code>Text</code></td>
+<td>Paragraph with variant (body, caption, muted, lead, code)</td>
+</tr>
+<tr>
+<td><code>Image</code></td>
+<td>Image with alt, width, height</td>
+</tr>
+<tr>
+<td><code>Avatar</code></td>
+<td>User avatar with src, name, size</td>
+</tr>
+<tr>
+<td><code>Badge</code></td>
+<td>Status badge with text and variant</td>
+</tr>
+<tr>
+<td><code>Alert</code></td>
+<td>Alert banner with title, message, type</td>
+</tr>
+<tr>
+<td><code>Carousel</code></td>
+<td>Horizontally scrollable carousel with items</td>
+</tr>
+<tr>
+<td><code>Table</code></td>
+<td>Data table with columns and rows</td>
+</tr>
+</tbody>
+</table>
 
 ### Feedback
 
-| Component | Description |
-|-----------|-------------|
-| `Progress` | Progress bar with value, max, label |
-| `Skeleton` | Loading placeholder with width, height, rounded |
-| `Spinner` | Loading spinner with size and label |
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Progress</code></td>
+<td>Progress bar with value, max, label</td>
+</tr>
+<tr>
+<td><code>Skeleton</code></td>
+<td>Loading placeholder with width, height, rounded</td>
+</tr>
+<tr>
+<td><code>Spinner</code></td>
+<td>Loading spinner with size and label</td>
+</tr>
+</tbody>
+</table>
 
 ### Input
 
-| Component | Description |
-|-----------|-------------|
-| `Button` | Clickable button with label, variant, disabled |
-| `Link` | Anchor link with label and href |
-| `Input` | Text input with label, name, type, placeholder, value, checks |
-| `Textarea` | Multi-line text input with label, name, placeholder, rows, value, checks |
-| `Select` | Dropdown select with label, name, options, value, checks |
-| `Checkbox` | Checkbox with label, name, checked |
-| `Radio` | Radio button group with label, name, options, value |
-| `Switch` | Toggle switch with label, name, checked |
-| `Slider` | Range slider with label, min, max, step, value |
-| `Toggle` | Toggle button with label, pressed, variant |
-| `ToggleGroup` | Group of toggle buttons with items, type, value |
-| `ButtonGroup` | Group of buttons with buttons array and selected |
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Button</code></td>
+<td>Clickable button with label, variant, disabled</td>
+</tr>
+<tr>
+<td><code>Link</code></td>
+<td>Anchor link with label and href</td>
+</tr>
+<tr>
+<td><code>Input</code></td>
+<td>Text input with label, name, type, placeholder, value, checks</td>
+</tr>
+<tr>
+<td><code>Textarea</code></td>
+<td>Multi-line text input with label, name, placeholder, rows, value, checks</td>
+</tr>
+<tr>
+<td><code>Select</code></td>
+<td>Dropdown select with label, name, options, value, checks</td>
+</tr>
+<tr>
+<td><code>Checkbox</code></td>
+<td>Checkbox with label, name, checked</td>
+</tr>
+<tr>
+<td><code>Radio</code></td>
+<td>Radio button group with label, name, options, value</td>
+</tr>
+<tr>
+<td><code>Switch</code></td>
+<td>Toggle switch with label, name, checked</td>
+</tr>
+<tr>
+<td><code>Slider</code></td>
+<td>Range slider with label, min, max, step, value</td>
+</tr>
+<tr>
+<td><code>Toggle</code></td>
+<td>Toggle button with label, pressed, variant</td>
+</tr>
+<tr>
+<td><code>ToggleGroup</code></td>
+<td>Group of toggle buttons with items, type, value</td>
+</tr>
+<tr>
+<td><code>ButtonGroup</code></td>
+<td>Group of buttons with buttons array and selected</td>
+</tr>
+</tbody>
+</table>
 
 ## Notes
 

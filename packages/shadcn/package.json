@@ -1,6 +1,6 @@
 {
   "name": "@json-render/shadcn",
-  "version": "0.8.0",
+  "version": "0.10.0",
   "license": "Apache-2.0",
   "description": "shadcn/ui component library for @json-render/core. JSON becomes beautiful Tailwind-styled React components.",
   "keywords": [
@@ -65,7 +65,7 @@
     "vaul": "^1.1.2"
   },
   "devDependencies": {
-    "@repo/typescript-config": "workspace:*",
+    "@internal/typescript-config": "workspace:*",
     "@types/react": "19.2.3",
     "tsup": "^8.0.2",
     "typescript": "^5.4.5",

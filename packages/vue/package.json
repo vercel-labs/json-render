@@ -1,0 +1,66 @@
+{
+  "name": "@json-render/vue",
+  "version": "0.10.0",
+  "license": "Apache-2.0",
+  "description": "Vue renderer for @json-render/core. JSON becomes Vue components.",
+  "keywords": [
+    "json",
+    "ui",
+    "vue",
+    "ai",
+    "generative-ui",
+    "llm",
+    "renderer",
+    "streaming",
+    "components"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vercel-labs/json-render.git",
+    "directory": "packages/vue"
+  },
+  "homepage": "https://github.com/vercel-labs/json-render#readme",
+  "bugs": {
+    "url": "https://github.com/vercel-labs/json-render/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./schema": {
+      "types": "./dist/schema.d.ts",
+      "import": "./dist/schema.mjs",
+      "require": "./dist/schema.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@json-render/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@internal/typescript-config": "workspace:*",
+    "@vue/test-utils": "^2.4.6",
+    "tsup": "^8.0.2",
+    "typescript": "^5.4.5",
+    "vue": "^3.5.0"
+  },
+  "peerDependencies": {
+    "vue": "^3.5.0",
+    "zod": "^4.0.0"
+  }
+}

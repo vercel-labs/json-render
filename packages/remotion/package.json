@@ -1,6 +1,6 @@
 {
   "name": "@json-render/remotion",
-  "version": "0.8.0",
+  "version": "0.10.0",
   "license": "Apache-2.0",
   "description": "Remotion renderer for @json-render/core. JSON becomes video compositions.",
   "keywords": [
@@ -54,7 +54,7 @@
     "@json-render/core": "workspace:*"
   },
   "devDependencies": {
-    "@repo/typescript-config": "workspace:*",
+    "@internal/typescript-config": "workspace:*",
     "@types/react": "19.2.3",
     "remotion": "4.0.418",
     "tsup": "^8.0.2",

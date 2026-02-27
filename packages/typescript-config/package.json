@@ -1,5 +1,5 @@
 {
-  "name": "@repo/typescript-config",
+  "name": "@internal/typescript-config",
   "version": "0.0.0",
   "private": true,
   "license": "Apache-2.0",

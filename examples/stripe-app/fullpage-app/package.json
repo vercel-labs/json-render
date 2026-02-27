@@ -1,6 +1,6 @@
 {
   "name": "com.example.json-render-fullpage-demo",
-  "version": "0.0.1",
+  "version": "0.0.4",
   "description": "Full-page Stripe App example (alpha)",
   "private": true,
   "license": "~~proprietary~~",
@@ -21,7 +21,7 @@
     "test": "jest"
   },
   "devDependencies": {
-    "@repo/eslint-config": "workspace:*",
+    "@internal/eslint-config": "workspace:*",
     "@stripe/ui-extension-tools": "^0.0.1",
     "eslint": "^9.39.0"
   }

@@ -1,6 +1,6 @@
 {
   "name": "example-dashboard",
-  "version": "0.1.0",
+  "version": "0.1.3",
   "type": "module",
   "private": true,
   "scripts": {
@@ -43,7 +43,7 @@
     "zod": "^4.0.0"
   },
   "devDependencies": {
-    "@repo/eslint-config": "workspace:*",
+    "@internal/eslint-config": "workspace:*",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/node": "^22.10.0",
     "@types/react": "19.2.3",

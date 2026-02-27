@@ -1,0 +1,22 @@
+{
+  "name": "e2e-tests",
+  "private": true,
+  "scripts": {
+    "test": "vitest run --config vitest.config.ts"
+  },
+  "devDependencies": {
+    "@ai-sdk/gateway": "^3.0.53",
+    "@json-render/core": "workspace:*",
+    "@json-render/jotai": "workspace:*",
+    "@json-render/react": "workspace:*",
+    "@json-render/redux": "workspace:*",
+    "@json-render/zustand": "workspace:*",
+    "@reduxjs/toolkit": "^2.11.2",
+    "ai": "^6.0.97",
+    "jotai": "^2.18.0",
+    "redux": "^5.0.1",
+    "vitest": "^4.0.17",
+    "zod": "^4.3.5",
+    "zustand": "^5.0.11"
+  }
+}

@@ -23,7 +23,9 @@ export const PAGE_TITLES: Record<string, string> = {
   "docs/streaming": "Streaming",
   "docs/validation": "Validation",
   "docs/data-binding": "Data Binding",
+  "docs/computed-values": "Computed Values",
   "docs/visibility": "Visibility",
+  "docs/watchers": "Watchers",
   "docs/generation-modes": "Generation Modes",
   "docs/code-export": "Code Export",
   "docs/custom-schema": "Custom Schema & Renderer",
@@ -38,6 +40,7 @@ export const PAGE_TITLES: Record<string, string> = {
   // API references
   "docs/api/core": "@json-render/core API",
   "docs/api/react": "@json-render/react API",
+  "docs/api/vue": "@json-render/vue API",
   "docs/api/react-pdf": "@json-render/react-pdf API",
   "docs/api/react-native": "@json-render/react-native API",
   "docs/api/codegen": "@json-render/codegen API",

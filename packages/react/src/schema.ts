@@ -67,6 +67,11 @@ export const schema = defineSchema(
         description:
           "Remove an item from an array in state by index. Params: { statePath: string, index: number }",
       },
+      {
+        name: "validateForm",
+        description:
+          "Validate all registered form fields and write the result to state. Params: { statePath?: string }. Defaults to /formValidation. Result: { valid: boolean, errors: Record<string, string[]> }.",
+      },
     ],
     defaultRules: [
       // Element integrity

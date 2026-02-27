@@ -196,24 +196,28 @@ export function Widget({
     onDeleted?.();
   }, [widgetId, onDeleted]);
 
-  const handleStateChange = useCallback((path: string, value: unknown) => {
-    setState((prev) => {
-      const next = { ...prev };
-      // Convert path like "customerForm/name" to nested object
-      const parts = path.split("/");
-      let current: Record<string, unknown> = next;
-      for (let i = 0; i < parts.length - 1; i++) {
-        const part = parts[i]!;
-        if (!(part in current) || typeof current[part] !== "object") {
-          current[part] = {};
+  const handleStateChange = useCallback(
+    (changes: Array<{ path: string; value: unknown }>) => {
+      setState((prev) => {
+        const next = { ...prev };
+        for (const { path, value } of changes) {
+          const parts = path.split("/");
+          let current: Record<string, unknown> = next;
+          for (let i = 0; i < parts.length - 1; i++) {
+            const part = parts[i]!;
+            if (!(part in current) || typeof current[part] !== "object") {
+              current[part] = {};
+            }
+            current = current[part] as Record<string, unknown>;
+          }
+          const lastPart = parts[parts.length - 1]!;
+          current[lastPart] = value;
         }
-        current = current[part] as Record<string, unknown>;
-      }
-      const lastPart = parts[parts.length - 1]!;
-      current[lastPart] = value;
-      return next;
-    });
-  }, []);
+        return next;
+      });
+    },
+    [],
+  );
 
   // Use spec from stream, or initial spec for saved widgets
   const currentSpec = spec || initialSpec;

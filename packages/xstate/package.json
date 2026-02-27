@@ -1,0 +1,55 @@
+{
+  "name": "@json-render/xstate",
+  "version": "0.10.0",
+  "license": "Apache-2.0",
+  "description": "XState Store adapter for json-render StateStore",
+  "keywords": [
+    "json-render",
+    "xstate",
+    "xstate-store",
+    "state-management",
+    "adapter"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vercel-labs/json-render.git",
+    "directory": "packages/xstate"
+  },
+  "homepage": "https://github.com/vercel-labs/json-render#readme",
+  "bugs": {
+    "url": "https://github.com/vercel-labs/json-render/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@json-render/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "@xstate/store": ">=3.0.0"
+  },
+  "devDependencies": {
+    "@internal/typescript-config": "workspace:*",
+    "tsup": "^8.0.2",
+    "typescript": "^5.4.5",
+    "@xstate/store": "^3.0.0"
+  }
+}

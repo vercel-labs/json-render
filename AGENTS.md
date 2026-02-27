@@ -26,6 +26,22 @@ This ensures we don't install outdated versions that may have incompatible types
 
 - Do not use emojis in code or UI
 - Use shadcn CLI to add shadcn/ui components: `pnpm dlx shadcn@latest add <component>`
+- **Web app docs (`apps/web/`):** Never use Markdown table syntax (`| col | col |`). Always use HTML `<table>` with `<thead>`, `<tbody>`, `<tr>`, `<th>`, `<td>`. Markdown tables do not render correctly in the web app. Inside HTML table cells, curly braces must be escaped as JSX expressions (e.g. `<code>{'{ "$state": "/path" }'}</code>`) because MDX parses `{` as a JSX expression boundary.
+
+## AI SDK / AI Gateway
+
+When using the Vercel AI SDK (`ai` package) with AI Gateway, pass the model as a plain string identifier -- do not import a provider constructor:
+
+```ts
+import { streamText } from "ai";
+
+const result = streamText({
+  model: "anthropic/claude-haiku-4.5",
+  prompt: "...",
+});
+```
+
+This requires `AI_GATEWAY_API_KEY` to be set in the environment. See `tests/e2e/` for examples.
 
 ## Dev Servers
 
@@ -53,6 +69,7 @@ Do **not** add `--port` flags -- portless handles port assignment automatically.
 - When making user-facing changes (new packages, API changes, new features, renamed exports, changed behavior), update the relevant documentation:
   - Package `README.md` files in `packages/*/README.md`
   - Root `README.md` (if packages table, install commands, or examples are affected)
+  - Web app docs in `apps/web/` (if guides, API references, or examples need updating)
   - Skills in `skills/*/SKILL.md` (if the package has a corresponding skill)
   - `AGENTS.md` (if workflow or conventions change)
 

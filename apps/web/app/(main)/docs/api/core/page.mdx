@@ -11,7 +11,7 @@ Creates a type-safe catalog definition with schema validation.
 
 ```typescript
 import { defineCatalog } from '@json-render/core';
-import { schema } from '@json-render/react';
+import { schema } from '@json-render/react/schema';
 
 function defineCatalog<T extends ZodType>(
   s: T,
@@ -119,7 +119,7 @@ The schema for flat UI element trees. This is exported from @json-render/react.
 
 ```typescript
 import { defineCatalog } from '@json-render/core';
-import { schema } from '@json-render/react';
+import { schema } from '@json-render/react/schema';
 
 // schema defines:
 // - Spec shape: { root: string, elements: Record<string, UIElement> }

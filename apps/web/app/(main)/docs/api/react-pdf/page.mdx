@@ -108,13 +108,16 @@ const PDFRenderer = createRenderer(catalog, components);
 ```typescript
 interface CreateRendererProps {
   spec: Spec | null;
+  store?: StateStore;
   state?: Record<string, unknown>;
   onAction?: (actionName: string, params?: Record<string, unknown>) => void;
-  onStateChange?: (path: string, value: unknown) => void;
+  onStateChange?: (changes: Array<{ path: string; value: unknown }>) => void;
   loading?: boolean;
   fallback?: ComponentRenderer;
 }
 ```
+
+When `store` is provided, `state` and `onStateChange` are ignored (controlled mode).
 
 ## Renderer
 
@@ -343,6 +346,19 @@ Renders current page number and total pages. Format uses `{pageNumber}` and `{to
   align: "left" | "center" | "right" | null;
 }
 ```
+
+## External Store (Controlled Mode)
+
+Pass a `StateStore` to `StateProvider`, `JSONUIProvider`, or `createRenderer` for full control over state:
+
+```tsx
+import { createStateStore, type StateStore } from "@json-render/react-pdf";
+
+const store = createStateStore({ invoice: { total: 100 } });
+store.set("/invoice/total", 200);
+```
+
+When `store` is provided, `initialState` / `state` and `onStateChange` are ignored.
 
 ## Server-Safe Import
 

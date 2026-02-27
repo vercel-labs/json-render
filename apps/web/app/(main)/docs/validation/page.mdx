@@ -11,11 +11,18 @@ json-render includes common validation functions:
 
 - `required` — Value must be non-empty
 - `email` — Valid email format
-- `minLength` — Minimum string length
-- `maxLength` — Maximum string length
-- `pattern` — Match a regex pattern
-- `min` — Minimum numeric value
-- `max` — Maximum numeric value
+- `minLength` — Minimum string length (args: `{ "min": N }`)
+- `maxLength` — Maximum string length (args: `{ "max": N }`)
+- `pattern` — Match a regex pattern (args: `{ "pattern": "regex" }`)
+- `min` — Minimum numeric value (args: `{ "min": N }`)
+- `max` — Maximum numeric value (args: `{ "max": N }`)
+- `numeric` — Value must be a number
+- `url` — Valid URL format
+- `matches` — Must equal another field (args: `{ "other": { "$state": "/path" } }`)
+- `equalTo` — Alias for matches (args: `{ "other": { "$state": "/path" } }`)
+- `lessThan` — Value must be less than another field (args: `{ "other": { "$state": "/path" } }`)
+- `greaterThan` — Value must be greater than another field (args: `{ "other": { "$state": "/path" } }`)
+- `requiredIf` — Required only when another field is truthy (args: `{ "field": { "$state": "/path" } }`)
 
 ## Using Validation in JSON
 
@@ -67,7 +74,7 @@ Define custom validators in your catalog's `functions` field. The catalog itself
 
 ```typescript
 import { defineCatalog } from '@json-render/core';
-import { schema } from '@json-render/react'; // or '@json-render/react-native'
+import { schema } from '@json-render/react/schema'; // or '@json-render/react-native/schema'
 import { z } from 'zod';
 
 const catalog = defineCatalog(schema, {
@@ -143,14 +150,114 @@ function TextField({ props, bindings }) {
 
 See the [@json-render/react API reference](/docs/api/react) for full `ValidationProvider` and `useFieldValidation` documentation.
 
+## Cross-Field Validation
+
+Validation args support `{ "$state": "/path" }` references to compare against other fields. This enables cross-field rules like "confirm password must match password":
+
+```json
+{
+  "type": "Input",
+  "props": {
+    "label": "Confirm Password",
+    "value": { "$bindState": "/form/confirmPassword" },
+    "checks": [
+      { "type": "required", "message": "Please confirm your password" },
+      {
+        "type": "matches",
+        "args": { "other": { "$state": "/form/password" } },
+        "message": "Passwords must match"
+      }
+    ]
+  }
+}
+```
+
+Other cross-field examples:
+
+```json
+{
+  "checks": [
+    {
+      "type": "greaterThan",
+      "args": { "other": { "$state": "/form/startDate" } },
+      "message": "End date must be after start date"
+    }
+  ]
+}
+```
+
+```json
+{
+  "checks": [
+    {
+      "type": "requiredIf",
+      "args": { "field": { "$state": "/form/enableNotifications" } },
+      "message": "Email is required when notifications are enabled"
+    }
+  ]
+}
+```
+
+## Conditional Validation
+
+Use the `enabled` field in the validation config to only run checks when a condition is met:
+
+```json
+{
+  "type": "Input",
+  "props": {
+    "label": "Company Name",
+    "value": { "$bindState": "/form/company" },
+    "checks": [
+      { "type": "required", "message": "Company name is required" }
+    ]
+  }
+}
+```
+
+In the component implementation, you can pass `enabled` to `useFieldValidation`:
+
+```typescript
+useFieldValidation(bindings?.value ?? "", {
+  checks: props.checks ?? [],
+  enabled: { "$state": "/form/accountType", eq: "business" },
+});
+```
+
+This only validates the company name when the account type is "business".
+
 ## Validation Timing
 
 Control when validation runs with `validateOn`:
 
 - `change` — Validate on every input change
-- `blur` — Validate when field loses focus
+- `blur` — Validate when field loses focus (default for Input, Textarea)
 - `submit` — Validate only on form submission
+
+## Form-Level Validation
+
+Use the built-in `validateForm` action to validate all registered fields at once. This is useful for a "Submit" button that should validate the entire form before proceeding:
+
+```json
+{
+  "type": "Button",
+  "props": { "label": "Submit" },
+  "on": {
+    "press": [
+      { "action": "validateForm", "params": { "statePath": "/formResult" } },
+      { "action": "submitForm" }
+    ]
+  },
+  "children": []
+}
+```
+
+The `validateForm` action runs `validateAll()` and writes `{ valid: boolean }` to the specified state path (defaults to `/formValidation`). Your submit handler can then check `{ "$state": "/formResult/valid" }` to decide whether to proceed.
+
+> **Note:** Actions in a list execute sequentially, but `submitForm` does not automatically gate on validation. Guard submission with a `$cond` visibility condition on the button or check `{ "$state": "/formResult/valid" }` inside your action handler to skip submission when the form is invalid.
 
 ## Next
 
-Learn about [generation modes](/docs/generation-modes).
+- [Computed Values](/docs/computed-values) — derive dynamic prop values
+- [Watchers](/docs/watchers) — react to state changes
+- [Generation Modes](/docs/generation-modes) — how AI generates specs

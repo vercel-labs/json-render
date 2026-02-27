@@ -13,7 +13,7 @@
   "scripts": {
     "build": "turbo run build",
     "predev": "command -v portless >/dev/null 2>&1 || (echo '\\nportless is required but not installed. Run: npm i -g portless\\nSee: https://github.com/vercel-labs/portless\\n' && exit 1)",
-    "dev": "turbo run dev --concurrency 15",
+    "dev": "turbo run dev --concurrency 20",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "type-check": "turbo run check-types",
@@ -21,6 +21,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:e2e": "pnpm --filter e2e-tests test",
     "prepare": "husky",
     "changeset": "changeset",
     "ci:version": "changeset version && pnpm install --no-frozen-lockfile",

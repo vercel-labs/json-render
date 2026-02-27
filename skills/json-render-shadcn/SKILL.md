@@ -126,9 +126,9 @@ const { registry } = defineRegistry(catalog, {
 - **Input** - Text input with label, name, type, placeholder, value, checks
 - **Textarea** - Multi-line input with label, name, placeholder, rows, value, checks
 - **Select** - Dropdown select with label, name, options (string[]), value, checks
-- **Checkbox** - Checkbox with label, name, checked
-- **Radio** - Radio group with label, name, options (string[]), value
-- **Switch** - Toggle switch with label, name, checked
+- **Checkbox** - Checkbox with label, name, checked, checks, validateOn
+- **Radio** - Radio group with label, name, options (string[]), value, checks, validateOn
+- **Switch** - Toggle switch with label, name, checked, checks, validateOn
 - **Slider** - Range slider with label, min, max, step, value
 - **Toggle** - Toggle button with label, pressed, variant
 - **ToggleGroup** - Group of toggles with items, type, value
@@ -141,11 +141,19 @@ These are built into the React schema and handled by `ActionProvider` automatica
 - **setState** - Set a value at a state path (`{ statePath, value }`)
 - **pushState** - Push a value onto an array (`{ statePath, value, clearStatePath? }`)
 - **removeState** - Remove an array item by index (`{ statePath, index }`)
+- **validateForm** - Validate all fields, write `{ valid, errors }` to state (`{ statePath? }`)
+
+## Validation Timing (`validateOn`)
+
+All form components support `validateOn` to control when validation runs:
+- `"change"` — validate on every input change (default for Select, Checkbox, Radio, Switch)
+- `"blur"` — validate when field loses focus (default for Input, Textarea)
+- `"submit"` — validate only on form submission
 
 ## Important Notes
 
 - The `/catalog` entry point has no React dependency -- use it for server-side prompt generation
 - Components use Tailwind CSS classes -- your app must have Tailwind configured
 - Component implementations use bundled shadcn/ui primitives (not your app's `components/ui/`)
-- Form inputs support `checks` for validation (type + message pairs)
+- All form inputs support `checks` for validation (type + message pairs) and `validateOn` for timing
 - Events: inputs emit `change`/`submit`/`focus`/`blur`; buttons emit `press`; selects emit `change`/`select`

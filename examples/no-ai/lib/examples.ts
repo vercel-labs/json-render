@@ -508,4 +508,353 @@ export const examples: Example[] = [
       },
     },
   },
+
+  // =========================================================================
+  // Advanced: Registration form with cross-field validation & $template
+  // =========================================================================
+  {
+    name: "Registration Form",
+    description:
+      "Cross-field validation, $template preview, and validateForm action",
+    spec: {
+      root: "card",
+      state: {
+        form: {
+          name: "",
+          email: "",
+          password: "",
+          confirmPassword: "",
+          accountType: "personal",
+          company: "",
+        },
+        result: null,
+      },
+      elements: {
+        card: {
+          type: "Card",
+          props: {
+            title: "Create Account",
+            description: "Fill out the form below to register",
+            maxWidth: "md",
+            centered: null,
+          },
+          children: ["formStack"],
+        },
+        formStack: {
+          type: "Stack",
+          props: {
+            direction: "vertical",
+            gap: "md",
+            align: null,
+            justify: null,
+          },
+          children: [
+            "preview",
+            "sep0",
+            "nameInput",
+            "emailInput",
+            "passwordInput",
+            "confirmInput",
+            "sep1",
+            "accountTypeRadio",
+            "companyInput",
+            "sep2",
+            "actions",
+            "statusText",
+          ],
+        },
+
+        // $template live preview
+        preview: {
+          type: "Text",
+          props: {
+            text: {
+              $template: "Welcome, ${/form/name}! Your email: ${/form/email}",
+            },
+            variant: "muted",
+          },
+          visible: { $state: "/form/name", neq: "" },
+          children: [],
+        },
+        sep0: { type: "Separator", props: { orientation: null }, children: [] },
+
+        nameInput: {
+          type: "Input",
+          props: {
+            label: "Full Name",
+            name: "name",
+            type: "text",
+            placeholder: "Jane Doe",
+            value: { $bindState: "/form/name" },
+            checks: [
+              { type: "required", message: "Name is required" },
+              {
+                type: "minLength",
+                args: { min: 2 },
+                message: "Name must be at least 2 characters",
+              },
+            ],
+            validateOn: "blur",
+          },
+          children: [],
+        },
+        emailInput: {
+          type: "Input",
+          props: {
+            label: "Email",
+            name: "email",
+            type: "email",
+            placeholder: "jane@example.com",
+            value: { $bindState: "/form/email" },
+            checks: [
+              { type: "required", message: "Email is required" },
+              { type: "email", message: "Enter a valid email address" },
+            ],
+            validateOn: "blur",
+          },
+          children: [],
+        },
+        passwordInput: {
+          type: "Input",
+          props: {
+            label: "Password",
+            name: "password",
+            type: "password",
+            placeholder: "At least 8 characters",
+            value: { $bindState: "/form/password" },
+            checks: [
+              { type: "required", message: "Password is required" },
+              {
+                type: "minLength",
+                args: { min: 8 },
+                message: "Password must be at least 8 characters",
+              },
+            ],
+            validateOn: "blur",
+          },
+          children: [],
+        },
+        confirmInput: {
+          type: "Input",
+          props: {
+            label: "Confirm Password",
+            name: "confirmPassword",
+            type: "password",
+            placeholder: "Re-enter your password",
+            value: { $bindState: "/form/confirmPassword" },
+            checks: [
+              { type: "required", message: "Please confirm your password" },
+              {
+                type: "matches",
+                args: { other: { $state: "/form/password" } },
+                message: "Passwords must match",
+              },
+            ],
+            validateOn: "blur",
+          },
+          children: [],
+        },
+        sep1: { type: "Separator", props: { orientation: null }, children: [] },
+
+        accountTypeRadio: {
+          type: "Radio",
+          props: {
+            label: "Account Type",
+            name: "accountType",
+            options: ["personal", "business"],
+            value: { $bindState: "/form/accountType" },
+            checks: null,
+            validateOn: null,
+          },
+          children: [],
+        },
+        companyInput: {
+          type: "Input",
+          props: {
+            label: "Company Name",
+            name: "company",
+            type: "text",
+            placeholder: "Acme Inc.",
+            value: { $bindState: "/form/company" },
+            checks: [
+              {
+                type: "requiredIf",
+                args: { field: { $state: "/form/accountType" } },
+                message: "Company name is required for business accounts",
+              },
+            ],
+            validateOn: "blur",
+          },
+          visible: { $state: "/form/accountType", eq: "business" },
+          children: [],
+        },
+        sep2: { type: "Separator", props: { orientation: null }, children: [] },
+
+        actions: {
+          type: "Stack",
+          props: {
+            direction: "horizontal",
+            gap: "sm",
+            align: null,
+            justify: "end",
+          },
+          children: ["submitBtn"],
+        },
+        submitBtn: {
+          type: "Button",
+          props: { label: "Register", variant: "primary", disabled: null },
+          on: {
+            press: [
+              {
+                action: "validateForm",
+                params: { statePath: "/result" },
+              },
+            ],
+          },
+          children: [],
+        },
+
+        // Validation result
+        statusText: {
+          type: "Alert",
+          props: {
+            title: "Validation Result",
+            message: {
+              $cond: { $state: "/result/valid", eq: true },
+              $then: "All fields are valid -- ready to submit!",
+              $else: "Please fix the errors above before submitting.",
+            },
+            type: {
+              $cond: { $state: "/result/valid", eq: true },
+              $then: "success",
+              $else: "error",
+            },
+          },
+          visible: { $state: "/result", neq: null },
+          children: [],
+        },
+      },
+    },
+  },
+
+  // =========================================================================
+  // Advanced: Cascading selects with watchers & $computed
+  // =========================================================================
+  {
+    name: "Cascading Selects",
+    description:
+      "Watchers reset dependent fields, $computed derives display values",
+    spec: {
+      root: "card",
+      state: {
+        form: { country: "", city: "" },
+        availableCities: [],
+      },
+      elements: {
+        card: {
+          type: "Card",
+          props: {
+            title: "Shipping Address",
+            description: "Select your country to load available cities",
+            maxWidth: "md",
+            centered: null,
+          },
+          children: ["formStack"],
+        },
+        formStack: {
+          type: "Stack",
+          props: {
+            direction: "vertical",
+            gap: "md",
+            align: null,
+            justify: null,
+          },
+          children: [
+            "countrySelect",
+            "citySelect",
+            "sep",
+            "addressPreview",
+            "templatePreview",
+          ],
+        },
+
+        countrySelect: {
+          type: "Select",
+          props: {
+            label: "Country",
+            name: "country",
+            options: ["US", "Canada", "UK", "Germany", "Japan"],
+            placeholder: "Choose a country",
+            value: { $bindState: "/form/country" },
+            checks: [{ type: "required", message: "Country is required" }],
+            validateOn: "change",
+          },
+          watch: {
+            "/form/country": [
+              {
+                action: "setState",
+                params: {
+                  statePath: "/availableCities",
+                  value: {
+                    $computed: "citiesForCountry",
+                    args: { country: { $state: "/form/country" } },
+                  },
+                },
+              },
+              {
+                action: "setState",
+                params: { statePath: "/form/city", value: "" },
+              },
+            ],
+          },
+          children: [],
+        },
+
+        citySelect: {
+          type: "Select",
+          props: {
+            label: "City",
+            name: "city",
+            options: { $state: "/availableCities" },
+            placeholder: "Select a city",
+            value: { $bindState: "/form/city" },
+            checks: [{ type: "required", message: "City is required" }],
+            validateOn: "change",
+          },
+          children: [],
+        },
+        sep: { type: "Separator", props: { orientation: null }, children: [] },
+
+        // $computed formatted address
+        addressPreview: {
+          type: "Heading",
+          props: {
+            text: {
+              $computed: "formatAddress",
+              args: {
+                city: { $state: "/form/city" },
+                country: { $state: "/form/country" },
+              },
+            },
+            level: "h3",
+          },
+          children: [],
+        },
+
+        // $template string interpolation
+        templatePreview: {
+          type: "Text",
+          props: {
+            text: {
+              $template:
+                "Shipping to: ${/form/city} in ${/form/country}. Cities available: ${/availableCities}",
+            },
+            variant: "muted",
+          },
+          visible: { $state: "/form/country", neq: "" },
+          children: [],
+        },
+      },
+    },
+  },
 ];

@@ -167,12 +167,12 @@ const { registry } = defineRegistry(catalog, {
 |-----------|-------------|
 | `Button` | Clickable button with variants |
 | `Link` | Anchor link |
-| `Input` | Text input with label and validation |
-| `Textarea` | Multi-line text input |
-| `Select` | Dropdown select |
-| `Checkbox` | Checkbox input |
-| `Radio` | Radio button group |
-| `Switch` | Toggle switch |
+| `Input` | Text input with label, validation, and `validateOn` timing |
+| `Textarea` | Multi-line text input with validation and `validateOn` |
+| `Select` | Dropdown select with validation and `validateOn` |
+| `Checkbox` | Checkbox input with validation and `validateOn` |
+| `Radio` | Radio button group with validation and `validateOn` |
+| `Switch` | Toggle switch with validation and `validateOn` |
 | `Slider` | Range slider |
 | `Toggle` | Toggle button |
 | `ToggleGroup` | Group of toggle buttons |
@@ -180,13 +180,24 @@ const { registry } = defineRegistry(catalog, {
 
 ## Built-in Actions
 
-State actions (`setState`, `pushState`, `removeState`) are built into the `@json-render/react` schema and handled automatically by `ActionProvider`. They are included in prompts without needing to be declared in your catalog.
+State actions (`setState`, `pushState`, `removeState`, `validateForm`) are built into the `@json-render/react` schema and handled automatically by `ActionProvider`. They are included in prompts without needing to be declared in your catalog.
 
 | Action | Description |
 |--------|-------------|
 | `setState` | Set a value at a state path |
 | `pushState` | Push a value onto an array in state |
 | `removeState` | Remove an item from an array in state |
+| `validateForm` | Validate all fields and write result to state |
+
+### Validation Timing (`validateOn`)
+
+All form components support the `validateOn` prop to control when validation runs:
+
+| Value | Description | Default For |
+|-------|-------------|-------------|
+| `"change"` | Validate on every input change | Select, Checkbox, Radio, Switch |
+| `"blur"` | Validate when field loses focus | Input, Textarea |
+| `"submit"` | Validate only on form submission | — |
 
 ## Exports
 

@@ -1,5 +1,5 @@
 import { defineCatalog } from "@json-render/core";
-import { schema } from "@json-render/react";
+import { schema } from "@json-render/react/schema";
 import { z } from "zod";
 
 /**

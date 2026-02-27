@@ -85,6 +85,8 @@ Any prop value can be a dynamic expression resolved at render time:
 - **`{ "$bindState": "/path" }`** - two-way binding: reads from state and enables write-back. Use on the natural value prop (value, checked, pressed, etc.) of form components.
 - **`{ "$bindItem": "field" }`** - two-way binding to a repeat item field. Use inside repeat scopes.
 - **`{ "$cond": <condition>, "$then": <value>, "$else": <value> }`** - evaluates a visibility condition and picks a branch
+- **`{ "$template": "Hello, ${/user/name}!" }`** - interpolates `${/path}` references with state values
+- **`{ "$computed": "fnName", "args": { "key": <expression> } }`** - calls a registered function with resolved args
 
 `$cond` uses the same syntax as visibility conditions (`$state`, `eq`, `neq`, `not`, arrays for AND). `$then` and `$else` can themselves be expressions (recursive).
 
@@ -96,6 +98,14 @@ Components do not use a `statePath` prop for two-way binding. Instead, use `{ "$
     "$cond": { "$state": "/activeTab", "eq": "home" },
     "$then": "#007AFF",
     "$else": "#8E8E93"
+  },
+  "label": { "$template": "Welcome, ${/user/name}!" },
+  "fullName": {
+    "$computed": "fullName",
+    "args": {
+      "first": { "$state": "/form/firstName" },
+      "last": { "$state": "/form/lastName" }
+    }
   }
 }
 ```
@@ -104,6 +114,39 @@ Components do not use a `statePath` prop for two-way binding. Instead, use `{ "$
 import { resolvePropValue, resolveElementProps } from "@json-render/core";
 
 const resolved = resolveElementProps(element.props, { stateModel: myState });
+```
+
+## State Watchers
+
+Elements can declare a `watch` field (top-level, sibling of type/props/children) to trigger actions when state values change:
+
+```json
+{
+  "type": "Select",
+  "props": { "value": { "$bindState": "/form/country" }, "options": ["US", "Canada"] },
+  "watch": {
+    "/form/country": { "action": "loadCities", "params": { "country": { "$state": "/form/country" } } }
+  },
+  "children": []
+}
+```
+
+Watchers only fire on value changes, not on initial render.
+
+## Validation
+
+Built-in validation functions: `required`, `email`, `url`, `numeric`, `minLength`, `maxLength`, `min`, `max`, `pattern`, `matches`, `equalTo`, `lessThan`, `greaterThan`, `requiredIf`.
+
+Cross-field validation uses `$state` expressions in args:
+
+```typescript
+import { check } from "@json-render/core";
+
+check.required("Field is required");
+check.matches("/form/password", "Passwords must match");
+check.lessThan("/form/endDate", "Must be before end date");
+check.greaterThan("/form/startDate", "Must be after start date");
+check.requiredIf("/form/enableNotifications", "Required when enabled");
 ```
 
 ## User Prompt Builder
@@ -171,12 +214,33 @@ const schema = defineSchema(builder, {
 
 These appear in prompts as `[built-in]` and don't require handlers in `defineRegistry`.
 
+## StateStore
+
+The `StateStore` interface allows external state management libraries (Redux, Zustand, XState, etc.) to be plugged into json-render renderers. The `createStateStore` factory creates a simple in-memory implementation:
+
+```typescript
+import { createStateStore, type StateStore } from "@json-render/core";
+
+const store = createStateStore({ count: 0 });
+
+store.get("/count");         // 0
+store.set("/count", 1);      // updates and notifies subscribers
+store.update({ "/a": 1, "/b": 2 }); // batch update
+
+store.subscribe(() => {
+  console.log(store.getSnapshot()); // { count: 1 }
+});
+```
+
+The `StateStore` interface: `get(path)`, `set(path, value)`, `update(updates)`, `getSnapshot()`, `subscribe(listener)`.
+
 ## Key Exports
 
 | Export | Purpose |
 |--------|---------|
 | `defineSchema` | Create a new schema |
 | `defineCatalog` | Create a catalog from schema |
+| `createStateStore` | Create a framework-agnostic in-memory `StateStore` |
 | `resolvePropValue` | Resolve a single prop expression against data |
 | `resolveElementProps` | Resolve all prop expressions in an element |
 | `buildUserPrompt` | Build user prompts with refinement and state context |
@@ -186,5 +250,8 @@ These appear in prompts as `[built-in]` and don't require handlers in `defineReg
 | `createJsonRenderTransform` | TransformStream separating text from JSONL in mixed streams |
 | `parseSpecStreamLine` | Parse single JSONL line |
 | `applySpecStreamPatch` | Apply patch to object |
+| `StateStore` | Interface for plugging in external state management |
+| `ComputedFunction` | Function signature for `$computed` expressions |
+| `check` | TypeScript helpers for creating validation checks |
 | `BuiltInAction` | Type for built-in action definitions (`name` + `description`) |
 | `ActionBinding` | Action binding type (includes `preventDefault` field) |

@@ -27,7 +27,7 @@ export interface StripeRendererProps {
   /** Function to update data */
   setData?: SetState;
   /** Callback when data changes */
-  onStateChange?: (path: string, value: unknown) => void;
+  onStateChange?: (changes: Array<{ path: string; value: unknown }>) => void;
   /** Whether the spec is currently loading/streaming */
   loading?: boolean;
 }
