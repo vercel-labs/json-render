@@ -381,6 +381,51 @@ React to state changes by triggering actions:
 
 ---
 
+## Local Development Setup
+
+### Prerequisites
+
+Before running the dev server, install the required global tool and credentials:
+
+#### 1. Install `portless` (Global)
+
+`portless` is a global routing tool that maps app dev servers to `*.localhost` hostnames. Install it once:
+
+```bash
+npm install -g portless
+```
+
+Verify installation:
+
+```bash
+portless --version
+```
+
+#### 2. Set AI Gateway API Key (Optional, for AI Features)
+
+If you want to use AI features in the apps, set your Vercel AI Gateway API key in your shell:
+
+```bash
+export AI_GATEWAY_API_KEY="your_api_key_here"
+```
+
+(Optional) Choose a specific model:
+
+```bash
+export AI_GATEWAY_MODEL="anthropic/claude-haiku-4.5"
+```
+
+### Troubleshooting Local Setup
+
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `sh: 1: portless: not found` | `portless` not installed globally | Run `npm install -g portless` |
+| `Invalid task configuration: You have 22 persistent tasks but turbo is configured for concurrency of 20` | Concurrency mismatch | Upgrade to latest version of this repo |
+| `AI Gateway authentication failed: No authentication provided` | `AI_GATEWAY_API_KEY` not set | Run `export AI_GATEWAY_API_KEY="your_key"` |
+| `Not Found - No app registered for localhost` | Using bare `localhost` instead of portless route | Open one of the URLs below instead |
+
+---
+
 ## Demo
 
 ```bash
@@ -389,6 +434,8 @@ cd json-render
 pnpm install
 pnpm dev
 ```
+
+Then open the following URLs in your browser:
 
 - http://json-render.localhost:1355 - Docs & Playground
 - http://dashboard-demo.json-render.localhost:1355 - Example Dashboard

@@ -12,7 +12,7 @@
   },
   "scripts": {
     "build": "turbo run build",
-    "dev": "turbo run dev --concurrency 20",
+    "dev": "turbo run dev --concurrency 23",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "type-check": "turbo run check-types",
