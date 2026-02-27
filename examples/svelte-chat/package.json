@@ -29,6 +29,7 @@
     "@ai-sdk/gateway": "^3.0.46",
     "@ai-sdk/svelte": "^4.0.96",
     "@json-render/core": "workspace:*",
+    "@json-render/shadcn-svelte": "workspace:*",
     "@json-render/svelte": "workspace:*",
     "ai": "^6.0.86",
     "clsx": "^2.1.1",
