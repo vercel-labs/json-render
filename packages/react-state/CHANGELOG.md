@@ -1,5 +1,12 @@
 # @internal/react-state
 
+## 0.8.4
+
+### Patch Changes
+
+- Updated dependencies [3f1e71e]
+  - @json-render/core@0.11.0
+
 ## 0.8.3
 
 ### Patch Changes

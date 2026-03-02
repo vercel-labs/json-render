@@ -1,0 +1,364 @@
+import { pageMetadata } from "@/lib/page-metadata"
+export const metadata = pageMetadata("docs/api/image")
+
+# @json-render/image
+
+Image renderer. Turn JSON specs into SVG and PNG images using [Satori](https://github.com/vercel/satori).
+
+## Install
+
+```bash
+npm install @json-render/core @json-render/image
+```
+
+For PNG output, also install the optional peer dependency:
+
+```bash
+npm install @resvg/resvg-js
+```
+
+See the [Image example](https://github.com/vercel-labs/json-render/tree/main/examples/image) for a full working example.
+
+## schema
+
+The image element schema for image specs. Use with `defineCatalog` from core.
+
+```typescript
+import { defineCatalog } from '@json-render/core';
+import { schema, standardComponentDefinitions } from '@json-render/image';
+
+const catalog = defineCatalog(schema, {
+  components: standardComponentDefinitions,
+});
+```
+
+## Render Functions
+
+Server-side functions for producing image output. Both accept a spec and optional `RenderOptions`.
+
+```typescript
+import { renderToSvg, renderToPng } from '@json-render/image/render';
+
+const svg = await renderToSvg(spec, { fonts });
+
+const png = await renderToPng(spec, { fonts });
+await writeFile('output.png', png);
+```
+
+### RenderOptions
+
+```typescript
+interface RenderOptions {
+  registry?: ComponentRegistry;
+  includeStandard?: boolean;  // default: true
+  state?: Record<string, unknown>;
+  fonts?: SatoriOptions['fonts'];
+  width?: number;
+  height?: number;
+}
+```
+
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>Type</th>
+      <th>Default</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>fonts</code></td>
+      <td><code>{"SatoriOptions['fonts']"}</code></td>
+      <td><code>[]</code></td>
+      <td>Font data for text rendering (required for meaningful output)</td>
+    </tr>
+    <tr>
+      <td><code>width</code></td>
+      <td><code>number</code></td>
+      <td>Frame prop</td>
+      <td>Override the output image width</td>
+    </tr>
+    <tr>
+      <td><code>height</code></td>
+      <td><code>number</code></td>
+      <td>Frame prop</td>
+      <td>Override the output image height</td>
+    </tr>
+    <tr>
+      <td><code>registry</code></td>
+      <td><code>{"Record<string, ComponentRenderer>"}</code></td>
+      <td><code>{"{}"}</code></td>
+      <td>Custom component map (merged with standard components)</td>
+    </tr>
+    <tr>
+      <td><code>includeStandard</code></td>
+      <td><code>boolean</code></td>
+      <td><code>true</code></td>
+      <td>Include built-in standard components</td>
+    </tr>
+    <tr>
+      <td><code>state</code></td>
+      <td><code>{"Record<string, unknown>"}</code></td>
+      <td><code>{"{}"}</code></td>
+      <td>Initial state for <code>$state</code> / <code>$cond</code> dynamic prop resolution</td>
+    </tr>
+  </tbody>
+</table>
+
+## Standard Components
+
+### Root
+
+#### Frame
+
+Root image container. Defines the output image dimensions and background. Must be the root element.
+
+```typescript
+{
+  width: number;
+  height: number;
+  backgroundColor: string | null;
+  padding: number | null;
+  display: "flex" | "none" | null;
+  flexDirection: "row" | "column" | null;
+  alignItems: "flex-start" | "center" | "flex-end" | "stretch" | null;
+  justifyContent: "flex-start" | "center" | "flex-end" | "space-between" | "space-around" | null;
+}
+```
+
+### Layout
+
+#### Box
+
+Generic container with padding, margin, background, border, and flex alignment. Supports absolute positioning.
+
+```typescript
+{
+  padding: number | null;
+  paddingTop: number | null;
+  paddingBottom: number | null;
+  paddingLeft: number | null;
+  paddingRight: number | null;
+  margin: number | null;
+  backgroundColor: string | null;
+  borderWidth: number | null;
+  borderColor: string | null;
+  borderRadius: number | null;
+  flex: number | null;
+  width: number | string | null;
+  height: number | string | null;
+  alignItems: "flex-start" | "center" | "flex-end" | "stretch" | null;
+  justifyContent: "flex-start" | "center" | "flex-end" | "space-between" | "space-around" | null;
+  flexDirection: "row" | "column" | null;
+  position: "relative" | "absolute" | null;
+  top: number | null;
+  left: number | null;
+  right: number | null;
+  bottom: number | null;
+  overflow: "visible" | "hidden" | null;
+}
+```
+
+#### Row
+
+Horizontal flex layout with optional wrapping.
+
+```typescript
+{
+  gap: number | null;
+  alignItems: "flex-start" | "center" | "flex-end" | "stretch" | null;
+  justifyContent: "flex-start" | "center" | "flex-end" | "space-between" | "space-around" | null;
+  padding: number | null;
+  flex: number | null;
+  wrap: boolean | null;
+}
+```
+
+#### Column
+
+Vertical flex layout.
+
+```typescript
+{
+  gap: number | null;
+  alignItems: "flex-start" | "center" | "flex-end" | "stretch" | null;
+  justifyContent: "flex-start" | "center" | "flex-end" | "space-between" | "space-around" | null;
+  padding: number | null;
+  flex: number | null;
+}
+```
+
+### Content
+
+#### Heading
+
+Heading text at various levels. h1 is largest, h4 is smallest.
+
+```typescript
+{
+  text: string;
+  level: "h1" | "h2" | "h3" | "h4" | null;
+  color: string | null;
+  align: "left" | "center" | "right" | null;
+  letterSpacing: number | string | null;
+  lineHeight: number | null;
+}
+```
+
+#### Text
+
+Body text with configurable size, color, weight, and alignment.
+
+```typescript
+{
+  text: string;
+  fontSize: number | null;
+  color: string | null;
+  align: "left" | "center" | "right" | null;
+  fontWeight: "normal" | "bold" | null;
+  fontStyle: "normal" | "italic" | null;
+  lineHeight: number | null;
+  letterSpacing: number | string | null;
+  textDecoration: "none" | "underline" | "line-through" | null;
+}
+```
+
+#### Image
+
+Image from a URL with optional dimensions and fit.
+
+```typescript
+{
+  src: string;
+  width: number | null;
+  height: number | null;
+  borderRadius: number | null;
+  objectFit: "contain" | "cover" | "fill" | "none" | null;
+}
+```
+
+### Decorative
+
+#### Divider
+
+Horizontal line separator.
+
+```typescript
+{
+  color: string | null;
+  thickness: number | null;
+  marginTop: number | null;
+  marginBottom: number | null;
+}
+```
+
+#### Spacer
+
+Empty vertical space.
+
+```typescript
+{
+  height: number | null;
+}
+```
+
+## Catalog Definitions
+
+Pre-built definitions for creating image catalogs:
+
+```typescript
+import { standardComponentDefinitions } from '@json-render/image/catalog';
+import { defineCatalog } from '@json-render/core';
+import { schema } from '@json-render/image';
+
+const catalog = defineCatalog(schema, {
+  components: {
+    ...standardComponentDefinitions,
+    // Add custom components
+  },
+});
+```
+
+## Server-Safe Import
+
+Import schema and catalog definitions without pulling in React or Satori:
+
+```typescript
+import { schema, standardComponentDefinitions } from '@json-render/image/server';
+```
+
+## Sub-path Exports
+
+<table>
+  <thead>
+    <tr>
+      <th>Export</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>@json-render/image</code></td>
+      <td>Full package: schema, renderer, components, render functions</td>
+    </tr>
+    <tr>
+      <td><code>@json-render/image/server</code></td>
+      <td>Schema and catalog definitions only (no React or Satori)</td>
+    </tr>
+    <tr>
+      <td><code>@json-render/image/catalog</code></td>
+      <td>Standard component definitions and types</td>
+    </tr>
+    <tr>
+      <td><code>@json-render/image/render</code></td>
+      <td>Server-side render functions only</td>
+    </tr>
+  </tbody>
+</table>
+
+## Types
+
+<table>
+  <thead>
+    <tr>
+      <th>Export</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ImageSchema</code></td>
+      <td>Schema type for image specs</td>
+    </tr>
+    <tr>
+      <td><code>ImageSpec</code></td>
+      <td>Spec type for image output</td>
+    </tr>
+    <tr>
+      <td><code>RenderOptions</code></td>
+      <td>Options for render functions</td>
+    </tr>
+    <tr>
+      <td><code>ComponentRenderProps</code></td>
+      <td>Props passed to component render functions</td>
+    </tr>
+    <tr>
+      <td><code>ComponentRenderer</code></td>
+      <td>Component render function type</td>
+    </tr>
+    <tr>
+      <td><code>ComponentRegistry</code></td>
+      <td>Map of component names to render functions</td>
+    </tr>
+    <tr>
+      <td><code>StandardComponentDefinitions</code></td>
+      <td>Type of the standard component definitions object</td>
+    </tr>
+    <tr>
+      <td><code>StandardComponentProps{'<K>'}</code></td>
+      <td>Inferred props type for a standard component by name</td>
+    </tr>
+  </tbody>
+</table>

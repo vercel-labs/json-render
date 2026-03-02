@@ -1,0 +1,85 @@
+{
+  "name": "@json-render/image",
+  "version": "0.11.0",
+  "license": "Apache-2.0",
+  "description": "Image renderer for @json-render/core. JSON becomes SVG and PNG images via Satori.",
+  "keywords": [
+    "json",
+    "image",
+    "svg",
+    "png",
+    "og",
+    "satori",
+    "ai",
+    "generative-ui",
+    "llm",
+    "renderer"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vercel-labs/json-render.git",
+    "directory": "packages/image"
+  },
+  "homepage": "https://github.com/vercel-labs/json-render#readme",
+  "bugs": {
+    "url": "https://github.com/vercel-labs/json-render/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.mjs",
+      "require": "./dist/server.js"
+    },
+    "./catalog": {
+      "types": "./dist/catalog.d.ts",
+      "import": "./dist/catalog.mjs",
+      "require": "./dist/catalog.js"
+    },
+    "./render": {
+      "types": "./dist/render.d.ts",
+      "import": "./dist/render.mjs",
+      "require": "./dist/render.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "check-types": "tsc --noEmit",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@json-render/core": "workspace:*",
+    "satori": "^0.19.2"
+  },
+  "devDependencies": {
+    "@internal/typescript-config": "workspace:*",
+    "@types/react": "19.2.3",
+    "tsup": "^8.5.1",
+    "typescript": "^5.4.5",
+    "zod": "^4.3.6"
+  },
+  "peerDependencies": {
+    "@resvg/resvg-js": ">=2.0.0",
+    "react": "^18.0.0 || ^19.0.0",
+    "zod": "^4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@resvg/resvg-js": {
+      "optional": true
+    }
+  }
+}

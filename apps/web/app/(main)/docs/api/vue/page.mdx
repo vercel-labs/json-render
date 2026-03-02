@@ -15,11 +15,32 @@ Vue 3 components, providers, and composables.
 </StateProvider>
 ```
 
-| Prop | Type | Description |
-|------|------|-------------|
-| `store` | `StateStore` | External store (controlled mode). When provided, `initialState` and `onStateChange` are ignored. |
-| `initialState` | `Record<string, unknown>` | Initial state model (uncontrolled mode). |
-| `onStateChange` | `(changes: Array<{ path: string; value: unknown }>) => void` | Callback when state changes (uncontrolled mode). Called once per `set` or `update` with all changed entries. |
+<table>
+  <thead>
+    <tr>
+      <th>Prop</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>store</code></td>
+      <td><code>StateStore</code></td>
+      <td>External store (controlled mode). When provided, <code>initialState</code> and <code>onStateChange</code> are ignored.</td>
+    </tr>
+    <tr>
+      <td><code>initialState</code></td>
+      <td><code>Record&lt;string, unknown&gt;</code></td>
+      <td>Initial state model (uncontrolled mode).</td>
+    </tr>
+    <tr>
+      <td><code>onStateChange</code></td>
+      <td><code>{'(changes: Array<{ path: string; value: unknown }>) => void'}</code></td>
+      <td>Callback when state changes (uncontrolled mode). Called once per <code>set</code> or <code>update</code> with all changed entries.</td>
+    </tr>
+  </tbody>
+</table>
 
 #### External Store (Controlled Mode)
 
@@ -230,17 +251,87 @@ const {
 
 ## Differences from `@json-render/react`
 
-| API | React | Vue | Note |
-|-----|-------|-----|------|
-| `useStateStore().state` | `StateModel` (plain object) | `ShallowRef<StateModel>` | Vue reactivity; use `state.value` |
-| `useStateValue()` | `T \| undefined` | `ComputedRef<T \| undefined>` | Vue reactivity; use `.value` |
-| `useStateBinding()` | `[T \| undefined, setter]` | `[ComputedRef<T \| undefined>, setter]` | Vue reactivity; use `value.value` |
-| `useAction().isLoading` | `boolean` | `ComputedRef<boolean>` | Vue reactivity; use `.value` |
-| `useFieldValidation().state` | `FieldValidationState` | `ComputedRef<FieldValidationState>` | Vue reactivity; use `.value` |
-| `useFieldValidation().errors` | `string[]` | `ComputedRef<string[]>` | Vue reactivity; use `.value` |
-| `useFieldValidation().isValid` | `boolean` | `ComputedRef<boolean>` | Vue reactivity; use `.value` |
-| `VisibilityContextValue.ctx` | `CoreVisibilityContext` | `ComputedRef<CoreVisibilityContext>` | Vue reactivity; use `ctx.value` |
-| `children` type | `React.ReactNode` | `VNode \| VNode[]` | Platform-specific |
-| `useBoundProp` | exported | exported | Same API; returns `[value, setValue]` |
-| `VisibilityProviderProps` | exported | not exported (no props) | Vue uses slot, no prop needed |
-| Streaming hooks | `useUIStream`, `useChatUI` | `useUIStream`, `useChatUI` | Same API; returns Vue `Ref` values |
+<table>
+  <thead>
+    <tr>
+      <th>API</th>
+      <th>React</th>
+      <th>Vue</th>
+      <th>Note</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>useStateStore().state</code></td>
+      <td><code>StateModel</code> (plain object)</td>
+      <td><code>ShallowRef&lt;StateModel&gt;</code></td>
+      <td>Vue reactivity; use <code>state.value</code></td>
+    </tr>
+    <tr>
+      <td><code>useStateValue()</code></td>
+      <td><code>T | undefined</code></td>
+      <td><code>ComputedRef&lt;T | undefined&gt;</code></td>
+      <td>Vue reactivity; use <code>.value</code></td>
+    </tr>
+    <tr>
+      <td><code>useStateBinding()</code></td>
+      <td><code>[T | undefined, setter]</code></td>
+      <td><code>[ComputedRef&lt;T | undefined&gt;, setter]</code></td>
+      <td>Vue reactivity; use <code>value.value</code></td>
+    </tr>
+    <tr>
+      <td><code>useAction().isLoading</code></td>
+      <td><code>boolean</code></td>
+      <td><code>ComputedRef&lt;boolean&gt;</code></td>
+      <td>Vue reactivity; use <code>.value</code></td>
+    </tr>
+    <tr>
+      <td><code>useFieldValidation().state</code></td>
+      <td><code>FieldValidationState</code></td>
+      <td><code>ComputedRef&lt;FieldValidationState&gt;</code></td>
+      <td>Vue reactivity; use <code>.value</code></td>
+    </tr>
+    <tr>
+      <td><code>useFieldValidation().errors</code></td>
+      <td><code>string[]</code></td>
+      <td><code>ComputedRef&lt;string[]&gt;</code></td>
+      <td>Vue reactivity; use <code>.value</code></td>
+    </tr>
+    <tr>
+      <td><code>useFieldValidation().isValid</code></td>
+      <td><code>boolean</code></td>
+      <td><code>ComputedRef&lt;boolean&gt;</code></td>
+      <td>Vue reactivity; use <code>.value</code></td>
+    </tr>
+    <tr>
+      <td><code>VisibilityContextValue.ctx</code></td>
+      <td><code>CoreVisibilityContext</code></td>
+      <td><code>ComputedRef&lt;CoreVisibilityContext&gt;</code></td>
+      <td>Vue reactivity; use <code>ctx.value</code></td>
+    </tr>
+    <tr>
+      <td><code>children</code> type</td>
+      <td><code>React.ReactNode</code></td>
+      <td><code>VNode | VNode[]</code></td>
+      <td>Platform-specific</td>
+    </tr>
+    <tr>
+      <td><code>useBoundProp</code></td>
+      <td>exported</td>
+      <td>exported</td>
+      <td>Same API; returns <code>[value, setValue]</code></td>
+    </tr>
+    <tr>
+      <td><code>VisibilityProviderProps</code></td>
+      <td>exported</td>
+      <td>not exported (no props)</td>
+      <td>Vue uses slot, no prop needed</td>
+    </tr>
+    <tr>
+      <td>Streaming hooks</td>
+      <td><code>useUIStream</code>, <code>useChatUI</code></td>
+      <td><code>useUIStream</code>, <code>useChatUI</code></td>
+      <td>Same API; returns Vue <code>Ref</code> values</td>
+    </tr>
+  </tbody>
+</table>

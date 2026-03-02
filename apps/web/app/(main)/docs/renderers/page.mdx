@@ -1,0 +1,197 @@
+import { pageMetadata } from "@/lib/page-metadata"
+export const metadata = pageMetadata("docs/renderers")
+
+# Renderers
+
+json-render supports multiple output targets. Each renderer takes the same core concept -- a JSON spec constrained to a catalog -- and renders it natively on a different platform or into a different format.
+
+All renderers share the same workflow:
+
+1. Define a catalog with `defineCatalog`
+2. AI generates a JSON spec
+3. The renderer turns the spec into platform-native output
+
+<table>
+  <thead>
+    <tr>
+      <th>Renderer</th>
+      <th>Package</th>
+      <th>Output</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>React</td>
+      <td><code>@json-render/react</code></td>
+      <td>React component tree</td>
+    </tr>
+    <tr>
+      <td>Vue</td>
+      <td><code>@json-render/vue</code></td>
+      <td>Vue 3 component tree</td>
+    </tr>
+    <tr>
+      <td>shadcn/ui</td>
+      <td><code>@json-render/shadcn</code></td>
+      <td>Pre-built Radix UI + Tailwind components (uses React renderer)</td>
+    </tr>
+    <tr>
+      <td>React Native</td>
+      <td><code>@json-render/react-native</code></td>
+      <td>Native mobile views</td>
+    </tr>
+    <tr>
+      <td>Image</td>
+      <td><code>@json-render/image</code></td>
+      <td>SVG / PNG (via Satori)</td>
+    </tr>
+    <tr>
+      <td>React PDF</td>
+      <td><code>@json-render/react-pdf</code></td>
+      <td>PDF documents</td>
+    </tr>
+    <tr>
+      <td>Remotion</td>
+      <td><code>@json-render/remotion</code></td>
+      <td>Video compositions</td>
+    </tr>
+  </tbody>
+</table>
+
+## React
+
+Render specs as React component trees in the browser. Supports data binding, streaming, actions, validation, visibility, and computed values.
+
+```tsx
+import { defineRegistry, Renderer } from "@json-render/react";
+import { schema } from "@json-render/react/schema";
+
+const { registry } = defineRegistry(catalog, { components });
+<Renderer spec={spec} registry={registry} />
+```
+
+Use `StateProvider`, `VisibilityProvider`, and `ActionProvider` for full interactivity. See the [@json-render/react API reference](/docs/api/react) for details.
+
+## Vue
+
+Vue 3 renderer with full feature parity with React: data binding, visibility, actions, validation, repeat scopes, and streaming.
+
+```typescript
+import { defineRegistry, Renderer } from "@json-render/vue";
+import { schema } from "@json-render/vue/schema";
+
+const { registry } = defineRegistry(catalog, {
+  components: {
+    Card: ({ props, children }) =>
+      h("div", { class: "card" }, [h("h3", null, props.title), children]),
+  },
+});
+```
+
+Uses composables (`useStateStore`, `useStateBinding`, `useActions`, etc.) instead of React hooks. See the [@json-render/vue API reference](/docs/api/vue) for details.
+
+## shadcn/ui
+
+36 pre-built components using Radix UI and Tailwind CSS. Built on top of `@json-render/react` -- no custom renderer needed.
+
+```tsx
+import { defineCatalog } from "@json-render/core";
+import { schema } from "@json-render/react/schema";
+import { defineRegistry, Renderer } from "@json-render/react";
+import { shadcnComponentDefinitions } from "@json-render/shadcn/catalog";
+import { shadcnComponents } from "@json-render/shadcn";
+
+const catalog = defineCatalog(schema, {
+  components: {
+    Card: shadcnComponentDefinitions.Card,
+    Button: shadcnComponentDefinitions.Button,
+  },
+});
+
+const { registry } = defineRegistry(catalog, {
+  components: {
+    Card: shadcnComponents.Card,
+    Button: shadcnComponents.Button,
+  },
+});
+```
+
+See the [@json-render/shadcn API reference](/docs/api/shadcn) for the full component list.
+
+## React Native
+
+Render specs as native mobile views. Includes 25+ standard components and standard action definitions.
+
+```tsx
+import { defineCatalog } from "@json-render/core";
+import { schema } from "@json-render/react-native/schema";
+import { standardComponentDefinitions, standardActionDefinitions } from "@json-render/react-native/catalog";
+import { defineRegistry, Renderer } from "@json-render/react-native";
+
+const catalog = defineCatalog(schema, {
+  components: { ...standardComponentDefinitions },
+  actions: standardActionDefinitions,
+});
+
+const { registry } = defineRegistry(catalog, { components: {} });
+<Renderer spec={spec} registry={registry} />
+```
+
+See the [@json-render/react-native API reference](/docs/api/react-native) for details.
+
+## Image
+
+Generate SVG and PNG images from JSON specs using Satori. Ideal for OG images, social cards, and banners.
+
+```typescript
+import { renderToSvg, renderToPng } from "@json-render/image/render";
+
+const svg = await renderToSvg(spec, { fonts });
+const png = await renderToPng(spec, { fonts });
+```
+
+Nine standard components: Frame, Box, Row, Column, Heading, Text, Image, Divider, Spacer. PNG output requires `@resvg/resvg-js` as an optional peer dependency.
+
+See the [@json-render/image API reference](/docs/api/image) for details.
+
+## React PDF
+
+Generate PDF documents from JSON specs using `@react-pdf/renderer`. Render to buffer, stream, or file.
+
+```typescript
+import { renderToBuffer, renderToStream, renderToFile } from "@json-render/react-pdf";
+
+const buffer = await renderToBuffer(spec);
+const stream = await renderToStream(spec);
+await renderToFile(spec, "./output.pdf");
+```
+
+Standard components include Document, Page, View, Row, Column, Heading, Text, Image, Table, List, Divider, Spacer, Link, and PageNumber.
+
+See the [@json-render/react-pdf API reference](/docs/api/react-pdf) for details.
+
+## Remotion
+
+Turn JSON timeline specs into video compositions with Remotion.
+
+```tsx
+import { Player } from "@remotion/player";
+import { Renderer } from "@json-render/remotion";
+
+<Player
+  component={Renderer}
+  inputProps={{ spec }}
+  durationInFrames={spec.composition.durationInFrames}
+  fps={spec.composition.fps}
+  compositionWidth={spec.composition.width}
+  compositionHeight={spec.composition.height}
+/>
+```
+
+Uses a timeline spec format with compositions, tracks, and clips. Includes standard components (TitleCard, TypingText, ImageSlide, etc.), transitions (fade, slide, zoom, wipe), and effects.
+
+See the [@json-render/remotion API reference](/docs/api/remotion) for details.
+
+## Custom Renderers
+
+You can build your own renderer for any output target. See the [Custom Schema & Renderer](/docs/custom-schema) guide for how to define a custom schema and wire it to your own rendering logic.

@@ -1,0 +1,78 @@
+{
+  "name": "@json-render/react-email",
+  "version": "0.8.0",
+  "license": "Apache-2.0",
+  "description": "React Email renderer for @json-render/core. JSON becomes HTML emails.",
+  "keywords": [
+    "json",
+    "email",
+    "react-email",
+    "ai",
+    "generative-ui",
+    "llm",
+    "renderer",
+    "html"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vercel-labs/json-render.git",
+    "directory": "packages/react-email"
+  },
+  "homepage": "https://github.com/vercel-labs/json-render#readme",
+  "bugs": {
+    "url": "https://github.com/vercel-labs/json-render/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.mjs",
+      "require": "./dist/server.js"
+    },
+    "./catalog": {
+      "types": "./dist/catalog.d.ts",
+      "import": "./dist/catalog.mjs",
+      "require": "./dist/catalog.js"
+    },
+    "./render": {
+      "types": "./dist/render.d.ts",
+      "import": "./dist/render.mjs",
+      "require": "./dist/render.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "check-types": "tsc --noEmit",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@json-render/core": "workspace:*",
+    "@react-email/components": "^1.0.8",
+    "@react-email/render": "^2.0.4"
+  },
+  "devDependencies": {
+    "@internal/typescript-config": "workspace:*",
+    "@types/react": "19.2.3",
+    "tsup": "^8.0.2",
+    "typescript": "^5.4.5",
+    "zod": "^4.0.0"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "zod": "^4.0.0"
+  }
+}

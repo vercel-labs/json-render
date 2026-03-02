@@ -12,6 +12,7 @@
   },
   "scripts": {
     "build": "turbo run build",
+    "predev": "command -v portless >/dev/null 2>&1 || (echo '\\nportless is required but not installed. Run: npm i -g portless\\nSee: https://github.com/vercel-labs/portless\\n' && exit 1)",
     "dev": "turbo run dev --concurrency 20",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",

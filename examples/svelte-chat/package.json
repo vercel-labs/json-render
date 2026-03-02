@@ -34,6 +34,6 @@
     "clsx": "^2.1.1",
     "lucide-svelte": "^0.500.0",
     "tailwind-merge": "^3.2.0",
-    "zod": "4.3.5"
+    "zod": "4.3.6"
   }
 }

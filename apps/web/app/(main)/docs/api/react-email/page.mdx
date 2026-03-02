@@ -1,0 +1,310 @@
+import { pageMetadata } from "@/lib/page-metadata"
+export const metadata = pageMetadata("docs/api/react-email")
+
+# @json-render/react-email
+
+React Email renderer. Turn JSON specs into HTML or plain-text emails using `@react-email/components` and `@react-email/render`.
+
+## Install
+
+```bash
+npm install @json-render/core @json-render/react-email @react-email/components @react-email/render
+```
+
+See the [React Email example](https://github.com/vercel-labs/json-render/tree/main/examples/react-email) for a full working example.
+
+## schema
+
+The email element schema for specs. Use with `defineCatalog` from core.
+
+```typescript
+import { defineCatalog } from '@json-render/core';
+import { schema, standardComponentDefinitions } from '@json-render/react-email';
+
+const catalog = defineCatalog(schema, {
+  components: standardComponentDefinitions,
+});
+```
+
+## Render Functions
+
+Server-side functions for producing email output. All accept a spec and optional `RenderOptions`.
+
+```typescript
+import { renderToHtml, renderToPlainText } from '@json-render/react-email';
+
+const html = await renderToHtml(spec);
+
+const plainText = await renderToPlainText(spec);
+```
+
+### RenderOptions
+
+```typescript
+interface RenderOptions {
+  registry?: ComponentRegistry;
+  includeStandard?: boolean;  // default: true
+  state?: Record<string, unknown>;
+}
+```
+
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>registry</code></td>
+      <td>Custom component map (merged with standard components)</td>
+    </tr>
+    <tr>
+      <td><code>includeStandard</code></td>
+      <td>Include built-in standard components (default: <code>true</code>)</td>
+    </tr>
+    <tr>
+      <td><code>state</code></td>
+      <td>Initial state for <code>$state</code> / <code>$cond</code> dynamic prop resolution</td>
+    </tr>
+  </tbody>
+</table>
+
+## defineRegistry
+
+Create a type-safe component registry from a catalog. Components receive `{ props, children, emit, bindings, loading }`.
+
+```tsx
+import { defineRegistry } from '@json-render/react-email';
+import { Container, Heading, Text } from '@react-email/components';
+
+const { registry } = defineRegistry(catalog, {
+  components: {
+    Card: ({ props, children }) => (
+      <Container style={{ padding: 16, backgroundColor: '#fff' }}>
+        <Heading>{props.title}</Heading>
+        {children}
+      </Container>
+    ),
+  },
+});
+
+const html = await renderToHtml(spec, { registry });
+```
+
+## createRenderer
+
+Create a standalone renderer component wired to state, actions, and validation (for interactive previews in the browser).
+
+```typescript
+import { createRenderer } from '@json-render/react-email';
+
+const EmailRenderer = createRenderer(catalog, components);
+```
+
+## Renderer
+
+The main component that renders a spec to React Email elements. Use inside `JSONUIProvider` when you need state, actions, or visibility.
+
+```typescript
+interface RendererProps {
+  spec: Spec | null;
+  registry?: ComponentRegistry;
+  includeStandard?: boolean;  // default: true
+  loading?: boolean;
+  fallback?: ComponentRenderer;
+}
+```
+
+## Standard Components
+
+### Document structure
+
+<table>
+  <thead>
+    <tr>
+      <th>Component</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Html</code></td>
+      <td>Top-level email wrapper. Must be the root element.</td>
+    </tr>
+    <tr>
+      <td><code>Head</code></td>
+      <td>Email head section. Place inside Html.</td>
+    </tr>
+    <tr>
+      <td><code>Body</code></td>
+      <td>Email body wrapper. Place inside Html.</td>
+    </tr>
+  </tbody>
+</table>
+
+### Layout
+
+<table>
+  <thead>
+    <tr>
+      <th>Component</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Container</code></td>
+      <td>Constrains content width (e.g. max-width 600px).</td>
+    </tr>
+    <tr>
+      <td><code>Section</code></td>
+      <td>Groups related content.</td>
+    </tr>
+    <tr>
+      <td><code>Row</code></td>
+      <td>Horizontal layout row.</td>
+    </tr>
+    <tr>
+      <td><code>Column</code></td>
+      <td>Column within a Row.</td>
+    </tr>
+  </tbody>
+</table>
+
+### Content
+
+<table>
+  <thead>
+    <tr>
+      <th>Component</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Heading</code></td>
+      <td>Heading text (h1-h6).</td>
+    </tr>
+    <tr>
+      <td><code>Text</code></td>
+      <td>Body text paragraph.</td>
+    </tr>
+    <tr>
+      <td><code>Link</code></td>
+      <td>Hyperlink with text and href.</td>
+    </tr>
+    <tr>
+      <td><code>Button</code></td>
+      <td>Call-to-action button (link styled as button).</td>
+    </tr>
+    <tr>
+      <td><code>Image</code></td>
+      <td>Image from URL.</td>
+    </tr>
+    <tr>
+      <td><code>Hr</code></td>
+      <td>Horizontal rule separator.</td>
+    </tr>
+  </tbody>
+</table>
+
+### Utility
+
+<table>
+  <thead>
+    <tr>
+      <th>Component</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Preview</code></td>
+      <td>Preview text for inbox (inside Html).</td>
+    </tr>
+    <tr>
+      <td><code>Markdown</code></td>
+      <td>Renders markdown content as email-safe HTML.</td>
+    </tr>
+  </tbody>
+</table>
+
+## Server-Safe Import
+
+Import schema and catalog definitions without pulling in React or `@react-email/components`:
+
+```typescript
+import { schema, standardComponentDefinitions } from '@json-render/react-email/server';
+```
+
+## Sub-path Exports
+
+<table>
+  <thead>
+    <tr>
+      <th>Export</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>@json-render/react-email</code></td>
+      <td>Full package: schema, renderer, components, render functions</td>
+    </tr>
+    <tr>
+      <td><code>@json-render/react-email/server</code></td>
+      <td>Schema and catalog definitions only (no React)</td>
+    </tr>
+    <tr>
+      <td><code>@json-render/react-email/catalog</code></td>
+      <td>Standard component definitions and types</td>
+    </tr>
+    <tr>
+      <td><code>@json-render/react-email/render</code></td>
+      <td>Server-side render functions only</td>
+    </tr>
+  </tbody>
+</table>
+
+## Types
+
+<table>
+  <thead>
+    <tr>
+      <th>Export</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ReactEmailSchema</code></td>
+      <td>Schema type for email specs</td>
+    </tr>
+    <tr>
+      <td><code>ReactEmailSpec</code></td>
+      <td>Spec type for email documents</td>
+    </tr>
+    <tr>
+      <td><code>RenderOptions</code></td>
+      <td>Options for render functions</td>
+    </tr>
+    <tr>
+      <td><code>ComponentContext</code></td>
+      <td>Typed component render function context</td>
+    </tr>
+    <tr>
+      <td><code>ComponentFn</code></td>
+      <td>Component render function type</td>
+    </tr>
+    <tr>
+      <td><code>StandardComponentDefinitions</code></td>
+      <td>Type of the standard component definitions object</td>
+    </tr>
+    <tr>
+      <td><code>StandardComponentProps&lt;K&gt;</code></td>
+      <td>Inferred props type for a standard component by name</td>
+    </tr>
+  </tbody>
+</table>

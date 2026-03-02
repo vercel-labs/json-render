@@ -9,6 +9,7 @@ What a registry contains depends on the schema you use. Each package defines its
 
 - **`@json-render/react`** — Components (React elements) and action handlers
 - **`@json-render/react-native`** — Components (React Native elements) and action handlers
+- **`@json-render/react-email`** — Email components (React Email / HTML)
 - **`@json-render/remotion`** — Clip components, transitions, and effects
 
 ## @json-render/react
@@ -277,6 +278,31 @@ export const { registry } = defineRegistry(catalog, {
 ```
 
 See the [@json-render/react-native API reference](/docs/api/react-native) for the full API.
+
+## @json-render/react-email
+
+`@json-render/react-email` uses `defineRegistry` like React and React Native. Components render to React Email primitives (`@react-email/components`). Use `renderToHtml` or `renderToPlainText` for server-side email output:
+
+```tsx
+import { defineRegistry } from '@json-render/react-email';
+import { renderToHtml } from '@json-render/react-email';
+import { Body, Container, Heading, Text } from '@react-email/components';
+
+export const { registry } = defineRegistry(catalog, {
+  components: {
+    Card: ({ props, children }) => (
+      <Container style={{ padding: 16, backgroundColor: '#fff' }}>
+        <Heading>{props.title}</Heading>
+        {children}
+      </Container>
+    ),
+  },
+});
+
+const html = await renderToHtml(spec, { registry });
+```
+
+See the [@json-render/react-email API reference](/docs/api/react-email) for the full API.
 
 ## @json-render/remotion
 

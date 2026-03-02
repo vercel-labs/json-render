@@ -1,9 +1,10 @@
 {
   "name": "vite-renderers",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "type": "module",
   "scripts": {
+    "predev": "command -v portless >/dev/null 2>&1 || (echo '\\nportless is required but not installed. Run: npm i -g portless\\nSee: https://github.com/vercel-labs/portless\\n' && exit 1)",
     "dev": "portless vite-renderers.json-render vite",
     "build": "vite build",
     "preview": "vite preview"
@@ -17,7 +18,7 @@
     "react-dom": "^19.2.4",
     "svelte": "^5.49.2",
     "vue": "^3.5.29",
-    "zod": "4.3.5"
+    "zod": "4.3.6"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^6.2.4",

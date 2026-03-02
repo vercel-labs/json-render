@@ -1,6 +1,6 @@
 {
   "name": "@internal/react-state",
-  "version": "0.8.3",
+  "version": "0.8.4",
   "private": true,
   "license": "Apache-2.0",
   "description": "Shared React state context for json-render renderer packages",

@@ -6,6 +6,7 @@
     [
       "@json-render/core",
       "@json-render/react",
+      "@json-render/react-email",
       "@json-render/react-pdf",
       "@json-render/shadcn",
       "@json-render/react-native",
@@ -15,7 +16,8 @@
       "@json-render/redux",
       "@json-render/jotai",
       "@json-render/vue",
-      "@json-render/xstate"
+      "@json-render/xstate",
+      "@json-render/image"
     ]
   ],
   "linked": [],

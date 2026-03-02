@@ -26,6 +26,7 @@ This ensures we don't install outdated versions that may have incompatible types
 
 - Do not use emojis in code or UI
 - Use shadcn CLI to add shadcn/ui components: `pnpm dlx shadcn@latest add <component>`
+- **Web app docs (`apps/web/`):** Never use Markdown table syntax (`| col | col |`). Always use HTML `<table>` with `<thead>`, `<tbody>`, `<tr>`, `<th>`, `<td>`. Markdown tables do not render correctly in the web app. Inside HTML table cells, curly braces must be escaped as JSX expressions (e.g. `<code>{'{ "$state": "/path" }'}</code>`) because MDX parses `{` as a JSX expression boundary.
 
 ## AI SDK / AI Gateway
 
@@ -71,6 +72,41 @@ Do **not** add `--port` flags -- portless handles port assignment automatically.
   - Web app docs in `apps/web/` (if guides, API references, or examples need updating)
   - Skills in `skills/*/SKILL.md` (if the package has a corresponding skill)
   - `AGENTS.md` (if workflow or conventions change)
+
+## Releases
+
+This monorepo uses [Changesets](https://github.com/changesets/changesets) for versioning and publishing.
+
+### Fixed version group
+
+All public `@json-render/*` packages are in a **fixed** group (see `.changeset/config.json`). A changeset that bumps any one of them bumps all of them to the same version. You only need to list the packages that actually changed in the changeset front matter — the fixed group handles the rest.
+
+### Preparing a release
+
+When asked to prepare a release (e.g. "prepare v0.12.0"):
+
+1. **Create a changeset file** at `.changeset/v0-<N>-release.md` following the existing pattern:
+   - YAML front matter listing changed packages with bump type (`minor` for feature releases, `patch` for bug-fix-only releases)
+   - A one-line summary, then `### New:` / `### Improved:` / `### Fixed:` sections describing each change
+   - Always list `@json-render/core` plus any packages with actual code changes
+2. **Do NOT bump versions** in `package.json` files — CI runs `pnpm ci:version` (which calls `changeset version`) to do that automatically
+3. **Do NOT manually write `CHANGELOG.md`** entries — `changeset version` generates them from the changeset file
+4. **Add new packages to the fixed group** in `.changeset/config.json` if they should be versioned together with the rest
+5. **Fill documentation gaps** — every public package should have:
+   - A row in the root `README.md` packages table
+   - A renderer section in the root `README.md` (if it's a renderer)
+   - An API reference page at `apps/web/app/(main)/docs/api/<name>/page.mdx`
+   - An entry in `apps/web/lib/page-titles.ts` and `apps/web/lib/docs-navigation.ts`
+   - An entry in the docs-chat system prompt (`apps/web/app/api/docs-chat/route.ts`)
+   - A skill at `skills/json-render-<name>/SKILL.md`
+   - A `packages/<name>/README.md`
+6. **Run `pnpm type-check`** after all changes to verify nothing is broken
+
+### CI scripts
+
+- `pnpm changeset` — interactively create a new changeset
+- `pnpm ci:version` — run `changeset version` + lockfile update (CI only)
+- `pnpm ci:publish` — build all packages and publish to npm (CI only)
 
 <!-- opensrc:start -->
 
