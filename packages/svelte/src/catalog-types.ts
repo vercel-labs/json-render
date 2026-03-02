@@ -1,4 +1,4 @@
-import type { Snippet } from "svelte";
+import type { Component, Snippet } from "svelte";
 import type {
   Catalog,
   InferCatalogComponents,
@@ -71,10 +71,10 @@ export interface ComponentContext<
 export type ComponentFn<
   C extends Catalog,
   K extends keyof InferCatalogComponents<C>,
-> = (ctx: ComponentContext<C, K>) => void;
+> = Component<BaseComponentProps<InferComponentProps<C, K>>>;
 
 /**
- * Registry of all component render functions for a catalog
+ * Registry of Svelte component constructors for a catalog
  */
 export type Components<C extends Catalog> = {
   [K in keyof InferCatalogComponents<C>]: ComponentFn<C, K>;
