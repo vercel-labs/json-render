@@ -11,7 +11,8 @@
     "url": "https://github.com/vercel-labs/json-render/issues"
   },
   "scripts": {
-    "build": "turbo run build",
+    "build": "pnpm run build:web",
+    "build:all": "turbo run build",
     "build:web": "pnpm --filter web build",
     "start": "pnpm --filter web start",
     "predev": "command -v portless >/dev/null 2>&1 || (echo '\\nportless is required but not installed. Run: npm i -g portless\\nSee: https://github.com/vercel-labs/portless\\n' && exit 1)",
@@ -27,7 +28,7 @@
     "prepare": "husky",
     "changeset": "changeset",
     "ci:version": "changeset version && pnpm install --no-frozen-lockfile",
-    "ci:publish": "pnpm run build && changeset publish"
+    "ci:publish": "pnpm run build:all && changeset publish"
   },
   "devDependencies": {
     "@changesets/cli": "2.29.8",
@@ -46,7 +47,7 @@
   },
   "packageManager": "pnpm@10.29.3",
   "engines": {
-    "node": ">=18"
+    "node": ">=20.9.0"
   },
   "lint-staged": {
     "*.{ts,tsx}": "prettier --write"
