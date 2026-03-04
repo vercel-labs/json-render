@@ -35,6 +35,8 @@ const PATCH_INSTRUCTIONS = `IMPORTANT: The current UI is already loaded. Output 
 - To update the root: {"op":"replace","path":"/root","value":"new-root-key"}
 - To add children: update the parent element with new children array
 
+Output ONLY JSONL patch lines. No prose, no markdown, no code fences.
+
 DO NOT output patches for elements that don't need to change. Only output what's necessary for the requested modification.`;
 
 /**
@@ -97,7 +99,7 @@ export function buildUserPrompt(options: UserPromptOptions): string {
   }
 
   parts.push(
-    `\nRemember: Output /root first, then interleave /elements and /state patches so the UI fills in progressively as it streams. Output each state patch right after the elements that use it, one per array item.`,
+    `\nRemember: Output ONLY JSONL patch lines (no prose, no markdown, no code fences). Output /root first, then interleave /elements and /state patches so the UI fills in progressively as it streams. Output each state patch right after the elements that use it, one per array item.`,
   );
 
   return parts.join("\n");

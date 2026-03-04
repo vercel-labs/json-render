@@ -316,6 +316,8 @@ export function useUIStream({
 
         const decoder = new TextDecoder();
         let buffer = "";
+        let patchCount = 0;
+        let sawAnyNonEmptyLine = false;
 
         while (true) {
           const { done, value } = await reader.read();
@@ -330,6 +332,7 @@ export function useUIStream({
           for (const line of lines) {
             const trimmed = line.trim();
             if (!trimmed) continue;
+            sawAnyNonEmptyLine = true;
             const result = parseLine(trimmed);
             if (!result) continue;
             if (result.type === "usage") {
@@ -338,6 +341,7 @@ export function useUIStream({
               setRawLines((prev) => [...prev, trimmed]);
               currentSpec = applyPatch(currentSpec, result.patch);
               setSpec({ ...currentSpec });
+              patchCount++;
             }
           }
         }
@@ -345,6 +349,7 @@ export function useUIStream({
         // Process any remaining buffer
         if (buffer.trim()) {
           const trimmed = buffer.trim();
+          sawAnyNonEmptyLine = true;
           const result = parseLine(trimmed);
           if (result) {
             if (result.type === "usage") {
@@ -353,8 +358,18 @@ export function useUIStream({
               setRawLines((prev) => [...prev, trimmed]);
               currentSpec = applyPatch(currentSpec, result.patch);
               setSpec({ ...currentSpec });
+              patchCount++;
             }
           }
+        }
+
+        if (patchCount === 0) {
+          const details = sawAnyNonEmptyLine
+            ? "The model returned text that is not valid json-render JSONL patches."
+            : "The model returned an empty response stream.";
+          throw new Error(
+            `${details} Try OPENAI_MODEL=gpt-5-mini or tighten the prompt.`,
+          );
         }
 
         onCompleteRef.current?.(currentSpec);

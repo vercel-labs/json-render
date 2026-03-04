@@ -80,7 +80,6 @@ export async function POST(req: Request) {
     model: openai(resolveModelName()),
     system: SYSTEM_PROMPT,
     prompt: userPrompt,
-    temperature: 0.7,
   });
 
   // Stream the text, then append token usage metadata at the end
