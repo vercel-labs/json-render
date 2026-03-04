@@ -1,4 +1,5 @@
 import { streamText } from "ai";
+import { openai } from "@ai-sdk/openai";
 import { headers } from "next/headers";
 import { buildUserPrompt } from "@json-render/core";
 import { minuteRateLimit, dailyRateLimit } from "@/lib/rate-limit";
@@ -19,9 +20,28 @@ const SYSTEM_PROMPT = playgroundCatalog.prompt({
 });
 
 const MAX_PROMPT_LENGTH = 500;
-const DEFAULT_MODEL = "anthropic/claude-haiku-4.5";
+const DEFAULT_MODEL = "gpt-5";
+
+function resolveModelName(): string {
+  const rawModel = (process.env.OPENAI_MODEL || DEFAULT_MODEL).trim();
+  if (rawModel.toLowerCase() === "gpt5") return "gpt-5";
+  return rawModel.replace(/^openai\//, "");
+}
 
 export async function POST(req: Request) {
+  if (!process.env.OPENAI_API_KEY) {
+    return new Response(
+      JSON.stringify({
+        error: "Server misconfiguration",
+        message: "Missing OPENAI_API_KEY environment variable.",
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+  }
+
   // Get client IP for rate limiting
   const headersList = await headers();
   const ip = headersList.get("x-forwarded-for")?.split(",")[0] ?? "anonymous";
@@ -57,7 +77,7 @@ export async function POST(req: Request) {
   });
 
   const result = streamText({
-    model: process.env.AI_GATEWAY_MODEL || DEFAULT_MODEL,
+    model: openai(resolveModelName()),
     system: SYSTEM_PROMPT,
     prompt: userPrompt,
     temperature: 0.7,
