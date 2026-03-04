@@ -13,7 +13,7 @@
   "scripts": {
     "build": "pnpm run build:web",
     "build:all": "turbo run build",
-    "build:web": "pnpm --filter web build",
+    "build:web": "turbo run build --filter=web...",
     "start": "pnpm --filter web start",
     "predev": "command -v portless >/dev/null 2>&1 || (echo '\\nportless is required but not installed. Run: npm i -g portless\\nSee: https://github.com/vercel-labs/portless\\n' && exit 1)",
     "dev": "turbo run dev --concurrency 20",
