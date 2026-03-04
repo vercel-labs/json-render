@@ -36,6 +36,113 @@ type ParsedLine =
   | { type: "usage"; usage: TokenUsage }
   | null;
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function isSpecLike(value: unknown): value is Spec {
+  if (!isRecord(value)) return false;
+  if (typeof value.root !== "string" || !isRecord(value.elements)) return false;
+  for (const element of Object.values(value.elements)) {
+    if (!isRecord(element)) return false;
+    if (typeof element.type !== "string") return false;
+    if (!isRecord(element.props)) return false;
+    if (
+      element.children !== undefined &&
+      (!Array.isArray(element.children) ||
+        element.children.some((c) => typeof c !== "string"))
+    ) {
+      return false;
+    }
+  }
+  if (value.state !== undefined && !isRecord(value.state)) return false;
+  return true;
+}
+
+function extractJsonObjects(text: string): string[] {
+  const results: string[] = [];
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  let start = -1;
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (ch === "\\") {
+        escaped = true;
+      } else if (ch === '"') {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (ch === '"') {
+      inString = true;
+      continue;
+    }
+
+    if (ch === "{") {
+      if (depth === 0) start = i;
+      depth++;
+      continue;
+    }
+
+    if (ch === "}") {
+      if (depth > 0) depth--;
+      if (depth === 0 && start !== -1) {
+        results.push(text.slice(start, i + 1));
+        start = -1;
+      }
+    }
+  }
+
+  return results;
+}
+
+function parseFullSpecFromText(text: string): Spec | null {
+  const trimmed = text.trim();
+  if (!trimmed) return null;
+
+  // Fast path: the entire response is a single JSON object
+  try {
+    const parsed = JSON.parse(trimmed);
+    if (isSpecLike(parsed)) return parsed;
+  } catch {
+    // ignore
+  }
+
+  // Try fenced code blocks first
+  const fenceRegex = /```(?:json)?\s*([\s\S]*?)```/gi;
+  let fenceMatch: RegExpExecArray | null = null;
+  while ((fenceMatch = fenceRegex.exec(text)) !== null) {
+    const candidate = fenceMatch[1]?.trim();
+    if (!candidate) continue;
+    try {
+      const parsed = JSON.parse(candidate);
+      if (isSpecLike(parsed)) return parsed;
+    } catch {
+      // ignore this fence block
+    }
+  }
+
+  // Fallback: scan all top-level JSON objects in the response and pick spec-like object
+  const objects = extractJsonObjects(text);
+  for (const objText of objects) {
+    try {
+      const parsed = JSON.parse(objText);
+      if (isSpecLike(parsed)) return parsed;
+    } catch {
+      // ignore invalid object candidates
+    }
+  }
+
+  return null;
+}
+
 /**
  * Parse a single JSON line (patch or metadata)
  */
@@ -316,6 +423,7 @@ export function useUIStream({
 
         const decoder = new TextDecoder();
         let buffer = "";
+        let fullResponse = "";
         let patchCount = 0;
         let sawAnyNonEmptyLine = false;
 
@@ -323,7 +431,9 @@ export function useUIStream({
           const { done, value } = await reader.read();
           if (done) break;
 
-          buffer += decoder.decode(value, { stream: true });
+          const decoded = decoder.decode(value, { stream: true });
+          buffer += decoded;
+          fullResponse += decoded;
 
           // Process complete lines
           const lines = buffer.split("\n");
@@ -364,6 +474,12 @@ export function useUIStream({
         }
 
         if (patchCount === 0) {
+          const fallbackSpec = parseFullSpecFromText(fullResponse);
+          if (fallbackSpec) {
+            setSpec(fallbackSpec);
+            onCompleteRef.current?.(fallbackSpec);
+            return;
+          }
           const details = sawAnyNonEmptyLine
             ? "The model returned text that is not valid json-render JSONL patches."
             : "The model returned an empty response stream.";
