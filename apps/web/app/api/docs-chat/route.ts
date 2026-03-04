@@ -11,7 +11,7 @@ import { minuteRateLimit, dailyRateLimit } from "@/lib/rate-limit";
 
 export const maxDuration = 60;
 
-const DEFAULT_MODEL = "gpt-5";
+const DEFAULT_MODEL = "gpt-4.1-mini-2025-04-14";
 
 const SYSTEM_PROMPT = `You are a helpful documentation assistant for json-render, a library for AI-generated UI with guardrails.
 

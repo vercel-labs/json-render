@@ -20,7 +20,7 @@ const SYSTEM_PROMPT = playgroundCatalog.prompt({
 });
 
 const MAX_PROMPT_LENGTH = 500;
-const DEFAULT_MODEL = "gpt-5";
+const DEFAULT_MODEL = "gpt-4.1-mini-2025-04-14";
 
 function resolveModelName(): string {
   const rawModel = (process.env.OPENAI_MODEL || DEFAULT_MODEL).trim();
