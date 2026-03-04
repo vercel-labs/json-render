@@ -9,18 +9,25 @@ export const maxDuration = 30;
 
 const SYSTEM_PROMPT = playgroundCatalog.prompt({
   customRules: [
-    "Email-only mode: generate HTML email structures, never app UI layouts.",
-    "Always set Html as root, with Head and Body as direct children.",
-    "Inside Body, always include one main Container (max width around 600px).",
-    "Use Section / Row / Column for layout and keep styles inline via style props.",
-    "Emails are static: do not use interactive controls, state bindings, or actions.",
-    "Use realistic marketing/email content (subject-like preview, hero, body copy, CTA, footer).",
-    "For CTA, use Button with text + href. For links, always provide absolute URLs.",
-    "For images, always use absolute URLs.",
+    "Email-only mode: output ONLY valid json-render email spec. Never output app UI/layouts.",
+    "Structure: root MUST be Html with children [Head, Body] (Head can be empty).",
+    "Body must contain exactly one primary Container centered at maxWidth 600px.",
+    "Use table-safe layout primitives only: Section, Row, Column. Avoid CSS features with weak email support.",
+    "Inline styles only. No external CSS, no classes, no style tags, no scripts.",
+    "Typography system: clear hierarchy (hero heading, section heading, body, caption). Use consistent spacing scale (8/12/16/24/32).",
+    "Visual system: modern but restrained. High contrast, generous whitespace, subtle dividers, consistent corner radius, limited color palette (1 primary, 1 neutral, 1 accent max).",
+    "Content quality: concise, specific, benefit-led copy. Avoid generic filler text and vague marketing clichés.",
+    "Compose professional sections in this order unless user asks otherwise: Hero, Value Proposition, Feature blocks, Social proof/testimonial, Primary CTA, Footer.",
+    "CTA quality: exactly one primary CTA above fold; optional secondary CTA in footer. CTA text must be action-oriented (e.g., 'Start Free Trial').",
+    "Links and images: always absolute HTTPS URLs. Images must include meaningful alt text and explicit width/height when possible.",
+    "Accessibility: maintain readable font sizes (>=14px body), strong color contrast, and clear link/button affordances.",
+    "Responsiveness: prefer single-column or simple 2-column sections that stack gracefully.",
+    "Email safety: no interactive controls, no forms, no state bindings, no actions.",
+    "Output reliability: all referenced child keys must exist; no orphan elements; no unknown component types.",
   ],
 });
 
-const MAX_PROMPT_LENGTH = 500;
+const MAX_PROMPT_LENGTH = 700;
 const DEFAULT_MODEL = "gpt-4.1-mini-2025-04-14";
 
 function resolveModelName(): string {
