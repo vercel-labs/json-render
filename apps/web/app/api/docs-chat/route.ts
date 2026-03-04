@@ -2,6 +2,7 @@ import { readFile } from "fs/promises";
 import { join } from "path";
 import { convertToModelMessages, stepCountIs, streamText } from "ai";
 import type { UIMessage } from "ai";
+import { gateway } from "@ai-sdk/gateway";
 import { openai } from "@ai-sdk/openai";
 import { createBashTool } from "bash-tool";
 import { headers } from "next/headers";
@@ -68,11 +69,42 @@ async function loadDocsFiles(): Promise<Record<string, string>> {
 function resolveModelName(): string {
   const rawModel = (process.env.MODEL || DEFAULT_MODEL).trim();
   if (rawModel.toLowerCase() === "gpt5") return "gpt-5";
-  return rawModel.replace(/^openai\//, "");
+  return rawModel;
+}
+
+function resolveModelProvider(modelName: string): "openai" | "gateway" {
+  if (modelName.startsWith("anthropic/")) return "gateway";
+  if (modelName.startsWith("openai/")) return "openai";
+  if (modelName.includes("/")) return "gateway";
+  return "openai";
+}
+
+function createModel(modelName: string) {
+  const provider = resolveModelProvider(modelName);
+  if (provider === "gateway") {
+    return { provider, model: gateway(modelName) };
+  }
+  return { provider, model: openai(modelName.replace(/^openai\//, "")) };
 }
 
 export async function POST(req: Request) {
-  if (!process.env.OPENAI_API_KEY) {
+  const modelName = resolveModelName();
+  const { provider, model } = createModel(modelName);
+
+  if (provider === "gateway" && !process.env.AI_GATEWAY_API_KEY) {
+    return new Response(
+      JSON.stringify({
+        error: "Server misconfiguration",
+        message: "Missing AI_GATEWAY_API_KEY environment variable.",
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+  }
+
+  if (provider === "openai" && !process.env.OPENAI_API_KEY) {
     return new Response(
       JSON.stringify({
         error: "Server misconfiguration",
@@ -117,7 +149,7 @@ export async function POST(req: Request) {
   } = await createBashTool({ files: docsFiles });
 
   const result = streamText({
-    model: openai(resolveModelName()),
+    model,
     system: SYSTEM_PROMPT,
     messages: await convertToModelMessages(messages),
     stopWhen: stepCountIs(5),

@@ -34,6 +34,7 @@ export interface TokenUsage {
 type ParsedLine =
   | { type: "patch"; patch: JsonPatch }
   | { type: "usage"; usage: TokenUsage }
+  | { type: "error"; message: string }
   | null;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -163,6 +164,15 @@ function parseLine(line: string): ParsedLine {
           completionTokens: parsed.completionTokens ?? 0,
           totalTokens: parsed.totalTokens ?? 0,
         },
+      };
+    }
+    if (parsed.__meta === "error") {
+      return {
+        type: "error",
+        message:
+          typeof parsed.message === "string" && parsed.message.trim()
+            ? parsed.message
+            : "Generation failed.",
       };
     }
 
@@ -447,6 +457,8 @@ export function useUIStream({
             if (!result) continue;
             if (result.type === "usage") {
               setUsage(result.usage);
+            } else if (result.type === "error") {
+              throw new Error(result.message);
             } else {
               setRawLines((prev) => [...prev, trimmed]);
               currentSpec = applyPatch(currentSpec, result.patch);
@@ -464,6 +476,8 @@ export function useUIStream({
           if (result) {
             if (result.type === "usage") {
               setUsage(result.usage);
+            } else if (result.type === "error") {
+              throw new Error(result.message);
             } else {
               setRawLines((prev) => [...prev, trimmed]);
               currentSpec = applyPatch(currentSpec, result.patch);

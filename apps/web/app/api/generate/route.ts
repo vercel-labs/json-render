@@ -132,23 +132,34 @@ export async function POST(req: Request) {
 
   const stream = new ReadableStream({
     async start(controller) {
-      for await (const chunk of textStream) {
-        controller.enqueue(encoder.encode(chunk));
-      }
-      // Append usage metadata after stream completes
       try {
-        const usage = await result.usage;
+        for await (const chunk of textStream) {
+          controller.enqueue(encoder.encode(chunk));
+        }
+        // Append usage metadata after stream completes
+        try {
+          const usage = await result.usage;
+          const meta = JSON.stringify({
+            __meta: "usage",
+            promptTokens: usage.inputTokens,
+            completionTokens: usage.outputTokens,
+            totalTokens: usage.totalTokens,
+          });
+          controller.enqueue(encoder.encode(`\n${meta}\n`));
+        } catch {
+          // Usage not available — skip silently
+        }
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Generation failed.";
         const meta = JSON.stringify({
-          __meta: "usage",
-          promptTokens: usage.inputTokens,
-          completionTokens: usage.outputTokens,
-          totalTokens: usage.totalTokens,
+          __meta: "error",
+          message,
         });
         controller.enqueue(encoder.encode(`\n${meta}\n`));
-      } catch {
-        // Usage not available — skip silently
+      } finally {
+        controller.close();
       }
-      controller.close();
     },
   });
 
