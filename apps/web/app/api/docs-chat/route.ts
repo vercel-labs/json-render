@@ -66,7 +66,7 @@ async function loadDocsFiles(): Promise<Record<string, string>> {
 }
 
 function resolveModelName(): string {
-  const rawModel = (process.env.OPENAI_MODEL || DEFAULT_MODEL).trim();
+  const rawModel = (process.env.MODEL || DEFAULT_MODEL).trim();
   if (rawModel.toLowerCase() === "gpt5") return "gpt-5";
   return rawModel.replace(/^openai\//, "");
 }

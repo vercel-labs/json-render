@@ -1,4 +1,5 @@
 import { streamText } from "ai";
+import { gateway } from "@ai-sdk/gateway";
 import { openai } from "@ai-sdk/openai";
 import { headers } from "next/headers";
 import { buildUserPrompt } from "@json-render/core";
@@ -28,16 +29,51 @@ const SYSTEM_PROMPT = playgroundCatalog.prompt({
 });
 
 const MAX_PROMPT_LENGTH = 700;
-const DEFAULT_MODEL = "gpt-4.1-mini-2025-04-14";
+const DEFAULT_MODEL = "anthropic/claude-haiku-4.5";
 
 function resolveModelName(): string {
-  const rawModel = (process.env.OPENAI_MODEL || DEFAULT_MODEL).trim();
+  const rawModel = (
+    process.env.MODEL ||
+    process.env.AI_GATEWAY_MODEL ||
+    DEFAULT_MODEL
+  ).trim();
   if (rawModel.toLowerCase() === "gpt5") return "gpt-5";
-  return rawModel.replace(/^openai\//, "");
+  return rawModel;
+}
+
+function resolveModelProvider(modelName: string): "openai" | "gateway" {
+  if (modelName.startsWith("anthropic/")) return "gateway";
+  if (modelName.startsWith("openai/")) return "openai";
+  if (modelName.includes("/")) return "gateway";
+  return "openai";
+}
+
+function createModel(modelName: string) {
+  const provider = resolveModelProvider(modelName);
+  if (provider === "gateway") {
+    return { provider, model: gateway(modelName) };
+  }
+  return { provider, model: openai(modelName.replace(/^openai\//, "")) };
 }
 
 export async function POST(req: Request) {
-  if (!process.env.OPENAI_API_KEY) {
+  const modelName = resolveModelName();
+  const { provider, model } = createModel(modelName);
+
+  if (provider === "gateway" && !process.env.AI_GATEWAY_API_KEY) {
+    return new Response(
+      JSON.stringify({
+        error: "Server misconfiguration",
+        message: "Missing AI_GATEWAY_API_KEY environment variable.",
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+  }
+
+  if (provider === "openai" && !process.env.OPENAI_API_KEY) {
     return new Response(
       JSON.stringify({
         error: "Server misconfiguration",
@@ -85,7 +121,7 @@ export async function POST(req: Request) {
   });
 
   const result = streamText({
-    model: openai(resolveModelName()),
+    model,
     system: SYSTEM_PROMPT,
     prompt: userPrompt,
   });
