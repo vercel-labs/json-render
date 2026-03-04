@@ -1,3 +1,0 @@
-{
-  "extends": "@stripe/ui-extension-tools/tsconfig.ui-extension"
-}

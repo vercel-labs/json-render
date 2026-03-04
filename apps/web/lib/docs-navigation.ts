@@ -46,48 +46,8 @@ export const docsNavigation: NavSection[] = [
     title: "Examples",
     items: [
       {
-        title: "Chat",
-        href: "https://github.com/vercel-labs/json-render/tree/main/examples/chat",
-        external: true,
-      },
-      {
-        title: "Dashboard",
-        href: "https://github.com/vercel-labs/json-render/tree/main/examples/dashboard",
-        external: true,
-      },
-      {
-        title: "React Native",
-        href: "https://github.com/vercel-labs/json-render/tree/main/examples/react-native",
-        external: true,
-      },
-      {
-        title: "React PDF",
-        href: "https://github.com/vercel-labs/json-render/tree/main/examples/react-pdf",
-        external: true,
-      },
-      {
         title: "React Email",
         href: "https://github.com/vercel-labs/json-render/tree/main/examples/react-email",
-        external: true,
-      },
-      {
-        title: "Remotion",
-        href: "https://github.com/vercel-labs/json-render/tree/main/examples/remotion",
-        external: true,
-      },
-      {
-        title: "Image",
-        href: "https://github.com/vercel-labs/json-render/tree/main/examples/image",
-        external: true,
-      },
-      {
-        title: "Vue",
-        href: "https://github.com/vercel-labs/json-render/tree/main/examples/vue",
-        external: true,
-      },
-      {
-        title: "Renders with Vite (Vue / React)",
-        href: "https://github.com/vercel-labs/json-render/tree/main/examples/vite-renderers",
         external: true,
       },
     ],
@@ -114,13 +74,7 @@ export const docsNavigation: NavSection[] = [
     items: [
       { title: "@json-render/core", href: "/docs/api/core" },
       { title: "@json-render/react", href: "/docs/api/react" },
-      { title: "@json-render/react-pdf", href: "/docs/api/react-pdf" },
       { title: "@json-render/react-email", href: "/docs/api/react-email" },
-      { title: "@json-render/shadcn", href: "/docs/api/shadcn" },
-      { title: "@json-render/react-native", href: "/docs/api/react-native" },
-      { title: "@json-render/image", href: "/docs/api/image" },
-      { title: "@json-render/remotion", href: "/docs/api/remotion" },
-      { title: "@json-render/vue", href: "/docs/api/vue" },
       { title: "@json-render/codegen", href: "/docs/api/codegen" },
     ],
   },

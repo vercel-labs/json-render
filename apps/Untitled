@@ -1,0 +1,1 @@
+sudo xcodebuild -license

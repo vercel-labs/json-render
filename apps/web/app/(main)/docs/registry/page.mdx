@@ -251,37 +251,9 @@ function App({ spec, state, setState }) {
 }
 ```
 
-## @json-render/react-native
-
-`@json-render/react-native` uses the same `defineRegistry` API. The only difference is that components return React Native elements instead of HTML:
-
-```tsx
-import { defineRegistry } from '@json-render/react-native';
-import { View, Text, Pressable } from 'react-native';
-
-export const { registry } = defineRegistry(catalog, {
-  components: {
-    Card: ({ props, children }) => (
-      <View style={styles.card}>
-        <Text style={styles.title}>{props.title}</Text>
-        {children}
-      </View>
-    ),
-
-    Button: ({ props, emit }) => (
-      <Pressable onPress={() => emit("press")}>
-        <Text>{props.label}</Text>
-      </Pressable>
-    ),
-  },
-});
-```
-
-See the [@json-render/react-native API reference](/docs/api/react-native) for the full API.
-
 ## @json-render/react-email
 
-`@json-render/react-email` uses `defineRegistry` like React and React Native. Components render to React Email primitives (`@react-email/components`). Use `renderToHtml` or `renderToPlainText` for server-side email output:
+`@json-render/react-email` uses `defineRegistry` like React. Components render to React Email primitives (`@react-email/components`). Use `renderToHtml` or `renderToPlainText` for server-side email output:
 
 ```tsx
 import { defineRegistry } from '@json-render/react-email';
@@ -303,27 +275,6 @@ const html = await renderToHtml(spec, { registry });
 ```
 
 See the [@json-render/react-email API reference](/docs/api/react-email) for the full API.
-
-## @json-render/remotion
-
-`@json-render/remotion` takes a different approach. Instead of `defineRegistry`, it uses a plain component registry with built-in standard components for video production:
-
-```tsx
-import { Renderer, standardComponents } from '@json-render/remotion';
-
-// Use the standard components directly
-<Renderer spec={timelineSpec} components={standardComponents} />
-
-// Or extend with your own
-const components = {
-  ...standardComponents,
-  CustomSlide: ({ clip }) => <AbsoluteFill>{/* ... */}</AbsoluteFill>,
-};
-```
-
-The Remotion schema also supports `transitions` and `effects` in the catalog rather than actions.
-
-See the [@json-render/remotion API reference](/docs/api/remotion) for the full API.
 
 ## Next
 
