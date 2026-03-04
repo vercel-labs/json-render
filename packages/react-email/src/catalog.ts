@@ -104,6 +104,36 @@ export const standardComponentDefinitions = {
     example: { text: "Welcome!", as: "h1" },
   },
 
+  Header1: {
+    props: z.object({
+      text: z.string(),
+      style: styleSchema,
+    }),
+    slots: [],
+    description: "Convenience heading component mapped to h1.",
+    example: { text: "Main title" },
+  },
+
+  Header2: {
+    props: z.object({
+      text: z.string(),
+      style: styleSchema,
+    }),
+    slots: [],
+    description: "Convenience heading component mapped to h2.",
+    example: { text: "Section title" },
+  },
+
+  Header3: {
+    props: z.object({
+      text: z.string(),
+      style: styleSchema,
+    }),
+    slots: [],
+    description: "Convenience heading component mapped to h3.",
+    example: { text: "Sub-section title" },
+  },
+
   Text: {
     props: z.object({
       text: z.string(),

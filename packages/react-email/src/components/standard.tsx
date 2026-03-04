@@ -106,6 +106,42 @@ function HeadingComponent({
   );
 }
 
+function Header1Component({
+  element,
+}: ComponentRenderProps<StandardComponentProps<"Header1">>) {
+  const p = element.props;
+
+  return (
+    <EmailHeading as="h1" style={p.style ?? undefined}>
+      {p.text}
+    </EmailHeading>
+  );
+}
+
+function Header2Component({
+  element,
+}: ComponentRenderProps<StandardComponentProps<"Header2">>) {
+  const p = element.props;
+
+  return (
+    <EmailHeading as="h2" style={p.style ?? undefined}>
+      {p.text}
+    </EmailHeading>
+  );
+}
+
+function Header3Component({
+  element,
+}: ComponentRenderProps<StandardComponentProps<"Header3">>) {
+  const p = element.props;
+
+  return (
+    <EmailHeading as="h3" style={p.style ?? undefined}>
+      {p.text}
+    </EmailHeading>
+  );
+}
+
 function TextComponent({
   element,
 }: ComponentRenderProps<StandardComponentProps<"Text">>) {
@@ -202,6 +238,9 @@ export const standardComponents: ComponentRegistry = {
   Row: RowComponent,
   Column: ColumnComponent,
   Heading: HeadingComponent,
+  Header1: Header1Component,
+  Header2: Header2Component,
+  Header3: Header3Component,
   Text: TextComponent,
   Link: LinkComponent,
   Button: ButtonComponent,
