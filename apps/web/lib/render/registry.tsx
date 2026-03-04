@@ -1,14 +1,8 @@
 "use client";
 
-import { defineRegistry, standardComponents } from "@json-render/react-email";
-import type { Components } from "@json-render/react-email";
-import { playgroundCatalog } from "./catalog";
+import { standardComponents } from "@json-render/react-email";
 
-export const { registry } = defineRegistry(playgroundCatalog, {
-  components: standardComponents as unknown as Components<
-    typeof playgroundCatalog
-  >,
-});
+export const registry = standardComponents;
 
 export function Fallback({ type }: { type: string }) {
   return (

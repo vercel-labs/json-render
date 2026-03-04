@@ -658,6 +658,7 @@ export function defineRegistry<C extends Catalog>(
         loading,
       }: ComponentRenderProps) => {
         return (componentFn as DefineRegistryComponentFn)({
+          element,
           props: element.props,
           children,
           emit,
@@ -715,6 +716,7 @@ export function defineRegistry<C extends Catalog>(
 
 /** @internal */
 type DefineRegistryComponentFn = (ctx: {
+  element?: UIElement;
   props: unknown;
   children?: React.ReactNode;
   emit: (event: string) => void;

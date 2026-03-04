@@ -73,7 +73,7 @@ interface RenderOptions {
 
 ## defineRegistry
 
-Create a type-safe component registry from a catalog. Components receive `{ props, children, emit, bindings, loading }`.
+Create a type-safe component registry from a catalog. Components receive `{ element, props, children, emit, bindings, loading }`.
 
 ```tsx
 import { defineRegistry } from '@json-render/react-email';
@@ -159,12 +159,32 @@ interface RendererProps {
       <td>Constrains content width (e.g. max-width 600px).</td>
     </tr>
     <tr>
+      <td><code>ContainerCard</code></td>
+      <td>Pre-styled card-like container with rounded background.</td>
+    </tr>
+    <tr>
       <td><code>Section</code></td>
       <td>Groups related content.</td>
     </tr>
     <tr>
+      <td><code>SectionHero</code></td>
+      <td>Hero section variant with larger spacing.</td>
+    </tr>
+    <tr>
+      <td><code>SectionMuted</code></td>
+      <td>Muted section variant for secondary blocks.</td>
+    </tr>
+    <tr>
       <td><code>Row</code></td>
       <td>Horizontal layout row.</td>
+    </tr>
+    <tr>
+      <td><code>Grid2</code></td>
+      <td>Two-column grid helper row.</td>
+    </tr>
+    <tr>
+      <td><code>Grid3</code></td>
+      <td>Three-column grid helper row.</td>
     </tr>
     <tr>
       <td><code>Column</code></td>
@@ -188,6 +208,26 @@ interface RendererProps {
       <td>Heading text (h1-h6).</td>
     </tr>
     <tr>
+      <td><code>HeadingHero</code></td>
+      <td>Hero heading convenience variant.</td>
+    </tr>
+    <tr>
+      <td><code>HeadingSection</code></td>
+      <td>Section heading convenience variant.</td>
+    </tr>
+    <tr>
+      <td><code>Header1</code></td>
+      <td>Convenience heading mapped to h1.</td>
+    </tr>
+    <tr>
+      <td><code>Header2</code></td>
+      <td>Convenience heading mapped to h2.</td>
+    </tr>
+    <tr>
+      <td><code>Header3</code></td>
+      <td>Convenience heading mapped to h3.</td>
+    </tr>
+    <tr>
       <td><code>Text</code></td>
       <td>Body text paragraph.</td>
     </tr>
@@ -204,8 +244,60 @@ interface RendererProps {
       <td>Image from URL.</td>
     </tr>
     <tr>
+      <td><code>ImageHero</code></td>
+      <td>Hero image variant (typically full-width).</td>
+    </tr>
+    <tr>
+      <td><code>ImageAvatar</code></td>
+      <td>Avatar image variant (typically circular).</td>
+    </tr>
+    <tr>
+      <td><code>ImageThumbnail</code></td>
+      <td>Thumbnail image variant for cards/galleries.</td>
+    </tr>
+    <tr>
+      <td><code>Gallery2</code></td>
+      <td>Fixed two-image gallery block.</td>
+    </tr>
+    <tr>
+      <td><code>Gallery3</code></td>
+      <td>Fixed three-image gallery block.</td>
+    </tr>
+    <tr>
+      <td><code>Gallery4</code></td>
+      <td>Fixed four-image gallery block (2x2).</td>
+    </tr>
+    <tr>
+      <td><code>GalleryMosaic</code></td>
+      <td>Flexible 2-6 image gallery block.</td>
+    </tr>
+    <tr>
+      <td><code>ListBulleted</code></td>
+      <td>Bulleted list of strings.</td>
+    </tr>
+    <tr>
+      <td><code>ListNumbered</code></td>
+      <td>Numbered list of strings.</td>
+    </tr>
+    <tr>
+      <td><code>InlineCode</code></td>
+      <td>Inline code snippet style for tokens/codes.</td>
+    </tr>
+    <tr>
+      <td><code>InlineCodeMuted</code></td>
+      <td>Muted inline code variant.</td>
+    </tr>
+    <tr>
       <td><code>Hr</code></td>
       <td>Horizontal rule separator.</td>
+    </tr>
+    <tr>
+      <td><code>DividerSoft</code></td>
+      <td>Soft divider variant.</td>
+    </tr>
+    <tr>
+      <td><code>DividerDashed</code></td>
+      <td>Dashed divider variant.</td>
     </tr>
   </tbody>
 </table>
@@ -227,6 +319,131 @@ interface RendererProps {
     <tr>
       <td><code>Markdown</code></td>
       <td>Renders markdown content as email-safe HTML.</td>
+    </tr>
+    <tr>
+      <td><code>FooterSimple</code></td>
+      <td>Simple footer text block.</td>
+    </tr>
+    <tr>
+      <td><code>FooterLinks</code></td>
+      <td>Footer with multiple links (privacy, unsubscribe, etc.).</td>
+    </tr>
+  </tbody>
+</table>
+
+### Composable Blocks
+
+<table>
+  <thead>
+    <tr>
+      <th>Component</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ArticleCard</code></td>
+      <td>Article card with optional image, excerpt, and metadata.</td>
+    </tr>
+    <tr>
+      <td><code>ArticleCompact</code></td>
+      <td>Compact article link row with optional meta text.</td>
+    </tr>
+    <tr>
+      <td><code>ArticleFeature</code></td>
+      <td>Featured article block with optional image and CTA.</td>
+    </tr>
+    <tr>
+      <td><code>ArticleListItem</code></td>
+      <td>Single article list item with optional short excerpt.</td>
+    </tr>
+    <tr>
+      <td><code>ArticleHero</code></td>
+      <td>Hero-style article block for top placement.</td>
+    </tr>
+    <tr>
+      <td><code>ArticleDigest</code></td>
+      <td>Digest list of article links with optional excerpts.</td>
+    </tr>
+    <tr>
+      <td><code>FeatureRow</code></td>
+      <td>Single feature row with title and description.</td>
+    </tr>
+    <tr>
+      <td><code>FeatureCard</code></td>
+      <td>Feature card with optional icon and link.</td>
+    </tr>
+    <tr>
+      <td><code>FeatureIconText</code></td>
+      <td>Icon + text feature row for benefit highlights.</td>
+    </tr>
+    <tr>
+      <td><code>FeatureBulletList</code></td>
+      <td>Bulleted feature checklist block.</td>
+    </tr>
+    <tr>
+      <td><code>FeatureHighlight</code></td>
+      <td>Highlighted feature callout with optional CTA.</td>
+    </tr>
+    <tr>
+      <td><code>StatsRow</code></td>
+      <td>Horizontal stats row for KPI highlights.</td>
+    </tr>
+    <tr>
+      <td><code>StatsHighlight</code></td>
+      <td>Single large stat highlight block.</td>
+    </tr>
+    <tr>
+      <td><code>TestimonialQuote</code></td>
+      <td>Quote-focused testimonial with optional avatar and role.</td>
+    </tr>
+    <tr>
+      <td><code>TestimonialCard</code></td>
+      <td>Card-style testimonial with optional case-study link.</td>
+    </tr>
+    <tr>
+      <td><code>FeedbackRequest</code></td>
+      <td>Feedback request with one call-to-action.</td>
+    </tr>
+    <tr>
+      <td><code>FeedbackScale</code></td>
+      <td>1-5 feedback scale using score links.</td>
+    </tr>
+    <tr>
+      <td><code>FeedbackCTA</code></td>
+      <td>Feedback section with title, body text, and CTA.</td>
+    </tr>
+    <tr>
+      <td><code>PricingTier</code></td>
+      <td>Single pricing tier card with features and optional CTA.</td>
+    </tr>
+    <tr>
+      <td><code>PricingComparison</code></td>
+      <td>Comparison block for two or three pricing tiers.</td>
+    </tr>
+    <tr>
+      <td><code>ProductCard</code></td>
+      <td>Product card with image, price, and action link.</td>
+    </tr>
+    <tr>
+      <td><code>ProductGrid2</code></td>
+      <td>Two-product ecommerce grid.</td>
+    </tr>
+    <tr>
+      <td><code>ProductGrid3</code></td>
+      <td>Three-product ecommerce grid.</td>
+    </tr>
+    <tr>
+      <td><code>OrderSummary</code></td>
+      <td>Order summary block with line items and total.</td>
+    </tr>
+    <tr>
+      <td><code>AbandonedCart</code></td>
+      <td>Abandoned-cart recovery block with product items.</td>
+    </tr>
+    <tr>
+      <td><code>MarketingHero</code></td>
+      <td>General-purpose marketing hero block with CTA.</td>
     </tr>
   </tbody>
 </table>

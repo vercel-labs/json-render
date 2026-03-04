@@ -386,6 +386,7 @@ export interface DefineRegistryResult {
 }
 
 type DefineRegistryComponentFn = (ctx: {
+  element?: UIElement;
   props: unknown;
   children?: React.ReactNode;
   emit: (event: string) => void;
@@ -410,6 +411,7 @@ export function defineRegistry<C extends Catalog>(
         loading,
       }: ComponentRenderProps) => {
         return (componentFn as DefineRegistryComponentFn)({
+          element,
           props: element.props,
           children,
           emit,
