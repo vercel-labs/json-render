@@ -44,6 +44,19 @@ function isToolPart(part: { type: string }): part is {
   return part.type.startsWith("tool-") || part.type === "dynamic-tool";
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function hasArrayParts(value: unknown): value is { parts: unknown[] } {
+  return isRecord(value) && Array.isArray(value.parts);
+}
+
+function getMessageParts(message: unknown): unknown[] {
+  if (!hasArrayParts(message)) return [];
+  return message.parts;
+}
+
 function getToolName(part: { type: string; toolName?: string }): string {
   if (part.type === "dynamic-tool") return part.toolName ?? "tool";
   return part.type.replace(/^tool-/, "");
@@ -238,7 +251,14 @@ export function DocsChat({
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          setMessages(parsed);
+          const safeMessages = parsed.filter(
+            (m): m is (typeof messages)[number] => hasArrayParts(m),
+          );
+          if (safeMessages.length > 0) {
+            setMessages(safeMessages);
+          } else {
+            sessionStorage.removeItem(STORAGE_KEY);
+          }
         }
       }
     } catch {
@@ -251,7 +271,11 @@ export function DocsChat({
     if (!restoredRef.current) return;
     if (isLoading) return;
     if (messages.length === 0) {
-      sessionStorage.removeItem(STORAGE_KEY);
+      try {
+        sessionStorage.removeItem(STORAGE_KEY);
+      } catch {
+        // ignore storage errors
+      }
       return;
     }
     try {
@@ -315,14 +339,28 @@ export function DocsChat({
 
   const handleClear = useCallback(() => {
     setMessages([]);
-    sessionStorage.removeItem(STORAGE_KEY);
+    try {
+      sessionStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // ignore storage errors
+    }
   }, [setMessages]);
 
-  const hasVisibleContent = (
-    parts: (typeof messages)[number]["parts"],
-  ): boolean => {
-    return parts.some(
-      (p) => (p.type === "text" && p.text.length > 0) || isToolPart(p),
+  const hasVisibleContent = (parts: unknown[]): boolean => {
+    return parts.some((p) => {
+      if (!isRecord(p) || typeof p.type !== "string") return false;
+      if (p.type === "text") {
+        return typeof p.text === "string" && p.text.length > 0;
+      }
+      return isToolPart(p as { type: string });
+    });
+  };
+
+  const isTextPart = (
+    part: unknown,
+  ): part is { type: "text"; text: string } => {
+    return (
+      isRecord(part) && part.type === "text" && typeof part.text === "string"
     );
   };
 
@@ -371,35 +409,45 @@ export function DocsChat({
           className="flex-1 min-h-0 p-4 space-y-4 overflow-y-auto"
         >
           {messages.map((message) => {
-            if (!hasVisibleContent(message.parts)) return null;
+            const parts = getMessageParts(message);
+            if (!hasVisibleContent(parts)) return null;
             return (
               <div key={message.id}>
                 {message.role === "user" ? (
                   <div className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
-                    {message.parts
-                      .filter(
-                        (p): p is Extract<typeof p, { type: "text" }> =>
-                          p.type === "text",
-                      )
+                    {parts
+                      .filter(isTextPart)
                       .map((p) => p.text)
                       .join("")}
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {message.parts.map((part, i) => {
-                      if (part.type === "text" && part.text) {
+                    {parts.map((part, i) => {
+                      if (!isRecord(part) || typeof part.type !== "string") {
+                        return null;
+                      }
+                      const typedPart = part as Record<string, unknown> & {
+                        type: string;
+                      };
+                      if (
+                        typedPart.type === "text" &&
+                        typeof typedPart.text === "string"
+                      ) {
                         return (
                           <div
                             key={i}
                             className="docs-chat-content text-sm text-foreground/90 leading-relaxed prose prose-sm dark:prose-invert max-w-none"
                           >
-                            <Streamdown>{part.text}</Streamdown>
+                            <Streamdown>{typedPart.text}</Streamdown>
                           </div>
                         );
                       }
-                      if (isToolPart(part)) {
+                      if (isToolPart(typedPart)) {
                         return (
-                          <ToolCallDisplay key={part.toolCallId} part={part} />
+                          <ToolCallDisplay
+                            key={typedPart.toolCallId ?? String(i)}
+                            part={typedPart}
+                          />
                         );
                       }
                       return null;
