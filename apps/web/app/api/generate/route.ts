@@ -60,6 +60,8 @@ export async function POST(req: Request) {
   const modelName = resolveModelName();
   const { provider, model } = createModel(modelName);
 
+  console.log(`[generate] Using model: ${modelName} (provider: ${provider})`);
+
   if (provider === "gateway" && !process.env.AI_GATEWAY_API_KEY) {
     return new Response(
       JSON.stringify({
@@ -140,10 +142,10 @@ export async function POST(req: Request) {
         }
 
         if (!hasContent) {
+          console.warn(`[generate] Empty response from model ${modelName}`);
           const meta = JSON.stringify({
             __meta: "error",
-            message:
-              "The model returned an empty response. Check that the API key is valid and the model is available.",
+            message: `Model "${modelName}" returned an empty response. Check that the API key and model name are correct.`,
           });
           controller.enqueue(encoder.encode(`\n${meta}\n`));
         }
@@ -162,11 +164,12 @@ export async function POST(req: Request) {
           // Usage not available — skip silently
         }
       } catch (error) {
+        console.error(`[generate] Stream error for model ${modelName}:`, error);
         const message =
           error instanceof Error ? error.message : "Generation failed.";
         const meta = JSON.stringify({
           __meta: "error",
-          message,
+          message: `[${modelName}] ${message}`,
         });
         controller.enqueue(encoder.encode(`\n${meta}\n`));
       } finally {
