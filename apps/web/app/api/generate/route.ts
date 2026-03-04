@@ -133,9 +133,21 @@ export async function POST(req: Request) {
   const stream = new ReadableStream({
     async start(controller) {
       try {
+        let hasContent = false;
         for await (const chunk of textStream) {
+          if (chunk) hasContent = true;
           controller.enqueue(encoder.encode(chunk));
         }
+
+        if (!hasContent) {
+          const meta = JSON.stringify({
+            __meta: "error",
+            message:
+              "The model returned an empty response. Check that the API key is valid and the model is available.",
+          });
+          controller.enqueue(encoder.encode(`\n${meta}\n`));
+        }
+
         // Append usage metadata after stream completes
         try {
           const usage = await result.usage;

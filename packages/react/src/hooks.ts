@@ -495,11 +495,9 @@ export function useUIStream({
             return;
           }
           const details = sawAnyNonEmptyLine
-            ? "The model returned text that is not valid json-render JSONL patches."
-            : "The model returned an empty response stream.";
-          throw new Error(
-            `${details} Try MODEL=gpt-5-mini or tighten the prompt.`,
-          );
+            ? "The model returned text that is not valid json-render JSONL patches. Verify the model supports structured output or try a different model (e.g. MODEL=gpt-5-mini)."
+            : "The model returned an empty response stream. Check that your API key is valid and the model is reachable, or try MODEL=gpt-5-mini.";
+          throw new Error(details);
         }
 
         onCompleteRef.current?.(currentSpec);
