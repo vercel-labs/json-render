@@ -484,7 +484,7 @@ export function useUIStream({
             ? "The model returned text that is not valid json-render JSONL patches."
             : "The model returned an empty response stream.";
           throw new Error(
-            `${details} Try OPENAI_MODEL=gpt-5-mini or tighten the prompt.`,
+            `${details} Try MODEL=gpt-5-mini or tighten the prompt.`,
           );
         }
 
