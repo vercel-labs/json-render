@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Renderer, type Spec } from "@json-render/react-email";
+import { JSONUIProvider, Renderer, type Spec } from "@json-render/react-email";
 import { registry, Fallback } from "./registry";
 
 interface PlaygroundRendererProps {
@@ -20,11 +20,13 @@ export function PlaygroundRenderer({
   if (!spec) return null;
 
   return (
-    <Renderer
-      spec={spec}
-      registry={registry}
-      fallback={fallbackRenderer}
-      loading={loading}
-    />
+    <JSONUIProvider initialState={spec.state ?? {}}>
+      <Renderer
+        spec={spec}
+        registry={registry}
+        fallback={fallbackRenderer}
+        loading={loading}
+      />
+    </JSONUIProvider>
   );
 }
