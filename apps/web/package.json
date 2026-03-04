@@ -19,6 +19,7 @@
     "@json-render/codegen": "workspace:*",
     "@json-render/core": "workspace:*",
     "@json-render/react": "workspace:*",
+    "@json-render/react-email": "workspace:*",
     "@mdx-js/loader": "^3.1.1",
     "@mdx-js/mdx": "^3.1.1",
     "@mdx-js/react": "^3.1.1",

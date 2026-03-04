@@ -68,6 +68,9 @@ importers:
       '@json-render/react':
         specifier: workspace:*
         version: link:../../packages/react
+      '@json-render/react-email':
+        specifier: workspace:*
+        version: link:../../packages/react-email
       '@mdx-js/loader':
         specifier: ^3.1.1
         version: 3.1.1(webpack@5.96.1)

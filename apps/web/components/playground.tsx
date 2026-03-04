@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { flushSync } from "react-dom";
 import { useUIStream, type TokenUsage } from "@json-render/react";
 import type { Spec } from "@json-render/core";
-import { collectUsedComponents, serializeProps } from "@json-render/codegen";
 import { toast } from "sonner";
 import {
   ResizablePanelGroup,
@@ -88,10 +87,10 @@ function specToNested(spec: Spec): Record<string, unknown> {
 }
 
 const EXAMPLE_PROMPTS = [
-  "Create a login form",
-  "Build a pricing page",
-  "Design a user profile card",
-  "Make a contact form",
+  "Create a welcome email for new users",
+  "Build a promotional email with hero, CTA and footer",
+  "Design a weekly newsletter email with 3 sections",
+  "Make a transactional order confirmation email",
 ];
 
 export function Playground() {
@@ -261,64 +260,19 @@ export function Playground() {
 
   const generatedCode = useMemo(() => {
     if (!currentTree || !currentTree.root) {
-      return "// Generate a UI to see the code";
+      return "// Generate an email to see the code";
     }
 
-    const tree = currentTree;
-    const components = collectUsedComponents(tree);
+    return `import { createRenderer, standardComponents } from "@json-render/react-email";
 
-    function generateJSX(key: string, indent: number): string {
-      const element = tree.elements[key];
-      if (!element) return "";
+const spec = ${JSON.stringify(currentTree, null, 2)};
 
-      const spaces = "  ".repeat(indent);
-      const componentName = element.type;
+const renderEmail = createRenderer({
+  components: standardComponents,
+});
 
-      const propsObj: Record<string, unknown> = {};
-      for (const [k, v] of Object.entries(element.props)) {
-        if (v !== null && v !== undefined) {
-          propsObj[k] = v;
-        }
-      }
-
-      const propsStr = serializeProps(propsObj);
-      const hasChildren = element.children && element.children.length > 0;
-
-      if (!hasChildren) {
-        return propsStr
-          ? `${spaces}<${componentName} ${propsStr} />`
-          : `${spaces}<${componentName} />`;
-      }
-
-      const lines: string[] = [];
-      lines.push(
-        propsStr
-          ? `${spaces}<${componentName} ${propsStr}>`
-          : `${spaces}<${componentName}>`,
-      );
-
-      for (const childKey of element.children!) {
-        lines.push(generateJSX(childKey, indent + 1));
-      }
-
-      lines.push(`${spaces}</${componentName}>`);
-      return lines.join("\n");
-    }
-
-    const jsx = generateJSX(tree.root, 2);
-    const imports = Array.from(components).sort().join(", ");
-
-    return `"use client";
-
-import { ${imports} } from "@/components/ui";
-
-export default function Page() {
-  return (
-    <div className="min-h-screen p-8 flex items-center justify-center">
-${jsx}
-    </div>
-  );
-}`;
+const html = await renderEmail(spec);
+console.log(html);`;
   }, [currentTree]);
 
   // Chat pane content
@@ -335,7 +289,7 @@ ${jsx}
         {versions.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
             <p className="text-sm text-muted-foreground mb-4">
-              Describe what you want to build, then iterate on it.
+              Describe the email you want to generate, then iterate on it.
             </p>
             <div className="flex flex-wrap gap-2 justify-center">
               {EXAMPLE_PROMPTS.map((prompt) => (
@@ -728,17 +682,13 @@ ${jsx}
         {renderView === "preview" ? (
           currentTree && currentTree.root ? (
             <div className="w-full min-h-full flex items-center justify-center p-6">
-              <PlaygroundRenderer
-                spec={currentTree}
-                data={currentTree.state}
-                loading={isStreaming}
-              />
+              <PlaygroundRenderer spec={currentTree} loading={isStreaming} />
             </div>
           ) : (
             <div className="h-full flex items-center justify-center text-muted-foreground/50 text-sm">
               {isStreaming
                 ? "generating..."
-                : "// enter a prompt to generate UI"}
+                : "// enter a prompt to generate an email"}
             </div>
           )
         ) : (
@@ -1003,11 +953,7 @@ ${jsx}
           ) : mobileView === "preview" ? (
             currentTree && currentTree.root ? (
               <div className="w-full min-h-full flex items-center justify-center p-6">
-                <PlaygroundRenderer
-                  spec={currentTree}
-                  data={currentTree.state}
-                  loading={isStreaming}
-                />
+                <PlaygroundRenderer spec={currentTree} loading={isStreaming} />
               </div>
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-center px-4">
@@ -1018,7 +964,8 @@ ${jsx}
                 ) : (
                   <>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Describe what you want to build, then iterate on it.
+                      Describe the email you want to generate, then iterate on
+                      it.
                     </p>
                     <div className="flex flex-wrap gap-2 justify-center">
                       {EXAMPLE_PROMPTS.map((prompt) => (

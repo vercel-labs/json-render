@@ -9,13 +9,14 @@ export const maxDuration = 30;
 
 const SYSTEM_PROMPT = playgroundCatalog.prompt({
   customRules: [
-    "NEVER use viewport height classes (min-h-screen, h-screen) - the UI renders inside a fixed-size container.",
-    "NEVER use page background colors (bg-gray-50) - the container has its own background.",
-    "For forms or small UIs: use Card as root with maxWidth:'sm' or 'md' and centered:true.",
-    "For content-heavy UIs (blogs, dashboards, product listings): use Stack or Grid as root. Use Grid with 2-3 columns for card layouts.",
-    "Wrap each repeated item in a Card for visual separation and structure.",
-    "Use realistic, professional sample data. Include 3-5 items with varied content. Never leave state arrays empty.",
-    'For form inputs (Input, Textarea, Select), always include checks for validation (e.g. required, email, minLength). Always pair checks with a $bindState expression on the value prop (e.g. { "$bindState": "/path" }).',
+    "Email-only mode: generate HTML email structures, never app UI layouts.",
+    "Always set Html as root, with Head and Body as direct children.",
+    "Inside Body, always include one main Container (max width around 600px).",
+    "Use Section / Row / Column for layout and keep styles inline via style props.",
+    "Emails are static: do not use interactive controls, state bindings, or actions.",
+    "Use realistic marketing/email content (subject-like preview, hero, body copy, CTA, footer).",
+    "For CTA, use Button with text + href. For links, always provide absolute URLs.",
+    "For images, always use absolute URLs.",
   ],
 });
 
