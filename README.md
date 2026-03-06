@@ -9,6 +9,8 @@ Generate dynamic, personalized UIs from prompts without sacrificing reliability.
 npm install @json-render/core @json-render/react
 # for React with pre-built shadcn/ui components
 npm install @json-render/shadcn
+# for React with pre-built Ant Design components
+npm install @json-render/antd
 # or for React Native
 npm install @json-render/core @json-render/react-native
 # or for video
@@ -29,7 +31,7 @@ json-render is a **Generative UI** framework: AI generates interfaces from natur
 - **Predictable** - JSON output matches your schema, every time
 - **Fast** - Stream and render progressively as the model responds
 - **Cross-Platform** - React, Vue (web), React Native (mobile) from the same catalog
-- **Batteries Included** - 36 pre-built shadcn/ui components ready to use
+- **Batteries Included** - 36 pre-built shadcn/ui components and 50+ Ant Design components ready to use
 
 ## Quick Start
 
@@ -117,6 +119,7 @@ function Dashboard({ spec }) {
 | `@json-render/react` | React renderer, contexts, hooks |
 | `@json-render/vue` | Vue 3 renderer, composables, providers |
 | `@json-render/shadcn` | 36 pre-built shadcn/ui components (Radix UI + Tailwind CSS) |
+| `@json-render/antd` | 50+ pre-built Ant Design components |
 | `@json-render/react-native` | React Native renderer with standard mobile components |
 | `@json-render/remotion` | Remotion video renderer, timeline schema |
 | `@json-render/react-pdf` | React PDF renderer for generating PDF documents from specs |
@@ -204,6 +207,39 @@ const { registry } = defineRegistry(catalog, {
     Stack: shadcnComponents.Stack,
     Heading: shadcnComponents.Heading,
     Button: shadcnComponents.Button,
+  },
+});
+
+<Renderer spec={spec} registry={registry} />
+```
+
+### Ant Design (Web)
+
+```tsx
+import { defineCatalog } from "@json-render/core";
+import { schema } from "@json-render/react/schema";
+import { defineRegistry, Renderer } from "@json-render/react";
+import { antdComponentDefinitions } from "@json-render/antd/catalog";
+import { antdComponents } from "@json-render/antd";
+
+// Pick components from the 50+ standard definitions
+const catalog = defineCatalog(schema, {
+  components: {
+    Card: antdComponentDefinitions.Card,
+    Stack: antdComponentDefinitions.Stack,
+    Heading: antdComponentDefinitions.Heading,
+    Button: antdComponentDefinitions.Button,
+  },
+  actions: {},
+});
+
+// Use matching implementations
+const { registry } = defineRegistry(catalog, {
+  components: {
+    Card: antdComponents.Card,
+    Stack: antdComponents.Stack,
+    Heading: antdComponents.Heading,
+    Button: antdComponents.Button,
   },
 });
 
