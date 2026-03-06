@@ -9,7 +9,8 @@ export const demoSpec: Spec = {
       { id: 1, title: "Learn JSON Render", completed: true },
       {
         id: 2,
-        title: "Try @json-render/vue or @json-render/react",
+        title:
+          "Try @json-render/vue, @json-render/react, and @json-render/svelte",
         completed: false,
       },
       { id: 3, title: "Build something awesome", completed: false },
@@ -47,6 +48,7 @@ export const demoSpec: Spec = {
       on: {
         pressVue: { action: "switchToVue" },
         pressReact: { action: "switchToReact" },
+        pressSvelte: { action: "switchToSvelte" },
       },
     },
 

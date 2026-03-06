@@ -27,6 +27,7 @@ out/
 build
 dist
 *.tsbuildinfo
+.svelte-kit/
 
 
 # Debug

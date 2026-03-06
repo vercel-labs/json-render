@@ -25,7 +25,7 @@
     "react-resizable-panels": "^4.4.1",
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.1.18",
-    "zod": "4.3.5"
+    "zod": "4.3.6"
   },
   "devDependencies": {
     "@internal/typescript-config": "workspace:*",

@@ -246,3 +246,18 @@
   background-color: #149eca;
   color: white;
 }
+
+.renderer-svelte .json-render-renderer-badge {
+  color: #ff3e00;
+  background-color: #ff3e0018;
+  border-color: #ff3e0040;
+}
+
+.renderer-svelte .json-render-renderer-dot {
+  background-color: #ff3e00;
+}
+
+.renderer-svelte .json-render-renderer-tab--active {
+  background-color: #ff3e00;
+  color: white;
+}

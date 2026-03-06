@@ -81,12 +81,17 @@ export const docsNavigation: NavSection[] = [
         external: true,
       },
       {
+        title: "Svelte",
+        href: "https://github.com/vercel-labs/json-render/tree/main/examples/svelte",
+        external: true,
+      },
+      {
         title: "Vue",
         href: "https://github.com/vercel-labs/json-render/tree/main/examples/vue",
         external: true,
       },
       {
-        title: "Renders with Vite (Vue / React)",
+        title: "Renders with Vite (Vue / React / Svelte)",
         href: "https://github.com/vercel-labs/json-render/tree/main/examples/vite-renderers",
         external: true,
       },
@@ -121,6 +126,7 @@ export const docsNavigation: NavSection[] = [
       { title: "@json-render/image", href: "/docs/api/image" },
       { title: "@json-render/remotion", href: "/docs/api/remotion" },
       { title: "@json-render/vue", href: "/docs/api/vue" },
+      { title: "@json-render/svelte", href: "/docs/api/svelte" },
       { title: "@json-render/codegen", href: "/docs/api/codegen" },
     ],
   },

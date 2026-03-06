@@ -498,8 +498,9 @@ pnpm dev
 - http://react-email-demo.json-render.localhost:1355 - React Email Example
 - http://remotion-demo.json-render.localhost:1355 - Remotion Video Example
 - Chat Example: run `pnpm dev` in `examples/chat`
+- Svelte Example: run `pnpm dev` in `examples/svelte` or `examples/svelte-chat`
 - Vue Example: run `pnpm dev` in `examples/vue`
-- Vite Renderers (React + Vue): run `pnpm dev` in `examples/vite-renderers`
+- Vite Renderers (React + Vue + Svelte): run `pnpm dev` in `examples/vite-renderers`
 - React Native example: run `npx expo start` in `examples/react-native`
 
 ## How It Works

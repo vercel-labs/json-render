@@ -13,5 +13,5 @@
     "jsx": "react-jsx",
     "strict": true
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "src/**/*.svelte"]
 }
