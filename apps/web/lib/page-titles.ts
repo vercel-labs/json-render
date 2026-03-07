@@ -50,6 +50,7 @@ export const PAGE_TITLES: Record<string, string> = {
   "docs/api/image": "@json-render/image API",
   "docs/api/remotion": "@json-render/remotion API",
   "docs/api/shadcn": "@json-render/shadcn API",
+  "docs/api/mcp": "@json-render/mcp API",
 };
 
 /**

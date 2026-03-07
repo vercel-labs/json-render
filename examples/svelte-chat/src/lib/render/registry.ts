@@ -1,7 +1,6 @@
-import { defineRegistry, type ComponentRegistry } from "@json-render/svelte";
+import { defineRegistry } from "@json-render/svelte";
 import { explorerCatalog } from "./catalog";
 
-// Import render components
 import StackComponent from "./components/Stack.svelte";
 import CardComponent from "./components/Card.svelte";
 import GridComponent from "./components/Grid.svelte";
@@ -28,7 +27,7 @@ import SelectInputComponent from "./components/SelectInput.svelte";
 import TextInputComponent from "./components/TextInput.svelte";
 import ButtonComponent from "./components/Button.svelte";
 
-const components: ComponentRegistry = {
+const components = {
   Stack: StackComponent,
   Card: CardComponent,
   Grid: GridComponent,

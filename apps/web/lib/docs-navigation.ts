@@ -95,6 +95,11 @@ export const docsNavigation: NavSection[] = [
         href: "https://github.com/vercel-labs/json-render/tree/main/examples/vite-renderers",
         external: true,
       },
+      {
+        title: "MCP App",
+        href: "https://github.com/vercel-labs/json-render/tree/main/examples/mcp",
+        external: true,
+      },
     ],
   },
   {
@@ -128,6 +133,7 @@ export const docsNavigation: NavSection[] = [
       { title: "@json-render/vue", href: "/docs/api/vue" },
       { title: "@json-render/svelte", href: "/docs/api/svelte" },
       { title: "@json-render/codegen", href: "/docs/api/codegen" },
+      { title: "@json-render/mcp", href: "/docs/api/mcp" },
     ],
   },
 ];

@@ -1,0 +1,34 @@
+{
+  "name": "example-mcp",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "vite build",
+    "start": "tsx server.ts",
+    "start:stdio": "tsx server.ts --stdio",
+    "dev": "tsx watch server.ts"
+  },
+  "dependencies": {
+    "@json-render/core": "workspace:*",
+    "@json-render/mcp": "workspace:*",
+    "@json-render/react": "workspace:*",
+    "@json-render/shadcn": "workspace:*",
+    "@modelcontextprotocol/ext-apps": "^1.2.0",
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.3",
+    "@types/react-dom": "19.2.3",
+    "@tailwindcss/vite": "^4.2.1",
+    "@vitejs/plugin-react": "^5.1.4",
+    "tailwindcss": "^4.2.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.7.2",
+    "vite": "^6.3.5",
+    "vite-plugin-singlefile": "^2.3.0"
+  }
+}

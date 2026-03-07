@@ -129,6 +129,7 @@ function Dashboard({ spec }) {
 | `@json-render/zustand` | Zustand adapter for `StateStore` |
 | `@json-render/jotai` | Jotai adapter for `StateStore` |
 | `@json-render/xstate` | XState Store (atom) adapter for `StateStore` |
+| `@json-render/mcp` | MCP Apps integration for Claude, ChatGPT, Cursor, VS Code |
 
 ## Renderers
 

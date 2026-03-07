@@ -1,0 +1,106 @@
+@import "tailwindcss";
+@source "../../../packages/shadcn/src";
+@source "../../../packages/react/src";
+
+@custom-variant dark (&:is([data-theme="dark"] *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+}
+
+[data-theme="dark"] {
+  --background: var(--color-background-secondary, var(--vscode-editor-background, oklch(0.145 0 0)));
+  --foreground: var(--color-text-primary, var(--vscode-foreground, oklch(0.985 0 0)));
+  --card: var(--color-background-primary, var(--vscode-sideBar-background, oklch(0.205 0 0)));
+  --card-foreground: var(--color-text-primary, var(--vscode-foreground, oklch(0.985 0 0)));
+  --popover: var(--color-background-primary, var(--vscode-sideBar-background, oklch(0.205 0 0)));
+  --popover-foreground: var(--color-text-primary, var(--vscode-foreground, oklch(0.985 0 0)));
+  --primary: var(--color-text-primary, var(--vscode-foreground, oklch(0.922 0 0)));
+  --primary-foreground: var(--color-background-primary, var(--vscode-sideBar-background, oklch(0.205 0 0)));
+  --secondary: var(--color-background-tertiary, var(--vscode-activityBar-background, oklch(0.269 0 0)));
+  --secondary-foreground: var(--color-text-primary, var(--vscode-foreground, oklch(0.985 0 0)));
+  --muted: var(--color-background-tertiary, var(--vscode-activityBar-background, oklch(0.269 0 0)));
+  --muted-foreground: var(--color-text-secondary, var(--vscode-descriptionForeground, oklch(0.708 0 0)));
+  --accent: var(--color-background-tertiary, var(--vscode-activityBar-background, oklch(0.269 0 0)));
+  --accent-foreground: var(--color-text-primary, var(--vscode-foreground, oklch(0.985 0 0)));
+  --destructive: var(--color-text-danger, var(--vscode-errorForeground, oklch(0.704 0.191 22.216)));
+  --border: var(--color-border-primary, var(--vscode-widget-border, oklch(1 0 0 / 10%)));
+  --input: var(--color-border-secondary, var(--vscode-editorWidget-border, oklch(1 0 0 / 15%)));
+  --ring: var(--color-ring-primary, var(--vscode-focusBorder, oklch(0.556 0 0)));
+}
+
+* {
+  box-sizing: border-box;
+  border-color: var(--color-border);
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--vscode-font-family, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply text-foreground;
+    background-color: var(--color-background) !important;
+  }
+}
+
+button {
+  cursor: pointer;
+}

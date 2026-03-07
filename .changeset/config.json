@@ -17,7 +17,8 @@
       "@json-render/jotai",
       "@json-render/vue",
       "@json-render/xstate",
-      "@json-render/image"
+      "@json-render/image",
+      "@json-render/mcp"
     ]
   ],
   "linked": [],

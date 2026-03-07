@@ -16,7 +16,7 @@ const SYSTEM_PROMPT = `You are a helpful documentation assistant for json-render
 
 GitHub repository: https://github.com/vercel-labs/json-render
 Documentation: https://json-render.dev/docs
-npm packages: @json-render/core, @json-render/react, @json-render/react-email, @json-render/react-pdf, @json-render/image, @json-render/remotion, @json-render/codegen
+npm packages: @json-render/core, @json-render/react, @json-render/react-email, @json-render/react-pdf, @json-render/image, @json-render/remotion, @json-render/codegen, @json-render/mcp
 
 You have access to the full json-render documentation via the bash and readFile tools. The docs are available as markdown files in the /workspace/docs/ directory.
 

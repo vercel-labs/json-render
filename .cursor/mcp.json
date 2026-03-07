@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "json-render": {
+      "command": "npx",
+      "args": ["tsx", "examples/mcp/server.ts", "--stdio"]
+    }
+  }
+}

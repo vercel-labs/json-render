@@ -4,8 +4,8 @@
    * Props for JSONUIProvider
    */
   export interface JSONUIProviderProps {
-    /** Component registry */
-    registry: ComponentRegistry;
+    /** Component registry (passed through for convenience; not used internally) */
+    registry?: ComponentRegistry;
     /**
      * External store (controlled mode). When provided, `initialState` and
      * `onStateChange` are ignored.

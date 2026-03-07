@@ -1,0 +1,247 @@
+import { pageMetadata } from "@/lib/page-metadata"
+export const metadata = pageMetadata("docs/api/mcp")
+
+# @json-render/mcp
+
+MCP Apps integration for json-render. Serve json-render UIs as interactive [MCP Apps](https://modelcontextprotocol.io/docs/extensions/apps) inside Claude, ChatGPT, Cursor, VS Code, and other MCP-capable clients.
+
+## Install
+
+```bash
+npm install @json-render/mcp @json-render/core @modelcontextprotocol/sdk
+```
+
+For the iframe-side React UI, also install:
+
+```bash
+npm install @json-render/react react react-dom
+```
+
+See the [MCP example](https://github.com/vercel-labs/json-render/tree/main/examples/mcp) for a full working example.
+
+## Overview
+
+MCP Apps let MCP servers return interactive HTML UIs that render directly inside chat conversations. `@json-render/mcp` bridges json-render catalogs with the MCP Apps protocol:
+
+1. Your **catalog** defines which components and actions the AI can use
+2. The **MCP server** exposes the catalog as a tool with the spec schema
+3. The **bundled HTML** renders json-render specs inside the host's sandboxed iframe
+4. The AI generates a spec, the host renders it, and users interact with the live UI
+
+## Server API
+
+### createMcpApp
+
+Create a fully-configured MCP server. This is the main entry point.
+
+```typescript
+import { createMcpApp } from "@json-render/mcp";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import fs from "node:fs";
+
+const server = createMcpApp({
+  name: "My Dashboard",
+  version: "1.0.0",
+  catalog: myCatalog,
+  html: fs.readFileSync("dist/index.html", "utf-8"),
+});
+
+await server.connect(new StdioServerTransport());
+```
+
+#### CreateMcpAppOptions
+
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>name</code></td>
+      <td><code>string</code></td>
+      <td>Server name shown in client UIs</td>
+    </tr>
+    <tr>
+      <td><code>version</code></td>
+      <td><code>string</code></td>
+      <td>Server version</td>
+    </tr>
+    <tr>
+      <td><code>catalog</code></td>
+      <td><code>Catalog</code></td>
+      <td>json-render catalog defining available components</td>
+    </tr>
+    <tr>
+      <td><code>html</code></td>
+      <td><code>string</code></td>
+      <td>Self-contained HTML for the iframe UI</td>
+    </tr>
+    <tr>
+      <td><code>tool</code></td>
+      <td><code>McpToolOptions</code></td>
+      <td>Optional tool name/title/description overrides</td>
+    </tr>
+  </tbody>
+</table>
+
+### registerJsonRenderTool
+
+Register a json-render tool on an existing `McpServer`. Use this when you need to add json-render to a server that has other tools.
+
+```typescript
+import { registerJsonRenderTool } from "@json-render/mcp";
+
+registerJsonRenderTool(server, {
+  catalog,
+  name: "render-ui",
+  title: "Render UI",
+  description: "Render an interactive UI",
+  resourceUri: "ui://render-ui/view.html",
+});
+```
+
+### registerJsonRenderResource
+
+Register the UI resource that serves the bundled HTML.
+
+```typescript
+import { registerJsonRenderResource } from "@json-render/mcp";
+
+registerJsonRenderResource(server, {
+  resourceUri: "ui://render-ui/view.html",
+  html: bundledHtml,
+});
+```
+
+## Client API (`@json-render/mcp/app`)
+
+These exports run inside the sandboxed iframe rendered by the MCP host.
+
+### useJsonRenderApp
+
+React hook that connects to the MCP host, listens for tool results, and maintains the current json-render spec.
+
+```tsx
+import { useJsonRenderApp } from "@json-render/mcp/app";
+import { JSONUIProvider, Renderer } from "@json-render/react";
+
+function McpAppView({ registry }) {
+  const { spec, loading, connected, error } = useJsonRenderApp({
+    name: "my-app",
+    version: "1.0.0",
+  });
+
+  if (error) return <div>Error: {error.message}</div>;
+  if (!spec) return <div>Waiting...</div>;
+
+  return (
+    <JSONUIProvider registry={registry} initialState={spec.state ?? {}}>
+      <Renderer spec={spec} registry={registry} loading={loading} />
+    </JSONUIProvider>
+  );
+}
+```
+
+#### UseJsonRenderAppReturn
+
+<table>
+  <thead>
+    <tr>
+      <th>Field</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>spec</code></td>
+      <td><code>{'Spec | null'}</code></td>
+      <td>Current json-render spec</td>
+    </tr>
+    <tr>
+      <td><code>loading</code></td>
+      <td><code>boolean</code></td>
+      <td>Whether the spec is still being received</td>
+    </tr>
+    <tr>
+      <td><code>connected</code></td>
+      <td><code>boolean</code></td>
+      <td>Whether connected to the host</td>
+    </tr>
+    <tr>
+      <td><code>connecting</code></td>
+      <td><code>boolean</code></td>
+      <td>Whether currently connecting</td>
+    </tr>
+    <tr>
+      <td><code>error</code></td>
+      <td><code>{'Error | null'}</code></td>
+      <td>Connection error, if any</td>
+    </tr>
+    <tr>
+      <td><code>app</code></td>
+      <td><code>{'App | null'}</code></td>
+      <td>The underlying MCP App instance</td>
+    </tr>
+    <tr>
+      <td><code>callServerTool</code></td>
+      <td><code>{'(name, args?) => Promise<void>'}</code></td>
+      <td>Call an MCP server tool and update spec from result</td>
+    </tr>
+  </tbody>
+</table>
+
+### buildAppHtml
+
+Generate a self-contained HTML page from bundled JavaScript and CSS.
+
+```typescript
+import { buildAppHtml } from "@json-render/mcp/app";
+import fs from "node:fs";
+
+const html = buildAppHtml({
+  title: "Dashboard",
+  js: fs.readFileSync("dist/app.js", "utf-8"),
+  css: fs.readFileSync("dist/app.css", "utf-8"),
+});
+```
+
+## Client Configuration
+
+### Cursor
+
+Add to `.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "json-render": {
+      "command": "npx",
+      "args": ["tsx", "path/to/server.ts", "--stdio"]
+    }
+  }
+}
+```
+
+### Claude Desktop
+
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "json-render": {
+      "command": "npx",
+      "args": ["tsx", "/absolute/path/to/server.ts", "--stdio"]
+    }
+  }
+}
+```
+
+## Supported Clients
+
+MCP Apps are supported by Claude (web and desktop), ChatGPT, VS Code (GitHub Copilot), Cursor, Goose, and Postman.
