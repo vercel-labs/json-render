@@ -1552,6 +1552,9 @@ importers:
       '@json-render/core':
         specifier: workspace:*
         version: link:../core
+      zod:
+        specifier: ^4.0.0
+        version: 4.3.6
     devDependencies:
       '@internal/typescript-config':
         specifier: workspace:*

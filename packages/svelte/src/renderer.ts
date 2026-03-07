@@ -211,7 +211,7 @@ export interface CreateRendererProps {
 }
 
 /**
- * Component map type — maps component names to Vue components
+ * Component map type — maps component names to Svelte components
  */
 export type ComponentMap<
   TComponents extends Record<string, { props: unknown }>,
