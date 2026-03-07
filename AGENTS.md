@@ -98,7 +98,7 @@ When asked to prepare a release (e.g. "prepare v0.12.0"):
    - An API reference page at `apps/web/app/(main)/docs/api/<name>/page.mdx`
    - An entry in `apps/web/lib/page-titles.ts` and `apps/web/lib/docs-navigation.ts`
    - An entry in the docs-chat system prompt (`apps/web/app/api/docs-chat/route.ts`)
-   - A skill at `skills/json-render-<name>/SKILL.md`
+   - A skill at `skills/<name>/SKILL.md`
    - A `packages/<name>/README.md`
 6. **Run `pnpm type-check`** after all changes to verify nothing is broken
 
