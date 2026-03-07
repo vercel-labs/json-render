@@ -1,0 +1,104 @@
+import { pageMetadata } from "@/lib/page-metadata"
+export const metadata = pageMetadata("docs/api/redux")
+
+# @json-render/redux
+
+Redux / Redux Toolkit adapter for json-render's `StateStore` interface.
+
+## Installation
+
+```bash
+npm install @json-render/redux @json-render/core @json-render/react redux
+# or with Redux Toolkit (recommended):
+npm install @json-render/redux @json-render/core @json-render/react @reduxjs/toolkit
+```
+
+## reduxStateStore
+
+Create a `StateStore` backed by a Redux store.
+
+```typescript
+import { reduxStateStore } from "@json-render/redux";
+```
+
+### Options
+
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>Type</th>
+      <th>Required</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>store</code></td>
+      <td><code>Store</code></td>
+      <td>Yes</td>
+      <td>The Redux store instance.</td>
+    </tr>
+    <tr>
+      <td><code>selector</code></td>
+      <td><code>{'(state: S) => StateModel'}</code></td>
+      <td>No</td>
+      <td>Select the json-render slice from the Redux state tree. Defaults to <code>{'(state) => state'}</code>.</td>
+    </tr>
+    <tr>
+      <td><code>dispatch</code></td>
+      <td><code>{'(nextState: StateModel, store: Store) => void'}</code></td>
+      <td>Yes</td>
+      <td>Dispatch an action that replaces the selected slice with the next state.</td>
+    </tr>
+  </tbody>
+</table>
+
+### Example
+
+```typescript
+import { configureStore, createSlice } from "@reduxjs/toolkit";
+import { reduxStateStore } from "@json-render/redux";
+import { StateProvider } from "@json-render/react";
+
+const uiSlice = createSlice({
+  name: "ui",
+  initialState: { count: 0 } as Record<string, unknown>,
+  reducers: {
+    replaceUiState: (_state, action) => action.payload,
+  },
+});
+
+const reduxStore = configureStore({
+  reducer: { ui: uiSlice.reducer },
+});
+
+const store = reduxStateStore({
+  store: reduxStore,
+  selector: (state) => state.ui,
+  dispatch: (next, s) => s.dispatch(uiSlice.actions.replaceUiState(next)),
+});
+```
+
+```tsx
+<StateProvider store={store}>
+  {/* json-render reads/writes go through Redux */}
+</StateProvider>
+```
+
+## Re-exports
+
+<table>
+  <thead>
+    <tr>
+      <th>Export</th>
+      <th>Source</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>StateStore</code></td>
+      <td><code>@json-render/core</code></td>
+    </tr>
+  </tbody>
+</table>

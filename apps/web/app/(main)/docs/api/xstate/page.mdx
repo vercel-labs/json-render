@@ -1,0 +1,77 @@
+import { pageMetadata } from "@/lib/page-metadata"
+export const metadata = pageMetadata("docs/api/xstate")
+
+# @json-render/xstate
+
+[XState Store](https://stately.ai/docs/xstate-store) adapter for json-render's `StateStore` interface.
+
+Requires `@xstate/store` v3+.
+
+## Installation
+
+```bash
+npm install @json-render/xstate @json-render/core @json-render/react @xstate/store
+```
+
+## xstateStoreStateStore
+
+Create a `StateStore` backed by an `@xstate/store` atom.
+
+```typescript
+import { xstateStoreStateStore } from "@json-render/xstate";
+```
+
+### Options
+
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>Type</th>
+      <th>Required</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>atom</code></td>
+      <td><code>{'Atom<StateModel>'}</code></td>
+      <td>Yes</td>
+      <td>An <code>@xstate/store</code> atom (from <code>createAtom</code>) holding the json-render state model.</td>
+    </tr>
+  </tbody>
+</table>
+
+### Example
+
+```typescript
+import { createAtom } from "@xstate/store";
+import { xstateStoreStateStore } from "@json-render/xstate";
+import { StateProvider } from "@json-render/react";
+
+const uiAtom = createAtom({ count: 0 });
+const store = xstateStoreStateStore({ atom: uiAtom });
+```
+
+```tsx
+<StateProvider store={store}>
+  {/* json-render reads/writes go through @xstate/store */}
+</StateProvider>
+```
+
+## Re-exports
+
+<table>
+  <thead>
+    <tr>
+      <th>Export</th>
+      <th>Source</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>StateStore</code></td>
+      <td><code>@json-render/core</code></td>
+    </tr>
+  </tbody>
+</table>

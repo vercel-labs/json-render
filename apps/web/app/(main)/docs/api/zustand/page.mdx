@@ -1,0 +1,108 @@
+import { pageMetadata } from "@/lib/page-metadata"
+export const metadata = pageMetadata("docs/api/zustand")
+
+# @json-render/zustand
+
+Zustand adapter for json-render's `StateStore` interface.
+
+Requires Zustand v5+. Zustand v4 is not supported due to breaking API changes in the vanilla store interface.
+
+## Installation
+
+```bash
+npm install @json-render/zustand @json-render/core @json-render/react zustand
+```
+
+## zustandStateStore
+
+Create a `StateStore` backed by a Zustand vanilla store.
+
+```typescript
+import { zustandStateStore } from "@json-render/zustand";
+```
+
+### Options
+
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>Type</th>
+      <th>Required</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>store</code></td>
+      <td><code>{'StoreApi<S>'}</code></td>
+      <td>Yes</td>
+      <td>A Zustand vanilla store (from <code>createStore</code> in <code>zustand/vanilla</code>).</td>
+    </tr>
+    <tr>
+      <td><code>selector</code></td>
+      <td><code>{'(state: S) => StateModel'}</code></td>
+      <td>No</td>
+      <td>Select the json-render slice from the store state. Defaults to the entire state.</td>
+    </tr>
+    <tr>
+      <td><code>updater</code></td>
+      <td><code>{'(nextState: StateModel, store: StoreApi<S>) => void'}</code></td>
+      <td>No</td>
+      <td>Apply a state change back to the store. Defaults to a shallow merge.</td>
+    </tr>
+  </tbody>
+</table>
+
+### Example
+
+```typescript
+import { createStore } from "zustand/vanilla";
+import { zustandStateStore } from "@json-render/zustand";
+import { StateProvider } from "@json-render/react";
+
+const bearStore = createStore(() => ({
+  count: 0,
+  name: "Bear",
+}));
+
+const store = zustandStateStore({ store: bearStore });
+```
+
+```tsx
+<StateProvider store={store}>
+  {/* json-render reads/writes go through Zustand */}
+</StateProvider>
+```
+
+### Nested Slice
+
+```typescript
+const appStore = createStore(() => ({
+  ui: { count: 0 },
+  auth: { token: null },
+}));
+
+const store = zustandStateStore({
+  store: appStore,
+  selector: (s) => s.ui,
+  updater: (next, s) => s.setState({ ui: next }),
+});
+```
+
+## Re-exports
+
+<table>
+  <thead>
+    <tr>
+      <th>Export</th>
+      <th>Source</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>StateStore</code></td>
+      <td><code>@json-render/core</code></td>
+    </tr>
+  </tbody>
+</table>

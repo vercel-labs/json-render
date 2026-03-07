@@ -18,7 +18,8 @@
       "@json-render/vue",
       "@json-render/xstate",
       "@json-render/image",
-      "@json-render/mcp"
+      "@json-render/mcp",
+      "@json-render/svelte"
     ]
   ],
   "linked": [],

@@ -1,0 +1,104 @@
+import { pageMetadata } from "@/lib/page-metadata"
+export const metadata = pageMetadata("docs/api/jotai")
+
+# @json-render/jotai
+
+Jotai adapter for json-render's `StateStore` interface.
+
+## Installation
+
+```bash
+npm install @json-render/jotai @json-render/core @json-render/react jotai
+```
+
+## jotaiStateStore
+
+Create a `StateStore` backed by a Jotai atom.
+
+```typescript
+import { jotaiStateStore } from "@json-render/jotai";
+```
+
+### Options
+
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>Type</th>
+      <th>Required</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>atom</code></td>
+      <td><code>{'WritableAtom<StateModel, [StateModel], void>'}</code></td>
+      <td>Yes</td>
+      <td>A writable atom holding the state model.</td>
+    </tr>
+    <tr>
+      <td><code>store</code></td>
+      <td>Jotai <code>Store</code></td>
+      <td>No</td>
+      <td>The Jotai store instance. Defaults to a new store created internally. Pass your own to share state with <code>{'<Provider>'}</code>.</td>
+    </tr>
+  </tbody>
+</table>
+
+### Example
+
+```typescript
+import { atom } from "jotai";
+import { jotaiStateStore } from "@json-render/jotai";
+import { StateProvider } from "@json-render/react";
+
+const uiAtom = atom<Record<string, unknown>>({ count: 0 });
+const store = jotaiStateStore({ atom: uiAtom });
+```
+
+```tsx
+<StateProvider store={store}>
+  {/* json-render reads/writes go through Jotai */}
+</StateProvider>
+```
+
+### Shared Jotai Store
+
+If your app already uses a Jotai `<Provider>` with a custom store, pass it so both json-render and your components share the same state:
+
+```typescript
+import { atom, createStore } from "jotai";
+import { Provider as JotaiProvider } from "jotai/react";
+import { jotaiStateStore } from "@json-render/jotai";
+import { StateProvider } from "@json-render/react";
+
+const jStore = createStore();
+const uiAtom = atom<Record<string, unknown>>({ count: 0 });
+const store = jotaiStateStore({ atom: uiAtom, store: jStore });
+```
+
+```tsx
+<JotaiProvider store={jStore}>
+  <StateProvider store={store}>
+    {/* Both json-render and useAtom() see the same state */}
+  </StateProvider>
+</JotaiProvider>
+```
+
+## Re-exports
+
+<table>
+  <thead>
+    <tr>
+      <th>Export</th>
+      <th>Source</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>StateStore</code></td>
+      <td><code>@json-render/core</code></td>
+    </tr>
+  </tbody>
+</table>
