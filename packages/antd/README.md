@@ -1,6 +1,6 @@
 # @json-render/antd
 
-Pre-built [Ant Design](https://ant.design/) components for json-render. Drop-in catalog definitions and React implementations for 50+ components built on Ant Design.
+Pre-built [Ant Design](https://ant.design/) components for json-render. Drop-in catalog definitions and React implementations for 70+ components built on Ant Design.
 
 ## Installation
 
@@ -117,8 +117,16 @@ const { registry } = defineRegistry(catalog, {
 | Component | Description |
 |-----------|-------------|
 | `Card` | Container card with optional title and description |
-| `Stack` | Flex container (horizontal/vertical) with gap, alignment, justify |
-| `Grid` | Grid layout |
+| `Flex` | Flex layout container with gap, alignment, justify |
+| `Stack` | Stack layout container (alias for Flex) |
+| `Row` | Grid row (24-column system) |
+| `Col` | Grid column with span, offset |
+| `Masonry` | Masonry layout with responsive columns |
+| `Layout` | Antd layout container |
+| `LayoutHeader` | Layout header |
+| `LayoutContent` | Layout main content area |
+| `LayoutFooter` | Layout footer |
+| `LayoutSider` | Layout sidebar |
 | `Divider` | Visual separator line |
 | `Space` | Spacing component |
 
@@ -129,6 +137,10 @@ const { registry } = defineRegistry(catalog, {
 | `Tabs` | Tabbed navigation |
 | `Collapse` | Collapsible accordion sections |
 | `Menu` | Navigation menu |
+| `Affix` | Pin content to fixed position when scrolling |
+| `Anchor` | Anchor navigation for page sections |
+| `Breadcrumb` | Breadcrumb navigation path |
+| `BackTop` | Back to top button |
 
 ### Overlay
 
@@ -140,7 +152,7 @@ const { registry } = defineRegistry(catalog, {
 | `Tooltip` | Hover tooltip |
 | `Dropdown` | Dropdown menu |
 
-### Content
+### Data Display
 
 | Component | Description |
 |-----------|-------------|
@@ -161,8 +173,12 @@ const { registry } = defineRegistry(catalog, {
 | `Descriptions` | Description list |
 | `Timeline` | Timeline display |
 | `Carousel` | Horizontally scrollable carousel |
+| `Calendar` | Calendar for date display/selection |
+| `List` | List component with pagination and grid |
+| `Tree` | Tree structure display and selection |
+| `QRCode` | QRCode generator |
 
-### Input
+### Data Entry
 
 | Component | Description |
 |-----------|-------------|
@@ -180,6 +196,11 @@ const { registry } = defineRegistry(catalog, {
 | `TimePicker` | Time picker |
 | `Upload` | File upload |
 | `Transfer` | Transfer shuttle |
+| `AutoComplete` | Input with suggestions |
+| `Cascader` | Cascader selection for hierarchical data |
+| `ColorPicker` | Color picker |
+| `Mentions` | Mentions input for @-tagging |
+| `TreeSelect` | Tree select dropdown |
 
 ### Action
 
