@@ -37,6 +37,7 @@ export const PAGE_TITLES: Record<string, string> = {
   "docs/ag-ui": "AG-UI Integration",
   "docs/migration": "Migration Guide",
   "docs/changelog": "Changelog",
+  "docs/skills": "Skills",
 
   // API references
   "docs/api/core": "@json-render/core API",

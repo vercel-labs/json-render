@@ -1,0 +1,117 @@
+import { pageMetadata } from "@/lib/page-metadata"
+
+export const metadata = pageMetadata("docs/skills")
+
+# Skills
+
+json-render ships with skills that teach AI coding agents how to use each package. Install a skill and your agent in Cursor, Claude Code, or Codex can generate json-render UIs without manual guidance.
+
+## Available Skills
+
+- **core** — Core schemas, catalogs, and AI prompt generation.
+- **react** — React renderer that turns JSON specs into React component trees.
+- **react-pdf** — PDF renderer using `@react-pdf/renderer`.
+- **react-email** — Email renderer that produces HTML or plain-text emails.
+- **react-native** — React Native renderer for native mobile UIs.
+- **shadcn** — Pre-built shadcn/ui components (Radix UI + Tailwind).
+- **image** — Image renderer that turns JSON specs into SVG and PNG via Satori.
+- **remotion** — Remotion renderer for video generation from JSON timeline specs.
+- **vue** — Vue 3 renderer for Vue component trees.
+- **svelte** — Svelte 5 renderer for Svelte component trees.
+- **codegen** — Code generation utilities for building custom exporters.
+- **mcp** — MCP Apps integration for Claude, ChatGPT, Cursor, and VS Code.
+- **redux** — Redux adapter for json-render's `StateStore` interface.
+- **zustand** — Zustand adapter for json-render's `StateStore` interface.
+- **jotai** — Jotai adapter for json-render's `StateStore` interface.
+- **xstate** — XState Store adapter for json-render's `StateStore` interface.
+
+## Installation
+
+```bash
+npx skills add vercel-labs/json-render --skill core
+npx skills add vercel-labs/json-render --skill react
+npx skills add vercel-labs/json-render --skill react-pdf
+npx skills add vercel-labs/json-render --skill react-email
+npx skills add vercel-labs/json-render --skill react-native
+npx skills add vercel-labs/json-render --skill shadcn
+npx skills add vercel-labs/json-render --skill image
+npx skills add vercel-labs/json-render --skill remotion
+npx skills add vercel-labs/json-render --skill vue
+npx skills add vercel-labs/json-render --skill svelte
+npx skills add vercel-labs/json-render --skill codegen
+npx skills add vercel-labs/json-render --skill mcp
+npx skills add vercel-labs/json-render --skill redux
+npx skills add vercel-labs/json-render --skill zustand
+npx skills add vercel-labs/json-render --skill jotai
+npx skills add vercel-labs/json-render --skill xstate
+```
+
+After installing, your AI agent will automatically activate the right skill when it encounters a matching request.
+
+## core
+
+The foundational skill. Teaches agents how to define catalogs, create schemas, build specs, and generate AI prompts. This is the starting point for any json-render project and covers `defineCatalog`, `defineSchema`, `specSchema`, `toPrompt`, and the full spec format.
+
+## react
+
+Teaches agents how to render JSON specs as React component trees using `JsonRender`, `JsonRenderClient`, and `useJsonRender`. Covers custom component registries, client-side interactivity, state management, and streaming integration.
+
+## react-pdf
+
+Teaches agents how to generate PDFs from JSON specs using `@react-pdf/renderer`. Covers the PDF-specific component registry, page layout, and styling.
+
+## react-email
+
+Teaches agents how to render JSON specs as HTML or plain-text emails using React Email components. Covers the email-specific registry and rendering pipeline.
+
+## react-native
+
+Teaches agents how to render JSON specs as native mobile UIs with React Native. Covers the native component registry and platform-specific considerations.
+
+## shadcn
+
+Teaches agents how to use the pre-built shadcn/ui component registry with json-render. Includes Radix UI primitives, Tailwind styling, and the full set of available shadcn components.
+
+## image
+
+Teaches agents how to turn JSON specs into SVG and PNG images using Satori. Covers the image-specific registry, dimensions, fonts, and rendering options.
+
+## remotion
+
+Teaches agents how to generate videos from JSON timeline specs using Remotion. Covers compositions, sequences, timeline structure, and video rendering.
+
+## vue
+
+Teaches agents how to render JSON specs as Vue 3 component trees. Covers the Vue renderer API, custom component registries, and reactivity integration.
+
+## svelte
+
+Teaches agents how to render JSON specs as Svelte 5 component trees. Covers the Svelte renderer API and component registration.
+
+## codegen
+
+Teaches agents how to use code generation utilities to export UI specs as framework-specific source code. Covers the codegen pipeline and custom exporter creation.
+
+## mcp
+
+Teaches agents how to build MCP Apps that serve json-render UIs inside AI tools like Claude, ChatGPT, Cursor, and VS Code. Covers MCP server setup, tool definitions, and UI streaming.
+
+## redux
+
+Teaches agents how to connect a Redux store to json-render's `StateStore` interface for state-driven UIs.
+
+## zustand
+
+Teaches agents how to connect a Zustand store to json-render's `StateStore` interface for lightweight state management.
+
+## jotai
+
+Teaches agents how to connect Jotai atoms to json-render's `StateStore` interface for atomic state management.
+
+## xstate
+
+Teaches agents how to connect an XState Store to json-render's `StateStore` interface for state-machine-driven UIs.
+
+## Source
+
+All skill files are in the [`skills/`](https://github.com/vercel-labs/json-render/tree/main/skills) directory of the repository.

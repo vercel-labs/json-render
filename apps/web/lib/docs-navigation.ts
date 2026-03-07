@@ -16,6 +16,7 @@ export const docsNavigation: NavSection[] = [
       { title: "Introduction", href: "/docs" },
       { title: "Installation", href: "/docs/installation" },
       { title: "Quick Start", href: "/docs/quick-start" },
+      { title: "Skills", href: "/docs/skills" },
       { title: "Migration Guide", href: "/docs/migration" },
       { title: "Changelog", href: "/docs/changelog" },
     ],
