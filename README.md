@@ -35,6 +35,7 @@ json-render is a **Generative UI** framework: AI generates interfaces from natur
 - **Cross-Platform** - React, Vue, Svelte (web), React Native (mobile) from the same catalog
 - **Batteries Included** - 36 pre-built shadcn/ui components and 50+ Ant Design components ready to use
 
+
 ## Quick Start
 
 ### 1. Define Your Catalog
