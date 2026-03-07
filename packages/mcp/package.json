@@ -1,6 +1,6 @@
 {
   "name": "@json-render/mcp",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "license": "Apache-2.0",
   "description": "MCP Apps integration for @json-render/core. Serve json-render UIs as interactive MCP Apps in Claude, ChatGPT, Cursor, and VS Code.",
   "keywords": [

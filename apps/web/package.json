@@ -1,6 +1,6 @@
 {
   "name": "web",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "type": "module",
   "private": true,
   "license": "Apache-2.0",

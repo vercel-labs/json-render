@@ -1,6 +1,6 @@
 {
   "name": "@json-render/image",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "license": "Apache-2.0",
   "description": "Image renderer for @json-render/core. JSON becomes SVG and PNG images via Satori.",
   "keywords": [
