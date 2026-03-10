@@ -1,0 +1,27 @@
+{
+  "name": "example-uniapp",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "predev": "command -v portless >/dev/null 2>&1 || (echo '\\nportless is required but not installed. Run: npm i -g portless\\nSee: https://github.com/vercel-labs/portless\\n' && exit 1)",
+    "dev": "portless uniapp-demo.json-render vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@dcloudio/uni-app": "3.0.0-alpha-5000220260306001",
+    "@dcloudio/uni-h5": "3.0.0-alpha-5000220260306001",
+    "@json-render/core": "workspace:*",
+    "@json-render/uniapp": "workspace:*",
+    "vue": "^3.5.0",
+    "zod": "4.3.6"
+  },
+  "devDependencies": {
+    "@dcloudio/uni-components": "3.0.0-alpha-5000220260306001",
+    "@dcloudio/vite-plugin-uni": "3.0.0-alpha-5000220260306001",
+    "@vitejs/plugin-vue": "^5.2.4",
+    "typescript": "^5.9.3",
+    "vite": "^5.4.21",
+    "vue-tsc": "^3.2.5"
+  }
+}
