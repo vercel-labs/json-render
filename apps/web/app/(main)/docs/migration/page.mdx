@@ -31,15 +31,23 @@ import { StateProvider } from "@json-render/react";
 
 `StateProvider` now manages state internally. Use `useStateStore()` to access `get`, `set`, and `update`.
 
-| Before | After |
-|--------|-------|
-| `DataProvider` | `StateProvider` |
-| `data` prop | `initialState` prop |
-| `getValue` / `setValue` props | Removed (use `useStateStore()` hook for `get` / `set`) |
-| `useData` | `useStateStore` |
-| `useDataValue` | `useStateValue` |
-| `useDataBinding` | `useStateBinding` (deprecated, use `useBoundProp` instead) |
-| `DataModel` type | `StateModel` type |
+<table>
+<thead>
+<tr>
+<th>Before</th>
+<th>After</th>
+</tr>
+</thead>
+<tbody>
+<tr><td><code>DataProvider</code></td><td><code>StateProvider</code></td></tr>
+<tr><td><code>data</code> prop</td><td><code>initialState</code> prop</td></tr>
+<tr><td><code>getValue</code> / <code>setValue</code> props</td><td>Removed (use <code>useStateStore()</code> hook for <code>get</code> / <code>set</code>)</td></tr>
+<tr><td><code>useData</code></td><td><code>useStateStore</code></td></tr>
+<tr><td><code>useDataValue</code></td><td><code>useStateValue</code></td></tr>
+<tr><td><code>useDataBinding</code></td><td><code>useStateBinding</code> (deprecated, use <code>useBoundProp</code> instead)</td></tr>
+<tr><td><code>DataModel</code> type</td><td><code>StateModel</code> type</td></tr>
+</tbody>
+</table>
 
 ## Dynamic Expressions
 
@@ -81,10 +89,18 @@ Inside repeat scopes, use `$item` and `$index`:
 }
 ```
 
-| Before | After |
-|--------|-------|
-| `{ "$path": "/..." }` | `{ "$state": "/..." }` |
-| `{ "$data": "/..." }` | `{ "$state": "/..." }` |
+<table>
+<thead>
+<tr>
+<th>Before</th>
+<th>After</th>
+</tr>
+</thead>
+<tbody>
+<tr><td><code>{'{ "$path": "/..." }'}</code></td><td><code>{'{ "$state": "/..." }'}</code></td></tr>
+<tr><td><code>{'{ "$data": "/..." }'}</code></td><td><code>{'{ "$state": "/..." }'}</code></td></tr>
+</tbody>
+</table>
 
 ## Two-Way Binding
 
@@ -315,11 +331,19 @@ const chatPrompt = catalog.prompt({ mode: "chat" });
 { "type": "minLength", "args": { "min": 8 }, "message": "Too short" }
 ```
 
-| Before | After |
-|--------|-------|
-| `{ fn: "required" }` | `{ type: "required" }` |
-| `ValidationProvider functions={...}` | `ValidationProvider customFunctions={...}` |
-| `useFieldValidation(path, checks)` | `useFieldValidation(path, config)` where config is `{ checks, validateOn? }` |
+<table>
+<thead>
+<tr>
+<th>Before</th>
+<th>After</th>
+</tr>
+</thead>
+<tbody>
+<tr><td><code>{'{ fn: "required" }'}</code></td><td><code>{'{ type: "required" }'}</code></td></tr>
+<tr><td><code>{'ValidationProvider functions={...}'}</code></td><td><code>{'ValidationProvider customFunctions={...}'}</code></td></tr>
+<tr><td><code>useFieldValidation(path, checks)</code></td><td><code>useFieldValidation(path, config)</code> where config is <code>{'{ checks, validateOn? }'}</code></td></tr>
+</tbody>
+</table>
 
 ## Visibility Provider
 
@@ -398,16 +422,57 @@ Action params in specs now use `statePath` instead of `path`.
 
 The following exports have been removed from `@json-render/core`:
 
-| Removed | Replacement |
-|---------|-------------|
-| `createCatalog` | `defineCatalog(schema, config)` |
-| `generateCatalogPrompt` | `catalog.prompt()` |
-| `generateSystemPrompt` | `catalog.prompt()` |
-| `ComponentDefinition` | Use catalog component config directly |
-| `CatalogConfig` | Use `defineCatalog` parameters |
-| `SystemPromptOptions` | Use `PromptOptions` |
-| `LogicExpression` | Use `VisibilityCondition` |
-| `AuthState` | Model auth as regular state (e.g. `/auth/isSignedIn`) |
-| `evaluateLogicExpression` | Use `evaluateVisibility` |
-| `createRendererFromCatalog` | Use `defineRegistry` |
-| `traverseTree` (codegen) | Use `traverseSpec` |
+<table>
+  <thead>
+    <tr>
+      <th>Removed</th>
+      <th>Replacement</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>createCatalog</code></td>
+      <td><code>defineCatalog(schema, config)</code></td>
+    </tr>
+    <tr>
+      <td><code>generateCatalogPrompt</code></td>
+      <td><code>catalog.prompt()</code></td>
+    </tr>
+    <tr>
+      <td><code>generateSystemPrompt</code></td>
+      <td><code>catalog.prompt()</code></td>
+    </tr>
+    <tr>
+      <td><code>ComponentDefinition</code></td>
+      <td>Use catalog component config directly</td>
+    </tr>
+    <tr>
+      <td><code>CatalogConfig</code></td>
+      <td>Use <code>defineCatalog</code> parameters</td>
+    </tr>
+    <tr>
+      <td><code>SystemPromptOptions</code></td>
+      <td>Use <code>PromptOptions</code></td>
+    </tr>
+    <tr>
+      <td><code>LogicExpression</code></td>
+      <td>Use <code>VisibilityCondition</code></td>
+    </tr>
+    <tr>
+      <td><code>AuthState</code></td>
+      <td>Model auth as regular state (e.g. <code>/auth/isSignedIn</code>)</td>
+    </tr>
+    <tr>
+      <td><code>evaluateLogicExpression</code></td>
+      <td>Use <code>evaluateVisibility</code></td>
+    </tr>
+    <tr>
+      <td><code>createRendererFromCatalog</code></td>
+      <td>Use <code>defineRegistry</code></td>
+    </tr>
+    <tr>
+      <td><code>traverseTree</code> (codegen)</td>
+      <td>Use <code>traverseSpec</code></td>
+    </tr>
+  </tbody>
+</table>

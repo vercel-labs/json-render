@@ -26,6 +26,7 @@ This ensures we don't install outdated versions that may have incompatible types
 
 - Do not use emojis in code or UI
 - Use shadcn CLI to add shadcn/ui components: `pnpm dlx shadcn@latest add <component>`
+- **Web app docs (`apps/web/`):** Never use Markdown table syntax (`| col | col |`). Always use HTML `<table>` with `<thead>`, `<tbody>`, `<tr>`, `<th>`, `<td>`. Markdown tables do not render correctly in the web app. Inside HTML table cells, curly braces must be escaped as JSX expressions (e.g. `<code>{'{ "$state": "/path" }'}</code>`) because MDX parses `{` as a JSX expression boundary.
 
 ## AI SDK / AI Gateway
 

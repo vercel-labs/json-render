@@ -136,10 +136,27 @@ An element can watch multiple state paths. Each path maps to one or more action 
 
 ## When to Use `watch` vs `on`
 
-| Mechanism | Trigger | Use Case |
-|-----------|---------|----------|
-| `on` | User interaction (press, change, blur) | Button clicks, input changes, form submissions |
-| `watch` | State value change (any source) | Cascading data, derived state, cross-field sync |
+<table>
+<thead>
+<tr>
+<th>Mechanism</th>
+<th>Trigger</th>
+<th>Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>on</code></td>
+<td>User interaction (press, change, blur)</td>
+<td>Button clicks, input changes, form submissions</td>
+</tr>
+<tr>
+<td><code>watch</code></td>
+<td>State value change (any source)</td>
+<td>Cascading data, derived state, cross-field sync</td>
+</tr>
+</tbody>
+</table>
 
 Use `on` when reacting to direct user actions. Use `watch` when a state change (from any source — user input, action handler, or external store update) should trigger side effects.
 

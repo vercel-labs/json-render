@@ -9,54 +9,79 @@ React Native renderer with standard components, providers, and hooks.
 
 ### Layout
 
-| Component | Props | Description |
-|-----------|-------|-------------|
-| `Container` | `padding`, `background`, `borderRadius`, `borderColor`, `flex` | Basic wrapper with styling |
-| `Row` | `gap`, `align`, `justify`, `flex`, `wrap` | Horizontal flex layout |
-| `Column` | `gap`, `align`, `justify`, `flex` | Vertical flex layout |
-| `ScrollContainer` | `direction` | Scrollable area (vertical or horizontal) |
-| `SafeArea` | `edges` | Safe area insets for notch/home indicator |
-| `Pressable` | `action`, `actionParams` | Touchable wrapper that triggers actions |
-| `Spacer` | `size`, `flex` | Fixed or flexible spacing |
-| `Divider` | `color`, `thickness` | Thin line separator |
+<table>
+<thead>
+<tr><th>Component</th><th>Props</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><code>Container</code></td><td><code>padding</code>, <code>background</code>, <code>borderRadius</code>, <code>borderColor</code>, <code>flex</code></td><td>Basic wrapper with styling</td></tr>
+<tr><td><code>Row</code></td><td><code>gap</code>, <code>align</code>, <code>justify</code>, <code>flex</code>, <code>wrap</code></td><td>Horizontal flex layout</td></tr>
+<tr><td><code>Column</code></td><td><code>gap</code>, <code>align</code>, <code>justify</code>, <code>flex</code></td><td>Vertical flex layout</td></tr>
+<tr><td><code>ScrollContainer</code></td><td><code>direction</code></td><td>Scrollable area (vertical or horizontal)</td></tr>
+<tr><td><code>SafeArea</code></td><td><code>edges</code></td><td>Safe area insets for notch/home indicator</td></tr>
+<tr><td><code>Pressable</code></td><td><code>action</code>, <code>actionParams</code></td><td>Touchable wrapper that triggers actions</td></tr>
+<tr><td><code>Spacer</code></td><td><code>size</code>, <code>flex</code></td><td>Fixed or flexible spacing</td></tr>
+<tr><td><code>Divider</code></td><td><code>color</code>, <code>thickness</code></td><td>Thin line separator</td></tr>
+</tbody>
+</table>
 
 ### Content
 
-| Component | Props | Description |
-|-----------|-------|-------------|
-| `Heading` | `text`, `level`, `align`, `color` | Heading text (levels 1-6) |
-| `Paragraph` | `text`, `align`, `color` | Body text |
-| `Label` | `text`, `color`, `bold` | Small label text |
-| `Image` | `uri`, `width`, `height`, `resizeMode`, `borderRadius` | Image display |
-| `Avatar` | `uri`, `size`, `fallback` | Circular avatar |
-| `Badge` | `label`, `color`, `textColor` | Status badge |
-| `Chip` | `label`, `selected`, `color` | Tag/chip |
+<table>
+<thead>
+<tr><th>Component</th><th>Props</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><code>Heading</code></td><td><code>text</code>, <code>level</code>, <code>align</code>, <code>color</code></td><td>Heading text (levels 1-6)</td></tr>
+<tr><td><code>Paragraph</code></td><td><code>text</code>, <code>align</code>, <code>color</code></td><td>Body text</td></tr>
+<tr><td><code>Label</code></td><td><code>text</code>, <code>color</code>, <code>bold</code></td><td>Small label text</td></tr>
+<tr><td><code>Image</code></td><td><code>uri</code>, <code>width</code>, <code>height</code>, <code>resizeMode</code>, <code>borderRadius</code></td><td>Image display</td></tr>
+<tr><td><code>Avatar</code></td><td><code>uri</code>, <code>size</code>, <code>fallback</code></td><td>Circular avatar</td></tr>
+<tr><td><code>Badge</code></td><td><code>label</code>, <code>color</code>, <code>textColor</code></td><td>Status badge</td></tr>
+<tr><td><code>Chip</code></td><td><code>label</code>, <code>selected</code>, <code>color</code></td><td>Tag/chip</td></tr>
+</tbody>
+</table>
 
 ### Input
 
-| Component | Props | Description |
-|-----------|-------|-------------|
-| `Button` | `label`, `variant`, `size`, `disabled`, `action`, `actionParams` | Pressable button |
-| `TextInput` | `placeholder`, `value` (use `$bindState`), `secure`, `keyboardType`, `multiline` | Text input field |
-| `Switch` | `checked` (use `$bindState`), `label` | Toggle switch |
-| `Checkbox` | `checked` (use `$bindState`), `label` | Checkbox with label |
-| `Slider` | `value` (use `$bindState`), `min`, `max`, `step` | Range slider |
-| `SearchBar` | `placeholder`, `value` (use `$bindState`) | Search input |
+<table>
+<thead>
+<tr><th>Component</th><th>Props</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><code>Button</code></td><td><code>label</code>, <code>variant</code>, <code>size</code>, <code>disabled</code>, <code>action</code>, <code>actionParams</code></td><td>Pressable button</td></tr>
+<tr><td><code>TextInput</code></td><td><code>placeholder</code>, <code>value</code> (use <code>$bindState</code>), <code>secure</code>, <code>keyboardType</code>, <code>multiline</code></td><td>Text input field</td></tr>
+<tr><td><code>Switch</code></td><td><code>checked</code> (use <code>$bindState</code>), <code>label</code></td><td>Toggle switch</td></tr>
+<tr><td><code>Checkbox</code></td><td><code>checked</code> (use <code>$bindState</code>), <code>label</code></td><td>Checkbox with label</td></tr>
+<tr><td><code>Slider</code></td><td><code>value</code> (use <code>$bindState</code>), <code>min</code>, <code>max</code>, <code>step</code></td><td>Range slider</td></tr>
+<tr><td><code>SearchBar</code></td><td><code>placeholder</code>, <code>value</code> (use <code>$bindState</code>)</td><td>Search input</td></tr>
+</tbody>
+</table>
 
 ### Feedback
 
-| Component | Props | Description |
-|-----------|-------|-------------|
-| `Spinner` | `size`, `color` | Loading indicator |
-| `ProgressBar` | `progress`, `color`, `trackColor` | Progress indicator |
+<table>
+<thead>
+<tr><th>Component</th><th>Props</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><code>Spinner</code></td><td><code>size</code>, <code>color</code></td><td>Loading indicator</td></tr>
+<tr><td><code>ProgressBar</code></td><td><code>progress</code>, <code>color</code>, <code>trackColor</code></td><td>Progress indicator</td></tr>
+</tbody>
+</table>
 
 ### Composite
 
-| Component | Props | Description |
-|-----------|-------|-------------|
-| `Card` | `title`, `subtitle`, `padding` | Card container |
-| `ListItem` | `title`, `subtitle`, `leading`, `trailing`, `action`, `actionParams` | List row |
-| `Modal` | `visible`, `title` | Bottom sheet modal |
+<table>
+<thead>
+<tr><th>Component</th><th>Props</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><code>Card</code></td><td><code>title</code>, <code>subtitle</code>, <code>padding</code></td><td>Card container</td></tr>
+<tr><td><code>ListItem</code></td><td><code>title</code>, <code>subtitle</code>, <code>leading</code>, <code>trailing</code>, <code>action</code>, <code>actionParams</code></td><td>List row</td></tr>
+<tr><td><code>Modal</code></td><td><code>visible</code>, <code>title</code></td><td>Bottom sheet modal</td></tr>
+</tbody>
+</table>
 
 ## Providers
 
@@ -68,11 +93,16 @@ React Native renderer with standard components, providers, and hooks.
 </StateProvider>
 ```
 
-| Prop | Type | Description |
-|------|------|-------------|
-| `store` | `StateStore` | External store (controlled mode). When provided, `initialState` and `onStateChange` are ignored. |
-| `initialState` | `Record<string, unknown>` | Initial state model (uncontrolled mode). |
-| `onStateChange` | `(changes: Array<{ path: string; value: unknown }>) => void` | Callback when state changes (uncontrolled mode). Called once per `set` or `update` with all changed entries. |
+<table>
+<thead>
+<tr><th>Prop</th><th>Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><code>store</code></td><td><code>StateStore</code></td><td>External store (controlled mode). When provided, <code>initialState</code> and <code>onStateChange</code> are ignored.</td></tr>
+<tr><td><code>initialState</code></td><td><code>Record&lt;string, unknown&gt;</code></td><td>Initial state model (uncontrolled mode).</td></tr>
+<tr><td><code>onStateChange</code></td><td><code>{'(changes: Array<{ path: string; value: unknown }>) => void'}</code></td><td>Callback when state changes (uncontrolled mode). Called once per <code>set</code> or <code>update</code> with all changed entries.</td></tr>
+</tbody>
+</table>
 
 #### External Store (Controlled Mode)
 
@@ -190,8 +220,13 @@ import { standardComponentDefinitions, standardActionDefinitions } from "@json-r
 import { schema } from "@json-render/react-native/schema";
 ```
 
-| Export | Purpose |
-|--------|---------|
-| `standardComponentDefinitions` | Catalog definitions for all 25+ standard components |
-| `standardActionDefinitions` | Catalog definitions for standard actions (setState, navigate) |
-| `schema` | React Native element tree schema |
+<table>
+<thead>
+<tr><th>Export</th><th>Purpose</th></tr>
+</thead>
+<tbody>
+<tr><td><code>standardComponentDefinitions</code></td><td>Catalog definitions for all 25+ standard components</td></tr>
+<tr><td><code>standardActionDefinitions</code></td><td>Catalog definitions for standard actions (setState, navigate)</td></tr>
+<tr><td><code>schema</code></td><td>React Native element tree schema</td></tr>
+</tbody>
+</table>

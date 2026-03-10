@@ -15,11 +15,32 @@ React components, providers, and hooks.
 </StateProvider>
 ```
 
-| Prop | Type | Description |
-|------|------|-------------|
-| `store` | `StateStore` | External store (controlled mode). When provided, `initialState` and `onStateChange` are ignored. |
-| `initialState` | `Record<string, unknown>` | Initial state model (uncontrolled mode). |
-| `onStateChange` | `(changes: Array<{ path: string; value: unknown }>) => void` | Callback when state changes (uncontrolled mode). Called once per `set` or `update` with all changed entries. |
+<table>
+  <thead>
+    <tr>
+      <th>Prop</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>store</code></td>
+      <td><code>StateStore</code></td>
+      <td>External store (controlled mode). When provided, <code>initialState</code> and <code>onStateChange</code> are ignored.</td>
+    </tr>
+    <tr>
+      <td><code>initialState</code></td>
+      <td><code>Record&lt;string, unknown&gt;</code></td>
+      <td>Initial state model (uncontrolled mode).</td>
+    </tr>
+    <tr>
+      <td><code>onStateChange</code></td>
+      <td><code>{'(changes: Array<{ path: string; value: unknown }>) => void'}</code></td>
+      <td>Callback when state changes (uncontrolled mode). Called once per <code>set</code> or <code>update</code> with all changed entries.</td>
+    </tr>
+  </tbody>
+</table>
 
 #### External Store (Controlled Mode)
 
@@ -113,9 +134,22 @@ type Registry = Record<string, React.ComponentType<ComponentRenderProps>>;
 
 Convenience wrapper that combines `StateProvider`, `VisibilityProvider`, `ValidationProvider`, and `ActionProvider`. Accepts all their props plus:
 
-| Prop | Type | Description |
-|------|------|-------------|
-| `functions` | `Record<string, ComputedFunction>` | Named functions for `$computed` expressions in props |
+<table>
+  <thead>
+    <tr>
+      <th>Prop</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>functions</code></td>
+      <td><code>Record&lt;string, ComputedFunction&gt;</code></td>
+      <td>Named functions for <code>$computed</code> expressions in props</td>
+    </tr>
+  </tbody>
+</table>
 
 ```tsx
 <JSONUIProvider
