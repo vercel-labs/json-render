@@ -42,6 +42,11 @@
       "types": "./dist/app.d.ts",
       "import": "./dist/app.mjs",
       "require": "./dist/app.js"
+    },
+    "./build-app-html": {
+      "types": "./dist/build-app-html-entry.d.ts",
+      "import": "./dist/build-app-html-entry.mjs",
+      "require": "./dist/build-app-html-entry.js"
     }
   },
   "files": [
