@@ -1,0 +1,15 @@
+{
+  "name": "@json-render/uniapp demo",
+  "appid": "__UNI__JSONRENDER",
+  "description": "json-render uniapp example",
+  "versionName": "1.0.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "h5": {
+    "title": "@json-render/uniapp demo",
+    "router": {
+      "mode": "hash",
+      "base": ""
+    }
+  }
+}
