@@ -231,9 +231,6 @@ describe("ActionProvider — custom handlers", () => {
         }),
     );
 
-    // In Solid, context values are static snapshots. To observe reactive
-    // loading-state changes we must read `loadingActions` inside JSX so
-    // the fine-grained reactivity system tracks the dependency.
     let executeFn!: ReturnType<typeof useActions>["execute"];
 
     const { findByTestId } = render(() => {
@@ -242,7 +239,7 @@ describe("ActionProvider — custom handlers", () => {
         executeFn = actions.execute;
         return (
           <span data-testid="loading">
-            {actions._loadingSignal().has("slowAction") ? "true" : "false"}
+            {actions.loadingActions.has("slowAction") ? "true" : "false"}
           </span>
         );
       }

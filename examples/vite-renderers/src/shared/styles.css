@@ -11,9 +11,15 @@
   align-items: center;
 }
 
-.json-render-stack--align-start  { align-items: flex-start; }
-.json-render-stack--align-center { align-items: center; }
-.json-render-stack--align-end    { align-items: flex-end; }
+.json-render-stack--align-start {
+  align-items: flex-start;
+}
+.json-render-stack--align-center {
+  align-items: center;
+}
+.json-render-stack--align-end {
+  align-items: flex-end;
+}
 
 /* ---- Card ----------------------------------------------------------------- */
 
@@ -50,12 +56,22 @@
   color: #111827;
 }
 
-.json-render-text--sm { font-size: 12px; }
-.json-render-text--lg { font-size: 16px; }
-.json-render-text--xl { font-size: 24px; }
+.json-render-text--sm {
+  font-size: 12px;
+}
+.json-render-text--lg {
+  font-size: 16px;
+}
+.json-render-text--xl {
+  font-size: 24px;
+}
 
-.json-render-text--medium { font-weight: 500; }
-.json-render-text--bold   { font-weight: 700; }
+.json-render-text--medium {
+  font-weight: 500;
+}
+.json-render-text--bold {
+  font-weight: 700;
+}
 
 /* ---- Button --------------------------------------------------------------- */
 
@@ -211,7 +227,7 @@
   transition: background 0.15s;
 }
 
-.json-render-renderer-tab:first-child {
+.json-render-renderer-tab:not(:last-child) {
   border-right: 1px solid #e5e7eb;
 }
 
@@ -259,5 +275,20 @@
 
 .renderer-svelte .json-render-renderer-tab--active {
   background-color: #ff3e00;
+  color: white;
+}
+
+.renderer-solid .json-render-renderer-badge {
+  color: #2c4f7c;
+  background-color: #2c4f7c18;
+  border-color: #2c4f7c40;
+}
+
+.renderer-solid .json-render-renderer-dot {
+  background-color: #2c4f7c;
+}
+
+.renderer-solid .json-render-renderer-tab--active {
+  background-color: #2c4f7c;
   color: white;
 }

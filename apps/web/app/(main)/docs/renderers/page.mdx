@@ -1,5 +1,5 @@
-import { pageMetadata } from "@/lib/page-metadata"
-export const metadata = pageMetadata("docs/renderers")
+import { pageMetadata } from "@/lib/page-metadata";
+export const metadata = pageMetadata("docs/renderers");
 
 # Renderers
 
@@ -22,37 +22,65 @@ All renderers share the same workflow:
   <tbody>
     <tr>
       <td>React</td>
-      <td><code>@json-render/react</code></td>
+      <td>
+        <code>@json-render/react</code>
+      </td>
       <td>React component tree</td>
     </tr>
     <tr>
       <td>Vue</td>
-      <td><code>@json-render/vue</code></td>
+      <td>
+        <code>@json-render/vue</code>
+      </td>
       <td>Vue 3 component tree</td>
     </tr>
     <tr>
+      <td>Svelte</td>
+      <td>
+        <code>@json-render/svelte</code>
+      </td>
+      <td>Svelte 5 component tree</td>
+    </tr>
+    <tr>
+      <td>Solid</td>
+      <td>
+        <code>@json-render/solid</code>
+      </td>
+      <td>SolidJS component tree</td>
+    </tr>
+    <tr>
       <td>shadcn/ui</td>
-      <td><code>@json-render/shadcn</code></td>
+      <td>
+        <code>@json-render/shadcn</code>
+      </td>
       <td>Pre-built Radix UI + Tailwind components (uses React renderer)</td>
     </tr>
     <tr>
       <td>React Native</td>
-      <td><code>@json-render/react-native</code></td>
+      <td>
+        <code>@json-render/react-native</code>
+      </td>
       <td>Native mobile views</td>
     </tr>
     <tr>
       <td>Image</td>
-      <td><code>@json-render/image</code></td>
+      <td>
+        <code>@json-render/image</code>
+      </td>
       <td>SVG / PNG (via Satori)</td>
     </tr>
     <tr>
       <td>React PDF</td>
-      <td><code>@json-render/react-pdf</code></td>
+      <td>
+        <code>@json-render/react-pdf</code>
+      </td>
       <td>PDF documents</td>
     </tr>
     <tr>
       <td>Remotion</td>
-      <td><code>@json-render/remotion</code></td>
+      <td>
+        <code>@json-render/remotion</code>
+      </td>
       <td>Video compositions</td>
     </tr>
   </tbody>
@@ -67,7 +95,7 @@ import { defineRegistry, Renderer } from "@json-render/react";
 import { schema } from "@json-render/react/schema";
 
 const { registry } = defineRegistry(catalog, { components });
-<Renderer spec={spec} registry={registry} />
+<Renderer spec={spec} registry={registry} />;
 ```
 
 Use `StateProvider`, `VisibilityProvider`, and `ActionProvider` for full interactivity. See the [@json-render/react API reference](/docs/api/react) for details.
@@ -89,6 +117,42 @@ const { registry } = defineRegistry(catalog, {
 ```
 
 Uses composables (`useStateStore`, `useStateBinding`, `useActions`, etc.) instead of React hooks. See the [@json-render/vue API reference](/docs/api/vue) for details.
+
+## Svelte
+
+Svelte 5 renderer with runes-compatible context helpers, visibility conditions, actions, and streaming support.
+
+```typescript
+import { defineRegistry, Renderer } from "@json-render/svelte";
+import { schema } from "@json-render/svelte/schema";
+
+const { registry } = defineRegistry(catalog, {
+  components: {
+    Card: ({ props, children }) => /* Svelte snippet */,
+  },
+});
+```
+
+See the [@json-render/svelte API reference](/docs/api/svelte) for details.
+
+## Solid
+
+SolidJS renderer with fine-grained reactivity, state bindings, validation, visibility, and event-driven actions.
+
+```tsx
+import { defineRegistry, Renderer } from "@json-render/solid";
+import { schema } from "@json-render/solid/schema";
+
+const { registry } = defineRegistry(catalog, {
+  components: {
+    Card: (renderProps) => <div>{renderProps.children}</div>,
+  },
+});
+
+<Renderer spec={spec} registry={registry} />;
+```
+
+See the [@json-render/solid API reference](/docs/api/solid) for details.
 
 ## shadcn/ui
 
@@ -125,7 +189,10 @@ Render specs as native mobile views. Includes 25+ standard components and standa
 ```tsx
 import { defineCatalog } from "@json-render/core";
 import { schema } from "@json-render/react-native/schema";
-import { standardComponentDefinitions, standardActionDefinitions } from "@json-render/react-native/catalog";
+import {
+  standardComponentDefinitions,
+  standardActionDefinitions,
+} from "@json-render/react-native/catalog";
 import { defineRegistry, Renderer } from "@json-render/react-native";
 
 const catalog = defineCatalog(schema, {
@@ -134,7 +201,7 @@ const catalog = defineCatalog(schema, {
 });
 
 const { registry } = defineRegistry(catalog, { components: {} });
-<Renderer spec={spec} registry={registry} />
+<Renderer spec={spec} registry={registry} />;
 ```
 
 See the [@json-render/react-native API reference](/docs/api/react-native) for details.
@@ -159,7 +226,11 @@ See the [@json-render/image API reference](/docs/api/image) for details.
 Generate PDF documents from JSON specs using `@react-pdf/renderer`. Render to buffer, stream, or file.
 
 ```typescript
-import { renderToBuffer, renderToStream, renderToFile } from "@json-render/react-pdf";
+import {
+  renderToBuffer,
+  renderToStream,
+  renderToFile,
+} from "@json-render/react-pdf";
 
 const buffer = await renderToBuffer(spec);
 const stream = await renderToStream(spec);
@@ -185,7 +256,7 @@ import { Renderer } from "@json-render/remotion";
   fps={spec.composition.fps}
   compositionWidth={spec.composition.width}
   compositionHeight={spec.composition.height}
-/>
+/>;
 ```
 
 Uses a timeline spec format with compositions, tracks, and clips. Includes standard components (TitleCard, TypingText, ImageSlide, etc.), transitions (fade, slide, zoom, wipe), and effects.

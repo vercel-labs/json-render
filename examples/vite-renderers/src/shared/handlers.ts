@@ -10,6 +10,7 @@ export const actionStubs = {
   switchToVue: async () => {},
   switchToReact: async () => {},
   switchToSvelte: async () => {},
+  switchToSolid: async () => {},
 };
 
 /** Creates action handlers that close over the state store's get/set */
@@ -50,6 +51,11 @@ export function makeHandlers(get: Get, set: Set) {
     switchToSvelte: async () => {
       document.dispatchEvent(
         new CustomEvent("switch-renderer", { detail: "svelte" }),
+      );
+    },
+    switchToSolid: async () => {
+      document.dispatchEvent(
+        new CustomEvent("switch-renderer", { detail: "solid" }),
       );
     },
   };

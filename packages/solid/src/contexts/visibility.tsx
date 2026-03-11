@@ -1,9 +1,4 @@
-import {
-  createContext,
-  useContext,
-  createMemo,
-  type ParentProps,
-} from "solid-js";
+import { createContext, useContext, type ParentProps } from "solid-js";
 import {
   evaluateVisibility,
   type VisibilityCondition,
@@ -21,24 +16,22 @@ const VisibilityContext = createContext<VisibilityContextValue | null>(null);
 export type VisibilityProviderProps = ParentProps;
 
 export function VisibilityProvider(props: VisibilityProviderProps) {
-  const { state } = useStateStore();
+  const stateStore = useStateStore();
 
-  const ctx = createMemo<CoreVisibilityContext>(() => ({
-    stateModel: state,
-  }));
+  const visibilityCtx: CoreVisibilityContext = {
+    get stateModel() {
+      return stateStore.state;
+    },
+  };
 
-  const isVisible = createMemo(
-    () => (condition: VisibilityCondition | undefined) =>
-      evaluateVisibility(condition, ctx()),
-  );
-
-  const value = createMemo<VisibilityContextValue>(() => ({
-    isVisible: isVisible(),
-    ctx: ctx(),
-  }));
+  const value: VisibilityContextValue = {
+    isVisible: (condition: VisibilityCondition | undefined) =>
+      evaluateVisibility(condition, visibilityCtx),
+    ctx: visibilityCtx,
+  };
 
   return (
-    <VisibilityContext.Provider value={value()}>
+    <VisibilityContext.Provider value={value}>
       {props.children}
     </VisibilityContext.Provider>
   );

@@ -3,7 +3,6 @@ import {
   useContext,
   createSignal,
   createEffect,
-  createMemo,
   onCleanup,
   type ParentProps,
 } from "solid-js";
@@ -21,8 +20,9 @@ export interface StateContextValue {
   set: (path: string, value: unknown) => void;
   update: (updates: Record<string, unknown>) => void;
   getSnapshot: () => StateModel;
-  /** @internal Signal accessor for reactive state tracking in effects */
-  _stateSignal: () => StateModel;
+  subscribeChanges: (
+    listener: (changes: Array<{ path: string; value: unknown }>) => void,
+  ) => () => void;
 }
 
 const StateContext = createContext<StateContextValue | null>(null);
@@ -100,7 +100,27 @@ export function StateProvider(props: ParentProps<StateProviderProps>) {
     }
   });
 
-  const [state, setState] = createSignal<StateModel>(store().getSnapshot());
+  const [state, setState] = createSignal<StateModel>(store().getSnapshot(), {
+    equals: false,
+  });
+  const changeListeners = new Set<
+    (changes: Array<{ path: string; value: unknown }>) => void
+  >();
+
+  const subscribeChanges = (
+    listener: (changes: Array<{ path: string; value: unknown }>) => void,
+  ) => {
+    changeListeners.add(listener);
+    return () => {
+      changeListeners.delete(listener);
+    };
+  };
+
+  const notifyChanges = (changes: Array<{ path: string; value: unknown }>) => {
+    for (const listener of changeListeners) {
+      listener(changes);
+    }
+  };
 
   createEffect(() => {
     const s = store();
@@ -114,9 +134,14 @@ export function StateProvider(props: ParentProps<StateProviderProps>) {
   const set = (path: string, value: unknown) => {
     const s = store();
     const prev = s.getSnapshot();
+    const prevValue = getByPath(prev, path);
     s.set(path, value);
-    if (!props.store && s.getSnapshot() !== prev) {
-      props.onStateChange?.([{ path, value }]);
+    if (prevValue !== value) {
+      const changes = [{ path, value }];
+      notifyChanges(changes);
+      if (!props.store && s.getSnapshot() !== prev) {
+        props.onStateChange?.(changes);
+      }
     }
   };
 
@@ -124,14 +149,15 @@ export function StateProvider(props: ParentProps<StateProviderProps>) {
     const s = store();
     const prev = s.getSnapshot();
     s.update(updates);
-    if (!props.store && s.getSnapshot() !== prev) {
-      const changes: Array<{ path: string; value: unknown }> = [];
-      for (const [path, value] of Object.entries(updates)) {
-        if (getByPath(prev, path) !== value) {
-          changes.push({ path, value });
-        }
+    const changes: Array<{ path: string; value: unknown }> = [];
+    for (const [path, value] of Object.entries(updates)) {
+      if (getByPath(prev, path) !== value) {
+        changes.push({ path, value });
       }
-      if (changes.length > 0) {
+    }
+    if (changes.length > 0) {
+      notifyChanges(changes);
+      if (!props.store && s.getSnapshot() !== prev) {
         props.onStateChange?.(changes);
       }
     }
@@ -141,19 +167,19 @@ export function StateProvider(props: ParentProps<StateProviderProps>) {
 
   const getSnapshot = () => store().getSnapshot();
 
-  const value = createMemo<StateContextValue>(() => ({
-    state: state(),
+  const ctx: StateContextValue = {
+    get state() {
+      return state();
+    },
     get,
     set,
     update,
     getSnapshot,
-    _stateSignal: state,
-  }));
+    subscribeChanges,
+  };
 
   return (
-    <StateContext.Provider value={value()}>
-      {props.children}
-    </StateContext.Provider>
+    <StateContext.Provider value={ctx}>{props.children}</StateContext.Provider>
   );
 }
 
@@ -166,15 +192,15 @@ export function useStateStore(): StateContextValue {
 }
 
 export function useStateValue<T>(path: string): T | undefined {
-  const { state } = useStateStore();
-  return getByPath(state, path) as T | undefined;
+  const store = useStateStore();
+  return getByPath(store.state, path) as T | undefined;
 }
 
 export function useStateBinding<T>(
   path: string,
 ): [T | undefined, (value: T) => void] {
-  const { state, set } = useStateStore();
-  const value = getByPath(state, path) as T | undefined;
-  const setValue = (newValue: T) => set(path, newValue);
+  const store = useStateStore();
+  const value = getByPath(store.state, path) as T | undefined;
+  const setValue = (newValue: T) => store.set(path, newValue);
   return [value, setValue];
 }

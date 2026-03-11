@@ -3,7 +3,6 @@ import {
   useContext,
   createSignal,
   createEffect,
-  createMemo,
   type ParentProps,
 } from "solid-js";
 import {
@@ -181,24 +180,23 @@ export function ValidationProvider(
     return allValid;
   };
 
-  const value = createMemo<ValidationContextValue>(() => {
-    // Access the signal to track reactivity
-    const currentFieldStates = fieldStates();
-    return {
-      customFunctions: customFunctions(),
-      get fieldStates() {
-        return fieldStatesRef;
-      },
-      validate,
-      touch,
-      clear,
-      validateAll,
-      registerField,
-    };
-  });
+  const value: ValidationContextValue = {
+    get customFunctions() {
+      return customFunctions();
+    },
+    get fieldStates() {
+      fieldStates();
+      return fieldStatesRef;
+    },
+    validate,
+    touch,
+    clear,
+    validateAll,
+    registerField,
+  };
 
   return (
-    <ValidationContext.Provider value={value()}>
+    <ValidationContext.Provider value={value}>
       {props.children}
     </ValidationContext.Provider>
   );

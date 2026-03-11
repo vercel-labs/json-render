@@ -12,5 +12,7 @@
     ? "Rendered with Vue"
     : props.renderer === "react"
       ? "Rendered with React"
-      : "Rendered with Svelte"}
+      : props.renderer === "svelte"
+        ? "Rendered with Svelte"
+        : "Rendered with Solid"}
 </span>

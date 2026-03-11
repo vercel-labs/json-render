@@ -1,6 +1,6 @@
-import { pageMetadata } from "@/lib/page-metadata"
+import { pageMetadata } from "@/lib/page-metadata";
 
-export const metadata = pageMetadata("docs/skills")
+export const metadata = pageMetadata("docs/skills");
 
 # Skills
 
@@ -18,6 +18,7 @@ json-render ships with skills that teach AI coding agents how to use each packag
 - **remotion** — Remotion renderer for video generation from JSON timeline specs.
 - **vue** — Vue 3 renderer for Vue component trees.
 - **svelte** — Svelte 5 renderer for Svelte component trees.
+- **solid** — SolidJS renderer for fine-grained reactive component trees.
 - **codegen** — Code generation utilities for building custom exporters.
 - **mcp** — MCP Apps integration for Claude, ChatGPT, Cursor, and VS Code.
 - **redux** — Redux adapter for json-render's `StateStore` interface.
@@ -38,6 +39,7 @@ npx skills add vercel-labs/json-render --skill image
 npx skills add vercel-labs/json-render --skill remotion
 npx skills add vercel-labs/json-render --skill vue
 npx skills add vercel-labs/json-render --skill svelte
+npx skills add vercel-labs/json-render --skill solid
 npx skills add vercel-labs/json-render --skill codegen
 npx skills add vercel-labs/json-render --skill mcp
 npx skills add vercel-labs/json-render --skill redux
@@ -87,6 +89,10 @@ Teaches agents how to render JSON specs as Vue 3 component trees. Covers the Vue
 ## svelte
 
 Teaches agents how to render JSON specs as Svelte 5 component trees. Covers the Svelte renderer API and component registration.
+
+## solid
+
+Teaches agents how to render JSON specs as SolidJS component trees. Covers Solid-specific reactive patterns, provider wiring, bindings, actions, and streaming.
 
 ## codegen
 

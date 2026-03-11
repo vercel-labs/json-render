@@ -2,7 +2,6 @@ import {
   createContext,
   useContext,
   createSignal,
-  createMemo,
   type ParentProps,
   type JSX,
 } from "solid-js";
@@ -76,7 +75,6 @@ export interface ActionContextValue {
   confirm: () => void;
   cancel: () => void;
   registerHandler: (name: string, handler: ActionHandler) => void;
-  _loadingSignal: () => Set<string>;
 }
 
 const ActionContext = createContext<ActionContextValue | null>(null);
@@ -269,19 +267,24 @@ export function ActionProvider(props: ParentProps<ActionProviderProps>) {
     pendingConfirmation()?.reject();
   };
 
-  const value = createMemo<ActionContextValue>(() => ({
-    handlers: handlers(),
-    loadingActions: loadingActions(),
-    pendingConfirmation: pendingConfirmation(),
+  const ctx: ActionContextValue = {
+    get handlers() {
+      return handlers();
+    },
+    get loadingActions() {
+      return loadingActions();
+    },
+    get pendingConfirmation() {
+      return pendingConfirmation();
+    },
     execute,
     confirm,
     cancel,
     registerHandler,
-    _loadingSignal: loadingActions,
-  }));
+  };
 
   return (
-    <ActionContext.Provider value={value()}>
+    <ActionContext.Provider value={ctx}>
       {props.children}
     </ActionContext.Provider>
   );
@@ -299,10 +302,13 @@ export function useAction(binding: ActionBinding): {
   execute: () => Promise<void>;
   isLoading: boolean;
 } {
-  const { execute, loadingActions } = useActions();
-  const isLoading = loadingActions.has(binding.action);
-  const executeAction = () => execute(binding);
-  return { execute: executeAction, isLoading };
+  const actions = useActions();
+  return {
+    execute: () => actions.execute(binding),
+    get isLoading() {
+      return actions.loadingActions.has(binding.action);
+    },
+  };
 }
 
 export interface ConfirmDialogProps {

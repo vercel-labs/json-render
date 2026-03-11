@@ -21,6 +21,8 @@ npm install @json-render/core @json-render/react-email @react-email/components @
 npm install @json-render/core @json-render/vue
 # or for Svelte
 npm install @json-render/core @json-render/svelte
+# or for SolidJS
+npm install @json-render/core @json-render/solid
 ```
 
 ## Why json-render?
@@ -30,7 +32,7 @@ json-render is a **Generative UI** framework: AI generates interfaces from natur
 - **Guardrailed** - AI can only use components in your catalog
 - **Predictable** - JSON output matches your schema, every time
 - **Fast** - Stream and render progressively as the model responds
-- **Cross-Platform** - React, Vue, Svelte (web), React Native (mobile) from the same catalog
+- **Cross-Platform** - React, Vue, Svelte, Solid (web), React Native (mobile) from the same catalog
 - **Batteries Included** - 36 pre-built shadcn/ui components ready to use
 
 ## Quick Start
@@ -91,9 +93,7 @@ const { registry } = defineRegistry(catalog, {
       </div>
     ),
     Button: ({ props, emit }) => (
-      <button onClick={() => emit("press")}>
-        {props.label}
-      </button>
+      <button onClick={() => emit("press")}>{props.label}</button>
     ),
   },
 });
@@ -113,24 +113,25 @@ function Dashboard({ spec }) {
 
 ## Packages
 
-| Package | Description |
-|---------|-------------|
-| `@json-render/core` | Schemas, catalogs, AI prompts, dynamic props, SpecStream utilities |
-| `@json-render/react` | React renderer, contexts, hooks |
-| `@json-render/vue` | Vue 3 renderer, composables, providers |
-| `@json-render/svelte` | Svelte 5 renderer with runes-based reactivity |
-| `@json-render/shadcn` | 36 pre-built shadcn/ui components (Radix UI + Tailwind CSS) |
-| `@json-render/react-native` | React Native renderer with standard mobile components |
-| `@json-render/remotion` | Remotion video renderer, timeline schema |
-| `@json-render/react-pdf` | React PDF renderer for generating PDF documents from specs |
-| `@json-render/react-email` | React Email renderer for HTML/plain-text emails from specs |
-| `@json-render/image` | Image renderer for SVG/PNG output (OG images, social cards) via Satori |
-| `@json-render/codegen` | Utilities for generating code from json-render UI trees |
-| `@json-render/redux` | Redux / Redux Toolkit adapter for `StateStore` |
-| `@json-render/zustand` | Zustand adapter for `StateStore` |
-| `@json-render/jotai` | Jotai adapter for `StateStore` |
-| `@json-render/xstate` | XState Store (atom) adapter for `StateStore` |
-| `@json-render/mcp` | MCP Apps integration for Claude, ChatGPT, Cursor, VS Code |
+| Package                     | Description                                                            |
+| --------------------------- | ---------------------------------------------------------------------- |
+| `@json-render/core`         | Schemas, catalogs, AI prompts, dynamic props, SpecStream utilities     |
+| `@json-render/react`        | React renderer, contexts, hooks                                        |
+| `@json-render/vue`          | Vue 3 renderer, composables, providers                                 |
+| `@json-render/svelte`       | Svelte 5 renderer with runes-based reactivity                          |
+| `@json-render/solid`        | SolidJS renderer with fine-grained reactive contexts                   |
+| `@json-render/shadcn`       | 36 pre-built shadcn/ui components (Radix UI + Tailwind CSS)            |
+| `@json-render/react-native` | React Native renderer with standard mobile components                  |
+| `@json-render/remotion`     | Remotion video renderer, timeline schema                               |
+| `@json-render/react-pdf`    | React PDF renderer for generating PDF documents from specs             |
+| `@json-render/react-email`  | React Email renderer for HTML/plain-text emails from specs             |
+| `@json-render/image`        | Image renderer for SVG/PNG output (OG images, social cards) via Satori |
+| `@json-render/codegen`      | Utilities for generating code from json-render UI trees                |
+| `@json-render/redux`        | Redux / Redux Toolkit adapter for `StateStore`                         |
+| `@json-render/zustand`      | Zustand adapter for `StateStore`                                       |
+| `@json-render/jotai`        | Jotai adapter for `StateStore`                                         |
+| `@json-render/xstate`       | XState Store (atom) adapter for `StateStore`                           |
+| `@json-render/mcp`          | MCP Apps integration for Claude, ChatGPT, Cursor, VS Code              |
 
 ## Renderers
 
@@ -159,7 +160,7 @@ const spec = {
 
 // defineRegistry creates a type-safe component registry
 const { registry } = defineRegistry(catalog, { components });
-<Renderer spec={spec} registry={registry} />
+<Renderer spec={spec} registry={registry} />;
 ```
 
 ### Vue (UI)
@@ -199,6 +200,26 @@ const { registry } = defineRegistry(catalog, {
 // <Renderer spec={spec} registry={registry} />
 ```
 
+### Solid (UI)
+
+```tsx
+import { defineRegistry, Renderer } from "@json-render/solid";
+import { schema } from "@json-render/solid/schema";
+
+const { registry } = defineRegistry(catalog, {
+  components: {
+    Card: (renderProps) => <div>{renderProps.children}</div>,
+    Button: (renderProps) => (
+      <button onClick={() => renderProps.emit("press")}>
+        {renderProps.element.props.label as string}
+      </button>
+    ),
+  },
+});
+
+<Renderer spec={spec} registry={registry} />;
+```
+
 ### shadcn/ui (Web)
 
 ```tsx
@@ -229,7 +250,7 @@ const { registry } = defineRegistry(catalog, {
   },
 });
 
-<Renderer spec={spec} registry={registry} />
+<Renderer spec={spec} registry={registry} />;
 ```
 
 ### React Native (Mobile)
@@ -250,23 +271,40 @@ const catalog = defineCatalog(schema, {
 });
 
 const { registry } = defineRegistry(catalog, { components: {} });
-<Renderer spec={spec} registry={registry} />
+<Renderer spec={spec} registry={registry} />;
 ```
 
 ### Remotion (Video)
 
 ```tsx
 import { Player } from "@remotion/player";
-import { Renderer, schema, standardComponentDefinitions } from "@json-render/remotion";
+import {
+  Renderer,
+  schema,
+  standardComponentDefinitions,
+} from "@json-render/remotion";
 
 // Timeline spec format
 const spec = {
-  composition: { id: "video", fps: 30, width: 1920, height: 1080, durationInFrames: 300 },
+  composition: {
+    id: "video",
+    fps: 30,
+    width: 1920,
+    height: 1080,
+    durationInFrames: 300,
+  },
   tracks: [{ id: "main", name: "Main", type: "video", enabled: true }],
   clips: [
-    { id: "clip-1", trackId: "main", component: "TitleCard", props: { title: "Hello" }, from: 0, durationInFrames: 90 }
+    {
+      id: "clip-1",
+      trackId: "main",
+      component: "TitleCard",
+      props: { title: "Hello" },
+      from: 0,
+      durationInFrames: 90,
+    },
   ],
-  audio: { tracks: [] }
+  audio: { tracks: [] },
 };
 
 <Player
@@ -276,7 +314,7 @@ const spec = {
   fps={spec.composition.fps}
   compositionWidth={spec.composition.width}
   compositionHeight={spec.composition.height}
-/>
+/>;
 ```
 
 ### React PDF (Documents)
@@ -287,7 +325,11 @@ import { renderToBuffer } from "@json-render/react-pdf";
 const spec = {
   root: "doc",
   elements: {
-    doc: { type: "Document", props: { title: "Invoice" }, children: ["page-1"] },
+    doc: {
+      type: "Document",
+      props: { title: "Invoice" },
+      children: ["page-1"],
+    },
     "page-1": {
       type: "Page",
       props: { size: "A4" },
@@ -301,8 +343,14 @@ const spec = {
     "table-1": {
       type: "Table",
       props: {
-        columns: [{ header: "Item", width: "60%" }, { header: "Price", width: "40%", align: "right" }],
-        rows: [["Widget A", "$10.00"], ["Widget B", "$25.00"]],
+        columns: [
+          { header: "Item", width: "60%" },
+          { header: "Price", width: "40%", align: "right" },
+        ],
+        rows: [
+          ["Widget A", "$10.00"],
+          ["Widget B", "$25.00"],
+        ],
       },
       children: [],
     },
@@ -327,7 +375,11 @@ const catalog = defineCatalog(schema, {
 const spec = {
   root: "html-1",
   elements: {
-    "html-1": { type: "Html", props: { lang: "en", dir: "ltr" }, children: ["head-1", "body-1"] },
+    "html-1": {
+      type: "Html",
+      props: { lang: "en", dir: "ltr" },
+      children: ["head-1", "body-1"],
+    },
     "head-1": { type: "Head", props: {}, children: [] },
     "body-1": {
       type: "Body",
@@ -336,11 +388,17 @@ const spec = {
     },
     "container-1": {
       type: "Container",
-      props: { style: { maxWidth: "600px", margin: "0 auto", padding: "20px" } },
+      props: {
+        style: { maxWidth: "600px", margin: "0 auto", padding: "20px" },
+      },
       children: ["heading-1", "text-1"],
     },
     "heading-1": { type: "Heading", props: { text: "Welcome" }, children: [] },
-    "text-1": { type: "Text", props: { text: "Thanks for signing up." }, children: [] },
+    "text-1": {
+      type: "Text",
+      props: { text: "Thanks for signing up." },
+      children: [],
+    },
   },
 };
 
@@ -425,8 +483,16 @@ Any prop value can be data-driven using expressions:
 {
   "type": "Icon",
   "props": {
-    "name": { "$cond": { "$state": "/activeTab", "eq": "home" }, "$then": "home", "$else": "home-outline" },
-    "color": { "$cond": { "$state": "/activeTab", "eq": "home" }, "$then": "#007AFF", "$else": "#8E8E93" }
+    "name": {
+      "$cond": { "$state": "/activeTab", "eq": "home" },
+      "$then": "home",
+      "$else": "home-outline"
+    },
+    "color": {
+      "$cond": { "$state": "/activeTab", "eq": "home" },
+      "$then": "#007AFF",
+      "$else": "#8E8E93"
+    }
   }
 }
 ```
@@ -445,7 +511,10 @@ Components can trigger actions, including the built-in `setState` action:
 ```json
 {
   "type": "Pressable",
-  "props": { "action": "setState", "actionParams": { "statePath": "/activeTab", "value": "home" } },
+  "props": {
+    "action": "setState",
+    "actionParams": { "statePath": "/activeTab", "value": "home" }
+  },
   "children": ["home-icon"]
 }
 ```
@@ -459,9 +528,15 @@ React to state changes by triggering actions:
 ```json
 {
   "type": "Select",
-  "props": { "value": { "$bindState": "/form/country" }, "options": ["US", "Canada", "UK"] },
+  "props": {
+    "value": { "$bindState": "/form/country" },
+    "options": ["US", "Canada", "UK"]
+  },
   "watch": {
-    "/form/country": { "action": "loadCities", "params": { "country": { "$state": "/form/country" } } }
+    "/form/country": {
+      "action": "loadCities",
+      "params": { "country": { "$state": "/form/country" } }
+    }
   }
 }
 ```
@@ -486,7 +561,7 @@ pnpm dev
 - Chat Example: run `pnpm dev` in `examples/chat`
 - Svelte Example: run `pnpm dev` in `examples/svelte` or `examples/svelte-chat`
 - Vue Example: run `pnpm dev` in `examples/vue`
-- Vite Renderers (React + Vue + Svelte): run `pnpm dev` in `examples/vite-renderers`
+- Vite Renderers (React + Vue + Svelte + Solid): run `pnpm dev` in `examples/vite-renderers`
 - React Native example: run `npx expo start` in `examples/react-native`
 
 ## How It Works
@@ -496,7 +571,7 @@ flowchart LR
     A[User Prompt] --> B[AI + Catalog]
     B --> C[JSON Spec]
     C --> D[Renderer]
-    
+
     B -.- E([guardrailed])
     C -.- F([predictable])
     D -.- G([streamed])

@@ -123,7 +123,8 @@ function ElementRenderer(props: ElementRendererProps) {
   const repeatScope = useRepeatScope();
   const { ctx } = useVisibility();
   const { execute } = useActions();
-  const { getSnapshot, _stateSignal } = useStateStore();
+  const stateStore = useStateStore();
+  const getSnapshot = () => stateStore.getSnapshot();
   const functions = useFunctions();
 
   // Build context with repeat scope and $computed functions
@@ -189,60 +190,26 @@ function ElementRenderer(props: ElementRendererProps) {
   };
 
   // Watch effect: fire actions when watched state paths change.
-  let prevWatchValues: Record<string, unknown> | null = null;
-  let stableWatchRef: Record<string, unknown> | undefined = undefined;
-
-  const watchedValues = createMemo(() => {
-    const watchConfig = props.element.watch;
-    if (!watchConfig) return undefined;
-    const currentState = _stateSignal();
-    const values: Record<string, unknown> = {};
-    for (const path of Object.keys(watchConfig)) {
-      values[path] = getByPath(currentState, path);
-    }
-    const prev = stableWatchRef;
-    if (prev) {
-      const keys = Object.keys(values);
-      if (
-        keys.length === Object.keys(prev).length &&
-        keys.every((k) => values[k] === prev[k])
-      ) {
-        return prev;
-      }
-    }
-    stableWatchRef = values;
-    return values;
-  });
-
   createEffect(() => {
     const watchConfig = props.element.watch;
-    const watched = watchedValues();
-    if (!watchConfig || !watched) return;
+    if (!watchConfig) return;
     const paths = Object.keys(watchConfig);
     if (paths.length === 0) return;
 
-    const prev = prevWatchValues;
-    prevWatchValues = watched;
+    const unsubscribe = stateStore.subscribeChanges((changes) => {
+      const changedPaths = new Set(changes.map((change) => change.path));
 
-    if (prev === null) return;
+      void (async () => {
+        for (const path of paths) {
+          if (!changedPaths.has(path)) continue;
 
-    let cancelled = false;
-    onCleanup(() => {
-      cancelled = true;
-    });
-
-    void (async () => {
-      for (const path of paths) {
-        if (cancelled) break;
-        if (watched[path] !== prev[path]) {
           const binding = watchConfig[path];
           if (!binding) continue;
           const bindings = Array.isArray(binding) ? binding : [binding];
+
           for (const b of bindings) {
-            if (cancelled) break;
             if (!b.params) {
               await execute(b);
-              if (cancelled) break;
               continue;
             }
             const liveCtx: PropResolutionContext = {
@@ -254,11 +221,14 @@ function ElementRenderer(props: ElementRendererProps) {
               resolved[key] = resolveActionParam(val, liveCtx);
             }
             await execute({ ...b, params: resolved });
-            if (cancelled) break;
           }
         }
-      }
-    })().catch(console.error);
+      })().catch(console.error);
+    });
+
+    onCleanup(() => {
+      unsubscribe();
+    });
   });
 
   // Resolve $bindState/$bindItem expressions → bindings map (prop name → state path)
@@ -404,12 +374,12 @@ interface RepeatChildrenProps {
 }
 
 function RepeatChildren(props: RepeatChildrenProps) {
-  const { state } = useStateStore();
+  const stateStore = useStateStore();
   const repeat = () => props.element.repeat!;
   const statePath = () => repeat().statePath;
 
   const items = () =>
-    (getByPath(state, statePath()) as unknown[] | undefined) ?? [];
+    (getByPath(stateStore.state, statePath()) as unknown[] | undefined) ?? [];
 
   return (
     <For each={items()}>

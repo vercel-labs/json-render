@@ -1,9 +1,5 @@
 import { z } from "zod";
 
-/**
- * Shared catalog definition — imported by both vue/catalog.ts and react/catalog.ts.
- * Each renderer calls schema.createCatalog(catalogDef) with its own schema instance.
- */
 export const catalogDef = {
   components: {
     Stack: {
@@ -65,7 +61,7 @@ export const catalogDef = {
       props: z.object({ renderer: z.string() }),
       slots: [],
       description:
-        "Segmented tab control for switching between Vue, React, and Svelte renderers",
+        "Segmented tab control for switching between Vue, React, Svelte, and Solid renderers",
     },
     RendererBadge: {
       props: z.object({ renderer: z.string() }),
@@ -98,6 +94,10 @@ export const catalogDef = {
     switchToSvelte: {
       params: z.object({}),
       description: "Switch to the Svelte renderer",
+    },
+    switchToSolid: {
+      params: z.object({}),
+      description: "Switch to the Solid renderer",
     },
   },
 };
