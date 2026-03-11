@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { render } from "@solidjs/testing-library";
-import type { JSX } from "solid-js";
+import { createEffect, type JSX } from "solid-js";
 import { StateProvider } from "./state";
 import {
   ValidationProvider,
@@ -95,6 +95,8 @@ describe("useFieldValidation — lifecycle", () => {
     const result = fieldCtx.validate();
     expect(result.valid).toBe(false);
     expect(result.errors).toContain("Name is required");
+    expect(fieldCtx.errors()).toContain("Name is required");
+    expect(fieldCtx.isValid()).toBe(false);
   });
 
   it("validate() with valid value returns valid:true and no errors", () => {
@@ -105,6 +107,8 @@ describe("useFieldValidation — lifecycle", () => {
     const result = fieldCtx.validate();
     expect(result.valid).toBe(true);
     expect(result.errors).toHaveLength(0);
+    expect(fieldCtx.errors()).toHaveLength(0);
+    expect(fieldCtx.isValid()).toBe(true);
   });
 
   it("touch() sets touched:true in fieldStates", () => {
@@ -124,6 +128,50 @@ describe("useFieldValidation — lifecycle", () => {
     fieldCtx.validate();
     fieldCtx.clear();
     expect(validationCtx.fieldStates["/email"]).toBeUndefined();
+  });
+
+  it("useFieldValidation accessors stay reactive after validate/touch", () => {
+    const observedErrors: string[][] = [];
+    const observedTouched: boolean[] = [];
+
+    function TestComponent(): JSX.Element {
+      const field = useFieldValidation("/email", {
+        checks: [{ type: "required", message: "Required" }],
+      });
+
+      createEffect(() => {
+        observedErrors.push(field.errors());
+      });
+
+      createEffect(() => {
+        observedTouched.push(field.state().touched);
+      });
+
+      return (
+        <>
+          <button data-testid="validate" onClick={() => field.validate()} />
+          <button data-testid="touch" onClick={() => field.touch()} />
+        </>
+      ) as JSX.Element;
+    }
+
+    const { getByTestId } = render(() => (
+      <StateProvider initialState={{ email: "" }}>
+        <ValidationProvider>
+          <TestComponent />
+        </ValidationProvider>
+      </StateProvider>
+    ));
+
+    expect(observedErrors).toEqual([[]]);
+    expect(observedTouched).toEqual([false]);
+
+    getByTestId("validate").click();
+    expect(observedErrors).toEqual([[], ["Required"]]);
+    expect(observedTouched).toEqual([false, true]);
+
+    getByTestId("touch").click();
+    expect(observedTouched).toEqual([false, true, true]);
   });
 });
 

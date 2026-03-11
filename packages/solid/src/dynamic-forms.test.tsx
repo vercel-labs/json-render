@@ -220,7 +220,9 @@ function InputField(
         value={value()}
         onInput={(e) => setValue(e.currentTarget.value)}
       />
-      {errors.length > 0 && <span data-testid="input-error">{errors[0]}</span>}
+      {errors().length > 0 && (
+        <span data-testid="input-error">{errors()[0]}</span>
+      )}
     </div>
   );
 }
@@ -293,8 +295,8 @@ function ValidatedSelect(
           <option value={opt}>{opt}</option>
         ))}
       </select>
-      {errors.length > 0 && (
-        <span data-testid={`select-error-${name()}`}>{errors[0]}</span>
+      {errors().length > 0 && (
+        <span data-testid={`select-error-${name()}`}>{errors()[0]}</span>
       )}
     </div>
   );

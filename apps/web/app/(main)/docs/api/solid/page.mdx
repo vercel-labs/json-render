@@ -157,12 +157,12 @@ const AppRenderer = createRenderer(catalog, {
 ## Hooks
 
 - `useStateStore()`
-- `useStateValue(path)`
-- `useStateBinding(path)`
+- `useStateValue(path)` - returns an accessor
+- `useStateBinding(path)` - returns `[Accessor<T | undefined>, setValue]`
 - `useVisibility()` / `useIsVisible(condition)`
 - `useActions()` / `useAction(binding)`
 - `useValidation()` / `useOptionalValidation()`
-- `useFieldValidation(path, config)`
+- `useFieldValidation(path, config)` - returns accessor-backed `state`, `errors`, and `isValid`
 - `useBoundProp(value, bindingPath)`
 - `useUIStream(options)`
 - `useChatUI(options)`
@@ -198,3 +198,4 @@ Use `emit("event")` to dispatch event bindings. Use `on("event")` to access `Eve
 - Keep changing reads in JSX expressions, `createMemo`, or `createEffect`.
 - Avoid props destructuring in component signatures when you need live updates.
 - `StateProvider` and other contexts expose getter-backed values so consumers read live signals.
+- `useStateValue`, `useStateBinding`, and `useFieldValidation` expose reactive accessors; call them as functions.

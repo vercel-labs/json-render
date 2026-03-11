@@ -3,7 +3,9 @@ import {
   useContext,
   createSignal,
   createEffect,
+  createMemo,
   onCleanup,
+  type Accessor,
   type ParentProps,
 } from "solid-js";
 import {
@@ -191,16 +193,16 @@ export function useStateStore(): StateContextValue {
   return ctx;
 }
 
-export function useStateValue<T>(path: string): T | undefined {
+export function useStateValue<T>(path: string): Accessor<T | undefined> {
   const store = useStateStore();
-  return getByPath(store.state, path) as T | undefined;
+  return createMemo(() => getByPath(store.state, path) as T | undefined);
 }
 
 export function useStateBinding<T>(
   path: string,
-): [T | undefined, (value: T) => void] {
+): [Accessor<T | undefined>, (value: T) => void] {
   const store = useStateStore();
-  const value = getByPath(store.state, path) as T | undefined;
+  const value = createMemo(() => getByPath(store.state, path) as T | undefined);
   const setValue = (newValue: T) => store.set(path, newValue);
   return [value, setValue];
 }

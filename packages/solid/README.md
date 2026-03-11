@@ -162,12 +162,12 @@ const store = createStateStore({ count: 0 });
 | Hook                                          | Purpose                                               |
 | --------------------------------------------- | ----------------------------------------------------- |
 | `useStateStore()`                             | Access `state`, `get`, `set`, `update`, `getSnapshot` |
-| `useStateValue(path)`                         | Read a value by JSON Pointer path                     |
-| `useStateBinding(path)`                       | Legacy two-way binding helper                         |
+| `useStateValue(path)`                         | Read a value by JSON Pointer path via accessor        |
+| `useStateBinding(path)`                       | Legacy two-way binding helper returning an accessor   |
 | `useVisibility()` / `useIsVisible()`          | Visibility context and checks                         |
 | `useActions()` / `useAction()`                | Action context and single-action helper               |
 | `useValidation()` / `useOptionalValidation()` | Validation context (throwing/non-throwing)            |
-| `useFieldValidation(path, config)`            | Field touched/valid/errors state and handlers         |
+| `useFieldValidation(path, config)`            | Field state accessors plus validate/touch/clear       |
 | `useBoundProp(value, binding)`                | Fine-grained two-way binding helper                   |
 | `useUIStream(options)`                        | Stream UI specs from an endpoint                      |
 | `useChatUI(options)`                          | Chat-style spec generation hook                       |
@@ -232,6 +232,7 @@ Most APIs are intentionally aligned, but there are runtime behavior differences 
 - Solid components run once, then update via signals.
 - Keep changing reads inside JSX expressions, `createMemo`, or `createEffect`.
 - Avoid props destructuring in component signatures when values should remain reactive.
+- Hooks that read changing state return accessors; call them inside JSX or effects.
 
 ## Documentation
 

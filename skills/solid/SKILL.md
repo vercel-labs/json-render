@@ -176,6 +176,8 @@ function Input(props: BaseComponentProps<{ value?: string }>) {
 }
 ```
 
+`useStateValue`, `useStateBinding`, and the `state` / `errors` / `isValid` fields from `useFieldValidation` are reactive accessors in Solid. Call them as functions inside JSX, `createMemo`, or `createEffect`.
+
 ## Solid Reactivity Rules
 
 - Do not destructure component props in function signatures when values need to stay reactive.

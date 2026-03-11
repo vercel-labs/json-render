@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render } from "@solidjs/testing-library";
-import type { JSX } from "solid-js";
+import { createEffect, createSignal, type Accessor, type JSX } from "solid-js";
 import { createStateStore } from "@json-render/core";
 import {
   StateProvider,
@@ -47,7 +47,7 @@ describe("StateProvider + hooks", () => {
       name: "Alice",
     });
 
-    expect(value).toBe("Alice");
+    expect(value()).toBe("Alice");
   });
 
   it("useStateBinding returns value and setter", () => {
@@ -55,8 +55,60 @@ describe("StateProvider + hooks", () => {
       x: 1,
     });
 
-    expect(value).toBe(1);
+    expect(value()).toBe(1);
     expect(typeof setValue).toBe("function");
+  });
+
+  it("useStateValue stays reactive after state updates", () => {
+    const observed: Array<string | undefined> = [];
+
+    function TestComponent(): JSX.Element {
+      const value = useStateValue<string>("/name");
+      createEffect(() => {
+        observed.push(value());
+      });
+      const store = useStateStore();
+      return (
+        <button
+          data-testid="update"
+          onClick={() => store.set("/name", "Bob")}
+        />
+      ) as unknown as JSX.Element;
+    }
+
+    const { getByTestId } = render(() => (
+      <StateProvider initialState={{ name: "Alice" }}>
+        <TestComponent />
+      </StateProvider>
+    ));
+
+    expect(observed).toEqual(["Alice"]);
+    getByTestId("update").click();
+    expect(observed).toEqual(["Alice", "Bob"]);
+  });
+
+  it("useStateBinding value accessor stays reactive after state updates", () => {
+    const observed: Array<number | undefined> = [];
+
+    function TestComponent(): JSX.Element {
+      const [value, setValue] = useStateBinding<number>("/count");
+      createEffect(() => {
+        observed.push(value());
+      });
+      return (
+        <button data-testid="update" onClick={() => setValue(2)} />
+      ) as unknown as JSX.Element;
+    }
+
+    const { getByTestId } = render(() => (
+      <StateProvider initialState={{ count: 1 }}>
+        <TestComponent />
+      </StateProvider>
+    ));
+
+    expect(observed).toEqual([1]);
+    getByTestId("update").click();
+    expect(observed).toEqual([1, 2]);
   });
 
   it("provides initial state to consumers", () => {

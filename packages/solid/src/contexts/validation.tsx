@@ -3,6 +3,8 @@ import {
   useContext,
   createSignal,
   createEffect,
+  createMemo,
+  type Accessor,
   type ParentProps,
 } from "solid-js";
 import {
@@ -218,43 +220,44 @@ export function useFieldValidation(
   path: string,
   config?: ValidationConfig,
 ): {
-  state: FieldValidationState;
+  state: Accessor<FieldValidationState>;
   validate: () => ValidationResult;
   touch: () => void;
   clear: () => void;
-  errors: string[];
-  isValid: boolean;
+  errors: Accessor<string[]>;
+  isValid: Accessor<boolean>;
 } {
-  const {
-    fieldStates,
-    validate: validateField,
-    touch: touchField,
-    clear: clearField,
-    registerField,
-  } = useValidation();
+  const validation = useValidation();
 
   createEffect(() => {
     if (path && config) {
-      registerField(path, config);
+      validation.registerField(path, config);
     }
   });
 
-  const state = fieldStates[path] ?? {
-    touched: false,
-    validated: false,
-    result: null,
-  };
+  const state = createMemo<FieldValidationState>(() => {
+    const current = validation.fieldStates[path];
+    return (
+      current ?? {
+        touched: false,
+        validated: false,
+        result: null,
+      }
+    );
+  });
 
-  const validate = () => validateField(path, config ?? { checks: [] });
-  const touch = () => touchField(path);
-  const clear = () => clearField(path);
+  const validate = () => validation.validate(path, config ?? { checks: [] });
+  const touch = () => validation.touch(path);
+  const clear = () => validation.clear(path);
+  const errors = createMemo(() => state().result?.errors ?? []);
+  const isValid = createMemo(() => state().result?.valid ?? true);
 
   return {
     state,
     validate,
     touch,
     clear,
-    errors: state.result?.errors ?? [],
-    isValid: state.result?.valid ?? true,
+    errors,
+    isValid,
   };
 }
