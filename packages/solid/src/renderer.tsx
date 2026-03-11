@@ -123,7 +123,7 @@ function ElementRenderer(props: ElementRendererProps) {
   const repeatScope = useRepeatScope();
   const { ctx } = useVisibility();
   const { execute } = useActions();
-  const { getSnapshot, state: watchState } = useStateStore();
+  const { getSnapshot, _stateSignal } = useStateStore();
   const functions = useFunctions();
 
   // Build context with repeat scope and $computed functions
@@ -195,9 +195,10 @@ function ElementRenderer(props: ElementRendererProps) {
   const watchedValues = createMemo(() => {
     const watchConfig = props.element.watch;
     if (!watchConfig) return undefined;
+    const currentState = _stateSignal();
     const values: Record<string, unknown> = {};
     for (const path of Object.keys(watchConfig)) {
-      values[path] = getByPath(watchState, path);
+      values[path] = getByPath(currentState, path);
     }
     const prev = stableWatchRef;
     if (prev) {
@@ -223,7 +224,6 @@ function ElementRenderer(props: ElementRendererProps) {
     const prev = prevWatchValues;
     prevWatchValues = watched;
 
-    // Skip the initial mount — only fire on changes
     if (prev === null) return;
 
     let cancelled = false;

@@ -21,6 +21,8 @@ export interface StateContextValue {
   set: (path: string, value: unknown) => void;
   update: (updates: Record<string, unknown>) => void;
   getSnapshot: () => StateModel;
+  /** @internal Signal accessor for reactive state tracking in effects */
+  _stateSignal: () => StateModel;
 }
 
 const StateContext = createContext<StateContextValue | null>(null);
@@ -145,6 +147,7 @@ export function StateProvider(props: ParentProps<StateProviderProps>) {
     set,
     update,
     getSnapshot,
+    _stateSignal: state,
   }));
 
   return (

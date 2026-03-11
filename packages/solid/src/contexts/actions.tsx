@@ -76,6 +76,7 @@ export interface ActionContextValue {
   confirm: () => void;
   cancel: () => void;
   registerHandler: (name: string, handler: ActionHandler) => void;
+  _loadingSignal: () => Set<string>;
 }
 
 const ActionContext = createContext<ActionContextValue | null>(null);
@@ -276,6 +277,7 @@ export function ActionProvider(props: ParentProps<ActionProviderProps>) {
     confirm,
     cancel,
     registerHandler,
+    _loadingSignal: loadingActions,
   }));
 
   return (
