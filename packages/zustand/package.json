@@ -1,6 +1,6 @@
 {
   "name": "@json-render/zustand",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "license": "Apache-2.0",
   "description": "Zustand adapter for json-render StateStore",
   "keywords": [

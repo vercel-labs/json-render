@@ -1,5 +1,15 @@
 # vite-renderers
 
+## 0.1.4
+
+### Patch Changes
+
+- Updated dependencies [54a1ecf]
+  - @json-render/core@0.12.1
+  - @json-render/react@0.12.1
+  - @json-render/svelte@0.12.1
+  - @json-render/vue@0.12.1
+
 ## 0.1.3
 
 ### Patch Changes

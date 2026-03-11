@@ -1,6 +1,6 @@
 {
   "name": "@json-render/core",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "license": "Apache-2.0",
   "description": "JSON becomes real things. Define your catalog, register your components, let AI generate.",
   "keywords": [
