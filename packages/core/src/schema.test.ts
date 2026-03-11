@@ -592,6 +592,128 @@ describe("catalog.jsonSchema", () => {
     expect(jsonSchema).not.toBeNull();
     expect(typeof jsonSchema).toBe("object");
   });
+
+  it("includes a key per component with its props JSON Schema", () => {
+    const catalog = defineCatalog(testSchema, {
+      components: {
+        Text: {
+          props: z.object({ content: z.string() }),
+          description: "",
+          slots: [],
+        },
+        Button: {
+          props: z.object({ label: z.string(), disabled: z.boolean() }),
+          description: "",
+          slots: [],
+        },
+      },
+      actions: {},
+    });
+    const jsonSchema = catalog.jsonSchema() as Record<string, any>;
+    expect(Object.keys(jsonSchema)).toEqual(
+      expect.arrayContaining(["Text", "Button"]),
+    );
+    expect(Object.keys(jsonSchema)).toHaveLength(2);
+  });
+
+  it("serializes string props correctly", () => {
+    const catalog = defineCatalog(testSchema, {
+      components: {
+        Text: {
+          props: z.object({ content: z.string() }),
+          description: "",
+          slots: [],
+        },
+      },
+      actions: {},
+    });
+    const jsonSchema = catalog.jsonSchema() as Record<string, any>;
+    expect(jsonSchema.Text.properties.content).toEqual(
+      expect.objectContaining({ type: "string" }),
+    );
+  });
+
+  it("serializes number, boolean, and enum props correctly", () => {
+    const catalog = defineCatalog(testSchema, {
+      components: {
+        Widget: {
+          props: z.object({
+            count: z.number(),
+            active: z.boolean(),
+            variant: z.enum(["primary", "secondary"]),
+          }),
+          description: "",
+          slots: [],
+        },
+      },
+      actions: {},
+    });
+    const jsonSchema = catalog.jsonSchema() as Record<string, any>;
+    const props = jsonSchema.Widget.properties;
+    expect(props.count).toEqual(expect.objectContaining({ type: "number" }));
+    expect(props.active).toEqual(expect.objectContaining({ type: "boolean" }));
+    expect(props.variant.enum).toEqual(["primary", "secondary"]);
+  });
+
+  it("serializes array and nested object props correctly", () => {
+    const catalog = defineCatalog(testSchema, {
+      components: {
+        Card: {
+          props: z.object({
+            tags: z.array(z.string()),
+            metadata: z.object({ key: z.string(), value: z.number() }),
+          }),
+          description: "",
+          slots: [],
+        },
+      },
+      actions: {},
+    });
+    const jsonSchema = catalog.jsonSchema() as Record<string, any>;
+    const props = jsonSchema.Card.properties;
+    expect(props.tags.type).toBe("array");
+    expect(props.tags.items).toEqual(
+      expect.objectContaining({ type: "string" }),
+    );
+    expect(props.metadata.type).toBe("object");
+    expect(props.metadata.properties.key).toEqual(
+      expect.objectContaining({ type: "string" }),
+    );
+    expect(props.metadata.properties.value).toEqual(
+      expect.objectContaining({ type: "number" }),
+    );
+  });
+
+  it("marks required fields in the JSON Schema", () => {
+    const catalog = defineCatalog(testSchema, {
+      components: {
+        Form: {
+          props: z.object({
+            name: z.string(),
+            email: z.string(),
+            nickname: z.string().optional(),
+          }),
+          description: "",
+          slots: [],
+        },
+      },
+      actions: {},
+    });
+    const jsonSchema = catalog.jsonSchema() as Record<string, any>;
+    expect(jsonSchema.Form.required).toEqual(
+      expect.arrayContaining(["name", "email"]),
+    );
+    expect(jsonSchema.Form.required).not.toContain("nickname");
+  });
+
+  it("returns empty object when catalog has no components", () => {
+    const catalog = defineCatalog(testSchema, {
+      components: {},
+      actions: {},
+    });
+    const jsonSchema = catalog.jsonSchema() as Record<string, any>;
+    expect(jsonSchema).toEqual({});
+  });
 });
 
 // =============================================================================

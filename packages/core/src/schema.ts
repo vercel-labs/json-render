@@ -415,7 +415,18 @@ function createCatalogFromSchema<TDef extends SchemaDefinition, TCatalog>(
     },
 
     jsonSchema(): object {
-      return zodToJsonSchema(zodSchema);
+      const result: Record<string, object> = {};
+      if (components) {
+        for (const [name, entry] of Object.entries(components)) {
+          const componentEntry = entry as { props?: z.ZodType };
+          if (componentEntry.props) {
+            result[name] = zodToJsonSchema(componentEntry.props);
+          }
+        }
+        return result;
+      } else {
+        return zodToJsonSchema(zodSchema);
+      }
     },
 
     validate(spec: unknown): SpecValidationResult<InferSpec<TDef, TCatalog>> {
@@ -1322,39 +1333,66 @@ function formatZodType(schema: z.ZodType): string {
  * Convert Zod schema to JSON Schema
  */
 function zodToJsonSchema(schema: z.ZodType): object {
-  // Simplified JSON Schema conversion
   const def = schema._def as unknown as Record<string, unknown>;
-  const typeName = (def.typeName as string) ?? "";
+  const typeName = getZodTypeName(schema);
 
   switch (typeName) {
     case "ZodString":
+    case "string":
       return { type: "string" };
     case "ZodNumber":
+    case "number":
       return { type: "number" };
     case "ZodBoolean":
+    case "boolean":
       return { type: "boolean" };
     case "ZodLiteral":
+    case "literal":
       return { const: def.value };
     case "ZodEnum":
-      return { enum: def.values };
-    case "ZodArray": {
-      const inner = def.type as z.ZodType | undefined;
+    case "enum": {
+      // Zod 3 uses values array, Zod 4 uses entries object
+      let values: unknown[];
+      if (Array.isArray(def.values)) {
+        values = def.values as unknown[];
+      } else if (def.entries && typeof def.entries === "object") {
+        values = Object.values(def.entries as Record<string, unknown>);
+      } else {
+        return { type: "string" };
+      }
+      return { enum: values };
+    }
+    case "ZodArray":
+    case "array": {
+      const inner = (
+        typeof def.element === "object"
+          ? def.element
+          : typeof def.type === "object"
+            ? def.type
+            : undefined
+      ) as z.ZodType | undefined;
       return {
         type: "array",
         items: inner ? zodToJsonSchema(inner) : {},
       };
     }
-    case "ZodObject": {
-      const shape = (def.shape as () => Record<string, z.ZodType>)?.();
+    case "ZodObject":
+    case "object": {
+      const shape =
+        typeof def.shape === "function"
+          ? (def.shape as () => Record<string, z.ZodType>)()
+          : (def.shape as Record<string, z.ZodType>);
       if (!shape) return { type: "object" };
       const properties: Record<string, object> = {};
       const required: string[] = [];
       for (const [key, value] of Object.entries(shape)) {
         properties[key] = zodToJsonSchema(value);
-        const innerDef = value._def as unknown as Record<string, unknown>;
+        const innerTypeName = getZodTypeName(value);
         if (
-          innerDef.typeName !== "ZodOptional" &&
-          innerDef.typeName !== "ZodNullable"
+          innerTypeName !== "ZodOptional" &&
+          innerTypeName !== "optional" &&
+          innerTypeName !== "ZodNullable" &&
+          innerTypeName !== "nullable"
         ) {
           required.push(key);
         }
@@ -1366,7 +1404,8 @@ function zodToJsonSchema(schema: z.ZodType): object {
         additionalProperties: false,
       };
     }
-    case "ZodRecord": {
+    case "ZodRecord":
+    case "record": {
       const valueType = def.valueType as z.ZodType | undefined;
       return {
         type: "object",
@@ -1374,15 +1413,19 @@ function zodToJsonSchema(schema: z.ZodType): object {
       };
     }
     case "ZodOptional":
-    case "ZodNullable": {
-      const inner = def.innerType as z.ZodType | undefined;
+    case "optional":
+    case "ZodNullable":
+    case "nullable": {
+      const inner = (def.innerType as z.ZodType) ?? (def.wrapped as z.ZodType);
       return inner ? zodToJsonSchema(inner) : {};
     }
-    case "ZodUnion": {
+    case "ZodUnion":
+    case "union": {
       const options = def.options as z.ZodType[] | undefined;
       return options ? { anyOf: options.map(zodToJsonSchema) } : {};
     }
     case "ZodAny":
+    case "any":
       return {};
     default:
       return {};
