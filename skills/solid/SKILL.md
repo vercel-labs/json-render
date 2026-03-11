@@ -144,8 +144,6 @@ Handled automatically by `ActionProvider`:
 - `setState`
 - `pushState`
 - `removeState`
-- `push`
-- `pop`
 - `validateForm`
 
 ## Dynamic Props and Bindings

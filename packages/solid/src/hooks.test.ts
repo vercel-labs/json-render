@@ -37,9 +37,9 @@ describe("flatToTree", () => {
 
     const tree = flatToTree(elements);
 
-    expect(tree.elements["root"].children).toHaveLength(2);
-    expect(tree.elements["root"].children).toContain("child1");
-    expect(tree.elements["root"].children).toContain("child2");
+    expect(tree.elements["root"]?.children).toHaveLength(2);
+    expect(tree.elements["root"]?.children).toContain("child1");
+    expect(tree.elements["root"]?.children).toContain("child2");
   });
 
   it("handles single root element", () => {
@@ -69,9 +69,9 @@ describe("flatToTree", () => {
     const tree = flatToTree(elements);
 
     expect(tree.root).toBe("level0");
-    expect(tree.elements["level0"].children).toContain("level1");
-    expect(tree.elements["level1"].children).toContain("level2");
-    expect(tree.elements["level2"].children).toContain("level3");
+    expect(tree.elements["level0"]?.children).toContain("level1");
+    expect(tree.elements["level1"]?.children).toContain("level2");
+    expect(tree.elements["level2"]?.children).toContain("level3");
   });
 
   it("preserves element props", () => {
@@ -86,7 +86,7 @@ describe("flatToTree", () => {
 
     const tree = flatToTree(elements);
 
-    expect(tree.elements["btn"].props).toEqual({
+    expect(tree.elements["btn"]?.props).toEqual({
       label: "Click me",
       variant: "primary",
     });
@@ -105,7 +105,7 @@ describe("flatToTree", () => {
 
     const tree = flatToTree(elements);
 
-    expect(tree.elements["conditional"].visible).toEqual({
+    expect(tree.elements["conditional"]?.visible).toEqual({
       $state: "/isVisible",
     });
   });
@@ -145,8 +145,8 @@ describe("flatToTree", () => {
 
     const tree = flatToTree(elements);
 
-    expect(tree.elements["parent"].children).toHaveLength(4);
-    expect(tree.elements["parent"].children).toEqual(["a", "b", "c", "d"]);
+    expect(tree.elements["parent"]?.children).toHaveLength(4);
+    expect(tree.elements["parent"]?.children).toEqual(["a", "b", "c", "d"]);
   });
 });
 
@@ -298,17 +298,17 @@ describe("buildSpecFromParts", () => {
     const elementKeys = Object.keys(spec!.elements);
     expect(elementKeys.length).toBe(2);
 
-    const rootEl = spec!.elements[spec!.root];
+    const rootEl = spec?.elements[spec.root];
     expect(rootEl).toBeDefined();
-    expect(rootEl!.type).toBe("Card");
-    expect(rootEl!.props.title).toBe("Nested");
-    expect(rootEl!.children).toHaveLength(1);
+    expect(rootEl?.type).toBe("Card");
+    expect(rootEl?.props.title).toBe("Nested");
+    expect(rootEl?.children).toHaveLength(1);
 
-    const childKey = rootEl!.children[0]!;
-    const childEl = spec!.elements[childKey];
+    const childKey = rootEl?.children?.[0];
+    const childEl = childKey ? spec?.elements[childKey] : undefined;
     expect(childEl).toBeDefined();
-    expect(childEl!.type).toBe("Text");
-    expect(childEl!.props.content).toBe("Child");
+    expect(childEl?.type).toBe("Text");
+    expect(childEl?.props.content).toBe("Child");
   });
 
   it("handles mixed patch + flat + nested parts in sequence", () => {

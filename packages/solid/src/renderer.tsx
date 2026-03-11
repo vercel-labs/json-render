@@ -129,16 +129,19 @@ function ElementRenderer(props: ElementRendererProps) {
 
   // Build context with repeat scope and $computed functions
   const fullCtx = createMemo<PropResolutionContext>(() => {
-    const base: PropResolutionContext = repeatScope
-      ? {
-          ...ctx,
-          repeatItem: repeatScope.item,
-          repeatIndex: repeatScope.index,
-          repeatBasePath: repeatScope.basePath,
-        }
-      : { ...ctx };
-    base.functions = functions;
-    return base;
+    const repeatItem = repeatScope?.item;
+    const repeatIndex = repeatScope?.index;
+    const repeatBasePath = repeatScope?.basePath;
+
+    return {
+      get stateModel() {
+        return ctx.stateModel;
+      },
+      ...(repeatItem !== undefined ? { repeatItem } : {}),
+      ...(repeatIndex !== undefined ? { repeatIndex } : {}),
+      ...(repeatBasePath !== undefined ? { repeatBasePath } : {}),
+      functions,
+    };
   });
 
   // Evaluate visibility (now supports $item/$index inside repeat scopes)
@@ -610,12 +613,20 @@ export function defineRegistry<C extends Catalog>(
     for (const [name, componentFn] of Object.entries(options.components)) {
       registry[name] = (renderProps: ComponentRenderProps) => {
         return (componentFn as DefineRegistryComponentFn)({
-          props: renderProps.element.props,
-          children: renderProps.children,
+          get props() {
+            return renderProps.element.props;
+          },
+          get children() {
+            return renderProps.children;
+          },
           emit: renderProps.emit,
           on: renderProps.on,
-          bindings: renderProps.bindings,
-          loading: renderProps.loading,
+          get bindings() {
+            return renderProps.bindings;
+          },
+          get loading() {
+            return renderProps.loading;
+          },
         });
       };
     }

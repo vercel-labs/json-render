@@ -1,15 +1,171 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@solidjs/testing-library";
 import { createSignal } from "solid-js";
-import type { Spec } from "@json-render/core";
+import { defineCatalog, type Spec } from "@json-render/core";
 import {
   JSONUIProvider,
   Renderer,
+  defineRegistry,
   type ComponentRenderProps,
 } from "./renderer";
+import type { ComponentFn } from "./catalog-types";
 import { useStateStore } from "./contexts/state";
 import { useFieldValidation } from "./contexts/validation";
 import { useBoundProp } from "./hooks";
+import { schema as solidSchema } from "./schema";
+import { z } from "zod";
+
+const exampleCatalog = defineCatalog(solidSchema, {
+  components: {
+    Stack: {
+      props: z.object({
+        gap: z.number().optional(),
+        padding: z.number().optional(),
+        direction: z.enum(["vertical", "horizontal"]).optional(),
+        align: z.enum(["start", "center", "end"]).optional(),
+      }),
+      slots: ["default"],
+      description:
+        "Layout container that stacks children vertically or horizontally",
+    },
+    Card: {
+      props: z.object({
+        title: z.string().optional(),
+        subtitle: z.string().optional(),
+      }),
+      slots: ["default"],
+      description: "A card container with optional title and subtitle",
+    },
+    Text: {
+      props: z.object({
+        content: z.string(),
+        size: z.enum(["sm", "md", "lg", "xl"]).optional(),
+        weight: z.enum(["normal", "medium", "bold"]).optional(),
+        color: z.string().optional(),
+      }),
+      slots: [],
+      description: "Displays a text string",
+    },
+    Button: {
+      props: z.object({
+        label: z.string(),
+        variant: z.enum(["primary", "secondary", "danger"]).optional(),
+        disabled: z.boolean().optional(),
+      }),
+      slots: [],
+      description: "A clickable button that emits a 'press' event",
+    },
+    Badge: {
+      props: z.object({
+        label: z.string(),
+        color: z.string().optional(),
+      }),
+      slots: [],
+      description: "A small badge/tag label",
+    },
+    ListItem: {
+      props: z.object({
+        title: z.string(),
+        description: z.string().optional(),
+        completed: z.boolean().optional(),
+      }),
+      slots: [],
+      description: "A single item in a list",
+    },
+    RendererTabs: {
+      props: z.object({ renderer: z.string() }),
+      slots: [],
+      description:
+        "Segmented tab control for switching between Vue, React, Svelte, and Solid renderers",
+    },
+    RendererBadge: {
+      props: z.object({ renderer: z.string() }),
+      slots: [],
+      description: "Badge indicating which renderer is currently active",
+    },
+  },
+  actions: {
+    increment: {
+      params: z.object({}),
+      description: "Increment the counter by 1",
+    },
+    decrement: {
+      params: z.object({}),
+      description: "Decrement the counter by 1",
+    },
+    reset: {
+      params: z.object({}),
+      description: "Reset the counter to 0",
+    },
+    toggleItem: {
+      params: z.object({ index: z.number() }),
+      description: "Toggle the completed state of a todo item",
+    },
+    switchToVue: {
+      params: z.object({}),
+      description: "Switch to the Vue renderer",
+    },
+    switchToReact: {
+      params: z.object({}),
+      description: "Switch to the React renderer",
+    },
+    switchToSvelte: {
+      params: z.object({}),
+      description: "Switch to the Svelte renderer",
+    },
+    switchToSolid: {
+      params: z.object({}),
+      description: "Switch to the Solid renderer",
+    },
+  },
+});
+
+const definedStack: ComponentFn<typeof exampleCatalog, "Stack"> = (ctx) => (
+  <div>{ctx.children}</div>
+);
+
+const definedButton: ComponentFn<typeof exampleCatalog, "Button"> = (ctx) => (
+  <button data-testid="defined-btn" onClick={() => ctx.emit("press")}>
+    {ctx.props.label}
+  </button>
+);
+
+const definedText: ComponentFn<typeof exampleCatalog, "Text"> = (ctx) => (
+  <span data-testid="defined-text">{ctx.props.content}</span>
+);
+
+const definedCard: ComponentFn<typeof exampleCatalog, "Card"> = (ctx) => (
+  <div>{ctx.children}</div>
+);
+
+const definedBadge: ComponentFn<typeof exampleCatalog, "Badge"> = (ctx) => (
+  <span>{ctx.props.label}</span>
+);
+
+const definedListItem: ComponentFn<typeof exampleCatalog, "ListItem"> = (
+  ctx,
+) => <div>{ctx.props.title}</div>;
+
+const definedRendererBadge: ComponentFn<
+  typeof exampleCatalog,
+  "RendererBadge"
+> = (ctx) => <span>{ctx.props.renderer}</span>;
+
+const definedRendererTabs: ComponentFn<
+  typeof exampleCatalog,
+  "RendererTabs"
+> = () => <div />;
+
+const exampleComponents = {
+  Stack: definedStack,
+  Button: definedButton,
+  Text: definedText,
+  Card: definedCard,
+  Badge: definedBadge,
+  ListItem: definedListItem,
+  RendererBadge: definedRendererBadge,
+  RendererTabs: definedRendererTabs,
+};
 
 function Button(props: ComponentRenderProps<{ label: string }>) {
   return (
@@ -415,6 +571,66 @@ describe("watchers (watch field)", () => {
     await waitFor(() => {
       expect(action1).toHaveBeenCalledTimes(1);
       expect(action2).toHaveBeenCalledTimes(1);
+    });
+  });
+});
+
+describe("defineRegistry reactivity", () => {
+  it("updates $state-backed props after setState actions", async () => {
+    const { registry: definedRegistry } = defineRegistry(exampleCatalog, {
+      components: exampleComponents,
+      actions: {
+        increment: async () => {},
+        decrement: async () => {},
+        reset: async () => {},
+        toggleItem: async () => {},
+        switchToVue: async () => {},
+        switchToReact: async () => {},
+        switchToSvelte: async () => {},
+        switchToSolid: async () => {},
+      },
+    });
+
+    const spec: Spec = {
+      state: { value: "a" },
+      root: "wrapper",
+      elements: {
+        wrapper: {
+          type: "Stack",
+          props: {},
+          children: ["btn", "text"],
+        },
+        btn: {
+          type: "Button",
+          props: { label: "Change" },
+          on: {
+            press: {
+              action: "setState",
+              params: { statePath: "/value", value: "b" },
+            },
+          },
+          children: [],
+        },
+        text: {
+          type: "Text",
+          props: { content: { $state: "/value" } },
+          children: [],
+        },
+      },
+    };
+
+    render(() => (
+      <JSONUIProvider registry={definedRegistry} initialState={spec.state}>
+        <Renderer spec={spec} registry={definedRegistry} />
+      </JSONUIProvider>
+    ));
+
+    expect(screen.getByTestId("defined-text").textContent).toBe("a");
+
+    fireEvent.click(screen.getByTestId("defined-btn"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("defined-text").textContent).toBe("b");
     });
   });
 });

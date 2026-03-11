@@ -235,7 +235,7 @@ Most APIs are intentionally aligned, but there are runtime behavior differences 
 
 ## Documentation
 
-Full docs: https://json-render.dev/docs/api/solid
+Full docs: [json-render.dev/docs/api/solid](https://json-render.dev/docs/api/solid)
 
 ## License
 

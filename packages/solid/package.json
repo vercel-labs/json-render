@@ -48,6 +48,7 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
+    "check-types": "tsc --noEmit",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -58,9 +59,11 @@
     "esbuild-plugin-solid": "^0.6.0",
     "solid-js": "^1.9.0",
     "tsup": "^8.0.2",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "zod": "^4.3.6"
   },
   "peerDependencies": {
-    "solid-js": "^1.9.0"
+    "solid-js": "^1.9.0",
+    "zod": "^4.0.0"
   }
 }
