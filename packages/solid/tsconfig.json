@@ -1,0 +1,11 @@
+{
+  "extends": "@internal/typescript-config/base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js"
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}

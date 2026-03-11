@@ -132,7 +132,9 @@ export const components: Components<AppCatalog> = {
         ? "Rendered with Vue"
         : props.renderer === "react"
           ? "Rendered with React"
-          : "Rendered with Svelte",
+          : props.renderer === "svelte"
+            ? "Rendered with Svelte"
+            : "Rendered with Solid",
     ]),
 
   RendererTabs: ({ props, emit }) =>
@@ -177,6 +179,19 @@ export const components: Components<AppCatalog> = {
               .join(" "),
           },
           "Svelte",
+        ),
+        h(
+          "button",
+          {
+            onClick: () => emit("pressSolid"),
+            class: [
+              "json-render-renderer-tab",
+              props.renderer === "solid" && "json-render-renderer-tab--active",
+            ]
+              .filter(Boolean)
+              .join(" "),
+          },
+          "Solid",
         ),
       ]),
     ]),

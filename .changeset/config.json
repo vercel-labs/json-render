@@ -19,7 +19,8 @@
       "@json-render/xstate",
       "@json-render/image",
       "@json-render/mcp",
-      "@json-render/svelte"
+      "@json-render/svelte",
+      "@json-render/solid"
     ]
   ],
   "linked": [],
