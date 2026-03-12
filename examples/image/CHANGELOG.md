@@ -1,5 +1,13 @@
 # example-image
 
+## 0.1.4
+
+### Patch Changes
+
+- Updated dependencies [5b32de8]
+  - @json-render/core@0.13.0
+  - @json-render/image@0.13.0
+
 ## 0.1.3
 
 ### Patch Changes

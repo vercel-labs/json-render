@@ -1,5 +1,13 @@
 # com.example.json-render-demo
 
+## 0.0.8
+
+### Patch Changes
+
+- Updated dependencies [5b32de8]
+  - @json-render/core@0.13.0
+  - @json-render/react@0.13.0
+
 ## 0.0.7
 
 ### Patch Changes
