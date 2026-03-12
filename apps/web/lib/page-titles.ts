@@ -56,6 +56,7 @@ export const PAGE_TITLES: Record<string, string> = {
   "docs/api/redux": "@json-render/redux API",
   "docs/api/zustand": "@json-render/zustand API",
   "docs/api/jotai": "@json-render/jotai API",
+  "docs/api/react-three-fiber": "@json-render/react-three-fiber API",
   "docs/api/xstate": "@json-render/xstate API",
 };
 

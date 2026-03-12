@@ -134,6 +134,10 @@ export const docsNavigation: NavSection[] = [
       { title: "@json-render/vue", href: "/docs/api/vue" },
       { title: "@json-render/svelte", href: "/docs/api/svelte" },
       { title: "@json-render/solid", href: "/docs/api/solid" },
+      {
+        title: "@json-render/react-three-fiber",
+        href: "/docs/api/react-three-fiber",
+      },
       { title: "@json-render/codegen", href: "/docs/api/codegen" },
       { title: "@json-render/mcp", href: "/docs/api/mcp" },
       { title: "@json-render/redux", href: "/docs/api/redux" },

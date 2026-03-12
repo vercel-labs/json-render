@@ -25,6 +25,8 @@ npm install @json-render/core @json-render/vue
 npm install @json-render/core @json-render/svelte
 # or for SolidJS
 npm install @json-render/core @json-render/solid
+# or for 3D scenes
+npm install @json-render/core @json-render/react-three-fiber @react-three/fiber @react-three/drei three
 ```
 
 ## Why json-render?
@@ -468,6 +470,47 @@ const png = await renderToPng(spec, { fonts });
 // Or render to SVG string
 import { renderToSvg } from "@json-render/image/render";
 const svg = await renderToSvg(spec, { fonts });
+```
+
+### Three.js (3D)
+
+```tsx
+import { defineCatalog } from "@json-render/core";
+import { schema, defineRegistry } from "@json-render/react";
+import {
+  threeComponentDefinitions,
+  threeComponents,
+  ThreeCanvas,
+} from "@json-render/react-three-fiber";
+
+const catalog = defineCatalog(schema, {
+  components: {
+    Box: threeComponentDefinitions.Box,
+    Sphere: threeComponentDefinitions.Sphere,
+    AmbientLight: threeComponentDefinitions.AmbientLight,
+    DirectionalLight: threeComponentDefinitions.DirectionalLight,
+    OrbitControls: threeComponentDefinitions.OrbitControls,
+  },
+  actions: {},
+});
+
+const { registry } = defineRegistry(catalog, {
+  components: {
+    Box: threeComponents.Box,
+    Sphere: threeComponents.Sphere,
+    AmbientLight: threeComponents.AmbientLight,
+    DirectionalLight: threeComponents.DirectionalLight,
+    OrbitControls: threeComponents.OrbitControls,
+  },
+});
+
+<ThreeCanvas
+  spec={spec}
+  registry={registry}
+  shadows
+  camera={{ position: [5, 5, 5], fov: 50 }}
+  style={{ width: "100%", height: "100vh" }}
+/>;
 ```
 
 ## Features

@@ -20,7 +20,8 @@
       "@json-render/image",
       "@json-render/mcp",
       "@json-render/svelte",
-      "@json-render/solid"
+      "@json-render/solid",
+      "@json-render/react-three-fiber"
     ]
   ],
   "linked": [],

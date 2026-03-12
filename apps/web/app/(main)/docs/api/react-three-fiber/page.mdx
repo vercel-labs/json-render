@@ -1,0 +1,416 @@
+import { pageMetadata } from "@/lib/page-metadata"
+export const metadata = pageMetadata("docs/api/react-three-fiber")
+
+# @json-render/react-three-fiber
+
+React Three Fiber renderer for json-render. 19 built-in 3D components for meshes, lights, models, environments, text, cameras, and controls.
+
+## Installation
+
+```bash
+npm install @json-render/react-three-fiber @json-render/core @json-render/react @react-three/fiber @react-three/drei three zod
+```
+
+## Entry Points
+
+<table>
+<thead>
+<tr>
+<th>Entry Point</th>
+<th>Exports</th>
+<th>Use For</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>@json-render/react-three-fiber</code></td>
+<td><code>threeComponents</code>, <code>ThreeRenderer</code>, <code>ThreeCanvas</code>, schemas</td>
+<td>React Three Fiber implementations and renderer</td>
+</tr>
+<tr>
+<td><code>@json-render/react-three-fiber/catalog</code></td>
+<td><code>threeComponentDefinitions</code></td>
+<td>Catalog schemas (no R3F dependency, safe for server)</td>
+</tr>
+</tbody>
+</table>
+
+## Usage
+
+```tsx
+import {'{ defineCatalog }'} from "@json-render/core";
+import {'{ schema, defineRegistry }'} from "@json-render/react";
+import {'{'}
+  threeComponentDefinitions,
+  threeComponents,
+  ThreeCanvas,
+{'}'} from "@json-render/react-three-fiber";
+
+const catalog = defineCatalog(schema, {'{'}
+  components: {'{'}
+    Box: threeComponentDefinitions.Box,
+    Sphere: threeComponentDefinitions.Sphere,
+    AmbientLight: threeComponentDefinitions.AmbientLight,
+    DirectionalLight: threeComponentDefinitions.DirectionalLight,
+    OrbitControls: threeComponentDefinitions.OrbitControls,
+  {'}'},
+  actions: {'{}'},
+{'}'});
+
+const {'{ registry }'} = defineRegistry(catalog, {'{'}
+  components: {'{'}
+    Box: threeComponents.Box,
+    Sphere: threeComponents.Sphere,
+    AmbientLight: threeComponents.AmbientLight,
+    DirectionalLight: threeComponents.DirectionalLight,
+    OrbitControls: threeComponents.OrbitControls,
+  {'}'},
+{'}'});
+```
+
+### ThreeCanvas (convenience)
+
+```tsx
+<ThreeCanvas
+  spec={'{spec}'}
+  registry={'{registry}'}
+  shadows
+  camera={'{'}{'{ position: [5, 5, 5], fov: 50 }'}{'}'} 
+  style={'{'}{'{ width: "100%", height: "100vh" }'}{'}'} 
+/>
+```
+
+### Manual Canvas Setup
+
+```tsx
+import {'{ Canvas }'} from "@react-three/fiber";
+import {'{ ThreeRenderer }'} from "@json-render/react-three-fiber";
+
+<Canvas shadows>
+  <ThreeRenderer spec={'{spec}'} registry={'{registry}'} />
+</Canvas>
+```
+
+## Components
+
+### Primitives
+
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Description</th>
+<th>Key Props</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Box</code></td>
+<td>Box mesh (default 1x1x1)</td>
+<td><code>width</code>, <code>height</code>, <code>depth</code>, <code>material</code></td>
+</tr>
+<tr>
+<td><code>Sphere</code></td>
+<td>Sphere mesh</td>
+<td><code>radius</code>, <code>widthSegments</code>, <code>heightSegments</code>, <code>material</code></td>
+</tr>
+<tr>
+<td><code>Cylinder</code></td>
+<td>Cylinder mesh</td>
+<td><code>radiusTop</code>, <code>radiusBottom</code>, <code>height</code>, <code>material</code></td>
+</tr>
+<tr>
+<td><code>Cone</code></td>
+<td>Cone mesh</td>
+<td><code>radius</code>, <code>height</code>, <code>material</code></td>
+</tr>
+<tr>
+<td><code>Torus</code></td>
+<td>Torus (donut) mesh</td>
+<td><code>radius</code>, <code>tube</code>, <code>material</code></td>
+</tr>
+<tr>
+<td><code>Plane</code></td>
+<td>Flat plane mesh</td>
+<td><code>width</code>, <code>height</code>, <code>material</code></td>
+</tr>
+<tr>
+<td><code>Capsule</code></td>
+<td>Capsule mesh</td>
+<td><code>radius</code>, <code>length</code>, <code>material</code></td>
+</tr>
+</tbody>
+</table>
+
+All primitives share: <code>position</code>, <code>rotation</code>, <code>scale</code>, <code>castShadow</code>, <code>receiveShadow</code>, <code>material</code>.
+
+### Material Schema
+
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>color</code></td>
+<td><code>string</code></td>
+<td><code>"#ffffff"</code></td>
+</tr>
+<tr>
+<td><code>metalness</code></td>
+<td><code>number</code></td>
+<td><code>0</code></td>
+</tr>
+<tr>
+<td><code>roughness</code></td>
+<td><code>number</code></td>
+<td><code>1</code></td>
+</tr>
+<tr>
+<td><code>emissive</code></td>
+<td><code>string</code></td>
+<td><code>"#000000"</code></td>
+</tr>
+<tr>
+<td><code>emissiveIntensity</code></td>
+<td><code>number</code></td>
+<td><code>1</code></td>
+</tr>
+<tr>
+<td><code>opacity</code></td>
+<td><code>number</code></td>
+<td><code>1</code></td>
+</tr>
+<tr>
+<td><code>transparent</code></td>
+<td><code>boolean</code></td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td><code>wireframe</code></td>
+<td><code>boolean</code></td>
+<td><code>false</code></td>
+</tr>
+</tbody>
+</table>
+
+### Lights
+
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Description</th>
+<th>Key Props</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AmbientLight</code></td>
+<td>Uniform illumination</td>
+<td><code>color</code>, <code>intensity</code></td>
+</tr>
+<tr>
+<td><code>DirectionalLight</code></td>
+<td>Sunlight-style</td>
+<td><code>position</code>, <code>color</code>, <code>intensity</code>, <code>castShadow</code></td>
+</tr>
+<tr>
+<td><code>PointLight</code></td>
+<td>Radiates from a point</td>
+<td><code>position</code>, <code>color</code>, <code>intensity</code>, <code>distance</code>, <code>decay</code></td>
+</tr>
+<tr>
+<td><code>SpotLight</code></td>
+<td>Cone of light</td>
+<td><code>position</code>, <code>color</code>, <code>intensity</code>, <code>angle</code>, <code>penumbra</code></td>
+</tr>
+</tbody>
+</table>
+
+### Other Components
+
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Description</th>
+<th>Key Props</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Group</code></td>
+<td>Container for children</td>
+<td><code>position</code>, <code>rotation</code>, <code>scale</code></td>
+</tr>
+<tr>
+<td><code>Model</code></td>
+<td>GLTF/GLB model loader</td>
+<td><code>url</code>, <code>position</code>, <code>rotation</code>, <code>scale</code></td>
+</tr>
+<tr>
+<td><code>Environment</code></td>
+<td>HDRI environment map</td>
+<td><code>preset</code>, <code>background</code>, <code>blur</code>, <code>intensity</code></td>
+</tr>
+<tr>
+<td><code>Fog</code></td>
+<td>Linear fog effect</td>
+<td><code>color</code>, <code>near</code>, <code>far</code></td>
+</tr>
+<tr>
+<td><code>GridHelper</code></td>
+<td>Reference grid</td>
+<td><code>size</code>, <code>divisions</code>, <code>color</code></td>
+</tr>
+<tr>
+<td><code>Text3D</code></td>
+<td>3D text (SDF)</td>
+<td><code>text</code>, <code>fontSize</code>, <code>color</code>, <code>anchorX</code>, <code>anchorY</code></td>
+</tr>
+<tr>
+<td><code>PerspectiveCamera</code></td>
+<td>Camera</td>
+<td><code>position</code>, <code>fov</code>, <code>near</code>, <code>far</code>, <code>makeDefault</code></td>
+</tr>
+<tr>
+<td><code>OrbitControls</code></td>
+<td>Camera controls</td>
+<td><code>enableDamping</code>, <code>enableZoom</code>, <code>autoRotate</code></td>
+</tr>
+</tbody>
+</table>
+
+## Shared Schemas
+
+Reusable Zod schemas for custom 3D components:
+
+```tsx
+import {'{ vector3Schema, materialSchema, transformProps, shadowProps }'} from "@json-render/react-three-fiber";
+```
+
+<table>
+<thead>
+<tr>
+<th>Export</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>vector3Schema</code></td>
+<td><code>z.tuple([z.number(), z.number(), z.number()])</code></td>
+</tr>
+<tr>
+<td><code>materialSchema</code></td>
+<td>Standard material props (color, metalness, roughness, etc.)</td>
+</tr>
+<tr>
+<td><code>transformProps</code></td>
+<td><code>{'{ position, rotation, scale }'}</code> schema fields</td>
+</tr>
+<tr>
+<td><code>shadowProps</code></td>
+<td><code>{'{ castShadow, receiveShadow }'}</code> schema fields</td>
+</tr>
+</tbody>
+</table>
+
+## ThreeRenderer
+
+<table>
+<thead>
+<tr>
+<th>Prop</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>spec</code></td>
+<td><code>Spec | null</code></td>
+<td>The spec to render as a 3D scene</td>
+</tr>
+<tr>
+<td><code>registry</code></td>
+<td><code>ComponentRegistry</code></td>
+<td>Component registry from <code>defineRegistry</code></td>
+</tr>
+<tr>
+<td><code>store</code></td>
+<td><code>StateStore</code></td>
+<td>External state store (controlled mode)</td>
+</tr>
+<tr>
+<td><code>initialState</code></td>
+<td><code>Record&lt;string, unknown&gt;</code></td>
+<td>Initial state (uncontrolled mode)</td>
+</tr>
+<tr>
+<td><code>handlers</code></td>
+<td><code>Record&lt;string, Function&gt;</code></td>
+<td>Action handlers</td>
+</tr>
+<tr>
+<td><code>loading</code></td>
+<td><code>boolean</code></td>
+<td>Whether the spec is streaming</td>
+</tr>
+<tr>
+<td><code>children</code></td>
+<td><code>ReactNode</code></td>
+<td>Additional R3F elements alongside the spec</td>
+</tr>
+</tbody>
+</table>
+
+## ThreeCanvas
+
+Extends <code>ThreeRendererProps</code> with Canvas options:
+
+<table>
+<thead>
+<tr>
+<th>Prop</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>shadows</code></td>
+<td><code>boolean</code></td>
+<td>Enable shadow maps</td>
+</tr>
+<tr>
+<td><code>camera</code></td>
+<td><code>object</code></td>
+<td>Default camera config (position, fov, etc.)</td>
+</tr>
+<tr>
+<td><code>className</code></td>
+<td><code>string</code></td>
+<td>CSS class for the canvas container</td>
+</tr>
+<tr>
+<td><code>style</code></td>
+<td><code>CSSProperties</code></td>
+<td>Inline styles for the canvas container</td>
+</tr>
+</tbody>
+</table>
+
+## Type Helpers
+
+```tsx
+import type {'{ ThreeProps }'} from "@json-render/react-three-fiber";
+
+type BoxProps = ThreeProps<"Box">;
+type SphereProps = ThreeProps<"Sphere">;
+```

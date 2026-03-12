@@ -1,6 +1,6 @@
 {
   "name": "@json-render/jotai",
-  "version": "0.12.1",
+  "version": "0.13.0",
   "license": "Apache-2.0",
   "description": "Jotai adapter for json-render StateStore",
   "keywords": [

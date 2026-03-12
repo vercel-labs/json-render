@@ -1,6 +1,6 @@
 {
   "name": "@json-render/svelte",
-  "version": "0.12.1",
+  "version": "0.13.0",
   "license": "Apache-2.0",
   "description": "Svelte 5 renderer for @json-render/core. JSON becomes Svelte components.",
   "keywords": [
