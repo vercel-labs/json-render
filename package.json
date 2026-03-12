@@ -32,6 +32,7 @@
     "@sveltejs/vite-plugin-svelte": "^6.2.4",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.1",
+    "@solidjs/testing-library": "^0.8.10",
     "@testing-library/svelte": "^5.2.0",
     "@types/react": "^19.2.3",
     "husky": "^9.1.7",
@@ -40,9 +41,11 @@
     "prettier": "^3.7.4",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "solid-js": "^1.9.11",
     "svelte": "^5.0.0",
     "turbo": "^2.7.4",
     "typescript": "5.9.2",
+    "vite-plugin-solid": "^2.11.10",
     "vitest": "^4.0.17"
   },
   "packageManager": "pnpm@10.29.3",
@@ -51,5 +54,12 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": "prettier --write"
-  }
+  },
+  "workspaces": [
+    "apps/*",
+    "examples/*",
+    "examples/stripe-app/*",
+    "packages/*",
+    "tests/*"
+  ]
 }

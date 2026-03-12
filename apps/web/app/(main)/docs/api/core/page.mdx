@@ -75,7 +75,7 @@ interface Catalog {
 interface PromptOptions {
   system?: string;           // Custom system message intro
   customRules?: string[];    // Additional rules to append
-  mode?: "generate" | "chat"; // Output mode (default: "generate")
+  mode?: "standalone" | "inline" | "generate" | "chat"; // Output mode (default: "standalone")
 }
 
 interface SpecValidationResult<T> {
@@ -370,7 +370,7 @@ Most users should use `pipeJsonRender()` instead, which wraps this transform for
 
 ### createMixedStreamParser
 
-Parse a mixed stream of text and JSONL patches (used for Chat + GenUI mode):
+Parse a mixed stream of text and JSONL patches (used for Inline mode):
 
 ```typescript
 import { createMixedStreamParser } from '@json-render/core';
@@ -389,7 +389,7 @@ parser.flush();
 
 ### pipeJsonRender
 
-Pipe an AI SDK `UIMessageStream` through the json-render transform. Lines that parse as JSONL patches are emitted as `data-spec` parts; everything else passes through as text. Used in Chat mode API routes.
+Pipe an AI SDK `UIMessageStream` through the json-render transform. Lines that parse as JSONL patches are emitted as `data-spec` parts; everything else passes through as text. Used in Inline mode API routes.
 
 ```typescript
 import { pipeJsonRender } from '@json-render/core';
@@ -403,7 +403,7 @@ const stream = createUIMessageStream({
 return createUIMessageStreamResponse({ stream });
 ```
 
-See [Generation Modes](/docs/generation-modes) for full Chat mode setup.
+See [Generation Modes](/docs/generation-modes) for full Inline mode setup.
 
 ### SpecStream Types
 

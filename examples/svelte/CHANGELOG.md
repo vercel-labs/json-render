@@ -1,5 +1,13 @@
 # example-svelte
 
+## 0.1.3
+
+### Patch Changes
+
+- Updated dependencies [54a1ecf]
+  - @json-render/core@0.12.1
+  - @json-render/svelte@0.12.1
+
 ## 0.1.2
 
 ### Patch Changes

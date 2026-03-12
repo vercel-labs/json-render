@@ -62,7 +62,7 @@ INPUT COMPONENTS:
 - Button: Clickable button. Use on.press to trigger actions.
 
 ${explorerCatalog.prompt({
-  mode: "chat",
+  mode: "inline",
   customRules: [
     "NEVER use viewport height classes (min-h-screen, h-screen) — the UI renders inside a fixed-size container.",
     "Prefer Grid with columns='2' or columns='3' for side-by-side layouts.",

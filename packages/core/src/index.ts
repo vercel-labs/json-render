@@ -160,6 +160,7 @@ export { defineSchema } from "./schema";
 // Catalog — defines the vocabulary (what components and actions are available)
 export type {
   Catalog,
+  JsonSchemaOptions,
   PromptOptions,
   PromptContext,
   SpecValidationResult,

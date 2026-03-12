@@ -257,7 +257,7 @@ describe("catalog.prompt", () => {
     expect(prompt).toContain("Keep UIs simple");
   });
 
-  it("generates chat mode prompt when mode is chat", () => {
+  it("generates inline mode prompt when mode is inline", () => {
     const catalog = defineCatalog(testSchema, {
       components: {
         Text: {
@@ -268,13 +268,13 @@ describe("catalog.prompt", () => {
       },
       actions: {},
     });
-    const prompt = catalog.prompt({ mode: "chat" });
+    const prompt = catalog.prompt({ mode: "inline" });
     expect(prompt).toContain("```spec");
     expect(prompt).toContain("conversationally");
     expect(prompt).toContain("text + JSONL");
   });
 
-  it("generates generate mode prompt by default", () => {
+  it("generates standalone mode prompt by default", () => {
     const catalog = defineCatalog(testSchema, {
       components: {
         Text: {
@@ -288,6 +288,38 @@ describe("catalog.prompt", () => {
     const prompt = catalog.prompt();
     expect(prompt).toContain("Output ONLY JSONL patches");
     expect(prompt).not.toContain("conversationally");
+  });
+
+  it("accepts deprecated 'chat' as alias for 'inline'", () => {
+    const catalog = defineCatalog(testSchema, {
+      components: {
+        Text: {
+          props: z.object({}),
+          description: "",
+          slots: [],
+        },
+      },
+      actions: {},
+    });
+    const inlinePrompt = catalog.prompt({ mode: "inline" });
+    const chatPrompt = catalog.prompt({ mode: "chat" });
+    expect(chatPrompt).toEqual(inlinePrompt);
+  });
+
+  it("accepts deprecated 'generate' as alias for 'standalone'", () => {
+    const catalog = defineCatalog(testSchema, {
+      components: {
+        Text: {
+          props: z.object({}),
+          description: "",
+          slots: [],
+        },
+      },
+      actions: {},
+    });
+    const standalonePrompt = catalog.prompt({ mode: "standalone" });
+    const generatePrompt = catalog.prompt({ mode: "generate" });
+    expect(generatePrompt).toEqual(standalonePrompt);
   });
 
   it("uses actual catalog component names in examples", () => {
@@ -559,6 +591,194 @@ describe("catalog.jsonSchema", () => {
     expect(jsonSchema).toBeDefined();
     expect(jsonSchema).not.toBeNull();
     expect(typeof jsonSchema).toBe("object");
+  });
+
+  describe("strict mode (LLM structured output compatible)", () => {
+    function hasNoPropertyNames(obj: unknown): boolean {
+      if (typeof obj !== "object" || obj === null) return true;
+      if ("propertyNames" in obj) return false;
+      return Object.values(obj).every(hasNoPropertyNames);
+    }
+
+    function allObjectsHaveAdditionalPropertiesFalse(obj: unknown): boolean {
+      if (typeof obj !== "object" || obj === null) return true;
+      const record = obj as Record<string, unknown>;
+      if (record.type === "object") {
+        if (record.additionalProperties !== false) return false;
+      }
+      return Object.values(record).every(
+        allObjectsHaveAdditionalPropertiesFalse,
+      );
+    }
+
+    function allObjectPropertiesRequired(obj: unknown): boolean {
+      if (typeof obj !== "object" || obj === null) return true;
+      const record = obj as Record<string, unknown>;
+      if (
+        record.type === "object" &&
+        record.properties &&
+        typeof record.properties === "object"
+      ) {
+        const propKeys = Object.keys(record.properties);
+        const required = (record.required as string[]) ?? [];
+        if (!propKeys.every((k) => required.includes(k))) return false;
+      }
+      return Object.values(record).every(allObjectPropertiesRequired);
+    }
+
+    it("sets additionalProperties: false on all nested objects", () => {
+      const catalog = defineCatalog(testSchema, {
+        components: {
+          Card: {
+            props: z.object({
+              title: z.string(),
+              subtitle: z.string().optional(),
+            }),
+            description: "",
+            slots: [],
+          },
+        },
+        actions: {},
+      });
+      const schema = catalog.jsonSchema({ strict: true });
+      expect(allObjectsHaveAdditionalPropertiesFalse(schema)).toBe(true);
+    });
+
+    it("does not emit propertyNames", () => {
+      const catalog = defineCatalog(testSchema, {
+        components: {
+          Text: {
+            props: z.object({ content: z.string() }),
+            description: "",
+            slots: [],
+          },
+        },
+        actions: {},
+      });
+      const schema = catalog.jsonSchema({ strict: true });
+      expect(hasNoPropertyNames(schema)).toBe(true);
+    });
+
+    it("lists all properties in required (optional uses nullable)", () => {
+      const catalog = defineCatalog(testSchema, {
+        components: {
+          Card: {
+            props: z.object({
+              title: z.string(),
+              subtitle: z.string().optional(),
+            }),
+            description: "",
+            slots: [],
+          },
+        },
+        actions: {},
+      });
+      const schema = catalog.jsonSchema({ strict: true });
+      expect(allObjectPropertiesRequired(schema)).toBe(true);
+    });
+
+    it("converts record types without additionalProperties schema value", () => {
+      const catalog = defineCatalog(testSchema, {
+        components: {
+          Text: {
+            props: z.object({ content: z.string() }),
+            description: "",
+            slots: [],
+          },
+        },
+        actions: {},
+      });
+      const schema = catalog.jsonSchema({
+        strict: true,
+      }) as Record<string, unknown>;
+
+      // Walk the schema and ensure no additionalProperties is set to a non-false value
+      function noAdditionalPropertiesSchema(obj: unknown): boolean {
+        if (typeof obj !== "object" || obj === null) return true;
+        const rec = obj as Record<string, unknown>;
+        if (
+          "additionalProperties" in rec &&
+          rec.additionalProperties !== false
+        ) {
+          return false;
+        }
+        return Object.values(rec).every(noAdditionalPropertiesSchema);
+      }
+      expect(noAdditionalPropertiesSchema(schema)).toBe(true);
+    });
+
+    it("wraps optional properties with anyOf nullable", () => {
+      // Use a schema where propsOf resolves to a single component's props
+      // (no record wrapper around the props) so the optional anyOf handling
+      // is directly visible in the JSON Schema output.
+      const flatSchema = defineSchema((s) => ({
+        spec: s.object({
+          component: s.object({
+            type: s.ref("catalog.components"),
+            props: s.propsOf("catalog.components"),
+          }),
+        }),
+        catalog: s.object({
+          components: s.map({
+            props: s.zod(),
+            description: s.string(),
+          }),
+        }),
+      }));
+
+      const catalog = defineCatalog(flatSchema, {
+        components: {
+          Card: {
+            props: z.object({
+              heading: z.string(),
+              caption: z.string().optional(),
+            }),
+            description: "",
+          },
+        },
+      });
+
+      const schema = catalog.jsonSchema({ strict: true }) as {
+        properties: {
+          component: {
+            properties: { props: Record<string, unknown> };
+          };
+        };
+      };
+
+      const propsSchema = schema.properties.component.properties.props;
+
+      // caption is optional – in strict mode it must be in `required`
+      // and wrapped in anyOf with null
+      const captionSchema = (
+        propsSchema as {
+          properties: { caption: Record<string, unknown> };
+        }
+      ).properties.caption;
+      expect(captionSchema).toEqual({
+        anyOf: [{ type: "string" }, { type: "null" }],
+      });
+
+      const propsRequired = (propsSchema as { required: string[] }).required;
+      expect(propsRequired).toContain("heading");
+      expect(propsRequired).toContain("caption");
+    });
+
+    it("does not affect default (non-strict) output", () => {
+      const catalog = defineCatalog(testSchema, {
+        components: {
+          Text: {
+            props: z.object({ content: z.string() }),
+            description: "",
+            slots: [],
+          },
+        },
+        actions: {},
+      });
+      const defaultSchema = catalog.jsonSchema();
+      const defaultSchema2 = catalog.jsonSchema({ strict: false });
+      expect(defaultSchema).toEqual(defaultSchema2);
+    });
   });
 });
 

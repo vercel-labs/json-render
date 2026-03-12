@@ -1,6 +1,6 @@
 {
   "name": "@json-render/shadcn",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "license": "Apache-2.0",
   "description": "shadcn/ui component library for @json-render/core. JSON becomes beautiful Tailwind-styled React components.",
   "keywords": [
@@ -22,7 +22,7 @@
     "url": "git+https://github.com/vercel-labs/json-render.git",
     "directory": "packages/shadcn"
   },
-  "homepage": "https://github.com/vercel-labs/json-render#readme",
+  "homepage": "https://json-render.dev",
   "bugs": {
     "url": "https://github.com/vercel-labs/json-render/issues"
   },

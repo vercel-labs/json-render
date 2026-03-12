@@ -3,7 +3,7 @@ export const metadata = pageMetadata("docs/ai-sdk")
 
 # AI SDK Integration
 
-Use json-render with the [Vercel AI SDK](https://sdk.vercel.ai) for seamless streaming. json-render supports two modes: **Generate** (standalone UI) and **Chat** (UI embedded in conversation). See [Generation Modes](/docs/generation-modes) for a detailed comparison.
+Use json-render with the [Vercel AI SDK](https://sdk.vercel.ai) for seamless streaming. json-render supports two modes: **Standalone** (standalone UI) and **Inline** (UI embedded in conversation). See [Generation Modes](/docs/generation-modes) for a detailed comparison.
 
 ## Installation
 
@@ -11,9 +11,9 @@ Use json-render with the [Vercel AI SDK](https://sdk.vercel.ai) for seamless str
 npm install ai @ai-sdk/react
 ```
 
-## Generate Mode
+## Standalone Mode
 
-In generate mode, the AI outputs only JSONL patches. The entire response is a UI spec with no prose. This is the default mode and is ideal for playgrounds, builders, and dashboard generators.
+In standalone mode, the AI outputs only JSONL patches. The entire response is a UI spec with no prose. This is the default mode and is ideal for playgrounds, builders, and dashboard generators.
 
 ### API Route
 
@@ -73,9 +73,9 @@ function GenerativeUI() {
 }
 ```
 
-## Chat Mode
+## Inline Mode
 
-In chat mode, the AI responds conversationally and includes JSONL patches inline. Text-only replies are allowed when no UI is needed. This is ideal for chatbots, copilots, and educational assistants.
+In inline mode, the AI responds conversationally and includes JSONL patches inline. Text-only replies are allowed when no UI is needed. This is ideal for chatbots, copilots, and educational assistants.
 
 ### API Route
 
@@ -96,7 +96,7 @@ export async function POST(req: Request) {
 
   const result = streamText({
     model: yourModel,
-    system: catalog.prompt({ mode: "chat" }),
+    system: catalog.prompt({ mode: "inline" }),
     messages,
   });
 
@@ -182,13 +182,13 @@ const systemPrompt = catalog.prompt({
 });
 ```
 
-### Chat Mode Prompt
+### Inline Mode Prompt
 
 ```typescript
-const chatPrompt = catalog.prompt({ mode: "chat" });
+const inlinePrompt = catalog.prompt({ mode: "inline" });
 ```
 
-In chat mode, the prompt instructs the AI to respond conversationally first, then include JSONL patches on their own lines when UI is needed. Text-only replies are allowed.
+In inline mode, the prompt instructs the AI to respond conversationally first, then include JSONL patches on their own lines when UI is needed. Text-only replies are allowed.
 
 ## Which Mode?
 
@@ -197,8 +197,8 @@ In chat mode, the prompt instructs the AI to respond conversationally first, the
     <thead>
       <tr>
         <th></th>
-        <th>Generate</th>
-        <th>Chat</th>
+        <th>Standalone</th>
+        <th>Inline</th>
       </tr>
     </thead>
     <tbody>
@@ -215,7 +215,7 @@ In chat mode, the prompt instructs the AI to respond conversationally first, the
       <tr>
         <td>System prompt</td>
         <td><code>catalog.prompt()</code></td>
-        <td><code>{"catalog.prompt({ mode: \"chat\" })"}</code></td>
+        <td><code>{"catalog.prompt({ mode: \"inline\" })"}</code></td>
       </tr>
       <tr>
         <td>Stream utility</td>

@@ -42,5 +42,16 @@
         .join(" ")}>
       Svelte
     </button>
+    <button
+      type="button"
+      onclick={() => emit("pressSolid")}
+      class={[
+        "json-render-renderer-tab",
+        props.renderer === "solid" && "json-render-renderer-tab--active",
+      ]
+        .filter(Boolean)
+        .join(" ")}>
+      Solid
+    </button>
   </div>
 </div>

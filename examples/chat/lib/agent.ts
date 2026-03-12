@@ -130,7 +130,7 @@ When the user asks for a quiz, test, or Q&A, build an interactive experience:
 4. You can also add a final score section that becomes visible when all questions are submitted.
 
 ${explorerCatalog.prompt({
-  mode: "chat",
+  mode: "inline",
   customRules: [
     "NEVER use viewport height classes (min-h-screen, h-screen) — the UI renders inside a fixed-size container.",
     "Prefer Grid with columns='2' or columns='3' for side-by-side layouts.",

@@ -227,7 +227,7 @@ Schema options:
 | `ActionBinding` | Action binding with `action`, `params`, `confirm`, `preventDefault`, etc. |
 | `BuiltInAction` | Built-in action definition with `name` and `description` |
 
-### Chat Mode (Mixed Streams)
+### Inline Mode (Mixed Streams)
 
 | Export | Purpose |
 |--------|---------|

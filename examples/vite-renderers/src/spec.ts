@@ -10,7 +10,7 @@ export const demoSpec: Spec = {
       {
         id: 2,
         title:
-          "Try @json-render/vue, @json-render/react, and @json-render/svelte",
+          "Try @json-render/vue, @json-render/react, @json-render/svelte, and @json-render/solid",
         completed: false,
       },
       { id: 3, title: "Build something awesome", completed: false },
@@ -49,6 +49,7 @@ export const demoSpec: Spec = {
         pressVue: { action: "switchToVue" },
         pressReact: { action: "switchToReact" },
         pressSvelte: { action: "switchToSvelte" },
+        pressSolid: { action: "switchToSolid" },
       },
     },
 

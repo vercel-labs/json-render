@@ -3,15 +3,15 @@ export const metadata = pageMetadata("docs/generation-modes")
 
 # Generation Modes
 
-json-render supports two modes for AI-generated UI: **Generate mode** for standalone UI and **Chat mode** for inline UI within a conversation.
+json-render supports two modes for AI-generated UI: **Standalone mode** for standalone UI and **Inline mode** for inline UI within a conversation.
 
 The mode controls how the AI formats its output and how your app processes the stream. The underlying JSONL patch format is the same in both modes.
 
 <GenerationModesDiagram />
 
-## Generate Mode (Standalone)
+## Standalone Mode
 
-In generate mode, the AI outputs **only JSONL patches** — no prose, no markdown. The entire response is a UI spec.
+In standalone mode, the AI outputs **only JSONL patches** — no prose, no markdown. The entire response is a UI spec.
 
 This is the default mode and is ideal for:
 
@@ -25,7 +25,7 @@ This is the default mode and is ideal for:
 ```typescript
 import { streamText } from "ai";
 
-// Generate mode is the default (no mode option needed)
+// Standalone mode is the default (no mode option needed)
 const systemPrompt = catalog.prompt({
   customRules: [
     "Use Card as root for forms and small UIs.",
@@ -74,9 +74,9 @@ The AI outputs only JSONL — one patch per line, no surrounding text:
 {"op":"add","path":"/elements/submit","value":{"type":"Button","props":{"label":"Sign In"}}}
 ```
 
-## Chat Mode (Inline)
+## Inline Mode
 
-In chat mode, the AI responds **conversationally first**, then outputs JSONL patches on their own lines. Text-only replies are allowed when no UI is needed (e.g. greetings, clarifying questions).
+In inline mode, the AI responds **conversationally first**, then outputs JSONL patches on their own lines. Text-only replies are allowed when no UI is needed (e.g. greetings, clarifying questions).
 
 This is ideal for:
 
@@ -92,8 +92,8 @@ import { streamText } from "ai";
 import { pipeJsonRender } from "@json-render/core";
 import { createUIMessageStream, createUIMessageStreamResponse } from "ai";
 
-// Enable chat mode
-const systemPrompt = catalog.prompt({ mode: "chat" });
+// Enable inline mode
+const systemPrompt = catalog.prompt({ mode: "inline" });
 
 const result = streamText({
   model: yourModel,
@@ -180,8 +180,8 @@ If the user asks a simple question ("what does BTC stand for?"), the AI replies 
     <thead>
       <tr>
         <th />
-        <th>Generate</th>
-        <th>Chat</th>
+        <th>Standalone</th>
+        <th>Inline</th>
       </tr>
     </thead>
     <tbody>
@@ -198,7 +198,7 @@ If the user asks a simple question ("what does BTC stand for?"), the AI replies 
       <tr>
         <td>System prompt</td>
         <td><code>{"catalog.prompt()"}</code></td>
-        <td><code>{'catalog.prompt({ mode: "chat" })'}</code></td>
+        <td><code>{'catalog.prompt({ mode: "inline" })'}</code></td>
       </tr>
       <tr>
         <td>Stream utility</td>

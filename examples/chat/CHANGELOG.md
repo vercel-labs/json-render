@@ -1,5 +1,14 @@
 # example-chat
 
+## 0.1.6
+
+### Patch Changes
+
+- Updated dependencies [54a1ecf]
+  - @json-render/core@0.12.1
+  - @json-render/react@0.12.1
+  - @json-render/shadcn@0.12.1
+
 ## 0.1.5
 
 ### Patch Changes

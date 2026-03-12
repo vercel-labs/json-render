@@ -1,0 +1,23 @@
+{
+  "name": "example-solid",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "portless solid-demo.json-render vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@json-render/core": "workspace:*",
+    "@json-render/solid": "workspace:*",
+    "solid-js": "^1.9.11",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1",
+    "vite-plugin-solid": "^2.11.10"
+  }
+}
