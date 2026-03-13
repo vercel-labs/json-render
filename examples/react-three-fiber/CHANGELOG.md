@@ -1,5 +1,14 @@
 # example-react-three-fiber
 
+## 0.1.8
+
+### Patch Changes
+
+- Updated dependencies [a8afd8b]
+  - @json-render/core@0.14.0
+  - @json-render/react@0.14.0
+  - @json-render/react-three-fiber@0.14.0
+
 ## 0.1.7
 
 ### Patch Changes

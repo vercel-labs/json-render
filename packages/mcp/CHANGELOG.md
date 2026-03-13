@@ -1,5 +1,12 @@
 # @json-render/mcp
 
+## 0.14.0
+
+### Patch Changes
+
+- Updated dependencies [a8afd8b]
+  - @json-render/core@0.14.0
+
 ## 0.13.0
 
 ### Patch Changes

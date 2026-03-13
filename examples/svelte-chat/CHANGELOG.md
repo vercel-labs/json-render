@@ -1,5 +1,13 @@
 # svelte-chat
 
+## 0.0.5
+
+### Patch Changes
+
+- Updated dependencies [a8afd8b]
+  - @json-render/core@0.14.0
+  - @json-render/svelte@0.14.0
+
 ## 0.0.4
 
 ### Patch Changes
