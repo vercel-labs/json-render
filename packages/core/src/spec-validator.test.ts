@@ -129,6 +129,80 @@ describe("validateSpec", () => {
     expect(watchIssue!.elementKey).toBe("root");
   });
 
+  it("detects action_in_props (legacy pattern)", () => {
+    const spec: Spec = {
+      root: "root",
+      elements: {
+        root: {
+          type: "Button",
+          props: { label: "Submit", action: "submitForm" },
+          children: [],
+        },
+      },
+    };
+    const result = validateSpec(spec);
+    expect(result.valid).toBe(false);
+    expect(result.issues.some((i) => i.code === "action_in_props")).toBe(true);
+  });
+
+  it("detects actionParams_in_props (legacy pattern)", () => {
+    const spec: Spec = {
+      root: "root",
+      elements: {
+        root: {
+          type: "Button",
+          props: {
+            label: "Submit",
+            action: "submitForm",
+            actionParams: { formId: "main" },
+          },
+          children: [],
+        },
+      },
+    };
+    const result = validateSpec(spec);
+    expect(result.valid).toBe(false);
+    expect(result.issues.some((i) => i.code === "actionParams_in_props")).toBe(
+      true,
+    );
+  });
+
+  it("detects children_in_props", () => {
+    const spec: Spec = {
+      root: "root",
+      elements: {
+        root: {
+          type: "Stack",
+          props: { children: ["child1", "child2"] },
+          children: [],
+        },
+        child1: { type: "Text", props: {}, children: [] },
+        child2: { type: "Text", props: {}, children: [] },
+      },
+    };
+    const result = validateSpec(spec);
+    expect(result.valid).toBe(false);
+    expect(result.issues.some((i) => i.code === "children_in_props")).toBe(
+      true,
+    );
+  });
+
+  it("detects state_in_props", () => {
+    const spec: Spec = {
+      root: "root",
+      elements: {
+        root: {
+          type: "Stack",
+          props: { state: { count: 0 } },
+          children: [],
+        },
+      },
+    };
+    const result = validateSpec(spec);
+    expect(result.valid).toBe(false);
+    expect(result.issues.some((i) => i.code === "state_in_props")).toBe(true);
+  });
+
   it("detects orphaned elements when checkOrphans is true", () => {
     const spec: Spec = {
       root: "root",
@@ -246,5 +320,72 @@ describe("autoFixSpec", () => {
     };
     const { fixes } = autoFixSpec(spec);
     expect(fixes).toHaveLength(0);
+  });
+
+  it("moves children from props to element level", () => {
+    const spec: Spec = {
+      root: "root",
+      elements: {
+        root: {
+          type: "Stack",
+          props: { children: ["child1", "child2"] },
+          children: [],
+        },
+        child1: { type: "Text", props: {}, children: [] },
+        child2: { type: "Text", props: {}, children: [] },
+      },
+    };
+    const { spec: fixed, fixes } = autoFixSpec(spec);
+    expect(
+      (fixed.elements.root.props as Record<string, unknown>).children,
+    ).toBeUndefined();
+    expect(fixed.elements.root.children).toEqual(["child1", "child2"]);
+    expect(fixes.some((f) => f.includes('"children"'))).toBe(true);
+  });
+
+  it("converts legacy action/actionParams to on.press", () => {
+    const spec: Spec = {
+      root: "root",
+      elements: {
+        root: {
+          type: "Button",
+          props: {
+            label: "Submit",
+            action: "submitForm",
+            actionParams: { formId: "main" },
+          },
+          children: [],
+        },
+      },
+    };
+    const { spec: fixed, fixes } = autoFixSpec(spec);
+    const props = fixed.elements.root.props as Record<string, unknown>;
+    expect(props.action).toBeUndefined();
+    expect(props.actionParams).toBeUndefined();
+    expect(fixed.elements.root.on).toEqual({
+      press: {
+        action: "submitForm",
+        params: { formId: "main" },
+      },
+    });
+    expect(fixes.some((f) => f.includes("legacy"))).toBe(true);
+  });
+
+  it("converts legacy action without params to on.press", () => {
+    const spec: Spec = {
+      root: "root",
+      elements: {
+        root: {
+          type: "Button",
+          props: { label: "OK", action: "confirm" },
+          children: [],
+        },
+      },
+    };
+    const { spec: fixed, fixes } = autoFixSpec(spec);
+    expect(fixed.elements.root.on).toEqual({
+      press: { action: "confirm" },
+    });
+    expect(fixes.length).toBeGreaterThan(0);
   });
 });
