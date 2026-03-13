@@ -3,9 +3,20 @@ import { renderToHtml } from "@json-render/astro";
 import { registry } from "../lib/registry";
 import { demoSpec } from "../lib/spec";
 
+// Simulate request-time state (e.g. from a database, auth middleware, or API)
+// In a real Astro SSR app, this would come from Astro.cookies, fetch(), etc.
+const requestState = {
+  showBanner: true,
+  userRole: "admin",
+  // Override spec defaults with server-side data
+  serverTimestamp: new Date().toISOString(),
+};
+
+// renderToHtml is synchronous — no await needed.
+// State from options overrides spec.state, enabling per-request rendering.
 const html = renderToHtml(demoSpec, {
   registry,
-  state: { showBanner: true, userRole: "admin" },
+  state: requestState,
 });
 ---
 
@@ -38,5 +49,8 @@ const html = renderToHtml(demoSpec, {
   </head>
   <body>
     <div set:html={html} />
+    <footer style="max-width:640px;margin:24px auto 0;font-size:12px;color:#9ca3af">
+      Rendered at {requestState.serverTimestamp}
+    </footer>
   </body>
 </html>

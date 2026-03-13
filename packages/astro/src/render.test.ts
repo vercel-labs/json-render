@@ -384,6 +384,227 @@ describe("renderToHtml", () => {
 });
 
 // =============================================================================
+// SSR-specific concerns
+// =============================================================================
+
+describe("SSR safety", () => {
+  it("works without DOM globals (no window, document, navigator)", () => {
+    // The renderer is pure string concatenation — verify it never
+    // touches browser globals by running in a plain Node/Vitest context
+    const spec = simpleSpec({
+      root: {
+        type: "Container",
+        props: {},
+        children: ["heading", "text"],
+      },
+      heading: {
+        type: "Heading",
+        props: { text: "SSR", level: "h1" },
+        children: [],
+      },
+      text: {
+        type: "Text",
+        props: { content: "Server-rendered" },
+        children: [],
+      },
+    });
+    // If this throws, the renderer depends on browser APIs
+    const html = renderToHtml(spec, { registry: testRegistry });
+    expect(html).toContain("<h1>SSR</h1>");
+    expect(html).toContain("<p>Server-rendered</p>");
+  });
+
+  it("is synchronous (no promises, no async)", () => {
+    const spec = simpleSpec({
+      root: { type: "Text", props: { content: "sync" }, children: [] },
+    });
+    const result = renderToHtml(spec, { registry: testRegistry });
+    // Result is a plain string, not a Promise
+    expect(typeof result).toBe("string");
+    expect(result).not.toBeInstanceOf(Promise);
+  });
+
+  it("produces no script tags or event handlers in output", () => {
+    const spec = simpleSpec({
+      root: {
+        type: "Container",
+        props: {},
+        children: ["card", "link"],
+      },
+      card: {
+        type: "Card",
+        props: { title: "Test" },
+        children: ["text"],
+      },
+      text: {
+        type: "Text",
+        props: { content: "Content" },
+        children: [],
+      },
+      link: {
+        type: "Link",
+        props: { href: "https://example.com", text: "Click" },
+        children: [],
+      },
+    });
+    const html = renderToHtml(spec, { registry: testRegistry });
+    expect(html).not.toMatch(/<script[\s>]/i);
+    expect(html).not.toMatch(/\bon\w+\s*=/i); // no onclick, onload, etc.
+  });
+
+  it("escapes XSS attempts in HTML attributes (href, src, alt)", () => {
+    const spec = simpleSpec({
+      root: {
+        type: "Container",
+        props: {},
+        children: ["evil-link", "evil-image"],
+      },
+      "evil-link": {
+        type: "Link",
+        props: {
+          href: 'javascript:alert("xss")',
+          text: "Click me",
+        },
+        children: [],
+      },
+      "evil-image": {
+        type: "Image",
+        props: {
+          src: '" onerror="alert(1)',
+          alt: '"><script>alert(2)</script>',
+        },
+        children: [],
+      },
+    });
+    const html = renderToHtml(spec, { registry: testRegistry });
+    // href should be escaped (quotes neutralized)
+    expect(html).not.toContain('onerror="alert');
+    expect(html).not.toContain("<script>");
+    expect(html).toContain("&quot;");
+  });
+
+  it("handles unicode content correctly", () => {
+    const spec = simpleSpec({
+      root: {
+        type: "Text",
+        props: { content: "Cafe\u0301 \u2603 \u{1F680} \u4F60\u597D" },
+        children: [],
+      },
+    });
+    const html = renderToHtml(spec, { registry: testRegistry });
+    expect(html).toContain("\u2603"); // snowman
+    expect(html).toContain("\u{1F680}"); // rocket emoji
+    expect(html).toContain("\u4F60\u597D"); // Chinese characters
+  });
+
+  it("resolves all state at render time (simulating request-time data)", () => {
+    // Simulates an SSR scenario: different state per request
+    const spec = simpleSpec({
+      root: {
+        type: "Container",
+        props: {},
+        children: ["greeting", "role-badge"],
+      },
+      greeting: {
+        type: "Heading",
+        props: {
+          text: {
+            $cond: { $state: "/isLoggedIn" },
+            $then: { $state: "/userName" },
+            $else: "Guest",
+          },
+          level: "h1",
+        },
+        children: [],
+      },
+      "role-badge": {
+        type: "Text",
+        props: { content: { $state: "/role" } },
+        children: [],
+        visible: { $state: "/isLoggedIn" },
+      },
+    });
+
+    // Request 1: logged-in admin
+    const admin = renderToHtml(spec, {
+      registry: testRegistry,
+      state: { isLoggedIn: true, userName: "Alice", role: "admin" },
+    });
+    expect(admin).toContain("Alice");
+    expect(admin).toContain("admin");
+
+    // Request 2: anonymous visitor
+    const guest = renderToHtml(spec, {
+      registry: testRegistry,
+      state: { isLoggedIn: false, userName: "", role: "" },
+    });
+    expect(guest).toContain("Guest");
+    expect(guest).not.toContain("admin");
+  });
+
+  it("renders different output for different state (no caching leak)", () => {
+    const spec = simpleSpec({
+      root: {
+        type: "Text",
+        props: { content: { $state: "/message" } },
+        children: [],
+      },
+    });
+
+    const a = renderToHtml(spec, {
+      registry: testRegistry,
+      state: { message: "Request A" },
+    });
+    const b = renderToHtml(spec, {
+      registry: testRegistry,
+      state: { message: "Request B" },
+    });
+
+    expect(a).toContain("Request A");
+    expect(a).not.toContain("Request B");
+    expect(b).toContain("Request B");
+    expect(b).not.toContain("Request A");
+  });
+
+  it("handles repeat with $index for position-aware rendering", () => {
+    const indexRegistry: ComponentRegistry = {
+      ...testRegistry,
+      IndexItem: ({ props }) =>
+        `<li data-index="${escapeHtml(props.index)}">${escapeHtml(props.name)}</li>`,
+    };
+
+    const spec: Spec = {
+      root: "list",
+      elements: {
+        list: {
+          type: "List",
+          props: {},
+          children: ["item"],
+          repeat: { statePath: "/users" },
+        },
+        item: {
+          type: "IndexItem",
+          props: {
+            name: { $item: "name" },
+            index: { $index: true },
+          },
+          children: [],
+        },
+      },
+      state: {
+        users: [{ name: "Alice" }, { name: "Bob" }],
+      },
+    };
+
+    const html = renderToHtml(spec, { registry: indexRegistry });
+    expect(html).toContain('data-index="0"');
+    expect(html).toContain('data-index="1"');
+    expect(html).toContain("Alice");
+    expect(html).toContain("Bob");
+  });
+});
+
+// =============================================================================
 // escapeHtml
 // =============================================================================
 

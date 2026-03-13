@@ -32,6 +32,7 @@ export const demoSpec: Spec = {
         "banner",
         "features-card",
         "admin-card",
+        "timestamp-card",
         "links-card",
       ],
     },
@@ -94,6 +95,24 @@ export const demoSpec: Spec = {
         },
       },
       children: [],
+    },
+
+    // Server timestamp (resolved from request-time state)
+    "timestamp-card": {
+      type: "Card",
+      props: {
+        title: "Server Info",
+        subtitle: null,
+      },
+      children: ["timestamp-text"],
+    },
+    "timestamp-text": {
+      type: "Text",
+      props: {
+        content: { $state: "/serverTimestamp" },
+      },
+      children: [],
+      visible: { $state: "/serverTimestamp" },
     },
 
     // Links
