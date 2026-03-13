@@ -562,6 +562,65 @@ describe("createSpecStreamCompiler", () => {
     const result = compiler.getResult();
     expect(result).toEqual({ z: 1, w: 2 });
   });
+
+  describe("onError callback", () => {
+    it("calls onError for malformed JSON", () => {
+      const errors: string[] = [];
+      const compiler = createSpecStreamCompiler({
+        onError: (line) => errors.push(line),
+      });
+
+      compiler.push('{"op":"add"\n'); // Missing closing brace
+      compiler.push('not-json\n');
+      compiler.push('{"invalid":}\n'); // Invalid JSON
+
+      expect(errors).toHaveLength(2);
+      expect(errors[0]).toContain('{"op":"add"');
+      expect(errors[1]).toContain('{"invalid":}');
+    });
+
+    it("calls onError when patch application fails", () => {
+      const errors: Array<{ line: string; error?: unknown }> = [];
+      const compiler = createSpecStreamCompiler({
+        onError: (line, error) => errors.push({ line, error }),
+      });
+
+      // Valid JSON but test operation fails
+      compiler.push('{"op":"test","path":"/x","value":"wrong"}\n');
+
+      expect(errors).toHaveLength(1);
+      expect(errors[0]?.error).toBeDefined();
+    });
+
+    it("does not call onError for valid patches", () => {
+      const errors: string[] = [];
+      const compiler = createSpecStreamCompiler({
+        onError: (line) => errors.push(line),
+      });
+
+      compiler.push('{"op":"add","path":"/x","value":1}\n');
+      const result = compiler.getResult();
+
+      expect(errors).toHaveLength(0);
+      expect(result).toEqual({ x: 1 });
+    });
+
+    it("continues processing after errors", () => {
+      const errors: string[] = [];
+      const compiler = createSpecStreamCompiler({
+        onError: (line) => errors.push(line),
+      });
+
+      compiler.push('{"invalid"}\n');
+      compiler.push('{"op":"add","path":"/x","value":1}\n');
+      compiler.push('{broken\n');
+      compiler.push('{"op":"add","path":"/y","value":2}\n');
+
+      expect(errors).toHaveLength(2);
+      const result = compiler.getResult();
+      expect(result).toEqual({ x: 1, y: 2 });
+    });
+  });
 });
 
 // =============================================================================
