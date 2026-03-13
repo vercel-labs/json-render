@@ -672,6 +672,7 @@ pnpm dev
 - Vue Example: run `pnpm dev` in `examples/vue`
 - Vite Renderers (React + Vue + Svelte + Solid): run `pnpm dev` in `examples/vite-renderers`
 - React Native example: run `npx expo start` in `examples/react-native`
+- Astro SSR Example: run `pnpm dev` in `examples/astro`
 
 ## How It Works
 
