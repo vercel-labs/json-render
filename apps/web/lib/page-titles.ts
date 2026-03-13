@@ -61,6 +61,7 @@ export const PAGE_TITLES: Record<string, string> = {
   "docs/api/xstate": "@json-render/xstate API",
   "docs/api/ink": "@json-render/ink API",
   "docs/api/yaml": "@json-render/yaml API",
+  "docs/api/astro": "@json-render/astro API",
 };
 
 /**

@@ -90,6 +90,7 @@ export const docsNavigation: NavSection[] = [
       { title: "@json-render/jotai", href: "/docs/api/jotai" },
       { title: "@json-render/xstate", href: "/docs/api/xstate" },
       { title: "@json-render/yaml", href: "/docs/api/yaml" },
+      { title: "@json-render/astro", href: "/docs/api/astro" },
     ],
   },
 ];

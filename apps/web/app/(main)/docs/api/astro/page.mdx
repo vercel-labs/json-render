@@ -1,0 +1,237 @@
+import { pageMetadata } from "@/lib/page-metadata"
+export const metadata = pageMetadata("docs/api/astro")
+
+# @json-render/astro
+
+SSR renderer. Turn JSON specs into HTML strings on the server. Zero framework dependencies -- works in Astro, Cloudflare Workers, Node.js, Deno, Bun, or any server environment.
+
+## Install
+
+```bash
+npm install @json-render/core @json-render/astro
+```
+
+## schema
+
+The SSR element schema for HTML specs. Use with `defineCatalog` from core.
+
+```typescript
+import { defineCatalog } from '@json-render/core';
+import { schema } from '@json-render/astro';
+import { z } from 'zod';
+
+const catalog = defineCatalog(schema, {
+  components: {
+    Card: {
+      props: z.object({ title: z.string() }),
+      description: 'A card container',
+    },
+    Text: {
+      props: z.object({ content: z.string() }),
+      description: 'Body text paragraph',
+    },
+  },
+});
+```
+
+## Render Function
+
+Server-side function for producing HTML output. Accepts a spec and `RenderOptions`.
+
+```typescript
+import { renderToHtml, escapeHtml } from '@json-render/astro/render';
+
+const registry = {
+  Card: ({ props, children }) =>
+    `<div class="card"><h3>${escapeHtml(props.title)}</h3>${children}</div>`,
+  Text: ({ props }) =>
+    `<p>${escapeHtml(props.content)}</p>`,
+};
+
+const html = renderToHtml(spec, { registry, state: { theme: 'dark' } });
+```
+
+### RenderOptions
+
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>Type</th>
+      <th>Default</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>registry</code></td>
+      <td><code>{"ComponentRegistry"}</code></td>
+      <td>(required)</td>
+      <td>Map of component type names to render functions</td>
+    </tr>
+    <tr>
+      <td><code>state</code></td>
+      <td><code>{"Record<string, unknown>"}</code></td>
+      <td><code>{"{}"}</code></td>
+      <td>Initial state for <code>$state</code> / <code>$cond</code> dynamic prop resolution</td>
+    </tr>
+  </tbody>
+</table>
+
+### escapeHtml
+
+Escape HTML special characters to prevent XSS. Use in component render functions for any user-provided content.
+
+```typescript
+import { escapeHtml } from '@json-render/astro';
+
+const safe = escapeHtml('<script>alert("xss")</script>');
+// => &lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;
+```
+
+## Component Registry
+
+Unlike React/Vue renderers, the Astro SSR registry uses plain functions that return HTML strings.
+
+```typescript
+import type { ComponentRegistry } from '@json-render/astro';
+
+const registry: ComponentRegistry = {
+  Section: ({ props, children }) =>
+    `<section id="${escapeHtml(props.id)}">${children}</section>`,
+  Heading: ({ props }) =>
+    `<${props.level || 'h2'}>${escapeHtml(props.text)}</${props.level || 'h2'}>`,
+  Text: ({ props }) =>
+    `<p>${escapeHtml(props.content)}</p>`,
+};
+```
+
+Each function receives:
+
+<table>
+  <thead>
+    <tr>
+      <th>Prop</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>props</code></td>
+      <td><code>P</code></td>
+      <td>Resolved props (all <code>$state</code>/<code>$cond</code> expressions already evaluated)</td>
+    </tr>
+    <tr>
+      <td><code>children</code></td>
+      <td><code>string</code></td>
+      <td>Pre-rendered children as HTML string</td>
+    </tr>
+  </tbody>
+</table>
+
+## Usage with Astro
+
+```astro
+---
+import { renderToHtml } from '@json-render/astro';
+
+const html = renderToHtml(spec, { registry });
+---
+
+<div set:html={html} />
+```
+
+## Usage with Cloudflare Workers
+
+```typescript
+import { renderToHtml } from '@json-render/astro/render';
+
+export default {
+  async fetch(request) {
+    const spec = await getSpec(request);
+    const html = renderToHtml(spec, { registry });
+    return new Response(html, {
+      headers: { 'Content-Type': 'text/html' },
+    });
+  },
+};
+```
+
+## Server-Safe Import
+
+Import schema and catalog definitions without the renderer:
+
+```typescript
+import { schema, defineCatalog } from '@json-render/astro/server';
+```
+
+## Sub-path Exports
+
+<table>
+  <thead>
+    <tr>
+      <th>Export</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>@json-render/astro</code></td>
+      <td>Full package: schema, renderer, types</td>
+    </tr>
+    <tr>
+      <td><code>@json-render/astro/server</code></td>
+      <td>Schema and catalog definitions only (no renderer)</td>
+    </tr>
+    <tr>
+      <td><code>@json-render/astro/render</code></td>
+      <td>Render functions and types only</td>
+    </tr>
+  </tbody>
+</table>
+
+## Types
+
+<table>
+  <thead>
+    <tr>
+      <th>Export</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>AstroSchema</code></td>
+      <td>Schema type for SSR specs</td>
+    </tr>
+    <tr>
+      <td><code>AstroSpec</code></td>
+      <td>Spec type for SSR output</td>
+    </tr>
+    <tr>
+      <td><code>RenderOptions</code></td>
+      <td>Options for <code>renderToHtml()</code></td>
+    </tr>
+    <tr>
+      <td><code>ComponentRenderProps</code></td>
+      <td>Props passed to component render functions</td>
+    </tr>
+    <tr>
+      <td><code>ComponentRenderer</code></td>
+      <td>Component render function type</td>
+    </tr>
+    <tr>
+      <td><code>ComponentRegistry</code></td>
+      <td>Map of component names to render functions</td>
+    </tr>
+    <tr>
+      <td><code>{"Components<C>"}</code></td>
+      <td>Typed registry for a specific catalog</td>
+    </tr>
+    <tr>
+      <td><code>{"ComponentFn<C, K>"}</code></td>
+      <td>Typed render function for a specific component</td>
+    </tr>
+  </tbody>
+</table>
