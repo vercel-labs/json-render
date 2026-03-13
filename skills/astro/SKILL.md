@@ -125,6 +125,27 @@ import { schema, defineCatalog } from "@json-render/astro/server";
 | `@json-render/astro/server` | Schema and catalog only (no renderer) |
 | `@json-render/astro/render` | Render functions only |
 
+## Astro Islands Pattern
+
+Use `@json-render/astro` for static content and framework renderers for interactive islands:
+
+```astro
+---
+import { renderToHtml } from "@json-render/astro";
+import Counter from "../components/Counter"; // React, Vue, Svelte, or Solid
+
+const staticHtml = renderToHtml(spec, { registry });
+---
+
+<!-- Static SSR (zero JS) -->
+<div set:html={staticHtml} />
+
+<!-- Interactive island (hydrated client-side) -->
+<Counter client:visible />
+```
+
+Supported island frameworks: React (`@json-render/react`), Vue (`@json-render/vue`), Svelte (`@json-render/svelte`), Solid (`@json-render/solid`). Each island uses its own renderer internally. Static sections ship no JavaScript.
+
 ## Key Differences from Other Renderers
 
 - **No framework dependency**: produces raw HTML strings, not React elements or Vue VNodes

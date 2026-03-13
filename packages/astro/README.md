@@ -127,6 +127,74 @@ export default {
 };
 ```
 
+## Astro Islands Pattern
+
+Use `@json-render/astro` for static content and framework-specific renderers (`@json-render/react`, `/vue`, `/svelte`, `/solid`) for interactive islands. This is the recommended architecture for Astro apps.
+
+### React Island
+
+```astro
+---
+// src/pages/index.astro
+import { renderToHtml } from "@json-render/astro";
+import Counter from "../components/Counter"; // React component
+
+const staticHtml = renderToHtml(spec, { registry });
+---
+
+<!-- Static SSR content (zero JS sent to browser) -->
+<div set:html={staticHtml} />
+
+<!-- Interactive React island (hydrated client-side) -->
+<Counter client:visible />
+```
+
+### Vue Island
+
+```astro
+---
+import { renderToHtml } from "@json-render/astro";
+import Dashboard from "../components/Dashboard.vue"; // Vue component
+
+const staticHtml = renderToHtml(spec, { registry });
+---
+
+<div set:html={staticHtml} />
+<Dashboard client:load />
+```
+
+### Svelte Island
+
+```astro
+---
+import { renderToHtml } from "@json-render/astro";
+import Form from "../components/Form.svelte"; // Svelte component
+
+const staticHtml = renderToHtml(spec, { registry });
+---
+
+<div set:html={staticHtml} />
+<Form client:visible />
+```
+
+### Solid Island
+
+```astro
+---
+import { renderToHtml } from "@json-render/astro";
+import Editor from "../components/Editor"; // Solid component
+
+const staticHtml = renderToHtml(spec, { registry });
+---
+
+<div set:html={staticHtml} />
+<Editor client:idle />
+```
+
+Each island component uses its own `@json-render/*` renderer internally (e.g., `defineRegistry` + `Renderer` from `@json-render/react`). The static sections rendered by `@json-render/astro` ship zero JavaScript to the browser.
+
+See the [islands example](https://github.com/vercel-labs/json-render/tree/main/examples/astro/src/pages/islands.astro) for a full working implementation with React.
+
 ## API Reference
 
 ### `renderToHtml(spec, options)`

@@ -1,0 +1,122 @@
+---
+/**
+ * Astro Islands demo: static SSR content + interactive React island.
+ *
+ * - The page structure and static content are rendered server-side
+ *   with @json-render/astro (renderToHtml → set:html).
+ * - The interactive counter is a React island hydrated client-side
+ *   with @json-render/react (client:visible).
+ *
+ * This is the recommended pattern for Astro apps: use @json-render/astro
+ * for static sections and @json-render/react (or /vue, /svelte, /solid)
+ * for interactive islands.
+ */
+import { renderToHtml, escapeHtml } from "@json-render/astro";
+import type { ComponentRegistry } from "@json-render/astro";
+import Counter from "../components/Counter";
+
+// --- Static SSR content (rendered at build/request time) ---
+
+const staticRegistry: ComponentRegistry = {
+  Section: ({ props, children }) =>
+    `<section${props.id ? ` id="${escapeHtml(props.id)}"` : ""}>${children}</section>`,
+  Heading: ({ props }) => {
+    const tag = props.level || "h2";
+    return `<${tag} style="margin:0">${escapeHtml(props.text)}</${tag}>`;
+  },
+  Text: ({ props }) =>
+    `<p style="margin:0;line-height:1.6;color:#4b5563">${escapeHtml(props.content)}</p>`,
+  Card: ({ props, children }) =>
+    `<article style="background:white;border-radius:12px;border:1px solid #e5e7eb;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.05)">
+      <h3 style="margin:0 0 8px;font-size:16px;font-weight:600;color:#111827">${escapeHtml(props.title)}</h3>
+      ${children}
+    </article>`,
+};
+
+const staticHtml = renderToHtml(
+  {
+    root: "root",
+    elements: {
+      root: {
+        type: "Section",
+        props: { id: "static-content" },
+        children: ["intro-card", "how-card"],
+      },
+      "intro-card": {
+        type: "Card",
+        props: { title: "Static SSR Content" },
+        children: ["intro-text"],
+      },
+      "intro-text": {
+        type: "Text",
+        props: {
+          content:
+            "This section is rendered to static HTML on the server using @json-render/astro. No JavaScript is sent to the browser for this content.",
+        },
+        children: [],
+      },
+      "how-card": {
+        type: "Card",
+        props: { title: "How Islands Work" },
+        children: ["how-text"],
+      },
+      "how-text": {
+        type: "Text",
+        props: {
+          content:
+            "The counter below is a React island hydrated with client:visible. It uses @json-render/react for interactive rendering. The rest of the page stays as static HTML.",
+        },
+        children: [],
+      },
+    },
+  },
+  { registry: staticRegistry },
+);
+---
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Astro Islands - @json-render/astro</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: #f9fafb; color: #111827; min-height: 100vh; padding: 24px;
+      }
+      .page { display: flex; flex-direction: column; gap: 16px; max-width: 640px; margin: 0 auto; }
+      section { display: flex; flex-direction: column; gap: 16px; }
+      .island-wrapper {
+        background: white; border-radius: 12px; border: 2px dashed #3b82f6;
+        padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      }
+      .island-label {
+        font-size: 11px; font-weight: 600; text-transform: uppercase;
+        letter-spacing: 0.05em; color: #3b82f6; margin-bottom: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <h1>Astro Islands Demo</h1>
+      <p style="color:#6b7280">
+        Static SSR via <code>@json-render/astro</code> +
+        interactive island via <code>@json-render/react</code>
+      </p>
+
+      <!-- Static SSR content (zero JS) -->
+      <div set:html={staticHtml} />
+
+      <!-- Interactive React island (hydrated client-side) -->
+      <div class="island-wrapper">
+        <div class="island-label">React Island (client:visible)</div>
+        <Counter client:visible />
+      </div>
+
+      <p style="font-size:12px;color:#9ca3af">
+        <a href="/">Back to main demo</a>
+      </p>
+    </div>
+  </body>
+</html>

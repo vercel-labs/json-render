@@ -11,12 +11,18 @@
     "check-types": "astro check"
   },
   "dependencies": {
+    "@astrojs/react": "^5.0.0",
     "@json-render/core": "workspace:*",
     "@json-render/astro": "workspace:*",
+    "@json-render/react": "workspace:*",
     "astro": "^6.0.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
     "typescript": "^5.9.3"
   }
 }

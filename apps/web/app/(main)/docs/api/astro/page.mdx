@@ -158,6 +158,65 @@ export default {
 };
 ```
 
+## Astro Islands
+
+Use `@json-render/astro` for static content and framework-specific renderers for interactive islands. This is the recommended pattern for Astro apps.
+
+```astro
+---
+import { renderToHtml } from '@json-render/astro';
+import Counter from '../components/Counter'; // React, Vue, Svelte, or Solid
+const staticHtml = renderToHtml(spec, { registry });
+---
+
+{'<!-- Static SSR content (zero JS sent to browser) -->'}
+<div set:html={staticHtml} />
+
+{'<!-- Interactive island (hydrated client-side) -->'}
+<Counter client:visible />
+```
+
+<table>
+  <thead>
+    <tr>
+      <th>Island Framework</th>
+      <th>Astro Integration</th>
+      <th>json-render Renderer</th>
+      <th>Hydration Directive</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>React</td>
+      <td><code>@astrojs/react</code></td>
+      <td><code>@json-render/react</code></td>
+      <td><code>{"client:load"}</code> or <code>{"client:visible"}</code></td>
+    </tr>
+    <tr>
+      <td>Vue</td>
+      <td><code>@astrojs/vue</code></td>
+      <td><code>@json-render/vue</code></td>
+      <td><code>{"client:load"}</code> or <code>{"client:visible"}</code></td>
+    </tr>
+    <tr>
+      <td>Svelte</td>
+      <td><code>@astrojs/svelte</code></td>
+      <td><code>@json-render/svelte</code></td>
+      <td><code>{"client:load"}</code> or <code>{"client:visible"}</code></td>
+    </tr>
+    <tr>
+      <td>Solid</td>
+      <td><code>@astrojs/solid-js</code></td>
+      <td><code>@json-render/solid</code></td>
+      <td><code>{"client:idle"}</code> or <code>{"client:visible"}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+Each island uses its own `@json-render/*` renderer internally (`defineRegistry` + `Renderer`). Static sections rendered by `@json-render/astro` ship zero JavaScript to the browser.
+
+See the [islands example](https://github.com/vercel-labs/json-render/tree/main/examples/astro/src/pages/islands.astro) for a working implementation with React.
+
 ## Server-Safe Import
 
 Import schema and catalog definitions without the renderer:

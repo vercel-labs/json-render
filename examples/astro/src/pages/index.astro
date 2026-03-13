@@ -50,7 +50,8 @@ const html = renderToHtml(demoSpec, {
   <body>
     <div set:html={html} />
     <footer style="max-width:640px;margin:24px auto 0;font-size:12px;color:#9ca3af">
-      Rendered at {requestState.serverTimestamp}
+      Rendered at {requestState.serverTimestamp} |
+      <a href="/islands" style="color:#3b82f6">Islands demo</a>
     </footer>
   </body>
 </html>
