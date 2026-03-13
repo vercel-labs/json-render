@@ -1,6 +1,6 @@
 {
   "name": "@json-render/astro",
-  "version": "0.13.0",
+  "version": "0.1.0",
   "license": "Apache-2.0",
   "description": "Astro SSR renderer for @json-render/core. JSON becomes HTML on the server.",
   "keywords": [

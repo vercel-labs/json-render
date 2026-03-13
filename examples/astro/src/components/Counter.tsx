@@ -5,7 +5,7 @@
  * It demonstrates that @json-render/astro (static SSR) and @json-render/react
  * (interactive islands) can coexist on the same page.
  */
-import { useState } from "react";
+import { useState, useRef, useMemo } from "react";
 import {
   StateProvider,
   ActionProvider,
@@ -53,9 +53,9 @@ const catalog = defineCatalog(schema, {
   },
 });
 
-// --- Registry (how components render) ---
+// --- Registry (how components render + action handlers) ---
 
-const { registry } = defineRegistry(catalog, {
+const { registry, handlers: createHandlers } = defineRegistry(catalog, {
   components: {
     Stack: ({ props, children }) => (
       <div
@@ -115,9 +115,18 @@ const { registry } = defineRegistry(catalog, {
     ),
   },
   actions: {
-    increment: async () => {},
-    decrement: async () => {},
-    reset: async () => {},
+    increment: async (_params, setState) => {
+      setState((prev) => ({ ...prev, count: Number(prev.count || 0) + 1 }));
+    },
+    decrement: async (_params, setState) => {
+      setState((prev) => ({
+        ...prev,
+        count: Math.max(0, Number(prev.count || 0) - 1),
+      }));
+    },
+    reset: async (_params, setState) => {
+      setState((prev) => ({ ...prev, count: 0 }));
+    },
   },
 });
 
@@ -166,26 +175,36 @@ const counterSpec: Spec = {
 
 // --- Island Component ---
 
+type SetState = (
+  updater: (prev: Record<string, unknown>) => Record<string, unknown>,
+) => void;
+
 export default function Counter() {
   const [state, setState] = useState<Record<string, unknown>>(
     counterSpec.state ?? {},
   );
 
-  const handlers = {
-    increment: async () =>
-      setState((s) => ({ ...s, count: Number(s.count || 0) + 1 })),
-    decrement: async () =>
-      setState((s) => ({ ...s, count: Math.max(0, Number(s.count || 0) - 1) })),
-    reset: async () => setState((s) => ({ ...s, count: 0 })),
-  };
+  const stateRef = useRef(state);
+  const setStateRef = useRef<SetState>(setState);
+  stateRef.current = state;
+  setStateRef.current = setState;
+
+  const actionHandlers = useMemo(
+    () =>
+      createHandlers(
+        () => setStateRef.current,
+        () => stateRef.current,
+      ),
+    [],
+  );
 
   return (
     <StateProvider initialState={state}>
-      <ActionProvider handlers={handlers}>
-        <VisibilityProvider>
+      <VisibilityProvider>
+        <ActionProvider handlers={actionHandlers}>
           <Renderer spec={counterSpec} registry={registry} />
-        </VisibilityProvider>
-      </ActionProvider>
+        </ActionProvider>
+      </VisibilityProvider>
     </StateProvider>
   );
 }
