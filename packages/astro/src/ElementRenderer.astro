@@ -1,0 +1,142 @@
+---
+/**
+ * Internal recursive element renderer.
+ * Uses Astro.self for recursion (same pattern as Svelte's `import Self`).
+ */
+import type { UIElement, Spec } from '@json-render/core';
+import type { AstroComponentFactory } from 'astro/runtime/server/index.js';
+import {
+  evaluateVisibility,
+  resolveElementProps,
+  getByPath,
+  type PropResolutionContext,
+} from '@json-render/core';
+
+interface Props {
+  element: UIElement;
+  spec: Spec;
+  registry: Record<string, AstroComponentFactory>;
+  stateModel: Record<string, unknown>;
+  repeatItem?: unknown;
+  repeatIndex?: number;
+  repeatBasePath?: string;
+  /** Whether the spec is currently loading/streaming */
+  loading?: boolean;
+  /** Fallback component rendered when a type is not found in the registry */
+  fallback?: AstroComponentFactory;
+}
+
+const { element, spec, registry, stateModel, repeatItem, repeatIndex, repeatBasePath, loading, fallback } = Astro.props;
+
+const ctx: PropResolutionContext = { stateModel, repeatItem, repeatIndex, repeatBasePath };
+
+// Evaluate visibility
+const isVisible = element.visible === undefined
+  ? true
+  : evaluateVisibility(element.visible, ctx);
+
+// Lookup component in registry, fall back to fallback component
+const Component = isVisible ? (registry[element.type] ?? fallback ?? null) : null;
+
+if (isVisible && !registry[element.type] && !loading) {
+  console.warn(`[json-render/astro] Component type "${element.type}" not found in registry`);
+}
+
+const childKeys = element.children ?? [];
+const repeat = element.repeat;
+
+// Pre-compute repeat data in frontmatter (Astro template can't do complex TS)
+let repeatData: Array<{
+  item: unknown;
+  index: number;
+  key: string;
+  basePath: string;
+  props: Record<string, unknown>;
+}> | null = null;
+
+let resolvedProps: Record<string, unknown> = {};
+
+if (isVisible && Component) {
+  if (repeat) {
+    // Repeat: resolve props PER ITERATION so $item/$index are available
+    const items = (getByPath(stateModel, repeat.statePath) as unknown[] | undefined) ?? [];
+    repeatData = items.map((item, index) => {
+      const basePath = `${repeat.statePath}/${index}`;
+      // Use a stable key: prefer key field, fall back to index
+      const key = repeat.key && typeof item === 'object' && item !== null
+        ? String((item as Record<string, unknown>)[repeat.key] ?? index)
+        : String(index);
+      const iterCtx: PropResolutionContext = {
+        stateModel,
+        repeatItem: item,
+        repeatIndex: index,
+        repeatBasePath: basePath,
+      };
+      return {
+        item,
+        index,
+        key,
+        basePath,
+        props: resolveElementProps(element.props as Record<string, unknown>, iterCtx),
+      };
+    });
+  } else {
+    // Non-repeat: resolve props once
+    resolvedProps = resolveElementProps(element.props as Record<string, unknown>, ctx);
+  }
+}
+---
+
+{isVisible && Component && repeatData ? (
+  repeatData.map(({ item, index, key, basePath, props: itemProps }) => (
+    <Component {...itemProps} data-repeat-key={key}>
+      {childKeys.map((childKey) => {
+        const child = spec.elements[childKey];
+        if (!child) {
+          if (!loading) {
+            console.warn(`[json-render/astro] Missing element "${childKey}" referenced as child of "${element.type}" (repeat)`);
+          }
+          return null;
+        }
+        return (
+          <Astro.self
+            element={child}
+            spec={spec}
+            registry={registry}
+            stateModel={stateModel}
+            repeatItem={item}
+            repeatIndex={index}
+            repeatBasePath={basePath}
+            loading={loading}
+            fallback={fallback}
+          />
+        );
+      })}
+    </Component>
+  ))
+) : isVisible && Component ? (
+  <Component {...resolvedProps}>
+    {childKeys.map((childKey) => {
+      const child = spec.elements[childKey];
+      if (!child) {
+        if (!loading) {
+          console.warn(`[json-render/astro] Missing element "${childKey}" referenced as child of "${element.type}"`);
+        }
+        return null;
+      }
+      return (
+        <Astro.self
+          element={child}
+          spec={spec}
+          registry={registry}
+          stateModel={stateModel}
+          repeatItem={repeatItem}
+          repeatIndex={repeatIndex}
+          repeatBasePath={repeatBasePath}
+          loading={loading}
+          fallback={fallback}
+        />
+      );
+    })}
+  </Component>
+) : null}

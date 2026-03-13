@@ -230,6 +230,111 @@ const { registry } = defineRegistry(catalog, {
 <Renderer spec={spec} registry={registry} />;
 ```
 
+### Astro (UI)
+
+Static content ships zero JS. Interactive islands use framework renderers hydrated client-side.
+
+```astro
+---
+import Renderer from "@json-render/astro/Renderer.astro";
+import { defineRegistry } from "@json-render/astro";
+import { catalog } from "../lib/catalog";
+import Card from "../components/Card.astro";
+import Text from "../components/Text.astro";
+
+const { registry } = defineRegistry(catalog, {
+  components: { Card, Text },
+});
+---
+
+<Renderer spec={spec} registry={registry} />
+```
+
+#### Astro + React Island
+
+```tsx
+// Counter.tsx — interactive React island using @json-render/react
+import { useState, useRef, useMemo } from "react";
+import {
+  StateProvider, ActionProvider, VisibilityProvider,
+  Renderer, defineRegistry,
+} from "@json-render/react";
+import { schema } from "@json-render/react/schema";
+import { defineCatalog, type Spec } from "@json-render/core";
+import { z } from "zod";
+
+const catalog = defineCatalog(schema, {
+  components: {
+    Text: { props: z.object({ content: z.string() }), description: "Text" },
+    Button: { props: z.object({ label: z.string() }), description: "Button" },
+  },
+  actions: {
+    increment: { description: "Increment counter" },
+  },
+});
+
+const { registry, handlers: createHandlers } = defineRegistry(catalog, {
+  components: {
+    Text: ({ props }) => <span>{String(props.content ?? "")}</span>,
+    Button: ({ props, emit }) => (
+      <button onClick={() => emit("press")}>{props.label}</button>
+    ),
+  },
+  actions: {
+    increment: async (_params, setState) => {
+      setState((prev) => ({ ...prev, count: Number(prev.count || 0) + 1 }));
+    },
+  },
+});
+
+const spec: Spec = {
+  root: "root",
+  state: { count: 0 },
+  elements: {
+    root: { type: "Text", props: { content: { $state: "/count" } }, children: ["btn"] },
+    btn: { type: "Button", props: { label: "+" }, on: { press: { action: "increment" } } },
+  },
+};
+
+export default function Counter() {
+  const [state, setState] = useState<Record<string, unknown>>(spec.state ?? {});
+  const stateRef = useRef(state);
+  const setStateRef = useRef(setState);
+  stateRef.current = state;
+  setStateRef.current = setState;
+
+  const actionHandlers = useMemo(
+    () => createHandlers(() => setStateRef.current, () => stateRef.current),
+    [],
+  );
+
+  return (
+    <StateProvider initialState={state}>
+      <VisibilityProvider>
+        <ActionProvider handlers={actionHandlers}>
+          <Renderer spec={spec} registry={registry} />
+        </ActionProvider>
+      </VisibilityProvider>
+    </StateProvider>
+  );
+}
+```
+
+```astro
+---
+import Renderer from "@json-render/astro/Renderer.astro";
+import Counter from "../components/Counter";
+---
+
+<!-- Static SSR content (zero JS) -->
+<Renderer spec={staticSpec} registry={registry} />
+
+<!-- Interactive React island (hydrated client-side) -->
+<Counter client:visible />
+```
+
+Islands also work with Vue (`@json-render/vue`), Svelte (`@json-render/svelte`), and Solid (`@json-render/solid`).
+
 ### shadcn/ui (Web)
 
 ```tsx
@@ -442,23 +547,6 @@ const png = await renderToPng(spec, { fonts });
 // Or render to SVG string
 import { renderToSvg } from "@json-render/image/render";
 const svg = await renderToSvg(spec, { fonts });
-```
-
-### Astro / SSR HTML
-
-```typescript
-import { renderToHtml, escapeHtml } from "@json-render/astro";
-
-const registry = {
-  Card: ({ props, children }) =>
-    `<div class="card"><h3>${escapeHtml(props.title)}</h3>${children}</div>`,
-  Text: ({ props }) =>
-    `<p>${escapeHtml(props.content)}</p>`,
-};
-
-const html = renderToHtml(spec, { registry, state: { theme: "dark" } });
-// Use in Astro: <div set:html={html} />
-// Use in Workers: new Response(html, { headers: { "Content-Type": "text/html" } })
 ```
 
 ### Three.js (3D)

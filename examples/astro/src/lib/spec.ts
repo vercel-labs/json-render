@@ -18,8 +18,9 @@ export const demoSpec: Spec = {
       },
       {
         id: "3",
-        name: "Edge-ready",
-        description: "Works in Cloudflare Workers, Deno, Bun",
+        name: "SSG + SSR",
+        description:
+          "Works with any Astro adapter (Cloudflare, Vercel, Netlify, Node)",
       },
     ],
   },

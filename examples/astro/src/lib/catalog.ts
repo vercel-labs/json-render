@@ -57,5 +57,3 @@ export const catalog = defineCatalog(schema, {
     },
   },
 });
-
-export type AppCatalog = typeof catalog;

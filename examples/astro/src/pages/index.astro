@@ -1,23 +1,44 @@
 ---
-import { renderToHtml } from "@json-render/astro";
-import { registry } from "../lib/registry";
+/**
+ * Full static demo with defineRegistry + Renderer.
+ *
+ * Components are real .astro files with syntax highlighting, autocompletion,
+ * and automatic XSS protection. The <Renderer> walks the JSON spec tree
+ * and renders each element using the matching Astro component.
+ */
+import Renderer from "@json-render/astro/Renderer.astro";
+import { defineRegistry } from "@json-render/astro";
+import { catalog } from "../lib/catalog";
 import { demoSpec } from "../lib/spec";
 
+import Section from "../components/Section.astro";
+import Card from "../components/Card.astro";
+import Heading from "../components/Heading.astro";
+import AstroText from "../components/AstroText.astro";
+import Badge from "../components/Badge.astro";
+import List from "../components/List.astro";
+import ListItem from "../components/ListItem.astro";
+import AstroLink from "../components/AstroLink.astro";
+
+const { registry } = defineRegistry(catalog, {
+  components: {
+    Section,
+    Card,
+    Heading,
+    Text: AstroText,
+    Badge,
+    List,
+    ListItem,
+    Link: AstroLink,
+  },
+});
+
 // Simulate request-time state (e.g. from a database, auth middleware, or API)
-// In a real Astro SSR app, this would come from Astro.cookies, fetch(), etc.
 const requestState = {
   showBanner: true,
   userRole: "admin",
-  // Override spec defaults with server-side data
   serverTimestamp: new Date().toISOString(),
 };
-
-// renderToHtml is synchronous — no await needed.
-// State from options overrides spec.state, enabling per-request rendering.
-const html = renderToHtml(demoSpec, {
-  registry,
-  state: requestState,
-});
 ---
 
 <html lang="en">
@@ -26,29 +47,19 @@ const html = renderToHtml(demoSpec, {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@json-render/astro demo</title>
     <style>
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
       body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        background: #f9fafb;
-        color: #111827;
-        min-height: 100vh;
-        padding: 24px;
+        background: #f9fafb; color: #111827; min-height: 100vh; padding: 24px;
       }
       section {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        max-width: 640px;
-        margin: 0 auto;
+        display: flex; flex-direction: column; gap: 16px;
+        max-width: 640px; margin: 0 auto;
       }
     </style>
   </head>
   <body>
-    <div set:html={html} />
+    <Renderer spec={demoSpec} registry={registry} state={requestState} />
     <footer style="max-width:640px;margin:24px auto 0;font-size:12px;color:#9ca3af">
       Rendered at {requestState.serverTimestamp} |
       <a href="/islands" style="color:#3b82f6">Islands demo</a>

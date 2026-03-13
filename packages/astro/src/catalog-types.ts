@@ -1,52 +1,39 @@
+import type { AstroComponentFactory } from "astro/runtime/server/index.js";
 import type {
   Catalog,
   InferCatalogComponents,
-  InferComponentProps,
+  StateModel,
 } from "@json-render/core";
 
-/**
- * Props passed to SSR component render functions.
- *
- * Unlike React/Vue renderers, Astro SSR components receive pre-rendered
- * children as an HTML string and return an HTML string.
- */
-export interface ComponentRenderProps<P = Record<string, unknown>> {
-  /** Resolved props (all $state/$cond expressions already evaluated) */
-  props: P;
-  /** Pre-rendered children as HTML string (already resolved and concatenated) */
-  children: string;
-}
+export type { StateModel };
 
 /**
- * An SSR component render function.
- * Takes resolved props + pre-rendered children HTML, returns an HTML string.
+ * Registry mapping component type names to Astro components.
+ *
+ * Uses `AstroComponentFactory` — the compiled type that all `.astro` files
+ * produce. Catalog Zod schemas provide the runtime props validation layer.
  *
  * @example
  * ```ts
- * const Card: ComponentRenderer<{ title: string }> = ({ props, children }) =>
- *   `<div class="card"><h3>${escapeHtml(props.title)}</h3>${children}</div>`;
+ * const registry: AstroComponentRegistry = {
+ *   Card: CardComponent,
+ *   Hero: HeroComponent,
+ * };
  * ```
  */
-export type ComponentRenderer<P = Record<string, unknown>> = (
-  ctx: ComponentRenderProps<P>,
-) => string;
+export type AstroComponentRegistry = Record<string, AstroComponentFactory>;
 
 /**
- * Registry mapping component type names to SSR render functions.
- */
-export type ComponentRegistry = Record<string, ComponentRenderer<any>>;
-
-/**
- * Typed component render function for a specific catalog component.
- */
-export type ComponentFn<
-  C extends Catalog,
-  K extends keyof InferCatalogComponents<C>,
-> = ComponentRenderer<InferComponentProps<C, K>>;
-
-/**
- * Typed registry of all component render functions for a catalog.
+ * Typed registry of all Astro components for a catalog.
+ * Keys are enforced by the catalog, values are Astro component factories.
+ *
+ * @example
+ * ```ts
+ * const { registry } = defineRegistry(catalog, {
+ *   components: { Card, Hero, Badge },
+ * });
+ * ```
  */
 export type Components<C extends Catalog> = {
-  [K in keyof InferCatalogComponents<C>]: ComponentFn<C, K>;
+  [K in keyof InferCatalogComponents<C>]: AstroComponentFactory;
 };

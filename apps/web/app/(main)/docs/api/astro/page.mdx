@@ -3,17 +3,19 @@ export const metadata = pageMetadata("docs/api/astro")
 
 # @json-render/astro
 
-SSR renderer. Turn JSON specs into HTML strings on the server. Zero framework dependencies -- works in Astro, Cloudflare Workers, Node.js, Deno, Bun, or any server environment.
+Astro renderer for @json-render/core. Static HTML output (zero JS). Works in SSG (build time) and SSR (request time, with any adapter: `@astrojs/cloudflare`, `@astrojs/netlify`, `@astrojs/node`, `@astrojs/vercel`).
 
 ## Install
 
 ```bash
-npm install @json-render/core @json-render/astro
+npm install @json-render/core @json-render/astro zod
 ```
+
+Peer dependencies: `astro >=4.0.0` and `zod ^4.0.0`.
 
 ## schema
 
-The SSR element schema for HTML specs. Use with `defineCatalog` from core.
+The element schema for Astro specs. Use with `defineCatalog` from core.
 
 ```typescript
 import { defineCatalog } from '@json-render/core';
@@ -23,7 +25,10 @@ import { z } from 'zod';
 const catalog = defineCatalog(schema, {
   components: {
     Card: {
-      props: z.object({ title: z.string() }),
+      props: z.object({
+        title: z.string(),
+        subtitle: z.string().optional(),
+      }),
       description: 'A card container',
     },
     Text: {
@@ -34,79 +39,37 @@ const catalog = defineCatalog(schema, {
 });
 ```
 
-## Render Function
+The Astro schema is static: no actions, no events, no `$bindState`. For interactive features, use an Astro island with a framework renderer.
 
-Server-side function for producing HTML output. Accepts a spec and `RenderOptions`.
+## defineRegistry
 
-```typescript
-import { renderToHtml, escapeHtml } from '@json-render/astro/render';
+Create a typed registry from a catalog with Astro components. Same pattern as `defineRegistry` in `@json-render/react`, `/vue`, `/svelte`, `/solid`.
 
-const registry = {
-  Card: ({ props, children }) =>
-    `<div class="card"><h3>${escapeHtml(props.title)}</h3>${children}</div>`,
-  Text: ({ props }) =>
-    `<p>${escapeHtml(props.content)}</p>`,
-};
+{`\`\`\`astro
+---
+import { defineRegistry } from '@json-render/astro';
+import { catalog } from '../lib/catalog';
+import Card from '../components/Card.astro';
+import Text from '../components/Text.astro';
 
-const html = renderToHtml(spec, { registry, state: { theme: 'dark' } });
-```
+const { registry } = defineRegistry(catalog, {
+  components: { Card, Text },
+});
+\`\`\``}
 
-### RenderOptions
+The returned `registry` is passed to `<Renderer />`. The catalog enforces that all component keys have a matching Astro component.
 
-<table>
-  <thead>
-    <tr>
-      <th>Option</th>
-      <th>Type</th>
-      <th>Default</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>registry</code></td>
-      <td><code>{"ComponentRegistry"}</code></td>
-      <td>(required)</td>
-      <td>Map of component type names to render functions</td>
-    </tr>
-    <tr>
-      <td><code>state</code></td>
-      <td><code>{"Record<string, unknown>"}</code></td>
-      <td><code>{"{}"}</code></td>
-      <td>Initial state for <code>$state</code> / <code>$cond</code> dynamic prop resolution</td>
-    </tr>
-  </tbody>
-</table>
+## Renderer
 
-### escapeHtml
+{`\`\`\`astro
+---
+import Renderer from '@json-render/astro/Renderer.astro';
+---
 
-Escape HTML special characters to prevent XSS. Use in component render functions for any user-provided content.
+<Renderer spec={spec} registry={registry} state={{ showBanner: true }} />
+\`\`\``}
 
-```typescript
-import { escapeHtml } from '@json-render/astro';
-
-const safe = escapeHtml('<script>alert("xss")</script>');
-// => &lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;
-```
-
-## Component Registry
-
-Unlike React/Vue renderers, the Astro SSR registry uses plain functions that return HTML strings.
-
-```typescript
-import type { ComponentRegistry } from '@json-render/astro';
-
-const registry: ComponentRegistry = {
-  Section: ({ props, children }) =>
-    `<section id="${escapeHtml(props.id)}">${children}</section>`,
-  Heading: ({ props }) =>
-    `<${props.level || 'h2'}>${escapeHtml(props.text)}</${props.level || 'h2'}>`,
-  Text: ({ props }) =>
-    `<p>${escapeHtml(props.content)}</p>`,
-};
-```
-
-Each function receives:
+### Renderer Props
 
 <table>
   <thead>
@@ -118,63 +81,165 @@ Each function receives:
   </thead>
   <tbody>
     <tr>
-      <td><code>props</code></td>
-      <td><code>P</code></td>
-      <td>Resolved props (all <code>$state</code>/<code>$cond</code> expressions already evaluated)</td>
+      <td><code>spec</code></td>
+      <td><code>Spec</code></td>
+      <td>The json-render spec to render (required)</td>
     </tr>
     <tr>
-      <td><code>children</code></td>
-      <td><code>string</code></td>
-      <td>Pre-rendered children as HTML string</td>
+      <td><code>registry</code></td>
+      <td><code>AstroComponentRegistry</code></td>
+      <td>Component registry from <code>defineRegistry()</code></td>
+    </tr>
+    <tr>
+      <td><code>state</code></td>
+      <td><code>{"Record<string, unknown>"}</code></td>
+      <td>State for <code>$state</code>/<code>$cond</code> resolution (merged with <code>spec.state</code>)</td>
+    </tr>
+    <tr>
+      <td><code>loading</code></td>
+      <td><code>boolean</code></td>
+      <td>Suppresses warnings for missing components/children during streaming</td>
+    </tr>
+    <tr>
+      <td><code>fallback</code></td>
+      <td><code>AstroComponentFactory</code></td>
+      <td>Rendered when a component type is not found in the registry</td>
     </tr>
   </tbody>
 </table>
 
-## Usage with Astro
+## Component Props
 
-```astro
+Astro components receive resolved props via `Astro.props` and render children via `<slot />`:
+
+{`\`\`\`astro
 ---
-import { renderToHtml } from '@json-render/astro';
-
-const html = renderToHtml(spec, { registry });
+// Card.astro
+interface Props { title: string; subtitle?: string; }
+const { title, subtitle } = Astro.props;
 ---
 
-<div set:html={html} />
-```
+<article class="card">
+  <h3>{title}</h3>
+  {subtitle && <p>{subtitle}</p>}
+  <slot />
+</article>
+\`\`\``}
 
-## Usage with Cloudflare Workers
+All dynamic expressions (`$state`, `$cond`, `$item`, `$index`, `$template`) are resolved before props reach the component. Astro auto-escapes expressions, so no manual escaping is needed.
+
+> Astro components produce static HTML. For interactive elements (click handlers, form inputs, client-side state), use an Astro island with a framework renderer.
+
+## Visibility Conditions
+
+Use `visible` on elements to show/hide based on state. The syntax is shared across all json-render renderers:
 
 ```typescript
-import { renderToHtml } from '@json-render/astro/render';
+{'// Truthiness check'}
+{'{ "$state": "/user/isAdmin" }'}
 
-export default {
-  async fetch(request) {
-    const spec = await getSpec(request);
-    const html = renderToHtml(spec, { registry });
-    return new Response(html, {
-      headers: { 'Content-Type': 'text/html' },
-    });
-  },
-};
+{'// Comparisons'}
+{'{ "$state": "/status", "eq": "active" }'}
+{'{ "$state": "/count", "gt": 10 }'}
+
+{'// Negation'}
+{'{ "$state": "/maintenance", "not": true }'}
+
+{'// Multiple conditions (implicit AND)'}
+{'[{ "$state": "/feature/enabled" }, { "$state": "/maintenance", "not": true }]'}
+
+{'// Always / never'}
+true   // always visible
+false  // never visible
 ```
+
+TypeScript helpers from `@json-render/core`:
+
+```typescript
+import { visibility } from "@json-render/core";
+
+visibility.when("/path")       // { $state: "/path" }
+visibility.unless("/path")     // { $state: "/path", not: true }
+visibility.eq("/path", val)    // { $state: "/path", eq: val }
+visibility.and(cond1, cond2)  // { $and: [cond1, cond2] }
+```
+
+## Dynamic Prop Expressions
+
+Any prop value can use data-driven expressions that resolve at render time. The renderer resolves these transparently before passing props to components.
+
+```json
+{
+  "type": "Badge",
+  "props": {
+    "label": { "$state": "/user/role" },
+    "color": {
+      "$cond": { "$state": "/user/role", "eq": "admin" },
+      "$then": "red",
+      "$else": "gray"
+    }
+  }
+}
+```
+
+<table>
+  <thead>
+    <tr>
+      <th>Expression</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>{'{ "$state": "/path" }'}</code></td>
+      <td>Read a value from state</td>
+    </tr>
+    <tr>
+      <td><code>{'{ "$cond": ..., "$then": ..., "$else": ... }'}</code></td>
+      <td>Conditional value based on a visibility condition</td>
+    </tr>
+    <tr>
+      <td><code>{'{ "$template": "Hello, ${/name}!" }'}</code></td>
+      <td>Interpolate state values into strings</td>
+    </tr>
+    <tr>
+      <td><code>{'{ "$item": "field" }'}</code></td>
+      <td>Read from current repeat item</td>
+    </tr>
+    <tr>
+      <td><code>{'{ "$index": true }'}</code></td>
+      <td>Current repeat index</td>
+    </tr>
+  </tbody>
+</table>
+
+No two-way binding (`$bindState`, `$bindItem`) since Astro is static HTML. For interactive form components, use an Astro island.
+
+## SSG vs SSR
+
+The package works in both modes without modification:
+
+- **SSG** (default, no adapter) -- state is resolved at build time
+- **SSR** (with adapter) -- state is resolved at each request
+
+The choice is a project-level Astro decision, not a package concern.
 
 ## Astro Islands
 
-Use `@json-render/astro` for static content and framework-specific renderers for interactive islands. This is the recommended pattern for Astro apps.
+Use `@json-render/astro` for static content and framework-specific renderers for interactive islands.
 
-```astro
+{`\`\`\`astro
 ---
-import { renderToHtml } from '@json-render/astro';
+import Renderer from '@json-render/astro/Renderer.astro';
 import Counter from '../components/Counter'; // React, Vue, Svelte, or Solid
-const staticHtml = renderToHtml(spec, { registry });
 ---
 
-{'<!-- Static SSR content (zero JS sent to browser) -->'}
-<div set:html={staticHtml} />
+<!-- Static SSR content (zero JS sent to browser) -->
+<Renderer spec={spec} registry={registry} />
 
-{'<!-- Interactive island (hydrated client-side) -->'}
+<!-- Interactive island (hydrated client-side) -->
 <Counter client:visible />
-```
+\`\`\``}
 
 <table>
   <thead>
@@ -217,13 +282,49 @@ Each island uses its own `@json-render/*` renderer internally (`defineRegistry` 
 
 See the [islands example](https://github.com/vercel-labs/json-render/tree/main/examples/astro/src/pages/islands.astro) for a working implementation with React.
 
-## Server-Safe Import
+## Differences from Other Renderers
 
-Import schema and catalog definitions without the renderer:
-
-```typescript
-import { schema, defineCatalog } from '@json-render/astro/server';
-```
+<table>
+  <thead>
+    <tr>
+      <th>Aspect</th>
+      <th>React / Vue / Svelte / Solid</th>
+      <th>Astro</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Output</td>
+      <td>Client-side interactive UI</td>
+      <td>Static HTML (zero JS)</td>
+    </tr>
+    <tr>
+      <td>Components</td>
+      <td>Framework components / render functions</td>
+      <td><code>.astro</code> files with <code>{"<slot />"}</code></td>
+    </tr>
+    <tr>
+      <td>Actions</td>
+      <td><code>emit()</code>, <code>on()</code>, built-in state actions</td>
+      <td>None (use islands for interactivity)</td>
+    </tr>
+    <tr>
+      <td>State mutations</td>
+      <td><code>$bindState</code>, <code>setState</code> action</td>
+      <td>Read-only (<code>$state</code>, <code>$cond</code>)</td>
+    </tr>
+    <tr>
+      <td>Providers</td>
+      <td>StateProvider, ActionProvider, etc.</td>
+      <td>None (state passed as prop)</td>
+    </tr>
+    <tr>
+      <td>Hooks / Composables</td>
+      <td><code>useStateStore</code>, <code>useActions</code>, etc.</td>
+      <td>None (static rendering)</td>
+    </tr>
+  </tbody>
+</table>
 
 ## Sub-path Exports
 
@@ -237,15 +338,19 @@ import { schema, defineCatalog } from '@json-render/astro/server';
   <tbody>
     <tr>
       <td><code>@json-render/astro</code></td>
-      <td>Full package: schema, renderer, types</td>
+      <td>Full package: schema, defineRegistry, types</td>
     </tr>
     <tr>
-      <td><code>@json-render/astro/server</code></td>
-      <td>Schema and catalog definitions only (no renderer)</td>
+      <td><code>@json-render/astro/schema</code></td>
+      <td>Schema only</td>
     </tr>
     <tr>
-      <td><code>@json-render/astro/render</code></td>
-      <td>Render functions and types only</td>
+      <td><code>@json-render/astro/Renderer.astro</code></td>
+      <td>Entry point Astro component</td>
+    </tr>
+    <tr>
+      <td><code>@json-render/astro/ElementRenderer.astro</code></td>
+      <td>Recursive element renderer</td>
     </tr>
   </tbody>
 </table>
@@ -262,35 +367,27 @@ import { schema, defineCatalog } from '@json-render/astro/server';
   <tbody>
     <tr>
       <td><code>AstroSchema</code></td>
-      <td>Schema type for SSR specs</td>
+      <td>Schema type</td>
     </tr>
     <tr>
-      <td><code>AstroSpec</code></td>
-      <td>Spec type for SSR output</td>
+      <td><code>{"AstroSpec<C>"}</code></td>
+      <td>Infer the spec type from a catalog</td>
     </tr>
     <tr>
-      <td><code>RenderOptions</code></td>
-      <td>Options for <code>renderToHtml()</code></td>
-    </tr>
-    <tr>
-      <td><code>ComponentRenderProps</code></td>
-      <td>Props passed to component render functions</td>
-    </tr>
-    <tr>
-      <td><code>ComponentRenderer</code></td>
-      <td>Component render function type</td>
-    </tr>
-    <tr>
-      <td><code>ComponentRegistry</code></td>
-      <td>Map of component names to render functions</td>
+      <td><code>AstroComponentRegistry</code></td>
+      <td>Registry mapping component names to Astro components</td>
     </tr>
     <tr>
       <td><code>{"Components<C>"}</code></td>
       <td>Typed registry for a specific catalog</td>
     </tr>
     <tr>
-      <td><code>{"ComponentFn<C, K>"}</code></td>
-      <td>Typed render function for a specific component</td>
+      <td><code>DefineRegistryResult</code></td>
+      <td>Return type of <code>defineRegistry()</code></td>
+    </tr>
+    <tr>
+      <td><code>StateModel</code></td>
+      <td>State model type (re-export from core)</td>
     </tr>
   </tbody>
 </table>

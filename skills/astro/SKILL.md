@@ -1,129 +1,139 @@
 ---
 name: astro
-description: SSR HTML renderer for json-render that turns JSON specs into HTML strings on the server. Use when working with @json-render/astro, building server-rendered HTML from JSON, rendering specs in Astro SSR, Cloudflare Workers, Deno, Bun, or any server environment, or when the user mentions SSR HTML rendering, edge rendering, or server-side JSON-to-HTML.
+description: Astro renderer for @json-render/core. Use when working with @json-render/astro, defineRegistry for Astro, rendering JSON specs in Astro pages, using Astro Islands with json-render, or when the user mentions Astro rendering.
 metadata:
-  tags: astro, ssr, html, json-render, cloudflare-workers, edge, server-rendering
+  tags: astro, ssr, ssg, html, json-render, islands
 ---
 
 # @json-render/astro
 
-SSR renderer that converts JSON specs into HTML strings on the server. Zero framework dependencies.
+Astro renderer that converts json-render specs into Astro component trees. Static HTML output (zero JS).
 
 ## Quick Start
 
-```typescript
-import { renderToHtml, escapeHtml } from "@json-render/astro";
+```astro
+---
+import Renderer from "@json-render/astro/Renderer.astro";
+import { defineRegistry } from "@json-render/astro";
+import { catalog } from "../lib/catalog";
+import Card from "../components/Card.astro";
+import Text from "../components/Text.astro";
+
+const { registry } = defineRegistry(catalog, {
+  components: { Card, Text },
+});
+
+const spec = await getSpec(); // from DB, CMS, AI, etc.
+---
+
+<Renderer spec={spec} registry={registry} state={{ showBanner: true }} />
+```
+
+## Creating a Catalog
+
+```ts
 import { defineCatalog } from "@json-render/core";
 import { schema } from "@json-render/astro";
 import { z } from "zod";
 
-const catalog = defineCatalog(schema, {
+export const catalog = defineCatalog(schema, {
   components: {
     Card: {
-      props: z.object({ title: z.string() }),
+      props: z.object({
+        title: z.string(),
+        subtitle: z.string().optional(),
+      }),
       description: "A card container",
     },
     Text: {
       props: z.object({ content: z.string() }),
-      description: "Body text paragraph",
+      description: "A text block",
     },
   },
 });
-
-const registry = {
-  Card: ({ props, children }) =>
-    `<div class="card"><h3>${escapeHtml(props.title)}</h3>${children}</div>`,
-  Text: ({ props }) =>
-    `<p>${escapeHtml(props.content)}</p>`,
-};
-
-const html = renderToHtml(spec, { registry, state: { theme: "dark" } });
 ```
 
-## Spec Structure (Element Tree)
+## Defining Components
 
-Same flat element tree as other json-render renderers: `root` key plus `elements` map. Each element has `type`, `props`, `children`, and optional `visible` and `repeat`.
-
-## Creating a Registry
-
-The registry is a plain object mapping component type names to render functions. Each function receives `{ props, children }` and returns an HTML string.
-
-```typescript
-import type { ComponentRegistry } from "@json-render/astro";
-
-const registry: ComponentRegistry = {
-  Section: ({ props, children }) =>
-    `<section id="${escapeHtml(props.id)}">${children}</section>`,
-  Heading: ({ props }) =>
-    `<${props.level || "h2"}>${escapeHtml(props.text)}</${props.level || "h2"}>`,
-};
-```
-
-Always use `escapeHtml()` for user-provided content to prevent XSS.
-
-## Server-Side Render API
-
-| Function | Purpose |
-|----------|---------|
-| `renderToHtml(spec, options)` | Render spec to HTML string (synchronous) |
-| `escapeHtml(str)` | Escape HTML special characters |
-
-`RenderOptions`: `registry` (required), `state` (optional, for `$state` / `$cond`).
-
-## Visibility and State
-
-Supports `visible` conditions, `$state`, `$cond`, `$item`, `$index`, `$template`, and `repeat` (same expression syntax as other renderers). Pass `state` in `RenderOptions` so expressions resolve at render time.
-
-## Usage with Astro
+Astro components receive resolved props via `Astro.props` and render children via `<slot />`:
 
 ```astro
 ---
-import { renderToHtml } from "@json-render/astro";
-const html = renderToHtml(spec, { registry });
+// Card.astro
+interface Props { title: string; subtitle?: string; }
+const { title, subtitle } = Astro.props;
 ---
-<div set:html={html} />
+
+<article class="card">
+  <h3>{title}</h3>
+  {subtitle && <p>{subtitle}</p>}
+  <slot />
+</article>
 ```
 
-## Usage with Cloudflare Workers
+All dynamic expressions (`$state`, `$cond`, `$item`, `$index`, `$template`) are resolved before props reach the component. Astro auto-escapes expressions, so no manual XSS protection is needed.
 
-```typescript
-import { renderToHtml } from "@json-render/astro/render";
+## Spec Structure (Element Tree)
 
-export default {
-  async fetch(request) {
-    const spec = await getSpec(request);
-    const html = renderToHtml(spec, { registry });
-    return new Response(html, {
-      headers: { "Content-Type": "text/html" },
-    });
-  },
-};
+Same flat element tree as other json-render renderers:
+
+```json
+{
+  "root": "card-1",
+  "elements": {
+    "card-1": {
+      "type": "Card",
+      "props": { "title": "Welcome" },
+      "children": ["text-1"]
+    },
+    "text-1": {
+      "type": "Text",
+      "props": { "content": "Hello from Astro!" },
+      "children": []
+    }
+  }
+}
 ```
 
-## Server-Safe Import
+Each element has `type`, `props`, `children`, and optional `visible` and `repeat`.
 
-Import schema and catalog without the renderer:
+## Visibility Conditions
 
-```typescript
-import { schema, defineCatalog } from "@json-render/astro/server";
-```
+Use `visible` on elements to show/hide based on state:
 
-## Key Exports
+- `{ "$state": "/path" }` - truthy check
+- `{ "$state": "/path", "eq": value }` - equality check
+- `{ "$state": "/path", "not": true }` - falsy check
+- `{ "$and": [cond1, cond2] }` - AND conditions
+- `{ "$or": [cond1, cond2] }` - OR conditions
 
-| Export | Purpose |
-|--------|---------|
-| `renderToHtml` | Spec to HTML string (synchronous) |
-| `escapeHtml` | Escape HTML special characters |
-| `schema` | SSR element schema |
-| `defineCatalog` | Re-export from core |
+## Dynamic Prop Expressions
 
-## Sub-path Exports
+Expression forms resolved before your component receives props:
 
-| Path | Purpose |
-|------|---------|
-| `@json-render/astro` | Full package |
-| `@json-render/astro/server` | Schema and catalog only (no renderer) |
-| `@json-render/astro/render` | Render functions only |
+- `{ "$state": "/state/key" }` - reads from state model
+- `{ "$cond": <condition>, "$then": <value>, "$else": <value> }` - conditional value
+- `{ "$template": "Hello, ${/name}!" }` - interpolates state values into strings
+- `{ "$item": "field" }` - reads from current repeat item
+- `{ "$index": true }` - current repeat index
+
+No two-way binding (`$bindState`, `$bindItem`) since Astro is static HTML. For interactive form components, use an Astro island with a framework renderer.
+
+## Renderer Props
+
+- `spec` (`Spec`) - the json-render spec to render (required)
+- `registry` (`AstroComponentRegistry`) - component registry from `defineRegistry()`
+- `state` (`Record<string, unknown>`, optional) - state for `$state`/`$cond` resolution (merged with `spec.state`)
+- `loading` (`boolean`, optional) - suppresses missing component warnings during streaming
+- `fallback` (`AstroComponentFactory`, optional) - rendered for unknown component types
+
+## SSG vs SSR
+
+Works in both modes without modification:
+- **SSG** (default, no adapter): state resolved at build time
+- **SSR** (with adapter): state resolved at each request
+
+The choice is a project-level Astro decision, not a package concern.
 
 ## Astro Islands Pattern
 
@@ -131,25 +141,51 @@ Use `@json-render/astro` for static content and framework renderers for interact
 
 ```astro
 ---
-import { renderToHtml } from "@json-render/astro";
+import Renderer from "@json-render/astro/Renderer.astro";
 import Counter from "../components/Counter"; // React, Vue, Svelte, or Solid
-
-const staticHtml = renderToHtml(spec, { registry });
 ---
 
 <!-- Static SSR (zero JS) -->
-<div set:html={staticHtml} />
+<Renderer spec={spec} registry={registry} />
 
 <!-- Interactive island (hydrated client-side) -->
 <Counter client:visible />
 ```
 
-Supported island frameworks: React (`@json-render/react`), Vue (`@json-render/vue`), Svelte (`@json-render/svelte`), Solid (`@json-render/solid`). Each island uses its own renderer internally. Static sections ship no JavaScript.
+Supported island frameworks: React (`@json-render/react`), Vue (`@json-render/vue`), Svelte (`@json-render/svelte`), Solid (`@json-render/solid`). Each island uses its own `defineRegistry` + renderer internally. Static sections ship no JavaScript.
+
+## Key Exports
+
+| Export | Purpose |
+|--------|---------|
+| `defineRegistry` | Create a type-safe component registry from a catalog |
+| `schema` | Element tree schema (static HTML, no actions) |
+
+### Sub-path Exports
+
+| Path | Purpose |
+|------|---------|
+| `@json-render/astro` | Full package: schema, defineRegistry, types |
+| `@json-render/astro/schema` | Schema only |
+| `@json-render/astro/Renderer.astro` | Entry point Astro component |
+| `@json-render/astro/ElementRenderer.astro` | Recursive element renderer |
+
+### Types
+
+| Export | Purpose |
+|--------|---------|
+| `AstroSchema` | Schema type |
+| `AstroSpec<C>` | Infer the spec type from a catalog |
+| `AstroComponentRegistry` | Registry mapping component names to Astro components |
+| `Components<C>` | Typed registry for a specific catalog |
+| `DefineRegistryResult` | Return type of `defineRegistry()` |
+| `StateModel` | State model type (re-export from core) |
 
 ## Key Differences from Other Renderers
 
-- **No framework dependency**: produces raw HTML strings, not React elements or Vue VNodes
-- **Synchronous**: `renderToHtml()` is synchronous (no `await` needed), unlike `@json-render/react-email`
-- **No actions/state mutations**: SSR-only, no interactive event handlers
-- **Registry pattern**: functions return strings, not JSX/components
-- **XSS prevention**: use `escapeHtml()` explicitly in render functions
+- **Static HTML output**: no client-side JavaScript, no hydration
+- **No actions/events**: no `emit`, `on`, `setState`, `$bindState`; for interactivity, use a framework island
+- **No providers**: no StateProvider, ActionProvider; state is passed as a Renderer prop
+- **No hooks/composables**: components access props via `Astro.props`, children via `<slot />`
+- **Same API pattern**: `defineRegistry(catalog, { components })` like React, Vue, Svelte, Solid
+- **SSG + SSR**: works without adapter (SSG) and with any adapter (SSR)

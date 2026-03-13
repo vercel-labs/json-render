@@ -2,18 +2,20 @@
   "name": "@json-render/astro",
   "version": "0.1.0",
   "license": "Apache-2.0",
-  "description": "Astro SSR renderer for @json-render/core. JSON becomes HTML on the server.",
+  "description": "Astro renderer for @json-render/core. JSON becomes Astro components.",
   "keywords": [
     "json",
+    "ui",
     "astro",
-    "ssr",
-    "html",
     "ai",
     "generative-ui",
     "llm",
     "renderer",
-    "cloudflare-workers",
-    "edge"
+    "streaming",
+    "components",
+    "islands",
+    "ssr",
+    "ssg"
   ],
   "repository": {
     "type": "git",
@@ -27,31 +29,33 @@
   "publishConfig": {
     "access": "public"
   },
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
+  "type": "module",
+  "astro": "./dist/index.js",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
-    "./server": {
-      "types": "./dist/server.d.ts",
-      "import": "./dist/server.mjs",
-      "require": "./dist/server.js"
+    "./schema": {
+      "types": "./dist/schema.d.ts",
+      "import": "./dist/schema.js",
+      "require": "./dist/schema.cjs"
     },
-    "./render": {
-      "types": "./dist/render.d.ts",
-      "import": "./dist/render.mjs",
-      "require": "./dist/render.js"
-    }
+    "./Renderer.astro": "./src/Renderer.astro",
+    "./ElementRenderer.astro": "./src/ElementRenderer.astro"
   },
-  "files": ["dist"],
+  "files": [
+    "dist",
+    "src/Renderer.astro",
+    "src/ElementRenderer.astro"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "check-types": "tsc --noEmit",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -59,11 +63,12 @@
   },
   "devDependencies": {
     "@internal/typescript-config": "workspace:*",
+    "astro": "^6.0.4",
     "tsup": "^8.0.2",
-    "typescript": "^5.4.5",
-    "zod": "^4.0.0"
+    "typescript": "^5.4.5"
   },
   "peerDependencies": {
+    "astro": ">=4.0.0",
     "zod": "^4.0.0"
   }
 }

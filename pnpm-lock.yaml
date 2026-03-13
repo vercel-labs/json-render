@@ -1339,19 +1339,22 @@ importers:
       '@json-render/core':
         specifier: workspace:*
         version: link:../core
+      zod:
+        specifier: ^4.0.0
+        version: 4.3.6
     devDependencies:
       '@internal/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
+      astro:
+        specifier: ^6.0.4
+        version: 6.0.4(@types/node@22.19.6)(@upstash/redis@1.36.1)(jiti@2.6.1)(lightningcss@1.31.1)(rollup@4.55.1)(terser@5.46.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)
       tsup:
         specifier: ^8.0.2
         version: 8.5.1(jiti@2.6.1)(postcss@8.5.6)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)
       typescript:
         specifier: ^5.4.5
         version: 5.9.3
-      zod:
-        specifier: ^4.0.0
-        version: 4.3.6
 
   packages/codegen:
     dependencies:
@@ -25388,7 +25391,7 @@ snapshots:
     dependencies:
       destr: 2.0.5
       node-fetch-native: 1.6.7
-      ufo: 1.6.2
+      ufo: 1.6.3
 
   ohash@2.0.11: {}
 
