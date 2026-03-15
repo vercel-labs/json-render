@@ -210,7 +210,20 @@ Schema options:
 | Export | Purpose |
 |--------|---------|
 | `buildUserPrompt(options)` | Build a user prompt with optional spec refinement and state context |
+| `buildEditUserPrompt(options)` | Build a user prompt for editing an existing spec (used internally by `buildUserPrompt`) |
+| `buildEditInstructions(config, format)` | Generate the prompt section describing available edit modes |
+| `isNonEmptySpec(spec)` | Check whether a spec has a root and at least one element |
 | `UserPromptOptions` | Options type for `buildUserPrompt` |
+| `EditMode` | `"patch" \| "merge" \| "diff"` |
+| `EditConfig` | Configuration for edit modes (`{ modes: EditMode[] }`) |
+| `BuildEditUserPromptOptions` | Options type for `buildEditUserPrompt` |
+
+### Merge and Diff
+
+| Export | Purpose |
+|--------|---------|
+| `deepMergeSpec(base, patch)` | RFC 7396 deep merge (null deletes, arrays replace, objects recurse) |
+| `diffToPatches(oldObj, newObj)` | Generate RFC 6902 JSON Patch operations from object diff |
 
 ### Spec Validation
 
@@ -491,10 +504,11 @@ import { buildUserPrompt } from "@json-render/core";
 // Fresh generation
 const prompt = buildUserPrompt({ prompt: "create a todo app" });
 
-// Refinement with existing spec (triggers patch-only mode)
+// Refinement with edit modes (default: patch-only)
 const refinementPrompt = buildUserPrompt({
   prompt: "add a dark mode toggle",
   currentSpec: existingSpec,
+  editModes: ["patch", "merge"],
 });
 
 // With runtime state context
@@ -502,6 +516,27 @@ const contextPrompt = buildUserPrompt({
   prompt: "show my data",
   state: { todos: [{ text: "Buy milk" }] },
 });
+```
+
+When `currentSpec` is provided, the prompt instructs the AI to use the specified edit modes. Available modes:
+
+- **`"patch"`** — RFC 6902 JSON Patch. One operation per line. Best for precise, targeted single-field updates.
+- **`"merge"`** — RFC 7396 JSON Merge Patch. Partial object deep-merged; `null` deletes. Best for structural changes.
+- **`"diff"`** — Unified diff against the serialized spec. Best for small text-level changes.
+
+## Deep Merge and Diff
+
+Format-agnostic utilities for working with specs:
+
+```typescript
+import { deepMergeSpec, diffToPatches } from "@json-render/core";
+
+// RFC 7396 deep merge: null deletes, arrays replace, objects recurse
+const merged = deepMergeSpec(baseSpec, { elements: { main: { props: { title: "New" } } } });
+
+// RFC 6902 diff: generate JSON Patch operations from two objects
+const patches = diffToPatches(oldSpec, newSpec);
+// [{ op: "replace", path: "/elements/main/props/title", value: "New" }]
 ```
 
 ## Spec Validation

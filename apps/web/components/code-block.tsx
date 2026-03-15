@@ -145,7 +145,7 @@ function getHighlighter() {
   if (!highlighterPromise) {
     highlighterPromise = createHighlighter({
       themes: [vercelLightTheme, vercelDarkTheme],
-      langs: ["json", "tsx", "typescript"],
+      langs: ["json", "tsx", "typescript", "yaml"],
     });
   }
   return highlighterPromise;
@@ -158,7 +158,7 @@ if (typeof window !== "undefined") {
 
 interface CodeBlockProps {
   code: string;
-  lang: "json" | "tsx" | "typescript";
+  lang: "json" | "tsx" | "typescript" | "yaml";
   fillHeight?: boolean;
   hideCopyButton?: boolean;
 }

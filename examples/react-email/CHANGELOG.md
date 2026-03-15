@@ -1,5 +1,13 @@
 # example-react-email
 
+## 0.1.4
+
+### Patch Changes
+
+- Updated dependencies [a8afd8b]
+  - @json-render/core@0.14.0
+  - @json-render/react-email@0.14.0
+
 ## 0.1.3
 
 ### Patch Changes

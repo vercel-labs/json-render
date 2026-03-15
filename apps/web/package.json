@@ -1,6 +1,6 @@
 {
   "name": "web",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "type": "module",
   "private": true,
   "license": "Apache-2.0",
@@ -18,6 +18,7 @@
     "@json-render/codegen": "workspace:*",
     "@json-render/core": "workspace:*",
     "@json-render/react": "workspace:*",
+    "@json-render/yaml": "workspace:*",
     "@mdx-js/loader": "^3.1.1",
     "@mdx-js/mdx": "^3.1.1",
     "@mdx-js/react": "^3.1.1",
@@ -34,9 +35,9 @@
     "bash-tool": "1.3.14",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "diff": "^8.0.3",
     "embla-carousel-react": "^8.6.0",
     "geist": "1.7.0",
-    "just-bash": "2.9.6",
     "lucide-react": "^0.562.0",
     "next": "16.1.1",
     "next-themes": "^0.4.6",
@@ -51,6 +52,7 @@
     "tailwind-merge": "^3.4.0",
     "unist-util-visit": "5.1.0",
     "vaul": "^1.1.2",
+    "yaml": "^2.8.2",
     "zod": "^4.3.6"
   },
   "devDependencies": {

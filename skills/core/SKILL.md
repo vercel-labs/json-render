@@ -159,12 +159,14 @@ import { buildUserPrompt } from "@json-render/core";
 // Fresh generation
 buildUserPrompt({ prompt: "create a todo app" });
 
-// Refinement (patch-only mode)
-buildUserPrompt({ prompt: "add a toggle", currentSpec: spec });
+// Refinement with edit modes (default: patch-only)
+buildUserPrompt({ prompt: "add a toggle", currentSpec: spec, editModes: ["patch", "merge"] });
 
 // With runtime state
 buildUserPrompt({ prompt: "show data", state: { todos: [] } });
 ```
+
+Available edit modes: `"patch"` (RFC 6902 JSON Patch), `"merge"` (RFC 7396 Merge Patch), `"diff"` (unified diff).
 
 ## Spec Validation
 
@@ -244,6 +246,12 @@ The `StateStore` interface: `get(path)`, `set(path, value)`, `update(updates)`, 
 | `resolvePropValue` | Resolve a single prop expression against data |
 | `resolveElementProps` | Resolve all prop expressions in an element |
 | `buildUserPrompt` | Build user prompts with refinement and state context |
+| `buildEditUserPrompt` | Build user prompt for editing existing specs |
+| `buildEditInstructions` | Generate prompt section for available edit modes |
+| `isNonEmptySpec` | Check if spec has root and at least one element |
+| `deepMergeSpec` | RFC 7396 deep merge (null deletes, arrays replace, objects recurse) |
+| `diffToPatches` | Generate RFC 6902 JSON Patch operations from object diff |
+| `EditMode` | Type: `"patch" \| "merge" \| "diff"` |
 | `validateSpec` | Validate spec structure |
 | `autoFixSpec` | Auto-fix common spec issues |
 | `createSpecStreamCompiler` | Stream JSONL patches into spec |

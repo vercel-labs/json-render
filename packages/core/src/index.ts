@@ -178,3 +178,19 @@ export { defineCatalog } from "./schema";
 export type { UserPromptOptions } from "./prompt";
 
 export { buildUserPrompt } from "./prompt";
+
+// Object diff & merge (format-agnostic)
+export { deepMergeSpec } from "./merge";
+export { diffToPatches } from "./diff";
+
+// Edit modes
+export type {
+  EditMode,
+  EditConfig,
+  BuildEditUserPromptOptions,
+} from "./edit-modes";
+export {
+  buildEditInstructions,
+  buildEditUserPrompt,
+  isNonEmptySpec,
+} from "./edit-modes";

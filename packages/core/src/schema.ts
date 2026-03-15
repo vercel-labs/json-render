@@ -1,4 +1,6 @@
 import { z } from "zod";
+import type { EditMode } from "./edit-modes";
+import { buildEditInstructions } from "./edit-modes";
 
 /**
  * Schema builder primitives
@@ -142,6 +144,8 @@ export interface PromptOptions {
    * @deprecated `"chat"` — use `"inline"` instead.
    */
   mode?: "standalone" | "inline" | "generate" | "chat";
+  /** Edit modes to document in the system prompt. Default: `["patch"]`. */
+  editModes?: EditMode[];
 }
 
 /**
@@ -1047,6 +1051,12 @@ Note: state patches appear right after the elements that use them, so the UI fil
       "IMPORTANT: `watch` is a top-level field on the element (sibling of type/props/children), NOT inside props. Watchers only fire when the value changes, not on initial render.",
     );
     lines.push("");
+  }
+
+  // Edit modes
+  const editModes = options.editModes;
+  if (editModes && editModes.length > 0) {
+    lines.push(buildEditInstructions({ modes: editModes }, "json"));
   }
 
   // Rules

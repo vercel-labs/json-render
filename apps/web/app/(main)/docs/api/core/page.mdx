@@ -76,6 +76,7 @@ interface PromptOptions {
   system?: string;           // Custom system message intro
   customRules?: string[];    // Additional rules to append
   mode?: "standalone" | "inline" | "generate" | "chat"; // Output mode (default: "standalone")
+  editModes?: EditMode[];    // Edit modes to document in prompt (default: ["patch"])
 }
 
 interface SpecValidationResult<T> {
@@ -480,9 +481,10 @@ function buildUserPrompt(options: UserPromptOptions): string
 
 interface UserPromptOptions {
   prompt: string;                        // The user's text prompt
-  currentSpec?: Spec | null;             // Existing spec to refine (triggers patch-only mode)
+  currentSpec?: Spec | null;             // Existing spec to refine (triggers edit mode)
   state?: Record<string, unknown> | null; // Runtime state context to include
   maxPromptLength?: number;              // Max length for user text (truncates before wrapping)
+  editModes?: EditMode[];                // Edit modes for refinement (default: ["patch"])
 }
 ```
 
@@ -492,14 +494,15 @@ interface UserPromptOptions {
 const userPrompt = buildUserPrompt({ prompt: "create a todo app" });
 ```
 
-### Refinement (patch-only mode)
+### Refinement (edit modes)
 
-When `currentSpec` is provided, the prompt instructs the AI to output only the patches needed for the change, not recreate the entire spec:
+When `currentSpec` is provided, the prompt instructs the AI to use the specified edit modes instead of recreating the entire spec. Available modes: `"patch"` (RFC 6902), `"merge"` (RFC 7396), and `"diff"` (unified diff).
 
 ```typescript
 const userPrompt = buildUserPrompt({
   prompt: "add a dark mode toggle",
   currentSpec: existingSpec,
+  editModes: ["patch", "merge"],
 });
 ```
 
@@ -512,6 +515,93 @@ const userPrompt = buildUserPrompt({
   prompt: "show my data",
   state: { todos: [{ text: "Buy milk" }] },
 });
+```
+
+## Edit Modes
+
+Universal edit mode utilities for modifying existing specs. Used by `buildUserPrompt` internally and available for direct use.
+
+```typescript
+import {
+  buildEditInstructions,
+  buildEditUserPrompt,
+  isNonEmptySpec,
+  type EditMode,
+  type EditConfig,
+} from '@json-render/core';
+
+type EditMode = "patch" | "merge" | "diff";
+```
+
+### buildEditInstructions
+
+Generate the prompt section describing available edit modes. Supports both JSON and YAML formats.
+
+```typescript
+function buildEditInstructions(config: EditConfig, format: "json" | "yaml"): string
+
+const instructions = buildEditInstructions({ modes: ["patch", "merge"] }, "json");
+```
+
+### buildEditUserPrompt
+
+Build a user prompt for editing an existing spec. Includes the current spec (with line numbers when diff mode is enabled) and mode-specific instructions.
+
+```typescript
+function buildEditUserPrompt(options: BuildEditUserPromptOptions): string
+
+interface BuildEditUserPromptOptions {
+  prompt: string;
+  currentSpec?: Spec | null;
+  config?: EditConfig;
+  format: "json" | "yaml";
+  maxPromptLength?: number;
+  serializer?: (spec: Spec) => string;
+}
+```
+
+### isNonEmptySpec
+
+Check whether a value is a non-empty spec (has a root string and at least one element).
+
+```typescript
+function isNonEmptySpec(spec: unknown): spec is Spec
+```
+
+## Deep Merge and Diff
+
+Format-agnostic utilities for merging and diffing spec objects.
+
+### deepMergeSpec
+
+Deep-merge with RFC 7396 semantics: `null` deletes, arrays replace, objects recurse. Neither input is mutated.
+
+```typescript
+import { deepMergeSpec } from '@json-render/core';
+
+function deepMergeSpec(
+  base: Record<string, unknown>,
+  patch: Record<string, unknown>
+): Record<string, unknown>
+
+const merged = deepMergeSpec(currentSpec, { elements: { main: { props: { title: "New" } } } });
+```
+
+### diffToPatches
+
+Generate RFC 6902 JSON Patch operations that transform one object into another. Arrays are compared shallowly and replaced atomically; plain objects recurse.
+
+```typescript
+import { diffToPatches } from '@json-render/core';
+
+function diffToPatches(
+  oldObj: Record<string, unknown>,
+  newObj: Record<string, unknown>,
+  basePath?: string
+): JsonPatch[]
+
+const patches = diffToPatches(oldSpec, newSpec);
+// [{ op: "replace", path: "/elements/main/props/title", value: "New Title" }]
 ```
 
 ## evaluateVisibility

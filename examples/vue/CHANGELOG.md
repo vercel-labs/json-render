@@ -1,5 +1,13 @@
 # example-vue
 
+## 0.1.6
+
+### Patch Changes
+
+- Updated dependencies [a8afd8b]
+  - @json-render/core@0.14.0
+  - @json-render/vue@0.14.0
+
 ## 0.1.5
 
 ### Patch Changes

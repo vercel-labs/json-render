@@ -1,0 +1,232 @@
+import { pageMetadata } from "@/lib/page-metadata"
+export const metadata = pageMetadata("docs/api/yaml")
+
+# @json-render/yaml
+
+YAML wire format for json-render. Progressive rendering and surgical edits via streaming YAML.
+
+## Prompt Generation
+
+### yamlPrompt
+
+Generate a YAML-format system prompt from any json-render catalog. Works with catalogs from any renderer.
+
+```typescript
+function yamlPrompt(
+  catalog: Catalog,
+  options?: YamlPromptOptions
+): string
+```
+
+```typescript
+import { yamlPrompt } from "@json-render/yaml";
+
+const systemPrompt = yamlPrompt(catalog, {
+  mode: "standalone",
+  customRules: ["Always use dark theme"],
+  editModes: ["merge"],
+});
+```
+
+### YamlPromptOptions
+
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>Type</th>
+      <th>Default</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>system</code></td>
+      <td><code>string</code></td>
+      <td><code>{'\"You are a UI generator that outputs YAML.\"'}</code></td>
+      <td>Custom system message intro</td>
+    </tr>
+    <tr>
+      <td><code>mode</code></td>
+      <td><code>{'\"standalone\" | \"inline\"'}</code></td>
+      <td><code>{'\"standalone\"'}</code></td>
+      <td>Standalone outputs only YAML; inline allows conversational responses with embedded YAML fences</td>
+    </tr>
+    <tr>
+      <td><code>customRules</code></td>
+      <td><code>{'string[]'}</code></td>
+      <td><code>{'[]'}</code></td>
+      <td>Additional rules appended to the prompt</td>
+    </tr>
+    <tr>
+      <td><code>editModes</code></td>
+      <td><code>{'EditMode[]'}</code></td>
+      <td><code>{'[\"merge\"]'}</code></td>
+      <td>Edit modes to document in the prompt (patch, merge, diff)</td>
+    </tr>
+  </tbody>
+</table>
+
+## AI SDK Transform
+
+### createYamlTransform
+
+Creates a `TransformStream` that intercepts AI SDK stream chunks and converts YAML spec/edit blocks into json-render patch data parts.
+
+```typescript
+function createYamlTransform(
+  options?: YamlTransformOptions
+): TransformStream<StreamChunk, StreamChunk>
+```
+
+Recognized fence types:
+
+- <code>{'```yaml-spec'}</code> -- Full YAML spec, parsed progressively
+- <code>{'```yaml-edit'}</code> -- Partial YAML, deep-merged with current spec
+- <code>{'```yaml-patch'}</code> -- RFC 6902 JSON Patch lines
+- <code>{'```diff'}</code> -- Unified diff against serialized spec
+
+### pipeYamlRender
+
+Convenience wrapper that pipes an AI SDK stream through the YAML transform. Drop-in replacement for `pipeJsonRender` from `@json-render/core`.
+
+```typescript
+function pipeYamlRender<T>(
+  stream: ReadableStream<T>,
+  options?: YamlTransformOptions
+): ReadableStream<T>
+```
+
+```typescript
+import { pipeYamlRender } from "@json-render/yaml";
+import { createUIMessageStream, createUIMessageStreamResponse } from "ai";
+
+const stream = createUIMessageStream({
+  execute: async ({ writer }) => {
+    writer.merge(pipeYamlRender(result.toUIMessageStream()));
+  },
+});
+return createUIMessageStreamResponse({ stream });
+```
+
+## Streaming Parser
+
+### createYamlStreamCompiler
+
+Create a streaming YAML compiler that incrementally parses YAML text and emits JSON Patch operations by diffing each successful parse against the previous snapshot.
+
+```typescript
+function createYamlStreamCompiler<T>(
+  initial?: Partial<T>
+): YamlStreamCompiler<T>
+```
+
+```typescript
+import { createYamlStreamCompiler } from "@json-render/yaml";
+
+const compiler = createYamlStreamCompiler<Spec>();
+
+compiler.push("root: main\n");
+compiler.push("elements:\n  main:\n    type: Card\n");
+
+const { result, newPatches } = compiler.flush();
+```
+
+### YamlStreamCompiler
+
+<table>
+  <thead>
+    <tr>
+      <th>Method</th>
+      <th>Returns</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>push(chunk)</code></td>
+      <td><code>{'{ result: T; newPatches: JsonPatch[] }'}</code></td>
+      <td>Push a chunk of text, returns current result and new patches</td>
+    </tr>
+    <tr>
+      <td><code>flush()</code></td>
+      <td><code>{'{ result: T; newPatches: JsonPatch[] }'}</code></td>
+      <td>Flush remaining buffer, return final result</td>
+    </tr>
+    <tr>
+      <td><code>getResult()</code></td>
+      <td><code>T</code></td>
+      <td>Get the current compiled result</td>
+    </tr>
+    <tr>
+      <td><code>getPatches()</code></td>
+      <td><code>{'JsonPatch[]'}</code></td>
+      <td>Get all patches applied so far</td>
+    </tr>
+    <tr>
+      <td><code>reset(initial?)</code></td>
+      <td><code>void</code></td>
+      <td>Reset to initial state</td>
+    </tr>
+  </tbody>
+</table>
+
+## Fence Constants
+
+Exported string constants for fence detection in custom parsers:
+
+<table>
+  <thead>
+    <tr>
+      <th>Constant</th>
+      <th>Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>YAML_SPEC_FENCE</code></td>
+      <td><code>{'\"```yaml-spec\"'}</code></td>
+    </tr>
+    <tr>
+      <td><code>YAML_EDIT_FENCE</code></td>
+      <td><code>{'\"```yaml-edit\"'}</code></td>
+    </tr>
+    <tr>
+      <td><code>YAML_PATCH_FENCE</code></td>
+      <td><code>{'\"```yaml-patch\"'}</code></td>
+    </tr>
+    <tr>
+      <td><code>DIFF_FENCE</code></td>
+      <td><code>{'\"```diff\"'}</code></td>
+    </tr>
+    <tr>
+      <td><code>FENCE_CLOSE</code></td>
+      <td><code>{'\"```\"'}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+## Re-exports from @json-render/core
+
+### diffToPatches
+
+Generate RFC 6902 JSON Patch operations that transform one object into another.
+
+```typescript
+function diffToPatches(
+  oldObj: Record<string, unknown>,
+  newObj: Record<string, unknown>,
+  basePath?: string
+): JsonPatch[]
+```
+
+### deepMergeSpec
+
+Deep-merge with RFC 7396 semantics: `null` deletes, arrays replace, objects recurse.
+
+```typescript
+function deepMergeSpec(
+  base: Record<string, unknown>,
+  patch: Record<string, unknown>
+): Record<string, unknown>
+```

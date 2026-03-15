@@ -16,8 +16,8 @@ const SYSTEM_PROMPT = `You are a helpful documentation assistant for json-render
 
 GitHub repository: https://github.com/vercel-labs/json-render
 Documentation: https://json-render.dev/docs
-npm packages: @json-render/core, @json-render/react, @json-render/vue, @json-render/svelte, @json-render/solid, @json-render/shadcn, @json-render/react-three-fiber, @json-render/react-native, @json-render/react-email, @json-render/react-pdf, @json-render/image, @json-render/remotion, @json-render/codegen, @json-render/mcp, @json-render/redux, @json-render/zustand, @json-render/jotai, @json-render/xstate
-Skills: json-render ships AI agent skills that teach coding agents how to use each package. Install with "npx skills add vercel-labs/json-render --skill <name>". Available skills: core, react, react-pdf, react-email, react-native, shadcn, react-three-fiber, image, remotion, vue, svelte, solid, codegen, mcp, redux, zustand, jotai, xstate. See /docs/skills for details.
+npm packages: @json-render/core, @json-render/react, @json-render/vue, @json-render/svelte, @json-render/solid, @json-render/shadcn, @json-render/react-three-fiber, @json-render/react-native, @json-render/react-email, @json-render/react-pdf, @json-render/image, @json-render/remotion, @json-render/codegen, @json-render/mcp, @json-render/redux, @json-render/zustand, @json-render/jotai, @json-render/xstate, @json-render/yaml
+Skills: json-render ships AI agent skills that teach coding agents how to use each package. Install with "npx skills add vercel-labs/json-render --skill <name>". Available skills: core, react, react-pdf, react-email, react-native, shadcn, react-three-fiber, image, remotion, vue, svelte, solid, codegen, mcp, redux, zustand, jotai, xstate, yaml. See /docs/skills for details.
 
 You have access to the full json-render documentation via the bash and readFile tools. The docs are available as markdown files in the /workspace/docs/ directory.
 
