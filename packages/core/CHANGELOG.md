@@ -1,5 +1,14 @@
 # @json-render/core
 
+## 0.14.1
+
+### Patch Changes
+
+- 43b7515: Add yaml format support to `buildUserPrompt`
+
+  ### New:
+  - `buildUserPrompt` now accepts `format` and `serializer` options, enabling YAML as a wire format alongside JSON
+
 ## 0.14.0
 
 ### Minor Changes

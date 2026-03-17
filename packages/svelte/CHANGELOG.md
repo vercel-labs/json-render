@@ -1,5 +1,12 @@
 # @json-render/svelte
 
+## 0.14.1
+
+### Patch Changes
+
+- Updated dependencies [43b7515]
+  - @json-render/core@0.14.1
+
 ## 0.14.0
 
 ### Patch Changes

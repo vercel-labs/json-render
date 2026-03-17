@@ -1,5 +1,13 @@
 # example-react-native
 
+## 0.1.9
+
+### Patch Changes
+
+- Updated dependencies [43b7515]
+  - @json-render/core@0.14.1
+  - @json-render/react-native@0.14.1
+
 ## 0.1.8
 
 ### Patch Changes
