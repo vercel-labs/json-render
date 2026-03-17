@@ -16,6 +16,10 @@ export interface UserPromptOptions {
   maxPromptLength?: number;
   /** Edit modes to offer when refining an existing spec. Default: `["patch"]`. */
   editModes?: EditMode[];
+  /** Wire format. Default: `"json"`. */
+  format?: "json" | "yaml";
+  /** Serialise the spec for edits. Defaults to JSON.stringify for json, must be provided for yaml. */
+  serializer?: (spec: Spec) => string;
 }
 
 /**
@@ -39,7 +43,15 @@ export interface UserPromptOptions {
  * ```
  */
 export function buildUserPrompt(options: UserPromptOptions): string {
-  const { prompt, currentSpec, state, maxPromptLength, editModes } = options;
+  const {
+    prompt,
+    currentSpec,
+    state,
+    maxPromptLength,
+    editModes,
+    format,
+    serializer,
+  } = options;
 
   // Sanitize and optionally truncate the user's text
   let userText = String(prompt || "");
@@ -53,7 +65,8 @@ export function buildUserPrompt(options: UserPromptOptions): string {
       prompt: userText,
       currentSpec,
       config: { modes: editModes ?? ["patch"] },
-      format: "json",
+      format: format ?? "json",
+      serializer,
     });
 
     // Append state context if provided
@@ -71,9 +84,15 @@ export function buildUserPrompt(options: UserPromptOptions): string {
     parts.push(`\nAVAILABLE STATE:\n${JSON.stringify(state, null, 2)}`);
   }
 
-  parts.push(
-    `\nRemember: Output /root first, then interleave /elements and /state patches so the UI fills in progressively as it streams. Output each state patch right after the elements that use it, one per array item.`,
-  );
+  if (format === "yaml") {
+    parts.push(
+      `\nOutput the full spec in a \`\`\`yaml-spec fence. Stream progressively — output elements one at a time.`,
+    );
+  } else {
+    parts.push(
+      `\nRemember: Output /root first, then interleave /elements and /state patches so the UI fills in progressively as it streams. Output each state patch right after the elements that use it, one per array item.`,
+    );
+  }
 
   return parts.join("\n");
 }
