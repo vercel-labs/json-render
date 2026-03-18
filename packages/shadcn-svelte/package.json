@@ -1,0 +1,82 @@
+{
+  "name": "@json-render/shadcn-svelte",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "description": "shadcn-svelte component library for @json-render/svelte. JSON becomes beautiful Tailwind-styled Svelte components.",
+  "keywords": [
+    "json",
+    "ui",
+    "svelte",
+    "svelte5",
+    "shadcn-svelte",
+    "tailwind",
+    "bits-ui",
+    "ai",
+    "generative-ui",
+    "llm",
+    "renderer",
+    "streaming",
+    "components"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vercel-labs/json-render.git",
+    "directory": "packages/shadcn-svelte"
+  },
+  "homepage": "https://github.com/vercel-labs/json-render#readme",
+  "bugs": {
+    "url": "https://github.com/vercel-labs/json-render/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "svelte": "./dist/index.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "svelte": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./catalog": {
+      "types": "./dist/catalog.d.ts",
+      "svelte": "./dist/catalog.js",
+      "default": "./dist/catalog.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "svelte-package -i src -o dist",
+    "dev": "svelte-package -i src -o dist --watch",
+    "check-types": "svelte-check --tsconfig ./tsconfig.json",
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json"
+  },
+  "dependencies": {
+    "@json-render/core": "workspace:*",
+    "@json-render/svelte": "workspace:*",
+    "@lucide/svelte": "^0.561.0",
+    "bits-ui": "^2.16.2",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.4.1",
+    "tailwind-variants": "^3.2.2",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@internal/typescript-config": "workspace:*",
+    "@sveltejs/package": "^2.3.0",
+    "@sveltejs/vite-plugin-svelte": "^6.2.4",
+    "svelte": "^5.0.0",
+    "svelte-check": "^4.0.0",
+    "typescript": "^5.4.5"
+  },
+  "peerDependencies": {
+    "svelte": "^5.0.0",
+    "tailwindcss": "^4.0.0",
+    "zod": "^4.0.0"
+  }
+}
