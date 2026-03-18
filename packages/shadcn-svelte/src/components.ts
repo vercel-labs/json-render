@@ -1,3 +1,4 @@
+import type { Component } from "svelte";
 import Card from "./render/Card.svelte";
 import Stack from "./render/Stack.svelte";
 import Grid from "./render/Grid.svelte";
@@ -35,7 +36,8 @@ import ToggleGroup from "./render/ToggleGroup.svelte";
 import ButtonGroup from "./render/ButtonGroup.svelte";
 import Pagination from "./render/Pagination.svelte";
 
-export const shadcnComponents = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const shadcnComponents: Record<string, Component<any>> = {
   Card,
   Stack,
   Grid,

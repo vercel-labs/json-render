@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from "svelte";
   import { getBoundProp } from "@json-render/svelte";
   import type { BaseComponentProps } from "@json-render/svelte";
   import type { ShadcnProps } from "../catalog.js";
@@ -7,21 +8,19 @@
 
   let { props, bindings, emit }: Props = $props();
 
-  let localValue = $state(props.value ?? props.min ?? 0);
+  let localValue = $state(untrack(() => props.value ?? props.min ?? 0));
 
-  function binding() {
-    return getBoundProp<number>(
-      () => props.value ?? undefined,
-      () => bindings?.value,
-    );
-  }
+  const bound = getBoundProp<number>(
+    () => props.value ?? undefined,
+    () => bindings?.value,
+  );
 
-  const value = $derived(binding().current ?? localValue);
+  const value = $derived(bound.current ?? localValue);
 
   function handleInput(event: Event) {
     const next = Number((event.target as HTMLInputElement).value);
     localValue = next;
-    binding().current = next;
+    bound.current = next;
     emit("change");
   }
 </script>

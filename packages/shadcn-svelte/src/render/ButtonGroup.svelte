@@ -9,18 +9,16 @@
 
   let localValue = $state("");
 
-  function binding() {
-    return getBoundProp<string>(
-      () => props.selected ?? undefined,
-      () => bindings?.selected,
-    );
-  }
+  const bound = getBoundProp<string>(
+    () => props.selected ?? undefined,
+    () => bindings?.selected,
+  );
 
-  const value = $derived(binding().current ?? localValue);
+  const value = $derived(bound.current ?? localValue);
 
   function choose(next: string) {
     localValue = next;
-    binding().current = next;
+    bound.current = next;
     emit("change");
   }
 </script>

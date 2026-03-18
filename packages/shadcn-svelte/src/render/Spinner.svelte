@@ -12,7 +12,7 @@
 </script>
 
 <div class="inline-flex items-center gap-2 text-muted-foreground">
-  <div class={`animate-spin rounded-full border-2 border-current border-t-transparent ${sizeClass}`} />
+  <div class={`animate-spin rounded-full border-2 border-current border-t-transparent ${sizeClass}`}></div>
   {#if props.label}
     <span class="text-sm">{props.label}</span>
   {/if}

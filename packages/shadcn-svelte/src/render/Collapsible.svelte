@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from "svelte";
   import type { Snippet } from "svelte";
   import type { BaseComponentProps } from "@json-render/svelte";
   import type { ShadcnProps } from "../catalog.js";
@@ -9,7 +10,7 @@
 
   let { props, children }: Props = $props();
 
-  let open = $state(props.defaultOpen ?? false);
+  let open = $state(untrack(() => props.defaultOpen ?? false));
 </script>
 
 <div class="w-full rounded-md border border-border">

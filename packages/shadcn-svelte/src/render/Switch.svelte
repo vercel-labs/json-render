@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { getBoundProp } from "@json-render/svelte";
+  import { untrack } from "svelte";
+  import { getBoundProp, getOptionalValidationContext } from "@json-render/svelte";
   import type { BaseComponentProps } from "@json-render/svelte";
   import type { ShadcnProps } from "../catalog.js";
   import { createValidation } from "./helpers.js";
@@ -8,29 +9,35 @@
 
   let { props, bindings, emit }: Props = $props();
 
-  let localChecked = $state(Boolean(props.checked));
+  let localChecked = $state(untrack(() => Boolean(props.checked)));
   let errors = $state<string[]>([]);
 
   const validateOn = $derived((props.validateOn ?? "change") as "change" | "blur" | "submit");
-  const validation = $derived(createValidation(bindings?.checked, props.checks ?? null));
+  const validationCtx = getOptionalValidationContext();
+  const validation = createValidation(
+    validationCtx,
+    untrack(() => bindings?.checked),
+    untrack(() => props.checks ?? null),
+  );
 
   $effect(() => {
-    if (validation.hasValidation) validation.register(validateOn);
+    const on = validateOn;
+    untrack(() => {
+      if (validation.hasValidation) validation.register(on);
+    });
   });
 
-  function binding() {
-    return getBoundProp<boolean>(
-      () => props.checked ?? undefined,
-      () => bindings?.checked,
-    );
-  }
+  const bound = getBoundProp<boolean>(
+    () => props.checked ?? undefined,
+    () => bindings?.checked,
+  );
 
-  const checked = $derived(binding().current ?? localChecked);
+  const checked = $derived(bound.current ?? localChecked);
 
   function toggle() {
     const next = !checked;
     localChecked = next;
-    binding().current = next;
+    bound.current = next;
     if (validateOn === "change") errors = validation.run(validateOn);
     emit("change");
   }

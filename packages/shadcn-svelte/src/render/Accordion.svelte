@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { BaseComponentProps } from "@json-render/svelte";
   import type { ShadcnProps } from "../catalog.js";
-  import * as Accordion from "../ui/accordion";
+  import * as Accordion from "../ui/accordion/index.js";
 
   interface Props extends BaseComponentProps<ShadcnProps<"Accordion">> {}
 

@@ -10,4 +10,4 @@
 <div
   class={`animate-pulse bg-muted ${props.rounded ? "rounded-full" : "rounded-md"}`}
   style={`width:${props.width ?? "100%"};height:${props.height ?? "1rem"};`}
-/>
+></div>

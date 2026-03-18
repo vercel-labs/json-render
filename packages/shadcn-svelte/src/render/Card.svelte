@@ -2,7 +2,7 @@
   import type { Snippet } from "svelte";
   import type { BaseComponentProps } from "@json-render/svelte";
   import type { ShadcnProps } from "../catalog.js";
-  import * as Card from "../ui/card";
+  import * as Card from "../ui/card/index.js";
   import { cn } from "../lib/utils.js";
 
   interface Props extends BaseComponentProps<ShadcnProps<"Card">> {

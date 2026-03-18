@@ -7,15 +7,13 @@
 
   let { props, bindings, emit }: Props = $props();
 
-  function valueBinding() {
-    return getBoundProp<string>(
-      () => props.value ?? undefined,
-      () => bindings?.value,
-    );
-  }
+  const valueBound = getBoundProp<string>(
+    () => props.value ?? undefined,
+    () => bindings?.value,
+  );
 
   function select(value: string) {
-    valueBinding().current = value;
+    valueBound.current = value;
     emit("select");
   }
 </script>

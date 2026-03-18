@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { getBoundProp } from "@json-render/svelte";
+  import { untrack } from "svelte";
+  import { getBoundProp, getOptionalValidationContext } from "@json-render/svelte";
   import type { BaseComponentProps } from "@json-render/svelte";
   import type { ShadcnProps } from "../catalog.js";
-  import { Label } from "../ui/label";
   import { createValidation } from "./helpers.js";
 
   interface Props extends BaseComponentProps<ShadcnProps<"Radio">> {}
@@ -13,31 +13,37 @@
   let errors = $state<string[]>([]);
 
   const validateOn = $derived((props.validateOn ?? "change") as "change" | "blur" | "submit");
-  const validation = $derived(createValidation(bindings?.value, props.checks ?? null));
+  const validationCtx = getOptionalValidationContext();
+  const validation = createValidation(
+    validationCtx,
+    untrack(() => bindings?.value),
+    untrack(() => props.checks ?? null),
+  );
 
   $effect(() => {
-    if (validation.hasValidation) validation.register(validateOn);
+    const on = validateOn;
+    untrack(() => {
+      if (validation.hasValidation) validation.register(on);
+    });
   });
 
-  function binding() {
-    return getBoundProp<string>(
-      () => props.value ?? undefined,
-      () => bindings?.value,
-    );
-  }
+  const bound = getBoundProp<string>(
+    () => props.value ?? undefined,
+    () => bindings?.value,
+  );
 
-  const value = $derived(binding().current ?? localValue);
+  const value = $derived(bound.current ?? localValue);
 
   function choose(next: string) {
     localValue = next;
-    binding().current = next;
+    bound.current = next;
     if (validateOn === "change") errors = validation.run(validateOn);
     emit("change");
   }
 </script>
 
 <div class="space-y-2">
-  <Label>{props.label}</Label>
+  <span class="text-sm font-medium">{props.label}</span>
   {#each props.options ?? [] as option, i}
     <label class="flex items-center gap-2 text-sm cursor-pointer">
       <input

@@ -8,6 +8,8 @@ type ValidationCheck = {
   args?: Record<string, unknown>;
 };
 
+export type ValidationCtx = ReturnType<typeof getOptionalValidationContext>;
+
 export function getPaginationRange(
   current: number,
   total: number,
@@ -28,8 +30,11 @@ export function getPaginationRange(
   return pages;
 }
 
-export function createValidation(path?: string, checks?: ValidationCheck[] | null) {
-  const validation = getOptionalValidationContext();
+export function createValidation(
+  validation: ValidationCtx,
+  path?: string,
+  checks?: ValidationCheck[] | null,
+) {
   const config = checks && checks.length > 0 ? { checks } : null;
 
   function register(validateOn: ValidateOn) {

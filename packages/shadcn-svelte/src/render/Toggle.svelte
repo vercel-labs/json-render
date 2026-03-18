@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from "svelte";
   import { getBoundProp } from "@json-render/svelte";
   import type { BaseComponentProps } from "@json-render/svelte";
   import type { ShadcnProps } from "../catalog.js";
@@ -7,21 +8,19 @@
 
   let { props, bindings, emit }: Props = $props();
 
-  let localPressed = $state(props.pressed ?? false);
+  let localPressed = $state(untrack(() => props.pressed ?? false));
 
-  function binding() {
-    return getBoundProp<boolean>(
-      () => props.pressed ?? undefined,
-      () => bindings?.pressed,
-    );
-  }
+  const bound = getBoundProp<boolean>(
+    () => props.pressed ?? undefined,
+    () => bindings?.pressed,
+  );
 
-  const pressed = $derived(binding().current ?? localPressed);
+  const pressed = $derived(bound.current ?? localPressed);
 
   function toggle() {
     const next = !pressed;
     localPressed = next;
-    binding().current = next;
+    bound.current = next;
     emit("change");
   }
 </script>

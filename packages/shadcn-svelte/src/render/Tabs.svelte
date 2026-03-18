@@ -1,9 +1,10 @@
 <script lang="ts">
+  import { untrack } from "svelte";
   import type { Snippet } from "svelte";
   import { getBoundProp } from "@json-render/svelte";
   import type { BaseComponentProps } from "@json-render/svelte";
   import type { ShadcnProps } from "../catalog.js";
-  import * as Tabs from "../ui/tabs";
+  import * as Tabs from "../ui/tabs/index.js";
 
   interface Props extends BaseComponentProps<ShadcnProps<"Tabs">> {
     children?: Snippet;
@@ -12,19 +13,17 @@
   let { props, children, bindings, emit }: Props = $props();
 
   const tabs = $derived(props.tabs ?? []);
-  let localValue = $state(props.defaultValue ?? tabs[0]?.value ?? "");
-  let activeValue = $state(localValue);
-  let previousValue = $state(activeValue);
+  let localValue = $state(untrack(() => props.defaultValue ?? tabs[0]?.value ?? ""));
+  let activeValue = $state(untrack(() => localValue));
+  let previousValue = $state(untrack(() => activeValue));
 
-  function binding() {
-    return getBoundProp<string>(
-      () => props.value ?? undefined,
-      () => bindings?.value,
-    );
-  }
+  const bound = getBoundProp<string>(
+    () => props.value ?? undefined,
+    () => bindings?.value,
+  );
 
   $effect(() => {
-    const current = binding().current ?? localValue ?? tabs[0]?.value ?? "";
+    const current = bound.current ?? localValue ?? tabs[0]?.value ?? "";
     if (current !== activeValue) {
       activeValue = current;
       previousValue = current;
@@ -35,7 +34,7 @@
     if (activeValue === previousValue) return;
     previousValue = activeValue;
     localValue = activeValue;
-    binding().current = activeValue;
+    bound.current = activeValue;
     emit("change");
   });
 </script>

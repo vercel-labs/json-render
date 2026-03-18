@@ -30,6 +30,11 @@ export default defineConfig({
     globals: true,
     environment: "jsdom",
     include: ["packages/**/*.test.ts", "packages/**/*.test.tsx"],
+    server: {
+      deps: {
+        inline: ["bits-ui", "@bits-ui", "@lucide/svelte"],
+      },
+    },
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],

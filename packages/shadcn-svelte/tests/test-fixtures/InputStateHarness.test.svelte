@@ -1,5 +1,5 @@
 <script lang="ts">
-  import StateProvider from "@json-render/svelte";
+  import { StateProvider } from "@json-render/svelte";
   import InputComponent from "../../src/render/Input.svelte";
 
   interface Props {

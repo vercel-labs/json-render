@@ -1,6 +1,5 @@
 <script lang="ts">
-  import StateProvider from "@json-render/svelte";
-  import ValidationProvider from "@json-render/svelte";
+  import { StateProvider, ValidationProvider } from "@json-render/svelte";
   import InputComponent from "../../src/render/Input.svelte";
 </script>
 

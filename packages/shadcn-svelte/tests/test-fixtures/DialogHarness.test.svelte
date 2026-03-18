@@ -1,5 +1,5 @@
 <script lang="ts">
-  import StateProvider from "@json-render/svelte";
+  import { StateProvider } from "@json-render/svelte";
   import DialogComponent from "../../src/render/Dialog.svelte";
 
   interface Props {

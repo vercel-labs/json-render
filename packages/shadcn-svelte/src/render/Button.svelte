@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { BaseComponentProps } from "@json-render/svelte";
   import type { ShadcnProps } from "../catalog.js";
-  import { Button } from "../ui/button";
+  import { Button } from "../ui/button/index.js";
 
   interface Props extends BaseComponentProps<ShadcnProps<"Button">> {}
 
