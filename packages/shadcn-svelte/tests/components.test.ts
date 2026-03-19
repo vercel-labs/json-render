@@ -41,8 +41,8 @@ describe("shadcn-svelte component behavior", () => {
 
     expect(screen.getByText("Dialog content")).toBeTruthy();
 
-    const backdrop = document.querySelector(".fixed.inset-0") as HTMLElement;
-    await fireEvent.click(backdrop);
+    const closeButton = screen.getByRole("button", { name: "Close" });
+    await fireEvent.click(closeButton);
 
     expect(onStateChange).toHaveBeenCalledWith([
       { path: "/dialog/open", value: false },

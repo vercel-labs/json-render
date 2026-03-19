@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { WithoutChildren } from "bits-ui";
 	import { getEmblaContext } from "./context.js";
-	import { cn } from "$lib/utils.js";
-	import { Button, type Props } from "$ui/button/index.js";
+	import { cn } from "../../lib/utils.js";
+	import { Button, type Props } from "../button/index.js";
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
 
 	let {

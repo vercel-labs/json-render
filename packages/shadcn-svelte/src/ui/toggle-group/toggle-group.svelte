@@ -1,7 +1,7 @@
 <script lang="ts" module>
 	import { getContext, setContext } from "svelte";
 	import type { VariantProps } from "tailwind-variants";
-	import { toggleVariants } from "$ui/toggle/index.js";
+	import { toggleVariants } from "../toggle/index.js";
 
 	type ToggleVariants = VariantProps<typeof toggleVariants>;
 
@@ -21,7 +21,7 @@
 
 <script lang="ts">
 	import { ToggleGroup as ToggleGroupPrimitive } from "bits-ui";
-	import { cn } from "$lib/utils.js";
+	import { cn } from "../../lib/utils.js";
 
 	let {
 		ref = $bindable(null),

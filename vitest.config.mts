@@ -8,7 +8,12 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [
-    svelte({ hot: false }),
+    svelte({
+      hot: false,
+      compilerOptions: { runes: true },
+      // Also transform bits-ui and vaul-svelte .svelte files so getContext works in tests
+      include: ["**/*.svelte", "**/bits-ui/**/*.svelte", "**/vaul-svelte/**/*.svelte"],
+    }),
     solid({
       // Only transform files in the solid package to avoid interfering with React JSX
       include: ["packages/solid/**/*.{ts,tsx}"],
@@ -32,7 +37,7 @@ export default defineConfig({
     include: ["packages/**/*.test.ts", "packages/**/*.test.tsx"],
     server: {
       deps: {
-        inline: ["bits-ui", "@bits-ui", "@lucide/svelte"],
+        inline: [/bits-ui/, /runed/, /vaul-svelte/, /@lucide\/svelte/],
       },
     },
     coverage: {
