@@ -29,10 +29,10 @@
   },
   "devDependencies": {
     "@changesets/cli": "2.29.8",
+    "@solidjs/testing-library": "^0.8.10",
     "@sveltejs/vite-plugin-svelte": "^6.2.4",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.1",
-    "@solidjs/testing-library": "^0.8.10",
     "@testing-library/svelte": "^5.2.0",
     "@types/react": "^19.2.3",
     "husky": "^9.1.7",
@@ -48,7 +48,7 @@
     "vite-plugin-solid": "^2.11.10",
     "vitest": "^4.0.17"
   },
-  "packageManager": "pnpm@10.29.3",
+  "packageManager": "pnpm@10.32.1",
   "engines": {
     "node": ">=18"
   },

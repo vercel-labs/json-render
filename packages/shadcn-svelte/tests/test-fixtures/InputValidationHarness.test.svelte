@@ -1,6 +1,6 @@
 <script lang="ts">
   import { StateProvider, ValidationProvider } from "@json-render/svelte";
-  import InputComponent from "../../src/render/Input.svelte";
+  import InputComponent from "../../src/Input.svelte";
 </script>
 
 <StateProvider initialState={{ form: { email: "" } }}>

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Tabs as TabsPrimitive } from "bits-ui";
-	import { cn } from "../../lib/utils.js";
+	import { cn } from "$lib/utils.js";
 
 	let {
 		ref = $bindable(null),
@@ -14,6 +14,6 @@
 	bind:ref
 	bind:value
 	data-slot="tabs"
-	class={cn("flex flex-col gap-2", className)}
+	class={cn("gap-2 group/tabs flex data-[orientation=horizontal]:flex-col", className)}
 	{...restProps}
 />

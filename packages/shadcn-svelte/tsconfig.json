@@ -4,7 +4,13 @@
     "outDir": "dist",
     "rootDir": "src",
     "types": ["svelte"],
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": true,
+    "paths": {
+      "$lib": ["./src/lib"],
+      "$lib/*": ["./src/lib/*"],
+      "$ui": ["./src/ui"],
+      "$ui/*": ["./src/ui/*"]
+    }
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist", "./**/*.test.ts"]

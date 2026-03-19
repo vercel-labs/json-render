@@ -1,6 +1,6 @@
 <script lang="ts">
   import { StateProvider } from "@json-render/svelte";
-  import DialogComponent from "../../src/render/Dialog.svelte";
+  import DialogComponent from "../../src/Dialog.svelte";
 
   interface Props {
     onStateChange: (changes: Array<{ path: string; value: unknown }>) => void;

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { StateProvider } from "@json-render/svelte";
-  import InputComponent from "../../src/render/Input.svelte";
+  import InputComponent from "../../src/Input.svelte";
 
   interface Props {
     onStateChange: (changes: Array<{ path: string; value: unknown }>) => void;

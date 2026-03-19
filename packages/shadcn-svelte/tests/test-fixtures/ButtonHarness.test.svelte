@@ -1,5 +1,5 @@
 <script lang="ts">
-  import ButtonComponent from "../../src/render/Button.svelte";
+  import ButtonComponent from "../../src/Button.svelte";
 
   interface Props {
     onPress: () => void;
