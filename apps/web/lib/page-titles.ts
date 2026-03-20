@@ -11,6 +11,7 @@ export const PAGE_TITLES: Record<string, string> = {
 
   // Top-level
   playground: "Playground",
+  examples: "Examples",
 
   // Docs
   docs: "Introduction",

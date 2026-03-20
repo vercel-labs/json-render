@@ -25,10 +25,12 @@
     "prepare": "husky",
     "changeset": "changeset",
     "ci:version": "changeset version && pnpm install --no-frozen-lockfile",
-    "ci:publish": "pnpm run build && changeset publish"
+    "ci:publish": "pnpm run build && changeset publish",
+    "generate:og": "npx tsx scripts/generate-og-images.mts"
   },
   "devDependencies": {
     "@changesets/cli": "2.29.8",
+    "@resvg/resvg-js": "2.6.2",
     "@solidjs/testing-library": "^0.8.10",
     "@sveltejs/vite-plugin-svelte": "^6.2.4",
     "@testing-library/dom": "^10.4.1",
@@ -41,6 +43,7 @@
     "prettier": "^3.7.4",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "satori": "0.25.0",
     "solid-js": "^1.9.11",
     "svelte": "^5.0.0",
     "turbo": "^2.7.4",

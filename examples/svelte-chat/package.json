@@ -34,6 +34,8 @@
     "clsx": "^2.1.1",
     "lucide-svelte": "^0.500.0",
     "tailwind-merge": "^3.2.0",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.37.0",
     "zod": "4.3.6"
   }
 }

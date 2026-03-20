@@ -45,63 +45,7 @@ export const docsNavigation: NavSection[] = [
   },
   {
     title: "Examples",
-    items: [
-      {
-        title: "Chat",
-        href: "https://github.com/vercel-labs/json-render/tree/main/examples/chat",
-        external: true,
-      },
-      {
-        title: "Dashboard",
-        href: "https://github.com/vercel-labs/json-render/tree/main/examples/dashboard",
-        external: true,
-      },
-      {
-        title: "React Native",
-        href: "https://github.com/vercel-labs/json-render/tree/main/examples/react-native",
-        external: true,
-      },
-      {
-        title: "React PDF",
-        href: "https://github.com/vercel-labs/json-render/tree/main/examples/react-pdf",
-        external: true,
-      },
-      {
-        title: "React Email",
-        href: "https://github.com/vercel-labs/json-render/tree/main/examples/react-email",
-        external: true,
-      },
-      {
-        title: "Remotion",
-        href: "https://github.com/vercel-labs/json-render/tree/main/examples/remotion",
-        external: true,
-      },
-      {
-        title: "Image",
-        href: "https://github.com/vercel-labs/json-render/tree/main/examples/image",
-        external: true,
-      },
-      {
-        title: "Svelte",
-        href: "https://github.com/vercel-labs/json-render/tree/main/examples/svelte",
-        external: true,
-      },
-      {
-        title: "Vue",
-        href: "https://github.com/vercel-labs/json-render/tree/main/examples/vue",
-        external: true,
-      },
-      {
-        title: "Renders with Vite (Vue / React / Svelte / Solid)",
-        href: "https://github.com/vercel-labs/json-render/tree/main/examples/vite-renderers",
-        external: true,
-      },
-      {
-        title: "MCP App",
-        href: "https://github.com/vercel-labs/json-render/tree/main/examples/mcp",
-        external: true,
-      },
-    ],
+    items: [{ title: "Browse All Examples", href: "/examples" }],
   },
   {
     title: "Guides",

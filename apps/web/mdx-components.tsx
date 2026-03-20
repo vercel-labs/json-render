@@ -35,16 +35,26 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     h2: ({ children }: { children?: React.ReactNode }) => {
       const id = slugify(extractText(children));
       return (
-        <h2 id={id} className="text-xl font-semibold mt-12 mb-4">
-          {children}
+        <h2 id={id} className="group text-xl font-semibold mt-12 mb-4">
+          <a href={`#${id}`} className="no-underline hover:no-underline">
+            {children}
+            <span className="ml-2 text-muted-foreground/0 group-hover:text-muted-foreground transition-colors select-none">
+              #
+            </span>
+          </a>
         </h2>
       );
     },
     h3: ({ children }: { children?: React.ReactNode }) => {
       const id = slugify(extractText(children));
       return (
-        <h3 id={id} className="text-lg font-medium mt-8 mb-3">
-          {children}
+        <h3 id={id} className="group text-lg font-medium mt-8 mb-3">
+          <a href={`#${id}`} className="no-underline hover:no-underline">
+            {children}
+            <span className="ml-2 text-muted-foreground/0 group-hover:text-muted-foreground transition-colors select-none">
+              #
+            </span>
+          </a>
         </h3>
       );
     },

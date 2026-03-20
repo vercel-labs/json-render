@@ -261,10 +261,10 @@ export function DocsChat({
     }
   }, [messages, isLoading]);
 
-  // Cmd+K to open sidebar and focus prompt, Escape to close
+  // Cmd+I to open sidebar and focus prompt, Escape to close
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+      if (e.key === "i" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         setOpen((prev) => {
           if (!prev) {
@@ -497,12 +497,12 @@ export function DocsChat({
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="fixed z-50 bottom-4 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-4 flex items-center gap-2 px-4 py-2 rounded-lg border bg-background text-primary shadow-lg hover:bg-primary hover:text-primary-foreground transition-colors text-sm font-medium"
+          className="fixed z-50 bottom-4 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-4 flex items-center gap-2 px-4 py-2 rounded-lg border border-primary bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors text-sm font-medium"
           aria-label="Ask AI"
         >
           Ask AI
           <kbd className="hidden sm:inline-flex items-center gap-0.5 text-xs opacity-60 font-mono">
-            <span>&#8984;</span>K
+            <span>&#8984;</span>I
           </kbd>
         </button>
       )}

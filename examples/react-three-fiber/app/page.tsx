@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore, useCallback } from "react";
 import { defineCatalog } from "@json-render/core";
 import type { ComputedFunction } from "@json-render/core";
 import { schema, defineRegistry } from "@json-render/react";
@@ -109,9 +109,27 @@ function highlightJson(json: string): string {
   );
 }
 
+const MOBILE_BREAKPOINT = 768;
+
+function subscribeToResize(cb: () => void) {
+  window.addEventListener("resize", cb);
+  return () => window.removeEventListener("resize", cb);
+}
+
+function getIsMobile() {
+  return typeof window !== "undefined"
+    ? window.innerWidth < MOBILE_BREAKPOINT
+    : false;
+}
+
+function useIsMobile() {
+  return useSyncExternalStore(subscribeToResize, getIsMobile, () => false);
+}
+
 const LIST_WIDTH = 220;
 const JSON_WIDTH = 380;
 const HEADER_HEIGHT = 40;
+const MOBILE_HEADER_HEIGHT = 48;
 
 const headerStyle: React.CSSProperties = {
   height: HEADER_HEIGHT,
@@ -132,7 +150,236 @@ const headerStyle: React.CSSProperties = {
   boxSizing: "border-box",
 };
 
-export default function Page() {
+function MobileLayout() {
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [showJson, setShowJson] = useState(false);
+  const [showScenes, setShowScenes] = useState(false);
+  const selected = scenes[selectedIndex]!;
+
+  const closePanels = useCallback(() => {
+    setShowJson(false);
+    setShowScenes(false);
+  }, []);
+
+  return (
+    <div
+      style={{
+        height: "100dvh",
+        display: "flex",
+        flexDirection: "column",
+        background: "#0a0a0a",
+        overflow: "hidden",
+      }}
+    >
+      <div
+        style={{
+          height: MOBILE_HEADER_HEIGHT,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "0 12px",
+          borderBottom: "1px solid #1e1e1e",
+          background: "#0f0f0f",
+          flexShrink: 0,
+          gap: 8,
+        }}
+      >
+        <button
+          onClick={() => {
+            setShowScenes((v) => !v);
+            setShowJson(false);
+          }}
+          style={{
+            background: showScenes ? "rgba(255,255,255,0.1)" : "transparent",
+            border: "1px solid #333",
+            borderRadius: 6,
+            color: "#ccc",
+            fontSize: 12,
+            fontWeight: 500,
+            padding: "6px 10px",
+            cursor: "pointer",
+            fontFamily: "inherit",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            maxWidth: "50%",
+          }}
+        >
+          {selected.name}
+        </button>
+
+        <span
+          style={{
+            flex: 1,
+            fontSize: 10,
+            color: "#555",
+            textAlign: "center",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            fontFamily: "ui-monospace, monospace",
+            textTransform: "uppercase",
+            letterSpacing: "0.06em",
+          }}
+        >
+          {selected.description}
+        </span>
+
+        <button
+          onClick={() => {
+            setShowJson((v) => !v);
+            setShowScenes(false);
+          }}
+          style={{
+            background: showJson ? "rgba(255,255,255,0.1)" : "transparent",
+            border: "1px solid #333",
+            borderRadius: 6,
+            color: "#ccc",
+            fontSize: 11,
+            fontWeight: 500,
+            padding: "6px 10px",
+            cursor: "pointer",
+            fontFamily: "ui-monospace, monospace",
+            whiteSpace: "nowrap",
+            letterSpacing: "0.04em",
+          }}
+        >
+          JSON
+        </button>
+      </div>
+
+      <div style={{ flex: 1, position: "relative", minHeight: 0 }}>
+        <ThreeCanvas
+          key={selectedIndex}
+          spec={selected.spec}
+          registry={registry}
+          functions={computedFunctions}
+          shadows
+          camera={{ position: [0, 0, 5], fov: 50 }}
+          style={{ width: "100%", height: "100%" }}
+        />
+
+        {showScenes && (
+          <>
+            <div
+              onClick={closePanels}
+              style={{
+                position: "absolute",
+                inset: 0,
+                background: "rgba(0,0,0,0.5)",
+                zIndex: 10,
+              }}
+            />
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                bottom: 0,
+                width: "75%",
+                maxWidth: 280,
+                background: "#0f0f0f",
+                borderRight: "1px solid #1e1e1e",
+                zIndex: 11,
+                display: "flex",
+                flexDirection: "column",
+                overflowY: "auto",
+                WebkitOverflowScrolling: "touch",
+              }}
+            >
+              <div style={{ ...headerStyle, height: 36 }}>Scenes</div>
+              <div style={{ padding: "6px 0" }}>
+                {scenes.map((scene, i) => (
+                  <button
+                    key={scene.name}
+                    onClick={() => {
+                      setSelectedIndex(i);
+                      setShowScenes(false);
+                    }}
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      padding: "10px 16px",
+                      fontSize: 14,
+                      border: "none",
+                      textAlign: "left",
+                      background:
+                        i === selectedIndex
+                          ? "rgba(255,255,255,0.08)"
+                          : "transparent",
+                      color: i === selectedIndex ? "#fff" : "#888",
+                      fontWeight: i === selectedIndex ? 500 : 400,
+                      cursor: "pointer",
+                      borderLeft:
+                        i === selectedIndex
+                          ? "2px solid #fff"
+                          : "2px solid transparent",
+                      fontFamily: "inherit",
+                    }}
+                  >
+                    {scene.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        {showJson && (
+          <>
+            <div
+              onClick={closePanels}
+              style={{
+                position: "absolute",
+                inset: 0,
+                background: "rgba(0,0,0,0.5)",
+                zIndex: 10,
+              }}
+            />
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                right: 0,
+                bottom: 0,
+                width: "85%",
+                maxWidth: 400,
+                background: "#0d0d0d",
+                borderLeft: "1px solid #1e1e1e",
+                zIndex: 11,
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              <div style={{ ...headerStyle, height: 36 }}>Spec JSON</div>
+              <pre
+                style={{
+                  flex: 1,
+                  margin: 0,
+                  padding: 14,
+                  overflowY: "auto",
+                  overflowX: "auto",
+                  WebkitOverflowScrolling: "touch",
+                  fontSize: 11,
+                  lineHeight: 1.6,
+                  fontFamily:
+                    "ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace",
+                  color: "#EDEDED",
+                  tabSize: 2,
+                }}
+                dangerouslySetInnerHTML={{
+                  __html: highlightJson(JSON.stringify(selected.spec, null, 2)),
+                }}
+              />
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function DesktopLayout() {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const selected = scenes[selectedIndex]!;
 
@@ -235,4 +482,9 @@ export default function Page() {
       </div>
     </div>
   );
+}
+
+export default function Page() {
+  const isMobile = useIsMobile();
+  return isMobile ? <MobileLayout /> : <DesktopLayout />;
 }

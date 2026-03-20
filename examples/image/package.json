@@ -28,6 +28,8 @@
     "react-resizable-panels": "^4.4.1",
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.1.18",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.37.0",
     "zod": "4.3.6"
   },
   "devDependencies": {
