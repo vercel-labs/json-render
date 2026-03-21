@@ -9,6 +9,8 @@ Generate dynamic, personalized UIs from prompts without sacrificing reliability.
 npm install @json-render/core @json-render/react
 # for React with pre-built shadcn/ui components
 npm install @json-render/shadcn
+# for React with pre-built Ant Design components
+npm install @json-render/antd
 # or for React Native
 npm install @json-render/core @json-render/react-native
 # or for video
@@ -34,8 +36,9 @@ json-render is a **Generative UI** framework: AI generates interfaces from natur
 - **Guardrailed** - AI can only use components in your catalog
 - **Predictable** - JSON output matches your schema, every time
 - **Fast** - Stream and render progressively as the model responds
-- **Cross-Platform** - React, Vue, Svelte, Solid (web), React Native (mobile) from the same catalog
-- **Batteries Included** - 36 pre-built shadcn/ui components ready to use
+- **Cross-Platform** - React, Vue, Svelte (web), React Native (mobile) from the same catalog
+- **Batteries Included** - 36 pre-built shadcn/ui components and 50+ Ant Design components ready to use
+
 
 ## Quick Start
 
@@ -115,27 +118,25 @@ function Dashboard({ spec }) {
 
 ## Packages
 
-| Package                     | Description                                                            |
-| --------------------------- | ---------------------------------------------------------------------- |
-| `@json-render/core`         | Schemas, catalogs, AI prompts, dynamic props, SpecStream utilities     |
-| `@json-render/react`        | React renderer, contexts, hooks                                        |
-| `@json-render/vue`          | Vue 3 renderer, composables, providers                                 |
-| `@json-render/svelte`       | Svelte 5 renderer with runes-based reactivity                          |
-| `@json-render/solid`        | SolidJS renderer with fine-grained reactive contexts                   |
-| `@json-render/shadcn`       | 36 pre-built shadcn/ui components (Radix UI + Tailwind CSS)            |
-| `@json-render/react-three-fiber` | React Three Fiber renderer for 3D scenes (19 built-in components)  |
-| `@json-render/react-native` | React Native renderer with standard mobile components                  |
-| `@json-render/remotion`     | Remotion video renderer, timeline schema                               |
-| `@json-render/react-pdf`    | React PDF renderer for generating PDF documents from specs             |
-| `@json-render/react-email`  | React Email renderer for HTML/plain-text emails from specs             |
-| `@json-render/image`        | Image renderer for SVG/PNG output (OG images, social cards) via Satori |
-| `@json-render/codegen`      | Utilities for generating code from json-render UI trees                |
-| `@json-render/redux`        | Redux / Redux Toolkit adapter for `StateStore`                         |
-| `@json-render/zustand`      | Zustand adapter for `StateStore`                                       |
-| `@json-render/jotai`        | Jotai adapter for `StateStore`                                         |
-| `@json-render/xstate`       | XState Store (atom) adapter for `StateStore`                           |
-| `@json-render/mcp`          | MCP Apps integration for Claude, ChatGPT, Cursor, VS Code              |
-| `@json-render/yaml`         | YAML wire format with streaming parser, edit modes, AI SDK transform   |
+| Package | Description |
+|---------|-------------|
+| `@json-render/core` | Schemas, catalogs, AI prompts, dynamic props, SpecStream utilities |
+| `@json-render/react` | React renderer, contexts, hooks |
+| `@json-render/vue` | Vue 3 renderer, composables, providers |
+| `@json-render/svelte` | Svelte 5 renderer with runes-based reactivity |
+| `@json-render/shadcn` | 36 pre-built shadcn/ui components (Radix UI + Tailwind CSS) |
+| `@json-render/antd` | 50+ pre-built Ant Design components |
+| `@json-render/react-native` | React Native renderer with standard mobile components |
+| `@json-render/remotion` | Remotion video renderer, timeline schema |
+| `@json-render/react-pdf` | React PDF renderer for generating PDF documents from specs |
+| `@json-render/react-email` | React Email renderer for HTML/plain-text emails from specs |
+| `@json-render/image` | Image renderer for SVG/PNG output (OG images, social cards) via Satori |
+| `@json-render/codegen` | Utilities for generating code from json-render UI trees |
+| `@json-render/redux` | Redux / Redux Toolkit adapter for `StateStore` |
+| `@json-render/zustand` | Zustand adapter for `StateStore` |
+| `@json-render/jotai` | Jotai adapter for `StateStore` |
+| `@json-render/xstate` | XState Store (atom) adapter for `StateStore` |
+| `@json-render/mcp` | MCP Apps integration for Claude, ChatGPT, Cursor, VS Code |
 
 ## Renderers
 
@@ -255,6 +256,39 @@ const { registry } = defineRegistry(catalog, {
 });
 
 <Renderer spec={spec} registry={registry} />;
+```
+
+### Ant Design (Web)
+
+```tsx
+import { defineCatalog } from "@json-render/core";
+import { schema } from "@json-render/react/schema";
+import { defineRegistry, Renderer } from "@json-render/react";
+import { antdComponentDefinitions } from "@json-render/antd/catalog";
+import { antdComponents } from "@json-render/antd";
+
+// Pick components from the 50+ standard definitions
+const catalog = defineCatalog(schema, {
+  components: {
+    Card: antdComponentDefinitions.Card,
+    Stack: antdComponentDefinitions.Stack,
+    Heading: antdComponentDefinitions.Heading,
+    Button: antdComponentDefinitions.Button,
+  },
+  actions: {},
+});
+
+// Use matching implementations
+const { registry } = defineRegistry(catalog, {
+  components: {
+    Card: antdComponents.Card,
+    Stack: antdComponents.Stack,
+    Heading: antdComponents.Heading,
+    Button: antdComponents.Button,
+  },
+});
+
+<Renderer spec={spec} registry={registry} />
 ```
 
 ### React Native (Mobile)
