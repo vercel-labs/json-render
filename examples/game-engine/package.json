@@ -1,0 +1,50 @@
+{
+  "name": "example-game-engine",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "predev": "command -v portless >/dev/null 2>&1 || (echo '\\nportless is required but not installed. Run: npm i -g portless\\nSee: https://github.com/vercel-labs/portless\\n' && exit 1)",
+    "dev": "portless game-engine-demo.json-render next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint --max-warnings 0",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ai-sdk/gateway": "^3.0.66",
+    "@json-render/core": "workspace:*",
+    "@json-render/react": "workspace:*",
+    "@json-render/react-three-fiber": "workspace:*",
+    "@json-render/yaml": "workspace:*",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.5.0",
+    "@react-three/postprocessing": "^3.0.4",
+    "@react-three/rapier": "^2.2.0",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.37.0",
+    "@vercel/blob": "^2.3.1",
+    "ai": "^6.0.116",
+    "lucide-react": "^0.577.0",
+    "next": "16.1.6",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "three": "^0.183.2",
+    "uuid": "^13.0.0",
+    "yaml": "^2.8.2",
+    "zod": "4.3.6",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@internal/eslint-config": "workspace:*",
+    "@tailwindcss/postcss": "^4.2.2",
+    "@types/node": "^22.10.0",
+    "@types/react": "19.2.3",
+    "@types/react-dom": "19.2.3",
+    "@types/three": "^0.183.1",
+    "@types/uuid": "^10.0.0",
+    "eslint": "^9.39.1",
+    "tailwindcss": "^4.2.2",
+    "typescript": "^5.7.2"
+  }
+}

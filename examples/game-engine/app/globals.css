@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: #0a0a0a;
+  --color-foreground: #ededed;
+  --color-muted: #1e1e1e;
+  --color-muted-foreground: #888;
+  --color-border: #2a2a2a;
+  --color-input: #1a1a1a;
+  --color-primary: #fff;
+  --color-primary-foreground: #0a0a0a;
+  --color-accent: #333;
+  --color-accent-foreground: #ededed;
+  --color-destructive: #e53935;
+}
+
+html, body {
+  margin: 0;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: system-ui, -apple-system, sans-serif;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
+  position: fixed;
+  width: 100%;
+  height: 100dvh;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+input, textarea, [contenteditable] {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+  font-size: 16px;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: none) {
+  button, a, [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+  }
+  .hover\:bg-white\/5:hover { background-color: transparent !important; }
+  .hover\:bg-white\/10:hover { background-color: transparent !important; }
+  .hover\:bg-white\/20:hover { background-color: transparent !important; }
+}
+
+canvas {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: none;
+}
+
+:root {
+  --sai-bottom: env(safe-area-inset-bottom, 0px);
+  --sai-top: env(safe-area-inset-top, 0px);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@keyframes pulse-low {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.animate-pulse-low {
+  animation: pulse-low 1s ease-in-out infinite;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out forwards;
+}
+
+@keyframes screen-flash {
+  0% { opacity: 0.7; }
+  100% { opacity: 0; }
+}
+
+.animate-screen-flash {
+  animation: screen-flash 0.4s ease-out forwards;
+}

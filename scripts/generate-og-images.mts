@@ -22,6 +22,7 @@ interface Example {
 const EXAMPLES: Example[] = [
   { dir: "chat", title: "Chat Example", framework: "nextjs" },
   { dir: "dashboard", title: "Dashboard Example", framework: "nextjs" },
+  { dir: "game-engine", title: "Game Engine Demo", framework: "nextjs" },
   { dir: "image", title: "Image Example", framework: "nextjs" },
   { dir: "no-ai", title: "No AI Example", framework: "nextjs" },
   { dir: "react-email", title: "React Email Example", framework: "nextjs" },
