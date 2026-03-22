@@ -1,0 +1,27 @@
+{
+  "name": "example-ink-chat",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "tsx --env-file=.env src/index.tsx",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@json-render/core": "workspace:*",
+    "@json-render/ink": "workspace:*",
+    "ai": "^6.0.33",
+    "@ai-sdk/gateway": "^3.0.52",
+    "ink": "^6.8.0",
+    "react": "19.2.4",
+    "zod": "4.3.6"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.3",
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.2"
+  }
+}

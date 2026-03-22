@@ -22,7 +22,8 @@
       "@json-render/svelte",
       "@json-render/solid",
       "@json-render/react-three-fiber",
-      "@json-render/yaml"
+      "@json-render/yaml",
+      "@json-render/ink"
     ]
   ],
   "linked": [],
