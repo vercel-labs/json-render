@@ -576,8 +576,9 @@ export function App() {
         </Box>
       )}
 
-      {/* Spacer pushes input to bottom */}
-      <Box flexGrow={1} />
+      {/* Spacer pushes input to bottom when content is short.
+          Skip during streaming to avoid clipping tall previews. */}
+      {!isStreaming && <Box flexGrow={1} />}
 
       {/* Input — spinner replaces input while streaming, hidden during wizard */}
       {!liveSpec && (
