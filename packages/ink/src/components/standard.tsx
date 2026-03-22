@@ -248,7 +248,10 @@ function SparklineComponent({ element }: ComponentRenderProps) {
   if (maxWidth < data.length) {
     sampled = [];
     for (let i = 0; i < maxWidth; i++) {
-      const idx = Math.round((i / (maxWidth - 1)) * (data.length - 1));
+      const idx =
+        maxWidth === 1
+          ? 0
+          : Math.round((i / (maxWidth - 1)) * (data.length - 1));
       sampled.push(data[idx]!);
     }
   }
