@@ -570,7 +570,7 @@ export function App() {
         <Box flexDirection="column" marginBottom={1}>
           <AnimatedSpinner label={streamingStatus} />
           {streamingSpec && streamingSpec.root && (
-            <Box marginTop={1}>
+            <Box marginTop={1} height={6} overflowY="hidden">
               <JSONUIProvider initialState={streamingSpec.state ?? {}}>
                 <DisableFocus />
                 <Renderer spec={streamingSpec} />
