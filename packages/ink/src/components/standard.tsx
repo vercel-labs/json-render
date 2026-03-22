@@ -376,7 +376,7 @@ function TableComponent({ element }: ComponentRenderProps) {
         <Box key={rowIdx}>
           {columns.map((col, i) => (
             <Text key={col.key}>
-              {padCell(row[col.key] ?? "", colWidths[i]!, col.align)}
+              {padCell(row[col.key] || "—", colWidths[i]!, col.align)}
             </Text>
           ))}
         </Box>
@@ -421,9 +421,9 @@ function ListItemComponent({ element }: ComponentRenderProps) {
       {p.leading ? <Text>{p.leading}</Text> : null}
       <Box flexDirection="column" flexGrow={1}>
         <Text bold>{p.title ?? ""}</Text>
-        {p.subtitle ? <Text dimColor>{p.subtitle}</Text> : null}
+        {p.subtitle ? <Text>{p.subtitle}</Text> : null}
       </Box>
-      {p.trailing ? <Text dimColor>{String(p.trailing)}</Text> : null}
+      {p.trailing ? <Text>{String(p.trailing)}</Text> : null}
     </Box>
   );
 }
@@ -484,7 +484,7 @@ function KeyValueComponent({ element }: ComponentRenderProps) {
         {p.label ?? ""}
         {sep}
       </Text>
-      <Text>{coerceToString(p.value)}</Text>
+      <Text>{coerceToString(p.value) || "—"}</Text>
     </Box>
   );
 }
