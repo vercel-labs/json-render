@@ -26,12 +26,25 @@ const BLOCKED_PROPS = new Set([
   "id",
 ]);
 
+// Colors that are invisible on typical dark terminal backgrounds.
+const INVISIBLE_COLORS = new Set(["black", "#000", "#000000"]);
+
+/** Return undefined for colors that would be invisible on dark terminals. */
+function safeColor(color: string | undefined): string | undefined {
+  if (color && INVISIBLE_COLORS.has(color)) return undefined;
+  return color;
+}
+
 // Strip null values so Ink's default layout applies (Ink has no concept of null props)
 // and block dangerous or web-only props from AI-generated specs.
 function safeBoxProps(obj: Record<string, unknown>): Record<string, unknown> {
   const result: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(obj)) {
     if (v !== undefined && v !== null && !BLOCKED_PROPS.has(k)) {
+      // Drop foreground colors that would be invisible on dark backgrounds
+      if (k === "color" && typeof v === "string" && INVISIBLE_COLORS.has(v)) {
+        continue;
+      }
       result[k] = v;
     }
   }
@@ -75,26 +88,26 @@ function HeadingComponent({ element }: ComponentRenderProps) {
   switch (level) {
     case "h1":
       return (
-        <Text bold underline color={p.color}>
+        <Text bold underline color={safeColor(p.color)}>
           {p.text ?? ""}
         </Text>
       );
     case "h2":
       return (
-        <Text bold color={p.color}>
+        <Text bold color={safeColor(p.color)}>
           {p.text ?? ""}
         </Text>
       );
     case "h3":
       return (
-        <Text bold dimColor color={p.color}>
+        <Text bold dimColor color={safeColor(p.color)}>
           {p.text ?? ""}
         </Text>
       );
     case "h4":
     default:
       return (
-        <Text dimColor color={p.color}>
+        <Text dimColor color={safeColor(p.color)}>
           {p.text ?? ""}
         </Text>
       );
@@ -119,7 +132,7 @@ function DividerComponent({ element }: ComponentRenderProps) {
     const leftLen = Math.floor(available / 2);
     const rightLen = available - leftLen;
     return (
-      <Text color={p.color} dimColor={p.dimColor}>
+      <Text color={safeColor(p.color)} dimColor={p.dimColor}>
         {char.repeat(leftLen)}
         {titleStr}
         {char.repeat(rightLen)}
@@ -128,7 +141,7 @@ function DividerComponent({ element }: ComponentRenderProps) {
   }
 
   return (
-    <Text color={p.color} dimColor={p.dimColor}>
+    <Text color={safeColor(p.color)} dimColor={p.dimColor}>
       {char.repeat(totalWidth)}
     </Text>
   );
@@ -151,7 +164,7 @@ function BadgeComponent({ element }: ComponentRenderProps) {
   const color = BADGE_COLORS[p.variant ?? "default"] ?? "white";
 
   return (
-    <Text color="black" backgroundColor={color} bold>
+    <Text backgroundColor={color} bold>
       {` ${p.label ?? ""} `}
     </Text>
   );
@@ -176,7 +189,7 @@ function SpinnerComponent({ element }: ComponentRenderProps) {
 
   return (
     <Box gap={1}>
-      <Text color={p.color}>{SPINNER_FRAMES[frame]}</Text>
+      <Text color={safeColor(p.color)}>{SPINNER_FRAMES[frame]}</Text>
       {p.label ? <Text>{p.label}</Text> : null}
     </Box>
   );
@@ -200,7 +213,7 @@ function ProgressBarComponent({ element }: ComponentRenderProps) {
     <Box gap={1}>
       {p.label ? <Text>{p.label}</Text> : null}
       <Text>
-        <Text color={p.color ?? "green"}>{"█".repeat(filled)}</Text>
+        <Text color={safeColor(p.color) ?? "green"}>{"█".repeat(filled)}</Text>
         <Text dimColor>{"░".repeat(empty)}</Text>
       </Text>
       <Text dimColor>{percentage}%</Text>
@@ -254,7 +267,7 @@ function SparklineComponent({ element }: ComponentRenderProps) {
   return (
     <Box gap={1}>
       {p.label ? <Text>{p.label}</Text> : null}
-      <Text color={p.color ?? "green"}>{blocks}</Text>
+      <Text color={safeColor(p.color) ?? "green"}>{blocks}</Text>
     </Box>
   );
 }
@@ -351,7 +364,7 @@ function TableComponent({ element }: ComponentRenderProps) {
       {/* Header */}
       <Box>
         {columns.map((col, i) => (
-          <Text key={col.key} bold color={p.headerColor}>
+          <Text key={col.key} bold color={safeColor(p.headerColor)}>
             {padCell(col.header, colWidths[i]!, col.align)}
           </Text>
         ))}
@@ -467,7 +480,7 @@ function KeyValueComponent({ element }: ComponentRenderProps) {
 
   return (
     <Box gap={1}>
-      <Text color={p.labelColor} bold dimColor>
+      <Text color={safeColor(p.labelColor)} bold dimColor>
         {p.label ?? ""}
         {sep}
       </Text>
@@ -487,7 +500,7 @@ function LinkComponent({ element }: ComponentRenderProps) {
   const label = p.label ?? url;
 
   return (
-    <Text color={p.color ?? "cyan"} underline>
+    <Text color={safeColor(p.color) ?? "cyan"} underline>
       {label}
       {label !== url ? ` (${url})` : ""}
     </Text>
