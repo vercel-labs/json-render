@@ -1283,8 +1283,12 @@ function formatZodType(schema: z.ZodType): string {
     case "boolean":
       return "boolean";
     case "ZodLiteral":
-    case "literal":
-      return JSON.stringify(def.value);
+    case "literal": {
+      // Zod 4 uses def.values (array), Zod 3 uses def.value
+      const litValues = def.values as unknown[] | undefined;
+      const litValue = litValues?.[0] ?? def.value;
+      return JSON.stringify(litValue);
+    }
     case "ZodEnum":
     case "enum": {
       // Zod 3 uses values array, Zod 4 uses entries object
@@ -1344,6 +1348,20 @@ function formatZodType(schema: z.ZodType): string {
       return options
         ? options.map((opt) => formatZodType(opt)).join(" | ")
         : "unknown";
+    }
+    case "ZodRecord":
+    case "record": {
+      const keyType = (def.keyType as z.ZodType) ?? undefined;
+      const valueType =
+        (def.valueType as z.ZodType) ?? (def.element as z.ZodType) ?? undefined;
+      const keyStr = keyType ? formatZodType(keyType) : "string";
+      const valueStr = valueType ? formatZodType(valueType) : "unknown";
+      return `Record<${keyStr}, ${valueStr}>`;
+    }
+    case "ZodDefault":
+    case "default": {
+      const inner = (def.innerType as z.ZodType) ?? (def.wrapped as z.ZodType);
+      return inner ? formatZodType(inner) : "unknown";
     }
     default:
       return "unknown";

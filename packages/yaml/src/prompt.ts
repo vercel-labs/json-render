@@ -56,8 +56,12 @@ function formatZodType(schema: ZodLike): string {
     case "boolean":
       return "boolean";
     case "ZodLiteral":
-    case "literal":
-      return JSON.stringify(def.value);
+    case "literal": {
+      // Zod 4 uses def.values (array), Zod 3 uses def.value
+      const litValues = def.values as unknown[] | undefined;
+      const litValue = litValues?.[0] ?? def.value;
+      return JSON.stringify(litValue);
+    }
     case "ZodEnum":
     case "enum": {
       let values: string[];
@@ -114,6 +118,20 @@ function formatZodType(schema: ZodLike): string {
       return options
         ? options.map((opt) => formatZodType(opt)).join(" | ")
         : "unknown";
+    }
+    case "ZodRecord":
+    case "record": {
+      const keyType = (def.keyType as ZodLike) ?? undefined;
+      const valueType =
+        (def.valueType as ZodLike) ?? (def.element as ZodLike) ?? undefined;
+      const keyStr = keyType ? formatZodType(keyType) : "string";
+      const valueStr = valueType ? formatZodType(valueType) : "unknown";
+      return `Record<${keyStr}, ${valueStr}>`;
+    }
+    case "ZodDefault":
+    case "default": {
+      const inner = (def.innerType as ZodLike) ?? (def.wrapped as ZodLike);
+      return inner ? formatZodType(inner) : "unknown";
     }
     default:
       return "unknown";
