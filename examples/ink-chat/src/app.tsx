@@ -565,28 +565,28 @@ export function App() {
         </>
       )}
 
-      {/* Streaming indicator — spinner with live spec preview */}
-      {isStreaming && (
+      {/* Live spec preview while streaming */}
+      {isStreaming && streamingSpec && streamingSpec.root && (
         <Box flexDirection="column" marginBottom={1}>
-          <AnimatedSpinner label={streamingStatus} />
-          {streamingSpec && streamingSpec.root && (
-            <Box marginTop={1} height={6} overflowY="hidden">
-              <JSONUIProvider initialState={streamingSpec.state ?? {}}>
-                <DisableFocus />
-                <Renderer spec={streamingSpec} />
-              </JSONUIProvider>
-            </Box>
-          )}
+          <Text bold>AI:</Text>
+          <JSONUIProvider initialState={streamingSpec.state ?? {}}>
+            <DisableFocus />
+            <Renderer spec={streamingSpec} />
+          </JSONUIProvider>
         </Box>
       )}
 
       {/* Spacer pushes input to bottom */}
       <Box flexGrow={1} />
 
-      {/* Input — always at the bottom, hidden during interactive wizard */}
+      {/* Input — spinner replaces input while streaming, hidden during wizard */}
       {!liveSpec && (
         <Box borderStyle="single" borderColor="gray" paddingX={1}>
-          <ChatInput onSubmit={sendMessage} disabled={isStreaming} />
+          {isStreaming ? (
+            <AnimatedSpinner label={streamingStatus} />
+          ) : (
+            <ChatInput onSubmit={sendMessage} disabled={false} />
+          )}
         </Box>
       )}
     </Box>
