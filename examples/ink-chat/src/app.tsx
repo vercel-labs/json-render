@@ -361,6 +361,7 @@ export function App() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingStatus, setStreamingStatus] = useState("Thinking...");
+  const [streamingSpec, setStreamingSpec] = useState<Spec | null>(null);
   const nextMessageIdRef = useRef(0);
   const abortRef = useRef<AbortController | null>(null);
   // Ref tracks latest messages so sendMessage doesn't need it as a dep
@@ -435,6 +436,7 @@ export function App() {
         onPatch: (patch) => {
           hasSpec = true;
           spec = applySpecPatch(structuredClone(spec), patch);
+          setStreamingSpec(structuredClone(spec));
         },
       });
 
@@ -492,6 +494,7 @@ export function App() {
       setMessages((prev) => [...prev, errorMsg]);
     } finally {
       setIsStreaming(false);
+      setStreamingSpec(null);
     }
   }, []);
 
@@ -562,10 +565,18 @@ export function App() {
         </>
       )}
 
-      {/* Streaming indicator — collapsed spinner with status */}
+      {/* Streaming indicator — spinner with live spec preview */}
       {isStreaming && (
-        <Box marginBottom={1}>
+        <Box flexDirection="column" marginBottom={1}>
           <AnimatedSpinner label={streamingStatus} />
+          {streamingSpec && streamingSpec.root && (
+            <Box marginTop={1}>
+              <JSONUIProvider initialState={streamingSpec.state ?? {}}>
+                <DisableFocus />
+                <Renderer spec={streamingSpec} />
+              </JSONUIProvider>
+            </Box>
+          )}
         </Box>
       )}
 
