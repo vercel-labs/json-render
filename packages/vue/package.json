@@ -1,6 +1,6 @@
 {
   "name": "@json-render/vue",
-  "version": "0.14.1",
+  "version": "0.15.0",
   "license": "Apache-2.0",
   "description": "Vue renderer for @json-render/core. JSON becomes Vue components.",
   "keywords": [

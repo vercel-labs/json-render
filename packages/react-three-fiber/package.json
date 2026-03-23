@@ -1,6 +1,6 @@
 {
   "name": "@json-render/react-three-fiber",
-  "version": "0.14.1",
+  "version": "0.15.0",
   "license": "Apache-2.0",
   "description": "React Three Fiber renderer for @json-render/core. JSON becomes 3D scenes.",
   "keywords": [

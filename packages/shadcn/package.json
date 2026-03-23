@@ -1,6 +1,6 @@
 {
   "name": "@json-render/shadcn",
-  "version": "0.14.1",
+  "version": "0.15.0",
   "license": "Apache-2.0",
   "description": "shadcn/ui component library for @json-render/core. JSON becomes beautiful Tailwind-styled React components.",
   "keywords": [
