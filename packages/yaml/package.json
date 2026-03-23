@@ -1,6 +1,6 @@
 {
   "name": "@json-render/yaml",
-  "version": "0.14.1",
+  "version": "0.15.0",
   "license": "Apache-2.0",
   "description": "YAML wire format for @json-render/core. Progressive rendering and surgical edits via streaming YAML.",
   "keywords": [

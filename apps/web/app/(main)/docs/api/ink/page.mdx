@@ -1,0 +1,293 @@
+import { pageMetadata } from "@/lib/page-metadata"
+export const metadata = pageMetadata("docs/api/ink")
+
+# @json-render/ink
+
+Terminal renderer for [Ink](https://github.com/vadimdemedes/ink) with multiple standard components, providers, hooks, and streaming support.
+
+## Installation
+
+<PackageInstall packages="@json-render/core @json-render/ink" />
+
+Peer dependencies: `react ^18.0.0 || ^19.0.0`, `ink ^6.0.0`, and `zod ^4.0.0`.
+
+<PackageInstall packages="react ink zod" />
+
+## Standard Components
+
+### Layout
+
+<table>
+<thead>
+<tr><th>Component</th><th>Props</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><code>Box</code></td><td><code>flexDirection</code>, <code>alignItems</code>, <code>justifyContent</code>, <code>gap</code>, <code>padding</code>, <code>margin</code>, <code>borderStyle</code>, <code>borderColor</code>, <code>width</code>, <code>height</code>, <code>display</code>, <code>overflow</code></td><td>Flexbox layout container (like a terminal div)</td></tr>
+<tr><td><code>Spacer</code></td><td>(none)</td><td>Flexible empty space that expands to fill available room</td></tr>
+<tr><td><code>Newline</code></td><td><code>count</code></td><td>Insert blank lines</td></tr>
+</tbody>
+</table>
+
+### Content
+
+<table>
+<thead>
+<tr><th>Component</th><th>Props</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><code>Text</code></td><td><code>text</code>, <code>color</code>, <code>bold</code>, <code>italic</code>, <code>underline</code>, <code>strikethrough</code>, <code>dimColor</code>, <code>inverse</code>, <code>wrap</code></td><td>Text output with styling</td></tr>
+<tr><td><code>Heading</code></td><td><code>text</code>, <code>level</code> (h1-h4), <code>color</code></td><td>Section heading</td></tr>
+<tr><td><code>Divider</code></td><td><code>character</code>, <code>color</code>, <code>dimColor</code>, <code>title</code>, <code>width</code></td><td>Horizontal separator line with optional title</td></tr>
+<tr><td><code>Badge</code></td><td><code>label</code>, <code>variant</code></td><td>Colored inline label (default, info, success, warning, error)</td></tr>
+<tr><td><code>Spinner</code></td><td><code>label</code>, <code>color</code></td><td>Animated loading spinner</td></tr>
+<tr><td><code>ProgressBar</code></td><td><code>progress</code> (0-1), <code>width</code>, <code>color</code>, <code>label</code></td><td>Horizontal progress bar</td></tr>
+<tr><td><code>StatusLine</code></td><td><code>text</code>, <code>status</code>, <code>icon</code></td><td>Status message with colored icon</td></tr>
+<tr><td><code>KeyValue</code></td><td><code>label</code>, <code>value</code>, <code>labelColor</code>, <code>separator</code></td><td>Key-value pair display</td></tr>
+<tr><td><code>Link</code></td><td><code>url</code>, <code>label</code>, <code>color</code></td><td>Renders a URL as underlined text. Shows "label (url)" when label is provided.</td></tr>
+<tr><td><code>Markdown</code></td><td><code>text</code></td><td>Renders markdown with terminal styling (headings, bold, italic, code, lists, blockquotes, horizontal rules)</td></tr>
+</tbody>
+</table>
+
+### Data
+
+<table>
+<thead>
+<tr><th>Component</th><th>Props</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><code>Table</code></td><td><code>columns</code>, <code>rows</code>, <code>borderStyle</code>, <code>headerColor</code></td><td>Tabular data with headers</td></tr>
+<tr><td><code>List</code></td><td><code>items</code>, <code>ordered</code>, <code>bulletChar</code>, <code>spacing</code></td><td>Bulleted or numbered list</td></tr>
+<tr><td><code>ListItem</code></td><td><code>title</code>, <code>subtitle</code>, <code>leading</code>, <code>trailing</code></td><td>Structured list row</td></tr>
+<tr><td><code>Card</code></td><td><code>title</code>, <code>borderStyle</code>, <code>borderColor</code>, <code>padding</code></td><td>Bordered container with optional title</td></tr>
+<tr><td><code>Sparkline</code></td><td><code>data</code>, <code>width</code>, <code>color</code>, <code>label</code>, <code>min</code>, <code>max</code></td><td>Inline sparkline chart using Unicode blocks (▁▂▃▄▅▆▇█)</td></tr>
+<tr><td><code>BarChart</code></td><td><code>data</code> (label/value/color), <code>width</code>, <code>showValues</code>, <code>showPercentage</code></td><td>Horizontal bar chart for comparing values</td></tr>
+</tbody>
+</table>
+
+### Interactive
+
+<table>
+<thead>
+<tr><th>Component</th><th>Props</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><code>TextInput</code></td><td><code>placeholder</code>, <code>value</code> (use <code>$bindState</code>), <code>label</code>, <code>mask</code></td><td>Text input field. Press Enter to submit.</td></tr>
+<tr><td><code>Select</code></td><td><code>options</code>, <code>value</code> (use <code>$bindState</code>), <code>label</code></td><td>Arrow-key selection menu</td></tr>
+<tr><td><code>MultiSelect</code></td><td><code>options</code>, <code>value</code> (use <code>$bindState</code>), <code>label</code>, <code>min</code>, <code>max</code></td><td>Multi-selection menu. Space to toggle, Enter to confirm.</td></tr>
+<tr><td><code>ConfirmInput</code></td><td><code>message</code>, <code>defaultValue</code>, <code>yesLabel</code>, <code>noLabel</code></td><td>Yes/No confirmation prompt. Press Y or N.</td></tr>
+<tr><td><code>Tabs</code></td><td><code>tabs</code>, <code>value</code> (use <code>$bindState</code>), <code>color</code></td><td>Tab bar navigation with left/right arrow keys. Place child content inside with visible conditions.</td></tr>
+</tbody>
+</table>
+
+## Providers
+
+### JSONUIProvider
+
+Convenience wrapper around all providers: `StateProvider` → `VisibilityProvider` → `ValidationProvider` → `ActionProvider` → `FocusProvider`.
+
+```tsx
+import { JSONUIProvider, Renderer } from "@json-render/ink";
+
+<JSONUIProvider initialState={{}} handlers={handlers}>
+  <Renderer spec={spec} registry={registry} />
+</JSONUIProvider>
+```
+
+### StateProvider
+
+```tsx
+<StateProvider initialState={object} onStateChange={fn}>
+  {children}
+</StateProvider>
+```
+
+<table>
+<thead>
+<tr><th>Prop</th><th>Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><code>store</code></td><td><code>StateStore</code></td><td>External store (controlled mode). When provided, <code>initialState</code> and <code>onStateChange</code> are ignored.</td></tr>
+<tr><td><code>initialState</code></td><td><code>Record&lt;string, unknown&gt;</code></td><td>Initial state model (uncontrolled mode).</td></tr>
+<tr><td><code>onStateChange</code></td><td><code>{'(changes: Array<{ path: string; value: unknown }>) => void'}</code></td><td>Callback when state changes (uncontrolled mode).</td></tr>
+</tbody>
+</table>
+
+#### External Store (Controlled Mode)
+
+Pass a `StateStore` to bypass internal state and wire json-render to any state management:
+
+```tsx
+import { createStateStore } from "@json-render/ink";
+
+const store = createStateStore({ count: 0 });
+
+<StateProvider store={store}>
+  {children}
+</StateProvider>
+
+// Mutate from anywhere — components re-render automatically:
+store.set("/count", 1);
+```
+
+The `store` prop is also available on `JSONUIProvider` and `createRenderer`.
+
+### ActionProvider
+
+```tsx
+<ActionProvider handlers={Record<string, ActionHandler>} navigate={fn}>
+  {children}
+</ActionProvider>
+```
+
+Built-in actions: `setState`, `pushState`, `removeState`, `log`, `exit`. Custom handlers override built-ins. Includes a terminal confirmation dialog (press Y/N) for actions with `confirm`.
+
+### VisibilityProvider
+
+```tsx
+<VisibilityProvider>
+  {children}
+</VisibilityProvider>
+```
+
+### ValidationProvider
+
+```tsx
+<ValidationProvider>
+  {children}
+</ValidationProvider>
+```
+
+### FocusProvider
+
+```tsx
+<FocusProvider>
+  {children}
+</FocusProvider>
+```
+
+Manages Tab-cycling focus between interactive components (TextInput, Select). Supports `useFocusDisable` to suppress cycling during modal dialogs.
+
+## defineRegistry
+
+Create a type-safe component registry. Standard components are built-in; only register custom components.
+
+```tsx
+import { defineRegistry, type Components } from "@json-render/ink";
+
+const { registry, handlers, executeAction } = defineRegistry(catalog, {
+  components: {
+    MyWidget: ({ props }) => <Text>{props.label}</Text>,
+  } as Components<typeof catalog>,
+  actions: {
+    submit: async (params, setState, state) => {
+      // custom action logic
+    },
+  },
+});
+```
+
+`handlers` is designed for `JSONUIProvider`/`ActionProvider`. `executeAction` is an imperative helper.
+
+## createRenderer
+
+Higher-level helper that wraps `Renderer` + all providers into a single component.
+
+```tsx
+import { createRenderer } from "@json-render/ink";
+
+const UIRenderer = createRenderer(catalog, components);
+
+<UIRenderer spec={spec} state={initialState} />;
+```
+
+## Hooks
+
+### useUIStream
+
+```typescript
+const {
+  spec,         // Spec | null - current UI state
+  isStreaming,  // boolean - true while streaming
+  error,        // Error | null
+  send,         // (prompt: string, context?: Record<string, unknown>) => Promise<void>
+  stop,         // () => void - abort the current stream
+  clear,        // () => void - reset spec and error
+} = useUIStream({
+  api: string,
+  onComplete?: (spec: Spec) => void,
+  onError?: (error: Error) => void,
+  fetch?: (url: string, init?: RequestInit) => Promise<Response>,
+  validate?: boolean,
+  maxRetries?: number,
+});
+```
+
+### useStateStore
+
+```typescript
+const { state, get, set, update } = useStateStore();
+```
+
+### useStateValue
+
+```typescript
+const value = useStateValue(path: string);
+```
+
+### useBoundProp
+
+```typescript
+const [value, setValue] = useBoundProp(resolvedValue, bindingPath);
+```
+
+### useActions
+
+```typescript
+const { execute } = useActions();
+```
+
+### useIsVisible
+
+```typescript
+const isVisible = useIsVisible(condition?: VisibilityCondition);
+```
+
+### useFocus
+
+```typescript
+const { isActive, id } = useFocus();
+```
+
+### useFocusDisable
+
+```typescript
+useFocusDisable(disabled: boolean);
+```
+
+Suppresses Tab-cycling while `disabled` is true (e.g., during a modal dialog).
+
+## Catalog Exports
+
+```typescript
+import { standardComponentDefinitions, standardActionDefinitions } from "@json-render/ink/catalog";
+import { schema } from "@json-render/ink/schema";
+```
+
+<table>
+<thead>
+<tr><th>Export</th><th>Purpose</th></tr>
+</thead>
+<tbody>
+<tr><td><code>standardComponentDefinitions</code></td><td>Catalog definitions for all 19 standard components</td></tr>
+<tr><td><code>standardActionDefinitions</code></td><td>Catalog definitions for standard actions (setState, pushState, removeState, log, exit)</td></tr>
+<tr><td><code>schema</code></td><td>Ink element tree schema</td></tr>
+</tbody>
+</table>
+
+## Server Export
+
+```typescript
+import { schema, standardComponentDefinitions, standardActionDefinitions } from "@json-render/ink/server";
+```
+
+Re-exports the schema and catalog definitions for server-side usage (e.g., building system prompts).

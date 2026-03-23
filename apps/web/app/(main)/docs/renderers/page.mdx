@@ -83,6 +83,13 @@ All renderers share the same workflow:
       </td>
       <td>Video compositions</td>
     </tr>
+    <tr>
+      <td>Ink</td>
+      <td>
+        <code>@json-render/ink</code>
+      </td>
+      <td>Terminal UI (via Ink)</td>
+    </tr>
   </tbody>
 </table>
 
@@ -262,6 +269,30 @@ import { Renderer } from "@json-render/remotion";
 Uses a timeline spec format with compositions, tracks, and clips. Includes standard components (TitleCard, TypingText, ImageSlide, etc.), transitions (fade, slide, zoom, wipe), and effects.
 
 See the [@json-render/remotion API reference](/docs/api/remotion) for details.
+
+## Ink (Terminal)
+
+Render specs as terminal UIs using [Ink](https://github.com/vadimdemedes/ink). Multiple standard components including tables, progress bars, spinners, tabs, multi-select, and interactive inputs with Tab-cycling focus.
+
+```tsx
+import { defineCatalog } from "@json-render/core";
+import { schema } from "@json-render/ink/schema";
+import {
+  standardComponentDefinitions,
+  standardActionDefinitions,
+} from "@json-render/ink/catalog";
+import { defineRegistry, Renderer } from "@json-render/ink";
+
+const catalog = defineCatalog(schema, {
+  components: { ...standardComponentDefinitions },
+  actions: standardActionDefinitions,
+});
+
+const { registry } = defineRegistry(catalog, { components: {} });
+<Renderer spec={spec} registry={registry} />;
+```
+
+See the [@json-render/ink API reference](/docs/api/ink) for details.
 
 ## Custom Renderers
 

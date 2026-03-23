@@ -134,6 +134,14 @@ export const examples: Example[] = [
     demoUrl: "https://image-demo.json-render.dev",
   },
   {
+    slug: "ink-chat",
+    title: "Ink Chat",
+    description:
+      "Terminal chat agent that streams rich json-render UIs using Ink and the AI Gateway.",
+    tags: ["Ink", "Terminal", "AI"],
+    githubPath: "examples/ink-chat",
+  },
+  {
     slug: "mcp",
     title: "MCP App",
     description:

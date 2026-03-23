@@ -1,5 +1,15 @@
 # example-mcp
 
+## 0.1.6
+
+### Patch Changes
+
+- Updated dependencies [bf3a7ec]
+  - @json-render/core@0.15.0
+  - @json-render/mcp@0.15.0
+  - @json-render/react@0.15.0
+  - @json-render/shadcn@0.15.0
+
 ## 0.1.5
 
 ### Patch Changes

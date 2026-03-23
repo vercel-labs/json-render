@@ -21,12 +21,21 @@ export default defineConfig({
         "packages/zustand/src/index.ts",
       ),
       "@json-render/jotai": path.resolve(root, "packages/jotai/src/index.ts"),
+      "@json-render/ink/schema": path.resolve(
+        root,
+        "packages/ink/src/schema.ts",
+      ),
+      "@json-render/ink/catalog": path.resolve(
+        root,
+        "packages/ink/src/catalog.ts",
+      ),
+      "@json-render/ink": path.resolve(root, "packages/ink/src/index.ts"),
     },
   },
   test: {
     globals: true,
     environment: "node",
-    include: ["**/*.test.ts"],
+    include: ["**/*.test.ts", "**/*.test.tsx"],
     testTimeout: 60_000,
   },
 });

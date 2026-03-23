@@ -23,6 +23,8 @@ npm install @json-render/core @json-render/vue
 npm install @json-render/core @json-render/svelte
 # or for SolidJS
 npm install @json-render/core @json-render/solid
+# or for terminal UIs
+npm install @json-render/core @json-render/ink ink react
 # or for 3D scenes
 npm install @json-render/core @json-render/react-three-fiber @react-three/fiber @react-three/drei three
 ```
@@ -128,6 +130,7 @@ function Dashboard({ spec }) {
 | `@json-render/remotion`     | Remotion video renderer, timeline schema                               |
 | `@json-render/react-pdf`    | React PDF renderer for generating PDF documents from specs             |
 | `@json-render/react-email`  | React Email renderer for HTML/plain-text emails from specs             |
+| `@json-render/ink`          | Ink terminal renderer with built-in components for interactive TUIs.   |
 | `@json-render/image`        | Image renderer for SVG/PNG output (OG images, social cards) via Satori |
 | `@json-render/codegen`      | Utilities for generating code from json-render UI trees                |
 | `@json-render/redux`        | Redux / Redux Toolkit adapter for `StateStore`                         |
@@ -477,6 +480,47 @@ const { registry } = defineRegistry(catalog, {
   camera={{ position: [5, 5, 5], fov: 50 }}
   style={{ width: "100%", height: "100vh" }}
 />;
+```
+
+### Ink (Terminal)
+
+```tsx
+import { defineCatalog } from "@json-render/core";
+import {
+  schema,
+  standardComponentDefinitions,
+  standardActionDefinitions,
+  defineRegistry,
+  Renderer,
+  JSONUIProvider,
+} from "@json-render/ink";
+
+const catalog = defineCatalog(schema, {
+  components: { ...standardComponentDefinitions },
+  actions: standardActionDefinitions,
+});
+
+const { registry } = defineRegistry(catalog, { components: {} });
+
+const spec = {
+  root: "card-1",
+  elements: {
+    "card-1": {
+      type: "Card",
+      props: { title: "Status" },
+      children: ["status-1"],
+    },
+    "status-1": {
+      type: "StatusLine",
+      props: { label: "Build", status: "success" },
+      children: [],
+    },
+  },
+};
+
+<JSONUIProvider initialState={{}}>
+  <Renderer spec={spec} registry={registry} />
+</JSONUIProvider>;
 ```
 
 ## Features

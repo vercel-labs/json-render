@@ -1,6 +1,6 @@
 {
   "name": "@json-render/react-native",
-  "version": "0.14.1",
+  "version": "0.15.0",
   "license": "Apache-2.0",
   "description": "React Native renderer for @json-render/core. JSON becomes React Native components.",
   "keywords": [

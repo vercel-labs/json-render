@@ -1,0 +1,79 @@
+{
+  "name": "@json-render/ink",
+  "version": "0.15.0",
+  "license": "Apache-2.0",
+  "description": "Ink terminal renderer for @json-render/core. JSON becomes terminal UIs.",
+  "keywords": [
+    "json",
+    "cli",
+    "terminal",
+    "ink",
+    "ai",
+    "generative-ui",
+    "llm",
+    "renderer",
+    "tui"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vercel-labs/json-render.git",
+    "directory": "packages/ink"
+  },
+  "homepage": "https://json-render.dev",
+  "bugs": {
+    "url": "https://github.com/vercel-labs/json-render/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./schema": {
+      "types": "./dist/schema.d.ts",
+      "import": "./dist/schema.mjs",
+      "require": "./dist/schema.js"
+    },
+    "./catalog": {
+      "types": "./dist/catalog.d.ts",
+      "import": "./dist/catalog.mjs",
+      "require": "./dist/catalog.js"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.mjs",
+      "require": "./dist/server.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "check-types": "tsc --noEmit",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@json-render/core": "workspace:*",
+    "marked": "^17.0.0"
+  },
+  "devDependencies": {
+    "@internal/react-state": "workspace:*",
+    "@internal/typescript-config": "workspace:*",
+    "@types/react": "19.2.3",
+    "tsup": "^8.0.2",
+    "typescript": "^5.4.5",
+    "zod": "^4.3.6"
+  },
+  "peerDependencies": {
+    "ink": "^6.0.0",
+    "react": "^19.0.0"
+  }
+}
