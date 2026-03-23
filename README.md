@@ -23,6 +23,8 @@ npm install @json-render/core @json-render/vue
 npm install @json-render/core @json-render/svelte
 # or for SolidJS
 npm install @json-render/core @json-render/solid
+# or for terminal UIs
+npm install @json-render/core @json-render/ink ink react
 # or for 3D scenes
 npm install @json-render/core @json-render/react-three-fiber @react-three/fiber @react-three/drei three
 ```

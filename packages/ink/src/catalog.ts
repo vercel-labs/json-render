@@ -36,10 +36,10 @@ export const standardComponentDefinitions = {
       flexGrow: z.number().nullable(),
       flexShrink: z.number().nullable(),
       flexWrap: z.enum(["nowrap", "wrap", "wrap-reverse"]).nullable(),
-      width: z.union([z.number(), z.string()]).nullable(),
-      height: z.union([z.number(), z.string()]).nullable(),
-      minWidth: z.union([z.number(), z.string()]).nullable(),
-      minHeight: z.union([z.number(), z.string()]).nullable(),
+      width: z.union([z.number().max(500), z.string()]).nullable(),
+      height: z.union([z.number().max(500), z.string()]).nullable(),
+      minWidth: z.union([z.number().max(500), z.string()]).nullable(),
+      minHeight: z.union([z.number().max(500), z.string()]).nullable(),
       padding: z.number().nullable(),
       paddingX: z.number().nullable(),
       paddingY: z.number().nullable(),
@@ -155,7 +155,7 @@ export const standardComponentDefinitions = {
       color: z.string().nullable(),
       dimColor: z.boolean().nullable(),
       title: z.string().nullable(),
-      width: z.number().nullable(),
+      width: z.number().max(500).nullable(),
     }),
     slots: [],
     description:
@@ -190,7 +190,7 @@ export const standardComponentDefinitions = {
   ProgressBar: {
     props: z.object({
       progress: z.number(),
-      width: z.number().nullable(),
+      width: z.number().max(500).nullable(),
       color: z.string().nullable(),
       label: z.string().nullable(),
     }),
@@ -203,7 +203,7 @@ export const standardComponentDefinitions = {
   Sparkline: {
     props: z.object({
       data: z.array(z.number()),
-      width: z.number().nullable(),
+      width: z.number().max(500).nullable(),
       color: z.string().nullable(),
       label: z.string().nullable(),
       min: z.number().nullable(),
@@ -228,7 +228,7 @@ export const standardComponentDefinitions = {
           color: z.string().nullable(),
         }),
       ),
-      width: z.number().nullable(),
+      width: z.number().max(500).nullable(),
       showValues: z.boolean().nullable(),
       showPercentage: z.boolean().nullable(),
     }),
@@ -251,7 +251,7 @@ export const standardComponentDefinitions = {
         z.object({
           header: z.string(),
           key: z.string(),
-          width: z.number().nullable(),
+          width: z.number().max(200).nullable(),
           align: z.enum(["left", "center", "right"]).nullable(),
         }),
       ),
