@@ -23,7 +23,7 @@
       "@json-render/solid",
       "@json-render/react-three-fiber",
       "@json-render/yaml",
-      "@json-render/shadcn-svelte"
+      "@json-render/shadcn-svelte",
       "@json-render/ink"
     ]
   ],

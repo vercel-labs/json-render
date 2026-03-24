@@ -4,6 +4,7 @@
   import type { BaseComponentProps } from "@json-render/svelte";
   import type { ShadcnProps } from "./catalog.js";
   import { getPaginationRange } from "./helpers.js";
+  import { Button } from "./ui/button/index.js";
 
   interface Props extends BaseComponentProps<ShadcnProps<"Pagination">> {}
 
@@ -28,19 +29,19 @@
 </script>
 
 <div class="inline-flex items-center gap-1">
-  <button type="button" class="rounded border px-2 py-1 text-sm" onclick={() => setPage(page - 1)} disabled={page <= 1}>Prev</button>
+  <Button variant="outline" size="sm" onclick={() => setPage(page - 1)} disabled={page <= 1}>Prev</Button>
   {#each pages as p}
     {#if p === "ellipsis"}
       <span class="px-2 text-sm text-muted-foreground">…</span>
     {:else}
-      <button
-        type="button"
-        class={`rounded border px-2 py-1 text-sm ${p === page ? "bg-primary text-primary-foreground" : "bg-background"}`}
+      <Button
+        variant={p === page ? "default" : "outline"}
+        size="sm"
         onclick={() => setPage(p)}
       >
         {p}
-      </button>
+      </Button>
     {/if}
   {/each}
-  <button type="button" class="rounded border px-2 py-1 text-sm" onclick={() => setPage(page + 1)} disabled={page >= totalPages}>Next</button>
+  <Button variant="outline" size="sm" onclick={() => setPage(page + 1)} disabled={page >= totalPages}>Next</Button>
 </div>

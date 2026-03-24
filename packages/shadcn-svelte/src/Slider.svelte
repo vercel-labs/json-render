@@ -18,10 +18,9 @@
 
   const value = $derived(bound.current ?? localValue);
 
-  function handleChange(next: number[]) {
-    const v = next[0] ?? 0;
-    localValue = v;
-    bound.current = v;
+  function handleChange(next: number) {
+    localValue = next;
+    bound.current = next;
     emit("change");
   }
 </script>
@@ -35,7 +34,7 @@
   {/if}
   <Slider
     type="single"
-    value={[value]}
+    value={value}
     min={props.min ?? 0}
     max={props.max ?? 100}
     step={props.step ?? 1}
