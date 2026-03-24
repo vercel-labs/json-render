@@ -16,6 +16,12 @@ const validationCheckSchema = z
 
 const validateOnSchema = z.enum(["change", "blur", "submit"]).nullable();
 
+/**
+ * Optional className prop for custom styling.
+ * All shadcn components accept this prop to allow style overrides.
+ */
+const classNameProp = z.string().nullable();
+
 // =============================================================================
 // shadcn/ui Component Definitions
 // =============================================================================
@@ -37,6 +43,7 @@ export const shadcnComponentDefinitions = {
       description: z.string().nullable(),
       maxWidth: z.enum(["sm", "md", "lg", "full"]).nullable(),
       centered: z.boolean().nullable(),
+      className: classNameProp,
     }),
     slots: ["default"],
     description:
@@ -52,6 +59,7 @@ export const shadcnComponentDefinitions = {
       justify: z
         .enum(["start", "center", "end", "between", "around"])
         .nullable(),
+      className: classNameProp,
     }),
     slots: ["default"],
     description: "Flex container for layouts",
@@ -62,6 +70,7 @@ export const shadcnComponentDefinitions = {
     props: z.object({
       columns: z.number().nullable(),
       gap: z.enum(["sm", "md", "lg"]).nullable(),
+      className: classNameProp,
     }),
     slots: ["default"],
     description: "Grid layout (1-6 columns)",
@@ -71,6 +80,7 @@ export const shadcnComponentDefinitions = {
   Separator: {
     props: z.object({
       orientation: z.enum(["horizontal", "vertical"]).nullable(),
+      className: classNameProp,
     }),
     description: "Visual separator line",
   },
@@ -81,10 +91,12 @@ export const shadcnComponentDefinitions = {
         z.object({
           label: z.string(),
           value: z.string(),
-        }),
+        
+      className: classNameProp,}),
       ),
       defaultValue: z.string().nullable(),
       value: z.string().nullable(),
+      className: classNameProp,
     }),
     slots: ["default"],
     events: ["change"],
@@ -98,9 +110,11 @@ export const shadcnComponentDefinitions = {
         z.object({
           title: z.string(),
           content: z.string(),
-        }),
+        
+      className: classNameProp,}),
       ),
       type: z.enum(["single", "multiple"]).nullable(),
+      className: classNameProp,
     }),
     description:
       "Collapsible sections. Items as [{title, content}]. Type 'single' (default) or 'multiple'.",
@@ -110,6 +124,7 @@ export const shadcnComponentDefinitions = {
     props: z.object({
       title: z.string(),
       defaultOpen: z.boolean().nullable(),
+      className: classNameProp,
     }),
     slots: ["default"],
     description: "Collapsible section with trigger. Children render inside.",
@@ -120,6 +135,7 @@ export const shadcnComponentDefinitions = {
       title: z.string(),
       description: z.string().nullable(),
       openPath: z.string(),
+      className: classNameProp,
     }),
     slots: ["default"],
     description:
@@ -131,6 +147,7 @@ export const shadcnComponentDefinitions = {
       title: z.string(),
       description: z.string().nullable(),
       openPath: z.string(),
+      className: classNameProp,
     }),
     slots: ["default"],
     description:
@@ -143,8 +160,10 @@ export const shadcnComponentDefinitions = {
         z.object({
           title: z.string().nullable(),
           description: z.string().nullable(),
-        }),
+        
+      className: classNameProp,}),
       ),
+      className: classNameProp,
     }),
     description: "Horizontally scrollable carousel of cards.",
   },
@@ -158,7 +177,8 @@ export const shadcnComponentDefinitions = {
       columns: z.array(z.string()),
       rows: z.array(z.array(z.string())),
       caption: z.string().nullable(),
-    }),
+    
+      className: classNameProp,}),
     description:
       'Data table. columns: header labels. rows: 2D array of cell strings, e.g. [["Alice","admin"],["Bob","user"]].',
     example: {
@@ -174,7 +194,8 @@ export const shadcnComponentDefinitions = {
     props: z.object({
       text: z.string(),
       level: z.enum(["h1", "h2", "h3", "h4"]).nullable(),
-    }),
+    
+      className: classNameProp,}),
     description: "Heading text (h1-h4)",
     example: { text: "Welcome", level: "h1" },
   },
@@ -183,7 +204,8 @@ export const shadcnComponentDefinitions = {
     props: z.object({
       text: z.string(),
       variant: z.enum(["body", "caption", "muted", "lead", "code"]).nullable(),
-    }),
+    
+      className: classNameProp,}),
     description: "Paragraph text",
     example: { text: "Hello, world!" },
   },
@@ -194,7 +216,8 @@ export const shadcnComponentDefinitions = {
       alt: z.string(),
       width: z.number().nullable(),
       height: z.number().nullable(),
-    }),
+    
+      className: classNameProp,}),
     description:
       "Image component. Renders an img tag when src is provided, otherwise a placeholder.",
   },
@@ -204,7 +227,8 @@ export const shadcnComponentDefinitions = {
       src: z.string().nullable(),
       name: z.string(),
       size: z.enum(["sm", "md", "lg"]).nullable(),
-    }),
+    
+      className: classNameProp,}),
     description: "User avatar with fallback initials",
     example: { name: "Jane Doe", size: "md" },
   },
@@ -215,7 +239,8 @@ export const shadcnComponentDefinitions = {
       variant: z
         .enum(["default", "secondary", "destructive", "outline"])
         .nullable(),
-    }),
+    
+      className: classNameProp,}),
     description: "Status badge",
     example: { text: "Active", variant: "default" },
   },
@@ -225,7 +250,8 @@ export const shadcnComponentDefinitions = {
       title: z.string(),
       message: z.string().nullable(),
       type: z.enum(["info", "success", "warning", "error"]).nullable(),
-    }),
+    
+      className: classNameProp,}),
     description: "Alert banner",
     example: {
       title: "Note",
@@ -239,7 +265,8 @@ export const shadcnComponentDefinitions = {
       value: z.number(),
       max: z.number().nullable(),
       label: z.string().nullable(),
-    }),
+    
+      className: classNameProp,}),
     description: "Progress bar (value 0-100)",
     example: { value: 65, max: 100, label: "Upload progress" },
   },
@@ -249,7 +276,8 @@ export const shadcnComponentDefinitions = {
       width: z.string().nullable(),
       height: z.string().nullable(),
       rounded: z.boolean().nullable(),
-    }),
+    
+      className: classNameProp,}),
     description: "Loading placeholder skeleton",
   },
 
@@ -257,7 +285,8 @@ export const shadcnComponentDefinitions = {
     props: z.object({
       size: z.enum(["sm", "md", "lg"]).nullable(),
       label: z.string().nullable(),
-    }),
+    
+      className: classNameProp,}),
     description: "Loading spinner indicator",
   },
 
@@ -265,7 +294,8 @@ export const shadcnComponentDefinitions = {
     props: z.object({
       content: z.string(),
       text: z.string(),
-    }),
+    
+      className: classNameProp,}),
     description: "Hover tooltip. Shows content on hover over text.",
   },
 
@@ -273,7 +303,8 @@ export const shadcnComponentDefinitions = {
     props: z.object({
       trigger: z.string(),
       content: z.string(),
-    }),
+    
+      className: classNameProp,}),
     description: "Popover that appears on click of trigger.",
   },
 
@@ -290,7 +321,8 @@ export const shadcnComponentDefinitions = {
       value: z.string().nullable(),
       checks: validationCheckSchema,
       validateOn: validateOnSchema,
-    }),
+    
+      className: classNameProp,}),
     events: ["submit", "focus", "blur"],
     description:
       "Text input field. Use { $bindState } on value for two-way binding. Use checks for validation (e.g. required, email, minLength). validateOn controls timing (default: blur).",
@@ -311,7 +343,8 @@ export const shadcnComponentDefinitions = {
       value: z.string().nullable(),
       checks: validationCheckSchema,
       validateOn: validateOnSchema,
-    }),
+    
+      className: classNameProp,}),
     description:
       "Multi-line text input. Use { $bindState } on value for binding. Use checks for validation. validateOn controls timing (default: blur).",
   },
@@ -325,7 +358,8 @@ export const shadcnComponentDefinitions = {
       value: z.string().nullable(),
       checks: validationCheckSchema,
       validateOn: validateOnSchema,
-    }),
+    
+      className: classNameProp,}),
     events: ["change"],
     description:
       "Dropdown select input. Use { $bindState } on value for binding. Use checks for validation. validateOn controls timing (default: change).",
@@ -338,7 +372,8 @@ export const shadcnComponentDefinitions = {
       checked: z.boolean().nullable(),
       checks: validationCheckSchema,
       validateOn: validateOnSchema,
-    }),
+    
+      className: classNameProp,}),
     events: ["change"],
     description:
       "Checkbox input. Use { $bindState } on checked for binding. Use checks for validation. validateOn controls timing (default: change).",
@@ -352,7 +387,8 @@ export const shadcnComponentDefinitions = {
       value: z.string().nullable(),
       checks: validationCheckSchema,
       validateOn: validateOnSchema,
-    }),
+    
+      className: classNameProp,}),
     events: ["change"],
     description:
       "Radio button group. Use { $bindState } on value for binding. Use checks for validation. validateOn controls timing (default: change).",
@@ -365,7 +401,8 @@ export const shadcnComponentDefinitions = {
       checked: z.boolean().nullable(),
       checks: validationCheckSchema,
       validateOn: validateOnSchema,
-    }),
+    
+      className: classNameProp,}),
     events: ["change"],
     description:
       "Toggle switch. Use { $bindState } on checked for binding. Use checks for validation. validateOn controls timing (default: change).",
@@ -378,7 +415,8 @@ export const shadcnComponentDefinitions = {
       max: z.number().nullable(),
       step: z.number().nullable(),
       value: z.number().nullable(),
-    }),
+    
+      className: classNameProp,}),
     events: ["change"],
     description: "Range slider input. Use { $bindState } on value for binding.",
   },
@@ -392,7 +430,8 @@ export const shadcnComponentDefinitions = {
       label: z.string(),
       variant: z.enum(["primary", "secondary", "danger"]).nullable(),
       disabled: z.boolean().nullable(),
-    }),
+    
+      className: classNameProp,}),
     events: ["press"],
     description: "Clickable button. Bind on.press for handler.",
     example: { label: "Submit", variant: "primary" },
@@ -402,7 +441,8 @@ export const shadcnComponentDefinitions = {
     props: z.object({
       label: z.string(),
       href: z.string(),
-    }),
+    
+      className: classNameProp,}),
     events: ["press"],
     description: "Anchor link. Bind on.press for click handler.",
   },
@@ -414,7 +454,8 @@ export const shadcnComponentDefinitions = {
         z.object({
           label: z.string(),
           value: z.string(),
-        }),
+        
+      className: classNameProp,}),
       ),
       value: z.string().nullable(),
     }),
@@ -428,7 +469,8 @@ export const shadcnComponentDefinitions = {
       label: z.string(),
       pressed: z.boolean().nullable(),
       variant: z.enum(["default", "outline"]).nullable(),
-    }),
+    
+      className: classNameProp,}),
     events: ["change"],
     description:
       "Toggle button. Use { $bindState } on pressed for state binding.",
@@ -440,7 +482,8 @@ export const shadcnComponentDefinitions = {
         z.object({
           label: z.string(),
           value: z.string(),
-        }),
+        
+      className: classNameProp,}),
       ),
       type: z.enum(["single", "multiple"]).nullable(),
       value: z.string().nullable(),
@@ -456,7 +499,8 @@ export const shadcnComponentDefinitions = {
         z.object({
           label: z.string(),
           value: z.string(),
-        }),
+        
+      className: classNameProp,}),
       ),
       selected: z.string().nullable(),
     }),
@@ -469,7 +513,8 @@ export const shadcnComponentDefinitions = {
     props: z.object({
       totalPages: z.number(),
       page: z.number().nullable(),
-    }),
+    
+      className: classNameProp,}),
     events: ["change"],
     description:
       "Page navigation. Use { $bindState } on page for current page number.",

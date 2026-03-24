@@ -185,7 +185,7 @@ export const shadcnComponents = {
     const centeredClass = props.centered ? "mx-auto" : "";
 
     return (
-      <Card className={cn(maxWidthClass, centeredClass)}>
+      <Card className={cn(maxWidthClass, centeredClass, props.className)}>
         {(props.title || props.description) && (
           <CardHeader>
             {props.title && <CardTitle>{props.title}</CardTitle>}
@@ -194,7 +194,7 @@ export const shadcnComponents = {
             )}
           </CardHeader>
         )}
-        <CardContent className="flex flex-col gap-3">{children}</CardContent>
+        <CardContent className={cn("flex flex-col gap-3", props.className)}>{children}</CardContent>
       </Card>
     );
   },
@@ -316,13 +316,13 @@ export const shadcnComponents = {
 
     if (isMultiple) {
       return (
-        <AccordionPrimitive type="multiple" className="w-full">
+        <AccordionPrimitive type="multiple" className={cn("w-full", props.className)}>
           {itemElements}
         </AccordionPrimitive>
       );
     }
     return (
-      <AccordionPrimitive type="single" collapsible className="w-full">
+      <AccordionPrimitive type="single" collapsible className={cn("w-full", props.className)}>
         {itemElements}
       </AccordionPrimitive>
     );
@@ -334,9 +334,9 @@ export const shadcnComponents = {
   }: BaseComponentProps<ShadcnProps<"Collapsible">>) => {
     const [open, setOpen] = useState(props.defaultOpen ?? false);
     return (
-      <Collapsible open={open} onOpenChange={setOpen} className="w-full">
+      <Collapsible open={open} onOpenChange={setOpen} className={cn("w-full", props.className)}>
         <CollapsibleTrigger asChild>
-          <button className="flex w-full items-center justify-between rounded-md border border-border px-4 py-2 text-sm font-medium hover:bg-muted transition-colors">
+          <button className={cn("flex w-full items-center justify-between rounded-md border border-border px-4 py-2 text-sm font-medium hover:bg-muted transition-colors", props.className)}>
             {props.title}
             <svg
               className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`}
@@ -353,7 +353,7 @@ export const shadcnComponents = {
             </svg>
           </button>
         </CollapsibleTrigger>
-        <CollapsibleContent className="pt-2">{children}</CollapsibleContent>
+        <CollapsibleContent className={cn("pt-2", props.className)}>{children}</CollapsibleContent>
       </Collapsible>
     );
   },
@@ -386,7 +386,7 @@ export const shadcnComponents = {
               <DrawerDescription>{props.description}</DrawerDescription>
             )}
           </DrawerHeader>
-          <div className="p-4">{children}</div>
+          <div className={cn("p-4", props.className)}>{children}</div>
         </DrawerContent>
       </DrawerPrimitive>
     );
@@ -395,19 +395,18 @@ export const shadcnComponents = {
   Carousel: ({ props }: BaseComponentProps<ShadcnProps<"Carousel">>) => {
     const items = props.items ?? [];
     return (
-      <CarouselPrimitive className="w-full">
+      <CarouselPrimitive className={cn("w-full", props.className)}>
         <CarouselContent>
           {items.map((item, i) => (
-            <CarouselItem
-              key={i}
-              className="basis-3/4 md:basis-1/2 lg:basis-1/3"
+            <CarouselItem key={i}
+              className={cn("basis-3/4 md:basis-1/2 lg:basis-1/3", props.className)}
             >
-              <div className="border border-border rounded-lg p-4 bg-card h-full">
+              <div className={cn("border border-border rounded-lg p-4 bg-card h-full", props.className)}>
                 {item.title && (
-                  <h4 className="font-semibold text-sm mb-1">{item.title}</h4>
+                  <h4 className={cn("font-semibold text-sm mb-1", props.className)}>{item.title}</h4>
                 )}
                 {item.description && (
-                  <p className="text-sm text-muted-foreground">
+                  <p className={cn("text-sm text-muted-foreground", props.className)}>
                     {item.description}
                   </p>
                 )}
@@ -428,7 +427,7 @@ export const shadcnComponents = {
     const rows = (props.rows ?? []).map((row) => row.map(String));
 
     return (
-      <div className="rounded-md border border-border overflow-hidden">
+      <div className={cn("rounded-md border border-border overflow-hidden", props.className)}>
         <TablePrimitive>
           {props.caption && <TableCaption>{props.caption}</TableCaption>}
           <TableHeader>
@@ -493,18 +492,16 @@ export const shadcnComponents = {
   Image: ({ props }: BaseComponentProps<ShadcnProps<"Image">>) => {
     if (props.src) {
       return (
-        <img
-          src={props.src}
+        <img src={props.src}
           alt={props.alt ?? ""}
           width={props.width ?? undefined}
           height={props.height ?? undefined}
-          className="rounded max-w-full"
+          className={cn("rounded max-w-full", props.className)}
         />
       );
     }
     return (
-      <div
-        className="bg-muted border border-border rounded flex items-center justify-center text-xs text-muted-foreground"
+      <div className={cn("bg-muted border border-border rounded flex items-center justify-center text-xs text-muted-foreground", props.className)}
         style={{ width: props.width ?? 80, height: props.height ?? 60 }}
       >
         {props.alt || "img"}
@@ -561,9 +558,9 @@ export const shadcnComponents = {
   Progress: ({ props }: BaseComponentProps<ShadcnProps<"Progress">>) => {
     const value = Math.min(100, Math.max(0, props.value || 0));
     return (
-      <div className="space-y-2">
+      <div className={cn("space-y-2", props.className)}>
         {props.label && (
-          <Label className="text-sm text-muted-foreground">{props.label}</Label>
+          <Label className={cn("text-sm text-muted-foreground", props.className)}>{props.label}</Label>
         )}
         <Progress value={value} />
       </div>
@@ -590,28 +587,26 @@ export const shadcnComponents = {
           ? "h-4 w-4"
           : "h-6 w-6";
     return (
-      <div className="flex items-center gap-2">
+      <div className={cn("flex items-center gap-2", props.className)}>
         <svg
           className={`${sizeClass} animate-spin text-muted-foreground`}
           viewBox="0 0 24 24"
           fill="none"
         >
-          <circle
-            className="opacity-25"
+          <circle className={cn("opacity-25", props.className)}
             cx="12"
             cy="12"
             r="10"
             stroke="currentColor"
             strokeWidth="4"
           />
-          <path
-            className="opacity-75"
+          <path className={cn("opacity-75", props.className)}
             fill="currentColor"
             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
           />
         </svg>
         {props.label && (
-          <span className="text-sm text-muted-foreground">{props.label}</span>
+          <span className={cn("text-sm text-muted-foreground", props.className)}>{props.label}</span>
         )}
       </div>
     );
@@ -622,7 +617,7 @@ export const shadcnComponents = {
       <TooltipProvider>
         <TooltipPrimitive>
           <TooltipTrigger asChild>
-            <span className="text-sm underline decoration-dotted cursor-help">
+            <span className={cn("text-sm underline decoration-dotted cursor-help", props.className)}>
               {props.text}
             </span>
           </TooltipTrigger>
@@ -638,12 +633,12 @@ export const shadcnComponents = {
     return (
       <PopoverPrimitive>
         <PopoverTrigger asChild>
-          <Button variant="outline" className="text-sm">
+          <Button variant="outline" className={cn("text-sm", props.className)}>
             {props.trigger}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-64">
-          <p className="text-sm">{props.content}</p>
+        <PopoverContent className={cn("w-64", props.className)}>
+          <p className={cn("text-sm", props.className)}>{props.content}</p>
         </PopoverContent>
       </PopoverPrimitive>
     );
@@ -673,7 +668,7 @@ export const shadcnComponents = {
     );
 
     return (
-      <div className="space-y-2">
+      <div className={cn("space-y-2", props.className)}>
         {props.label && (
           <Label htmlFor={props.name ?? undefined}>{props.label}</Label>
         )}
@@ -697,7 +692,7 @@ export const shadcnComponents = {
           }}
         />
         {errors.length > 0 && (
-          <p className="text-sm text-destructive">{errors[0]}</p>
+          <p className={cn("text-sm text-destructive", props.className)}>{errors[0]}</p>
         )}
       </div>
     );
@@ -724,7 +719,7 @@ export const shadcnComponents = {
     );
 
     return (
-      <div className="space-y-2">
+      <div className={cn("space-y-2", props.className)}>
         {props.label && (
           <Label htmlFor={props.name ?? undefined}>{props.label}</Label>
         )}
@@ -743,7 +738,7 @@ export const shadcnComponents = {
           }}
         />
         {errors.length > 0 && (
-          <p className="text-sm text-destructive">{errors[0]}</p>
+          <p className={cn("text-sm text-destructive", props.className)}>{errors[0]}</p>
         )}
       </div>
     );
@@ -775,7 +770,7 @@ export const shadcnComponents = {
     );
 
     return (
-      <div className="space-y-2">
+      <div className={cn("space-y-2", props.className)}>
         <Label>{props.label}</Label>
         <Select
           value={value}
@@ -786,7 +781,7 @@ export const shadcnComponents = {
             emit("change");
           }}
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger className={cn("w-full", props.className)}>
             <SelectValue placeholder={props.placeholder ?? "Select..."} />
           </SelectTrigger>
           <SelectContent>
@@ -798,7 +793,7 @@ export const shadcnComponents = {
           </SelectContent>
         </Select>
         {errors.length > 0 && (
-          <p className="text-sm text-destructive">{errors[0]}</p>
+          <p className={cn("text-sm text-destructive", props.className)}>{errors[0]}</p>
         )}
       </div>
     );
@@ -826,8 +821,8 @@ export const shadcnComponents = {
     );
 
     return (
-      <div className="space-y-1">
-        <div className="flex items-center space-x-2">
+      <div className={cn("space-y-1", props.className)}>
+        <div className={cn("flex items-center space-x-2", props.className)}>
           <Checkbox
             id={props.name ?? undefined}
             checked={checked}
@@ -837,12 +832,12 @@ export const shadcnComponents = {
               emit("change");
             }}
           />
-          <Label htmlFor={props.name ?? undefined} className="cursor-pointer">
+          <Label htmlFor={props.name ?? undefined} className={cn("cursor-pointer", props.className)}>
             {props.label}
           </Label>
         </div>
         {errors.length > 0 && (
-          <p className="text-sm text-destructive">{errors[0]}</p>
+          <p className={cn("text-sm text-destructive", props.className)}>{errors[0]}</p>
         )}
       </div>
     );
@@ -874,7 +869,7 @@ export const shadcnComponents = {
     );
 
     return (
-      <div className="space-y-2">
+      <div className={cn("space-y-2", props.className)}>
         {props.label && <Label>{props.label}</Label>}
         <RadioGroup
           value={value}
@@ -885,14 +880,13 @@ export const shadcnComponents = {
           }}
         >
           {options.map((opt, idx) => (
-            <div key={`${idx}-${opt}`} className="flex items-center space-x-2">
+            <div key={`${idx}-${opt}`} className={cn("flex items-center space-x-2", props.className)}>
               <RadioGroupItem
                 value={opt || `option-${idx}`}
                 id={`${props.name}-${idx}-${opt}`}
               />
-              <Label
-                htmlFor={`${props.name}-${idx}-${opt}`}
-                className="cursor-pointer"
+              <Label htmlFor={`${props.name}-${idx}-${opt}`}
+                className={cn("cursor-pointer", props.className)}
               >
                 {opt}
               </Label>
@@ -900,7 +894,7 @@ export const shadcnComponents = {
           ))}
         </RadioGroup>
         {errors.length > 0 && (
-          <p className="text-sm text-destructive">{errors[0]}</p>
+          <p className={cn("text-sm text-destructive", props.className)}>{errors[0]}</p>
         )}
       </div>
     );
@@ -928,9 +922,9 @@ export const shadcnComponents = {
     );
 
     return (
-      <div className="space-y-1">
-        <div className="flex items-center justify-between space-x-2">
-          <Label htmlFor={props.name ?? undefined} className="cursor-pointer">
+      <div className={cn("space-y-1", props.className)}>
+        <div className={cn("flex items-center justify-between space-x-2", props.className)}>
+          <Label htmlFor={props.name ?? undefined} className={cn("cursor-pointer", props.className)}>
             {props.label}
           </Label>
           <Switch
@@ -944,7 +938,7 @@ export const shadcnComponents = {
           />
         </div>
         {errors.length > 0 && (
-          <p className="text-sm text-destructive">{errors[0]}</p>
+          <p className={cn("text-sm text-destructive", props.className)}>{errors[0]}</p>
         )}
       </div>
     );
@@ -965,11 +959,11 @@ export const shadcnComponents = {
     const setValue = isBound ? setBoundValue : setLocalValue;
 
     return (
-      <div className="space-y-2">
+      <div className={cn("space-y-2", props.className)}>
         {props.label && (
-          <div className="flex justify-between">
-            <Label className="text-sm">{props.label}</Label>
-            <span className="text-sm text-muted-foreground">{value}</span>
+          <div className={cn("flex justify-between", props.className)}>
+            <Label className={cn("text-sm", props.className)}>{props.label}</Label>
+            <span className={cn("text-sm text-muted-foreground", props.className)}>{value}</span>
           </div>
         )}
         <Slider
@@ -1009,9 +1003,8 @@ export const shadcnComponents = {
 
   Link: ({ props, on }: BaseComponentProps<ShadcnProps<"Link">>) => {
     return (
-      <a
-        href={props.href ?? "#"}
-        className="text-primary underline-offset-4 hover:underline text-sm font-medium"
+      <a href={props.href ?? "#"}
+        className={cn("text-primary underline-offset-4 hover:underline text-sm font-medium", props.className)}
         onClick={(e) => {
           const press = on("press");
           if (press.shouldPreventDefault) e.preventDefault();
@@ -1155,7 +1148,7 @@ export const shadcnComponents = {
     const setValue = isBound ? setBoundSelected : setLocalValue;
 
     return (
-      <div className="inline-flex rounded-md border border-border">
+      <div className={cn("inline-flex rounded-md border border-border", props.className)}>
         {buttons.map((btn, i) => (
           <button
             key={btn.value}
