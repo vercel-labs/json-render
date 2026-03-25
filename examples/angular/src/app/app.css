@@ -1,0 +1,7 @@
+main {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: #f9fafb;
+  min-height: 100vh;
+  box-sizing: border-box;
+}

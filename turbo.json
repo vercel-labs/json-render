@@ -1,5 +1,5 @@
 {
-  "$schema": "https://turborepo.dev/schema.json",
+  "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
   "globalEnv": ["AI_GATEWAY_MODEL", "ELEVENLABS_API_KEY", "KV_REST_API_URL", "KV_REST_API_TOKEN", "RATE_LIMIT_PER_MINUTE", "RATE_LIMIT_PER_DAY"],
   "tasks": {
