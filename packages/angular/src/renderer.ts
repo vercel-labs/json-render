@@ -46,6 +46,7 @@ import {
   ACTIONS_CONTEXT,
   ActionProvider,
   ConfirmDialog,
+  deepResolveValue,
   type ActionContextValue,
 } from "./providers/actions";
 import { RepeatScopeProvider } from "./providers/repeat-scope";
@@ -114,7 +115,6 @@ interface FocusSnapshot {
   selectionStart: number | null;
   selectionEnd: number | null;
   selectionDirection: "forward" | "backward" | "none" | null;
-  isCustomElement?: boolean;
 }
 
 function getNodePath(root: Node, node: Node): number[] | null {
@@ -141,7 +141,6 @@ function captureFocusSnapshot(
   document: Document,
 ): FocusSnapshot | null {
   const active = document.activeElement;
-  // Handle native input/textarea elements
   if (
     active instanceof HTMLInputElement ||
     active instanceof HTMLTextAreaElement
@@ -155,27 +154,6 @@ function captureFocusSnapshot(
       selectionEnd: active.selectionEnd,
       selectionDirection: active.selectionDirection,
     };
-  }
-
-  // Handle custom elements that may contain focusable inputs (e.g., cat-input)
-  // Check if the active element is a custom element with a shadow DOM input
-  if (active instanceof HTMLElement && active.shadowRoot) {
-    const shadowInput = active.shadowRoot.querySelector("input, textarea");
-    if (
-      shadowInput instanceof HTMLInputElement ||
-      shadowInput instanceof HTMLTextAreaElement
-    ) {
-      if (!root.contains(active)) return null;
-      const path = getNodePath(root, active);
-      if (!path) return null;
-      return {
-        path,
-        selectionStart: shadowInput.selectionStart,
-        selectionEnd: shadowInput.selectionEnd,
-        selectionDirection: shadowInput.selectionDirection,
-        isCustomElement: true,
-      };
-    }
   }
 
   return null;
@@ -192,53 +170,14 @@ function getNodeByPath(root: Node, path: number[]): Node | null {
 
 function restoreFocusSnapshot(
   root: HTMLElement,
-  snapshot: FocusSnapshot & { isCustomElement?: boolean },
+  snapshot: FocusSnapshot,
 ): boolean {
   const target = getNodeByPath(root, snapshot.path);
 
-  if (!target) return false;
-
-  // Handle custom elements with shadow DOM inputs
   if (
-    snapshot.isCustomElement &&
-    target instanceof HTMLElement &&
-    target.shadowRoot
-  ) {
-    // For custom elements with delegatesFocus, we just need to call focus() on the host
-    // The browser will delegate focus to the shadow input automatically
-    // But the shadow DOM might not be rendered yet, so we need to wait
-    const tryRestore = (attempts = 0): boolean => {
-      const shadowInput = target.shadowRoot?.querySelector("input, textarea");
-      if (
-        shadowInput instanceof HTMLInputElement ||
-        shadowInput instanceof HTMLTextAreaElement
-      ) {
-        target.focus();
-        if (
-          snapshot.selectionStart !== null &&
-          snapshot.selectionEnd !== null
-        ) {
-          shadowInput.setSelectionRange(
-            snapshot.selectionStart,
-            snapshot.selectionEnd,
-            snapshot.selectionDirection ?? undefined,
-          );
-        }
-        return true;
-      }
-      // Shadow DOM not yet rendered, retry after a frame
-      if (attempts < 5) {
-        requestAnimationFrame(() => tryRestore(attempts + 1));
-      }
-      return false;
-    };
-    return tryRestore();
-  }
-
-  // Handle native input/textarea elements
-  if (
-    !(target instanceof HTMLInputElement) &&
-    !(target instanceof HTMLTextAreaElement)
+    !target ||
+    (!(target instanceof HTMLInputElement) &&
+      !(target instanceof HTMLTextAreaElement))
   ) {
     return false;
   }
@@ -260,38 +199,6 @@ function noopHandle(): EventHandle {
     shouldPreventDefault: false,
     bound: false,
   };
-}
-
-function deepResolveValue(
-  value: unknown,
-  get: (path: string) => unknown,
-): unknown {
-  if (value === null || value === undefined) return value;
-  if (value === "$id") {
-    return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-  }
-
-  if (Array.isArray(value)) {
-    return value.map((entry) => deepResolveValue(entry, get));
-  }
-
-  if (typeof value === "object") {
-    const obj = value as Record<string, unknown>;
-    const keys = Object.keys(obj);
-    if (keys.length === 1 && typeof obj.$state === "string") {
-      return get(obj.$state);
-    }
-    if (keys.length === 1 && "$id" in obj) {
-      return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-    }
-    const resolved: Record<string, unknown> = {};
-    for (const [key, entry] of Object.entries(obj)) {
-      resolved[key] = deepResolveValue(entry, get);
-    }
-    return resolved;
-  }
-
-  return value;
 }
 
 async function resolveAndExecuteBindings(

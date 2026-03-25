@@ -22,12 +22,12 @@ import { useOptionalValidation } from "./validation";
 
 let idCounter = 0;
 
-function generateUniqueId(): string {
+export function generateUniqueId(): string {
   idCounter += 1;
   return `${Date.now()}-${idCounter}`;
 }
 
-function deepResolveValue(
+export function deepResolveValue(
   value: unknown,
   get: (path: string) => unknown,
 ): unknown {

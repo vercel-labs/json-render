@@ -10,11 +10,11 @@ import {
 } from "@angular/core";
 import {
   createStateStore,
-  flattenToPointers,
   getByPath,
   type StateModel,
   type StateStore,
 } from "@json-render/core";
+import { flattenToPointers } from "@json-render/core/store-utils";
 
 export interface StateContextValue {
   state: Signal<StateModel>;

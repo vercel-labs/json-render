@@ -60,7 +60,7 @@ export {
 
 // State Store
 export type { StoreAdapterConfig } from "./state-store";
-export { createStateStore, flattenToPointers } from "./state-store";
+export { createStateStore } from "./state-store";
 
 // Visibility
 export type { VisibilityContext } from "./visibility";
