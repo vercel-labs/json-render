@@ -24,7 +24,8 @@
       "@json-render/react-three-fiber",
       "@json-render/yaml",
       "@json-render/shadcn-svelte",
-      "@json-render/ink"
+      "@json-render/ink",
+      "@json-render/astro"
     ]
   ],
   "linked": [],

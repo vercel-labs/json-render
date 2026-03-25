@@ -1,0 +1,19 @@
+---
+interface Props {
+  label: string;
+  variant?: string | null;
+}
+
+const { label, variant } = Astro.props;
+
+const colors: Record<string, { bg: string; fg: string; border: string }> = {
+  default: { bg: "#e0f2fe", fg: "#0369a1", border: "#bae6fd" },
+  success: { bg: "#dcfce7", fg: "#15803d", border: "#bbf7d0" },
+  warning: { bg: "#fef9c3", fg: "#a16207", border: "#fde68a" },
+};
+const c = colors[variant ?? "default"] ?? colors.default!;
+---
+
+<span style={`display:inline-block;padding:4px 12px;border-radius:999px;font-size:13px;font-weight:500;background:${c.bg};color:${c.fg};border:1px solid ${c.border}`}>
+  {label}
+</span>

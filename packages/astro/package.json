@@ -1,0 +1,79 @@
+{
+  "name": "@json-render/astro",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "description": "Astro renderer for @json-render/core. JSON becomes Astro components.",
+  "keywords": [
+    "json",
+    "ui",
+    "astro",
+    "ai",
+    "generative-ui",
+    "llm",
+    "renderer",
+    "streaming",
+    "components",
+    "islands",
+    "ssr",
+    "ssg"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vercel-labs/json-render.git",
+    "directory": "packages/astro"
+  },
+  "homepage": "https://json-render.dev",
+  "bugs": {
+    "url": "https://github.com/vercel-labs/json-render/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "astro": "./dist/index.js",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./schema": {
+      "types": "./dist/schema.d.ts",
+      "import": "./dist/schema.js",
+      "require": "./dist/schema.cjs"
+    },
+    "./Renderer.astro": "./src/Renderer.astro",
+    "./ElementRenderer.astro": "./src/ElementRenderer.astro"
+  },
+  "files": [
+    "dist",
+    "src/Renderer.astro",
+    "src/ElementRenderer.astro"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@json-render/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@internal/typescript-config": "workspace:*",
+    "astro": "^6.0.4",
+    "tsup": "^8.0.2",
+    "typescript": "^5.4.5"
+  },
+  "peerDependencies": {
+    "astro": ">=4.0.0",
+    "zod": "^4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "astro": {
+      "optional": true
+    }
+  }
+}

@@ -1,0 +1,46 @@
+---
+/**
+ * Astro renderer for json-render specs.
+ *
+ * Renders the spec tree to static HTML using Astro components from the registry.
+ * Works in both SSG (build time) and SSR (request time) modes.
+ *
+ * For interactive elements, use a framework renderer as an Astro island:
+ *
+ *   <ReactRenderer spec={formSpec} registry={reactRegistry} client:visible />
+ */
+import type { Spec } from '@json-render/core';
+import type { AstroComponentFactory } from 'astro/runtime/server/index.js';
+import ElementRenderer from './ElementRenderer.astro';
+
+interface Props {
+  spec: Spec;
+  registry: Record<string, AstroComponentFactory>;
+  state?: Record<string, unknown>;
+  /** Whether the spec is currently loading/streaming */
+  loading?: boolean;
+  /** Fallback component rendered when a type is not found in the registry */
+  fallback?: AstroComponentFactory;
+}
+
+const { spec, registry, state, loading, fallback } = Astro.props;
+
+if (!spec?.root) return;
+
+const rootElement = spec.elements[spec.root];
+if (!rootElement) {
+  console.warn(`[json-render/astro] Root element "${spec.root}" not found`);
+  return;
+}
+
+const mergedState: Record<string, unknown> = { ...spec.state, ...state };
+---
+
+<ElementRenderer
+  element={rootElement}
+  spec={spec}
+  registry={registry}
+  stateModel={mergedState}
+  loading={loading}
+  fallback={fallback}
+/>

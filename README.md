@@ -25,6 +25,8 @@ npm install @json-render/core @json-render/svelte
 npm install @json-render/core @json-render/solid
 # or for terminal UIs
 npm install @json-render/core @json-render/ink ink react
+# or for SSR HTML (Astro, Cloudflare Workers, edge)
+npm install @json-render/core @json-render/astro
 # or for 3D scenes
 npm install @json-render/core @json-render/react-three-fiber @react-three/fiber @react-three/drei three
 ```
@@ -137,6 +139,7 @@ function Dashboard({ spec }) {
 | `@json-render/zustand`      | Zustand adapter for `StateStore`                                       |
 | `@json-render/jotai`        | Jotai adapter for `StateStore`                                         |
 | `@json-render/xstate`       | XState Store (atom) adapter for `StateStore`                           |
+| `@json-render/astro`        | SSR HTML renderer for Astro, Cloudflare Workers, and edge runtimes     |
 | `@json-render/mcp`          | MCP Apps integration for Claude, ChatGPT, Cursor, VS Code              |
 | `@json-render/yaml`         | YAML wire format with streaming parser, edit modes, AI SDK transform   |
 
@@ -226,6 +229,111 @@ const { registry } = defineRegistry(catalog, {
 
 <Renderer spec={spec} registry={registry} />;
 ```
+
+### Astro (UI)
+
+Static content ships zero JS. Interactive islands use framework renderers hydrated client-side.
+
+```astro
+---
+import Renderer from "@json-render/astro/Renderer.astro";
+import { defineRegistry } from "@json-render/astro";
+import { catalog } from "../lib/catalog";
+import Card from "../components/Card.astro";
+import Text from "../components/Text.astro";
+
+const { registry } = defineRegistry(catalog, {
+  components: { Card, Text },
+});
+---
+
+<Renderer spec={spec} registry={registry} />
+```
+
+#### Astro + React Island
+
+```tsx
+// Counter.tsx — interactive React island using @json-render/react
+import { useState, useRef, useMemo } from "react";
+import {
+  StateProvider, ActionProvider, VisibilityProvider,
+  Renderer, defineRegistry,
+} from "@json-render/react";
+import { schema } from "@json-render/react/schema";
+import { defineCatalog, type Spec } from "@json-render/core";
+import { z } from "zod";
+
+const catalog = defineCatalog(schema, {
+  components: {
+    Text: { props: z.object({ content: z.string() }), description: "Text" },
+    Button: { props: z.object({ label: z.string() }), description: "Button" },
+  },
+  actions: {
+    increment: { description: "Increment counter" },
+  },
+});
+
+const { registry, handlers: createHandlers } = defineRegistry(catalog, {
+  components: {
+    Text: ({ props }) => <span>{String(props.content ?? "")}</span>,
+    Button: ({ props, emit }) => (
+      <button onClick={() => emit("press")}>{props.label}</button>
+    ),
+  },
+  actions: {
+    increment: async (_params, setState) => {
+      setState((prev) => ({ ...prev, count: Number(prev.count || 0) + 1 }));
+    },
+  },
+});
+
+const spec: Spec = {
+  root: "root",
+  state: { count: 0 },
+  elements: {
+    root: { type: "Text", props: { content: { $state: "/count" } }, children: ["btn"] },
+    btn: { type: "Button", props: { label: "+" }, on: { press: { action: "increment" } } },
+  },
+};
+
+export default function Counter() {
+  const [state, setState] = useState<Record<string, unknown>>(spec.state ?? {});
+  const stateRef = useRef(state);
+  const setStateRef = useRef(setState);
+  stateRef.current = state;
+  setStateRef.current = setState;
+
+  const actionHandlers = useMemo(
+    () => createHandlers(() => setStateRef.current, () => stateRef.current),
+    [],
+  );
+
+  return (
+    <StateProvider initialState={state}>
+      <VisibilityProvider>
+        <ActionProvider handlers={actionHandlers}>
+          <Renderer spec={spec} registry={registry} />
+        </ActionProvider>
+      </VisibilityProvider>
+    </StateProvider>
+  );
+}
+```
+
+```astro
+---
+import Renderer from "@json-render/astro/Renderer.astro";
+import Counter from "../components/Counter";
+---
+
+<!-- Static SSR content (zero JS) -->
+<Renderer spec={staticSpec} registry={registry} />
+
+<!-- Interactive React island (hydrated client-side) -->
+<Counter client:visible />
+```
+
+Islands also work with Vue (`@json-render/vue`), Svelte (`@json-render/svelte`), and Solid (`@json-render/solid`).
 
 ### shadcn/ui (Web)
 
@@ -652,6 +760,7 @@ pnpm dev
 - Vue Example: run `pnpm dev` in `examples/vue`
 - Vite Renderers (React + Vue + Svelte + Solid): run `pnpm dev` in `examples/vite-renderers`
 - React Native example: run `npx expo start` in `examples/react-native`
+- Astro SSR Example: run `pnpm dev` in `examples/astro`
 
 ## How It Works
 

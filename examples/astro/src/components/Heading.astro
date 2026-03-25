@@ -1,0 +1,12 @@
+---
+interface Props {
+  text: string;
+  level?: string | null;
+}
+
+const { text, level } = Astro.props;
+const validLevels = ["h1", "h2", "h3", "h4", "h5", "h6"];
+const Tag = (validLevels.includes(level ?? "") ? level : "h2") as any;
+---
+
+<Tag>{text}</Tag>
