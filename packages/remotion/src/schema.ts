@@ -1,4 +1,5 @@
 import { defineSchema, type PromptContext } from "@json-render/core";
+import type { z } from "zod";
 
 /**
  * Prompt template for Remotion timeline generation
@@ -6,7 +7,7 @@ import { defineSchema, type PromptContext } from "@json-render/core";
  * Uses JSONL patch format (same as React) but builds up a timeline spec structure.
  */
 function remotionPromptTemplate(context: PromptContext): string {
-  const { catalog, options } = context;
+  const { catalog, options, formatZodType } = context;
   const { system = "You are a video timeline generator.", customRules = [] } =
     options;
 
@@ -37,7 +38,7 @@ function remotionPromptTemplate(context: PromptContext): string {
   const catalogData = catalog as {
     components?: Record<
       string,
-      { description?: string; defaultDuration?: number }
+      { description?: string; defaultDuration?: number; props?: z.ZodType }
     >;
     transitions?: Record<string, { description?: string }>;
     effects?: Record<string, { description?: string }>;
@@ -52,8 +53,9 @@ function remotionPromptTemplate(context: PromptContext): string {
       const duration = def.defaultDuration
         ? ` [default: ${def.defaultDuration} frames]`
         : "";
+      const propsStr = def.props ? ` ${formatZodType(def.props)}` : "";
       lines.push(
-        `- ${name}: ${def.description || "No description"}${duration}`,
+        `- ${name}:${propsStr} ${def.description || "No description"}${duration}`,
       );
     }
     lines.push("");
