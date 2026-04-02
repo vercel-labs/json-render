@@ -342,7 +342,8 @@ type InferSpecField<T, TCatalog> =
                 : T extends SchemaType<"propsOf", infer Path>
                   ? InferPropsOfType<Path, TCatalog>
                   : T extends SchemaType<"any">
-                    ? unknown
+                    ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      any
                     : unknown;
 
 type InferRefType<Path, TCatalog> = Path extends "catalog.components"
