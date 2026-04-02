@@ -499,11 +499,14 @@ function buildZodType(schemaType: SchemaType, catalogData: unknown): z.ZodType {
         }
         zodShape[key] = zodType;
       }
-      return z.object(zodShape);
+      return z.object(zodShape).passthrough();
     }
     case "record": {
       const inner = buildZodType(schemaType.inner as SchemaType, catalogData);
-      return z.record(z.string(), inner);
+      return z.record(
+        z.string(),
+        inner instanceof z.ZodObject ? inner.passthrough() : inner,
+      );
     }
     case "ref": {
       // Reference to catalog key - create enum of valid keys
