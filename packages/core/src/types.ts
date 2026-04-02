@@ -68,7 +68,7 @@ export interface UIElement<
   /** Event bindings — maps event names to action bindings */
   on?: Record<string, ActionBinding | ActionBinding[]>;
   /** Repeat children once per item in a state array */
-  repeat?: { statePath: string; key?: string };
+  repeat?: { statePath: string | { $item: string }; key?: string };
   /**
    * State watchers — maps JSON Pointer state paths to action bindings.
    * When the value at a watched path changes, the bound actions fire.

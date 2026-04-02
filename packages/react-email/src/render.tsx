@@ -57,12 +57,32 @@ function renderElement(
   if (!Component) return null;
 
   if (resolvedElement.repeat) {
-    const items =
-      (getByPath(stateModel, resolvedElement.repeat.statePath) as
-        | unknown[]
-        | undefined) ?? [];
+    const repeat = resolvedElement.repeat;
+    let statePath: string;
+    if (typeof repeat.statePath === "string") {
+      statePath = repeat.statePath;
+    } else if (
+      typeof repeat.statePath === "object" &&
+      repeat.statePath !== null &&
+      "$item" in repeat.statePath
+    ) {
+      const field = (repeat.statePath as Record<string, string>).$item;
+      if (repeatBasePath) {
+        statePath =
+          field === "" ? repeatBasePath : `${repeatBasePath}/${field}`;
+      } else {
+        console.warn(
+          "[json-render/react-email] $item in repeat.statePath used outside of a repeat scope",
+        );
+        statePath = field === "" ? "/" : `/${field}`;
+      }
+    } else {
+      statePath = String(repeat.statePath);
+    }
 
-    const repeat = resolvedElement.repeat!;
+    const items =
+      (getByPath(stateModel, statePath) as unknown[] | undefined) ?? [];
+
     const fragments = items.map((item, index) => {
       const repeatKey = repeat.key;
       const key =
@@ -70,7 +90,7 @@ function renderElement(
           ? String((item as Record<string, unknown>)[repeatKey] ?? index)
           : String(index);
 
-      const childPath = `${repeat.statePath}/${index}`;
+      const childPath = `${statePath}/${index}`;
       const children = resolvedElement.children?.map((childKey) =>
         renderElement(
           childKey,

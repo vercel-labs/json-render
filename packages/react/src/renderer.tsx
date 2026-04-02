@@ -415,8 +415,32 @@ function RepeatChildren({
   fallback?: ComponentRenderer;
 }) {
   const { state } = useStateStore();
+  const parentScope = useRepeatScope();
   const repeat = element.repeat!;
-  const statePath = repeat.statePath;
+  let statePath: string;
+
+  if (typeof repeat.statePath === "string") {
+    statePath = repeat.statePath;
+  } else if (
+    typeof repeat.statePath === "object" &&
+    repeat.statePath !== null &&
+    "$item" in repeat.statePath
+  ) {
+    const field = (repeat.statePath as Record<string, string>).$item;
+    if (parentScope) {
+      statePath =
+        field === ""
+          ? parentScope.basePath
+          : `${parentScope.basePath}/${field}`;
+    } else {
+      console.warn(
+        "[json-render] $item in repeat.statePath used outside of a repeat scope",
+      );
+      statePath = field === "" ? "/" : `/${field}`;
+    }
+  } else {
+    statePath = String(repeat.statePath);
+  }
 
   const items = (getByPath(state, statePath) as unknown[] | undefined) ?? [];
 

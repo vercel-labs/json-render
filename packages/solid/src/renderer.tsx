@@ -379,7 +379,26 @@ interface RepeatChildrenProps {
 function RepeatChildren(props: RepeatChildrenProps) {
   const stateStore = useStateStore();
   const repeat = () => props.element.repeat!;
-  const statePath = () => repeat().statePath;
+  const parentScope = useRepeatScope();
+  const statePath = () => {
+    const current = repeat().statePath;
+    if (typeof current === "string") return current;
+
+    if (typeof current === "object" && current !== null && "$item" in current) {
+      const field = (current as Record<string, string>).$item;
+      if (parentScope) {
+        return field === ""
+          ? parentScope.basePath
+          : `${parentScope.basePath}/${field}`;
+      }
+      console.warn(
+        "[json-render/solid] $item in repeat.statePath used outside of a repeat scope",
+      );
+      return field === "" ? "/" : `/${field}`;
+    }
+
+    return String(current);
+  };
 
   const items = () =>
     (getByPath(stateStore.state, statePath()) as unknown[] | undefined) ?? [];

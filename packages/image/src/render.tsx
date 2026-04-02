@@ -60,21 +60,39 @@ function renderElement(
   if (!Component) return null;
 
   if (resolvedElement.repeat) {
+    const repeat = resolvedElement.repeat;
+    let statePath: string;
+    if (typeof repeat.statePath === "string") {
+      statePath = repeat.statePath;
+    } else if (
+      typeof repeat.statePath === "object" &&
+      repeat.statePath !== null &&
+      "$item" in repeat.statePath
+    ) {
+      const field = (repeat.statePath as Record<string, string>).$item;
+      if (repeatBasePath) {
+        statePath =
+          field === "" ? repeatBasePath : `${repeatBasePath}/${field}`;
+      } else {
+        console.warn(
+          "[json-render/image] $item in repeat.statePath used outside of a repeat scope",
+        );
+        statePath = field === "" ? "/" : `/${field}`;
+      }
+    } else {
+      statePath = String(repeat.statePath);
+    }
+
     const items =
-      (getByPath(stateModel, resolvedElement.repeat.statePath) as
-        | unknown[]
-        | undefined) ?? [];
+      (getByPath(stateModel, statePath) as unknown[] | undefined) ?? [];
 
     const fragments = items.map((item, index) => {
       const key =
-        resolvedElement.repeat!.key && typeof item === "object" && item !== null
-          ? String(
-              (item as Record<string, unknown>)[resolvedElement.repeat!.key!] ??
-                index,
-            )
+        repeat.key && typeof item === "object" && item !== null
+          ? String((item as Record<string, unknown>)[repeat.key!] ?? index)
           : String(index);
 
-      const childPath = `${resolvedElement.repeat!.statePath}/${index}`;
+      const childPath = `${statePath}/${index}`;
       const children = resolvedElement.children?.map((childKey) =>
         renderElement(
           childKey,
