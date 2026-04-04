@@ -29,6 +29,10 @@ npm install @json-render/core @json-render/ink ink react
 npm install @json-render/core @json-render/react @json-render/next
 # or for 3D scenes
 npm install @json-render/core @json-render/react-three-fiber @react-three/fiber @react-three/drei three
+# or for gaussian splatting (standalone)
+npm install @json-render/core @json-render/gsplat
+# or for gaussian splatting (inside R3F scenes)
+npm install @json-render/core @json-render/react-three-fiber @react-three/fiber @react-three/drei three
 ```
 
 ## Why json-render?
@@ -128,7 +132,8 @@ function Dashboard({ spec }) {
 | `@json-render/solid`        | SolidJS renderer with fine-grained reactive contexts                   |
 | `@json-render/shadcn`       | 36 pre-built shadcn/ui components (Radix UI + Tailwind CSS)            |
 | `@json-render/shadcn-svelte`| 36 pre-built shadcn-svelte components (Svelte 5 + Tailwind CSS)        |
-| `@json-render/react-three-fiber` | React Three Fiber renderer for 3D scenes (19 built-in components)  |
+| `@json-render/react-three-fiber` | React Three Fiber renderer for 3D scenes (20 built-in components)  |
+| `@json-render/gsplat`           | Gaussian Splatting renderer — load .splat/.ply files from JSON specs |
 | `@json-render/react-native` | React Native renderer with standard mobile components                  |
 | `@json-render/next`         | Next.js renderer — JSON becomes full apps with routes, layouts, SSR    |
 | `@json-render/remotion`     | Remotion video renderer, timeline schema                               |
@@ -462,6 +467,7 @@ const catalog = defineCatalog(schema, {
     Sphere: threeComponentDefinitions.Sphere,
     AmbientLight: threeComponentDefinitions.AmbientLight,
     DirectionalLight: threeComponentDefinitions.DirectionalLight,
+    GaussianSplat: threeComponentDefinitions.GaussianSplat,
     OrbitControls: threeComponentDefinitions.OrbitControls,
   },
   actions: {},
@@ -473,6 +479,7 @@ const { registry } = defineRegistry(catalog, {
     Sphere: threeComponents.Sphere,
     AmbientLight: threeComponents.AmbientLight,
     DirectionalLight: threeComponents.DirectionalLight,
+    GaussianSplat: threeComponents.GaussianSplat,
     OrbitControls: threeComponents.OrbitControls,
   },
 });
@@ -483,6 +490,30 @@ const { registry } = defineRegistry(catalog, {
   shadows
   camera={{ position: [5, 5, 5], fov: 50 }}
   style={{ width: "100%", height: "100vh" }}
+/>;
+```
+
+### Gaussian Splatting (Standalone)
+
+```tsx
+import { GaussianSplatViewerComponent } from "@json-render/gsplat";
+
+<GaussianSplatViewerComponent
+  props={{
+    width: "100%",
+    height: "100vh",
+    controls: true,
+    autoRotate: true,
+    cameraPosition: [0, 2, 5],
+    cameraTarget: [0, 0, 0],
+    fov: 50,
+  }}
+  splats={[
+    {
+      src: "https://huggingface.co/datasets/dylanebert/3dgs/resolve/main/bonsai/bonsai-7k.splat",
+      position: [0, 0, 0],
+    },
+  ]}
 />;
 ```
 
@@ -730,6 +761,8 @@ pnpm dev
 - Vue Example: run `pnpm dev` in `examples/vue`
 - Vite Renderers (React + Vue + Svelte + Solid): run `pnpm dev` in `examples/vite-renderers`
 - React Native example: run `npx expo start` in `examples/react-native`
+- Gaussian Splatting (standalone): run `pnpm dev` in `examples/gsplat`
+- Gaussian Splatting (R3F): run `pnpm dev` in `examples/react-three-fiber-gsplat`
 
 ## How It Works
 

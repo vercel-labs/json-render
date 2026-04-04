@@ -109,6 +109,22 @@ export const examples: Example[] = [
     demoUrl: "https://react-three-fiber-demo.json-render.dev",
   },
   {
+    slug: "gsplat",
+    title: "Gaussian Splatting",
+    description:
+      "Standalone gaussian splat viewer rendering .splat files from JSON specs.",
+    tags: ["React", "3D", "Next.js"],
+    githubPath: "examples/gsplat",
+  },
+  {
+    slug: "react-three-fiber-gsplat",
+    title: "R3F + Gaussian Splatting",
+    description:
+      "Gaussian splats composed with 3D primitives and lights in React Three Fiber scenes.",
+    tags: ["React", "3D", "Next.js"],
+    githubPath: "examples/react-three-fiber-gsplat",
+  },
+  {
     slug: "react-native",
     title: "React Native",
     description:
