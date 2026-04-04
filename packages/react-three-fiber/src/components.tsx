@@ -7,6 +7,7 @@ import {
   PerspectiveCamera as DreiPerspectiveCamera,
   Text as DreiText,
   Gltf,
+  Splat as DreiSplat,
   Sparkles as DreiSparkles,
   Stars as DreiStars,
   Sky as DreiSky,
@@ -905,5 +906,25 @@ export const threeComponents = {
       autoRotateSpeed={props.autoRotateSpeed ?? 2}
       target={props.target ?? undefined}
     />
+  ),
+
+  // ── Gaussian Splatting ──────────────────────────────────────────────
+
+  GaussianSplat: ({
+    props,
+  }: BaseComponentProps<ThreeProps<"GaussianSplat">>) => (
+    <Suspense fallback={null}>
+      <DreiSplat
+        src={props.src}
+        position={pos(props.position)}
+        rotation={rot(props.rotation)}
+        scale={scl(props.scale)}
+        castShadow={props.castShadow ?? false}
+        receiveShadow={props.receiveShadow ?? false}
+        alphaHash={props.alphaHash ?? undefined}
+        toneMapped={props.toneMapped ?? undefined}
+        visible={props.visible ?? true}
+      />
+    </Suspense>
   ),
 };

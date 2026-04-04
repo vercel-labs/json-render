@@ -816,6 +816,27 @@ export const threeComponentDefinitions = {
       "Orbit camera controls. Allows the user to rotate, zoom, and pan around the scene.",
     example: { enableDamping: true, autoRotate: false },
   },
+
+  // ===========================================================================
+  // Gaussian Splatting
+  // ===========================================================================
+
+  GaussianSplat: {
+    props: z.object({
+      src: z.string(),
+      ...transformProps,
+      ...shadowProps,
+      alphaHash: z.boolean().nullable(),
+      toneMapped: z.boolean().nullable(),
+      visible: z.boolean().nullable(),
+    }),
+    description:
+      "Loads and renders a .splat or .ply gaussian splat file inside an R3F scene. Composable with all other 3D components (lights, models, primitives). Uses drei's Splat loader.",
+    example: {
+      src: "https://huggingface.co/datasets/dylanebert/3dgs/resolve/main/bonsai/bonsai-7k.splat",
+      position: [0, 0, 0],
+    },
+  },
 };
 
 // =============================================================================
