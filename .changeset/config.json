@@ -25,7 +25,8 @@
       "@json-render/yaml",
       "@json-render/shadcn-svelte",
       "@json-render/ink",
-      "@json-render/next"
+      "@json-render/next",
+      "@json-render/gsplat"
     ]
   ],
   "linked": [],
