@@ -66,6 +66,11 @@ function ProgressIndicator({ progress }: { progress: number }) {
   );
 }
 
+/** Convert a vertical FOV (degrees) to a focal length given a canvas height. */
+function fovToFocalLength(fovDeg: number, height: number): number {
+  return height / (2 * Math.tan((fovDeg * Math.PI) / 360));
+}
+
 /**
  * Container that manages a WebGL canvas and loads gaussian splats
  * using Hugging Face's gsplat.js — a standalone WebGL renderer (no Three.js).
@@ -85,6 +90,12 @@ export function GaussianSplatViewerComponent({
   const width = props.width ?? "100%";
   const height = props.height ?? "100%";
   const backgroundColor = props.backgroundColor ?? "#000000";
+  const enableControls = props.controls ?? true;
+  const autoRotate = props.autoRotate ?? false;
+  const autoRotateSpeed = props.autoRotateSpeed ?? 1;
+  const cameraPosition = props.cameraPosition ?? null;
+  const cameraTarget = props.cameraTarget ?? null;
+  const fov = props.fov ?? null;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -103,10 +114,25 @@ export function GaussianSplatViewerComponent({
         const scene = new SPLAT.Scene();
         const camera = new SPLAT.Camera();
         const renderer = new SPLAT.WebGLRenderer();
-        const controls = new SPLAT.OrbitControls(camera, renderer.canvas);
+
+        // Apply camera position
+        if (cameraPosition) {
+          camera.position = new SPLAT.Vector3(
+            cameraPosition[0],
+            cameraPosition[1],
+            cameraPosition[2],
+          );
+        }
+
+        // Apply FOV by converting to focal length
+        const rect = container.getBoundingClientRect();
+        if (fov) {
+          const fl = fovToFocalLength(fov, rect.height);
+          camera.data.fx = fl;
+          camera.data.fy = fl;
+        }
 
         // Size the canvas to the container
-        const rect = container.getBoundingClientRect();
         renderer.setSize(rect.width, rect.height);
 
         // Style and append the canvas — absolute positioning prevents overflow
@@ -118,10 +144,33 @@ export function GaussianSplatViewerComponent({
         renderer.canvas.style.display = "block";
         container.appendChild(renderer.canvas);
 
+        // Only create orbit controls if enabled
+        let controls: SPLAT.OrbitControls | null = null;
+        if (enableControls) {
+          controls = new SPLAT.OrbitControls(camera, renderer.canvas);
+
+          // Apply camera target (look-at)
+          if (cameraTarget) {
+            controls.setCameraTarget(
+              new SPLAT.Vector3(
+                cameraTarget[0],
+                cameraTarget[1],
+                cameraTarget[2],
+              ),
+            );
+          }
+        }
+
         // Handle resize
         const onResize = () => {
           const r = container.getBoundingClientRect();
           renderer.setSize(r.width, r.height);
+          // Update focal length on resize to maintain FOV
+          if (fov) {
+            const fl = fovToFocalLength(fov, r.height);
+            camera.data.fx = fl;
+            camera.data.fy = fl;
+          }
         };
         window.addEventListener("resize", onResize);
 
@@ -133,7 +182,6 @@ export function GaussianSplatViewerComponent({
             const splat = splats[i]!;
             await SPLAT.Loader.LoadAsync(splat.src, scene, (p: number) => {
               if (!cancelled) {
-                // Progress across all splats: completed splats + current splat progress
                 const overallProgress = (i + p) / totalSplats;
                 setProgress(overallProgress);
               }
@@ -142,7 +190,7 @@ export function GaussianSplatViewerComponent({
         }
 
         if (cancelled) {
-          controls.dispose();
+          controls?.dispose();
           renderer.dispose();
           if (renderer.canvas.parentElement) {
             renderer.canvas.parentElement.removeChild(renderer.canvas);
@@ -154,10 +202,29 @@ export function GaussianSplatViewerComponent({
         setIsLoading(false);
         setError(null);
 
-        // Render loop
+        // Render loop with optional auto-rotation
         let animationId: number;
+        let lastTime = performance.now();
         const frame = () => {
-          controls.update();
+          const now = performance.now();
+          const dt = (now - lastTime) / 1000;
+          lastTime = now;
+
+          if (autoRotate) {
+            // Rotate the camera around the Y axis
+            const speed = autoRotateSpeed * 0.5;
+            const angle = speed * dt;
+            const pos = camera.position;
+            const cos = Math.cos(angle);
+            const sin = Math.sin(angle);
+            camera.position = new SPLAT.Vector3(
+              pos.x * cos - pos.z * sin,
+              pos.y,
+              pos.x * sin + pos.z * cos,
+            );
+          }
+
+          controls?.update();
           renderer.render(scene, camera);
           animationId = requestAnimationFrame(frame);
         };
@@ -167,7 +234,7 @@ export function GaussianSplatViewerComponent({
         cleanupRef.current = () => {
           cancelAnimationFrame(animationId);
           window.removeEventListener("resize", onResize);
-          controls.dispose();
+          controls?.dispose();
           renderer.dispose();
           if (renderer.canvas.parentElement) {
             renderer.canvas.parentElement.removeChild(renderer.canvas);
@@ -192,7 +259,15 @@ export function GaussianSplatViewerComponent({
         cleanupRef.current = null;
       }
     };
-  }, [splats]);
+  }, [
+    splats,
+    enableControls,
+    autoRotate,
+    autoRotateSpeed,
+    cameraPosition,
+    cameraTarget,
+    fov,
+  ]);
 
   return (
     <div
