@@ -1,0 +1,126 @@
+import type { Scene } from "./_helpers";
+
+export const splatShowroom: Scene = {
+  name: "Splat Showroom",
+  description:
+    "A gaussian splat on a pedestal with studio lighting and orbit controls",
+  spec: {
+    root: "scene",
+    elements: {
+      scene: {
+        type: "Group",
+        props: { position: null, rotation: null, scale: null },
+        children: [
+          "camera",
+          "env",
+          "ambient",
+          "key-light",
+          "fill-light",
+          "splat",
+          "grid",
+          "controls",
+        ],
+      },
+      camera: {
+        type: "PerspectiveCamera",
+        props: {
+          position: [3, 2, 5],
+          rotation: null,
+          scale: null,
+          fov: 50,
+          near: null,
+          far: null,
+          makeDefault: true,
+        },
+        children: [],
+      },
+      env: {
+        type: "Environment",
+        props: {
+          preset: "studio",
+          background: false,
+          blur: 0.5,
+          intensity: 0.6,
+        },
+        children: [],
+      },
+      ambient: {
+        type: "AmbientLight",
+        props: { color: "#e8e0f0", intensity: 0.3 },
+        children: [],
+      },
+      "key-light": {
+        type: "DirectionalLight",
+        props: {
+          position: [5, 8, 3],
+          rotation: null,
+          scale: null,
+          color: "#ffffff",
+          intensity: 2,
+          castShadow: true,
+        },
+        children: [],
+      },
+      "fill-light": {
+        type: "PointLight",
+        props: {
+          position: [-3, 4, -2],
+          rotation: null,
+          scale: null,
+          color: "#aaccff",
+          intensity: 15,
+          distance: 20,
+          decay: null,
+          castShadow: null,
+        },
+        children: [],
+      },
+      splat: {
+        type: "GaussianSplat",
+        props: {
+          src: "https://huggingface.co/datasets/dylanebert/3dgs/resolve/main/bonsai/bonsai-7k.splat",
+          position: [0, 0, 0],
+          rotation: null,
+          scale: [1, 1, 1],
+          castShadow: null,
+          receiveShadow: null,
+          alphaHash: null,
+          toneMapped: null,
+          visible: true,
+        },
+        children: [],
+      },
+      grid: {
+        type: "GridHelper",
+        props: {
+          position: [0, -0.5, 0],
+          rotation: null,
+          scale: null,
+          size: 20,
+          divisions: 20,
+          color1: "#333333",
+          color2: "#1a1a1a",
+        },
+        children: [],
+      },
+      controls: {
+        type: "OrbitControls",
+        props: {
+          enableDamping: true,
+          dampingFactor: null,
+          enableZoom: null,
+          enablePan: null,
+          enableRotate: null,
+          minDistance: 2,
+          maxDistance: 15,
+          minPolarAngle: 0.2,
+          maxPolarAngle: 1.5,
+          autoRotate: true,
+          autoRotateSpeed: 0.5,
+          target: [0, 0.5, 0],
+        },
+        children: [],
+      },
+    },
+  },
+};
