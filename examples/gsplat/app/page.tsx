@@ -74,6 +74,10 @@ function SplatViewer({ sceneIndex }: { sceneIndex: number }) {
         cameraPosition: v.cameraPosition ?? [0, 2, 5],
         cameraTarget: v.cameraTarget ?? [0, 0, 0],
         fov: v.fov ?? 50,
+        progressBarColor: null,
+        progressTrackColor: null,
+        progressTextColor: null,
+        progressBackgroundColor: null,
       }}
       splats={scene.splats}
     />
