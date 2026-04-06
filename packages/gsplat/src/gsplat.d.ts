@@ -8,6 +8,21 @@ declare module "gsplat" {
 
   export class Quaternion {
     constructor(x?: number, y?: number, z?: number, w?: number);
+    x: number;
+    y: number;
+    z: number;
+    w: number;
+  }
+
+  export class Splat {
+    get position(): Vector3;
+    set position(position: Vector3);
+    get rotation(): Quaternion;
+    set rotation(rotation: Quaternion);
+    get scale(): Vector3;
+    set scale(scale: Vector3);
+    get visible(): boolean;
+    set visible(visible: boolean);
   }
 
   export class Scene {
@@ -58,6 +73,7 @@ declare module "gsplat" {
       url: string,
       scene: Scene,
       onProgress?: (progress: number) => void,
-    ): Promise<void>;
+      useCache?: boolean,
+    ): Promise<Splat>;
   }
 }

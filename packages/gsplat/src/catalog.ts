@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { vector3Schema, transformProps, qualitySchema } from "./schemas";
+import { vector3Schema, transformProps } from "./schemas";
 
 /**
  * Gaussian Splatting component definitions for json-render catalogs.
@@ -17,17 +17,13 @@ export const gsplatComponentDefinitions = {
     props: z.object({
       src: z.string(),
       ...transformProps,
-      quality: qualitySchema.nullable(),
-      alphaHash: z.boolean().nullable(),
-      toneMapped: z.boolean().nullable(),
       visible: z.boolean().nullable(),
     }),
     description:
-      "Loads and renders a .splat or .ply gaussian splat file. Use src to point to a splat file URL. Position, rotation, and scale control placement. Quality adjusts rendering fidelity.",
+      "Loads and renders a .splat or .ply gaussian splat file. Use src to point to a splat file URL. Position, rotation, and scale control placement in world space.",
     example: {
       src: "https://huggingface.co/datasets/dylanebert/3dgs/resolve/main/bonsai/bonsai-7k.splat",
       position: [0, 0, 0],
-      quality: "medium",
     },
   },
 
@@ -46,6 +42,10 @@ export const gsplatComponentDefinitions = {
       cameraPosition: vector3Schema.nullable(),
       cameraTarget: vector3Schema.nullable(),
       fov: z.number().nullable(),
+      progressBarColor: z.string().nullable(),
+      progressTrackColor: z.string().nullable(),
+      progressTextColor: z.string().nullable(),
+      progressBackgroundColor: z.string().nullable(),
     }),
     slots: ["default"],
     description:

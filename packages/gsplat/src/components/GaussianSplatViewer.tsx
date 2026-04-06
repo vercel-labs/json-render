@@ -4,21 +4,38 @@ import type { GsplatProps } from "../catalog";
 
 type Vec3 = [number, number, number];
 
+interface SplatEntry {
+  src: string;
+  position?: Vec3;
+  rotation?: Vec3;
+  scale?: Vec3;
+  visible?: boolean;
+}
+
 interface ViewerProps {
   props: GsplatProps<"GaussianSplatViewer">;
   children?: ReactNode;
   /** Custom loading indicator — overrides the default progress bar */
   loadingIndicator?: ReactNode;
   /** Splat file URLs to load */
-  splats?: Array<{
-    src: string;
-    position?: Vec3;
-    rotation?: Vec3;
-    scale?: Vec3;
-  }>;
+  splats?: SplatEntry[];
 }
 
-function ProgressIndicator({ progress }: { progress: number }) {
+interface ProgressIndicatorProps {
+  progress: number;
+  backgroundColor?: string;
+  textColor?: string;
+  barColor?: string;
+  trackColor?: string;
+}
+
+function ProgressIndicator({
+  progress,
+  backgroundColor = "#0a0a0a",
+  textColor = "#666",
+  barColor = "#fff",
+  trackColor = "#1e1e1e",
+}: ProgressIndicatorProps) {
   const pct = Math.round(progress * 100);
   return (
     <div
@@ -29,13 +46,13 @@ function ProgressIndicator({ progress }: { progress: number }) {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        background: "#0a0a0a",
+        background: backgroundColor,
         gap: 12,
       }}
     >
       <span
         style={{
-          color: "#666",
+          color: textColor,
           fontFamily: "ui-monospace, monospace",
           fontSize: 13,
           letterSpacing: "0.04em",
@@ -47,7 +64,7 @@ function ProgressIndicator({ progress }: { progress: number }) {
         style={{
           width: 200,
           height: 2,
-          background: "#1e1e1e",
+          background: trackColor,
           borderRadius: 1,
           overflow: "hidden",
         }}
@@ -56,7 +73,7 @@ function ProgressIndicator({ progress }: { progress: number }) {
           style={{
             width: `${pct}%`,
             height: "100%",
-            background: "#fff",
+            background: barColor,
             borderRadius: 1,
             transition: "width 150ms ease-out",
           }}
@@ -69,6 +86,27 @@ function ProgressIndicator({ progress }: { progress: number }) {
 /** Convert a vertical FOV (degrees) to a focal length given a canvas height. */
 function fovToFocalLength(fovDeg: number, height: number): number {
   return height / (2 * Math.tan((fovDeg * Math.PI) / 360));
+}
+
+/** Convert euler angles (degrees, XYZ order) to a Quaternion. */
+function eulerToQuaternion(euler: Vec3): SPLAT.Quaternion {
+  const [ex, ey, ez] = euler.map((d) => (d * Math.PI) / 180) as [
+    number,
+    number,
+    number,
+  ];
+  const cx = Math.cos(ex / 2),
+    sx = Math.sin(ex / 2);
+  const cy = Math.cos(ey / 2),
+    sy = Math.sin(ey / 2);
+  const cz = Math.cos(ez / 2),
+    sz = Math.sin(ez / 2);
+  return new SPLAT.Quaternion(
+    sx * cy * cz + cx * sy * sz,
+    cx * sy * cz - sx * cy * sz,
+    cx * cy * sz + sx * sy * cz,
+    cx * cy * cz - sx * sy * sz,
+  );
 }
 
 /**
@@ -96,6 +134,10 @@ export function GaussianSplatViewerComponent({
   const cameraPosition = props.cameraPosition ?? null;
   const cameraTarget = props.cameraTarget ?? null;
   const fov = props.fov ?? null;
+  const progressBarColor = props.progressBarColor ?? undefined;
+  const progressTrackColor = props.progressTrackColor ?? undefined;
+  const progressTextColor = props.progressTextColor ?? undefined;
+  const progressBackgroundColor = props.progressBackgroundColor ?? undefined;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -179,13 +221,40 @@ export function GaussianSplatViewerComponent({
           const totalSplats = splats.length;
           for (let i = 0; i < totalSplats; i++) {
             if (cancelled) return;
-            const splat = splats[i]!;
-            await SPLAT.Loader.LoadAsync(splat.src, scene, (p: number) => {
-              if (!cancelled) {
-                const overallProgress = (i + p) / totalSplats;
-                setProgress(overallProgress);
-              }
-            });
+            const entry = splats[i]!;
+            const splatObject = await SPLAT.Loader.LoadAsync(
+              entry.src,
+              scene,
+              (p: number) => {
+                if (!cancelled) {
+                  const overallProgress = (i + p) / totalSplats;
+                  // Use Math.max to prevent progress bar from jumping backwards
+                  setProgress((prev) => Math.max(prev, overallProgress));
+                }
+              },
+            );
+
+            // Apply per-splat transforms
+            if (entry.position) {
+              splatObject.position = new SPLAT.Vector3(
+                entry.position[0],
+                entry.position[1],
+                entry.position[2],
+              );
+            }
+            if (entry.rotation) {
+              splatObject.rotation = eulerToQuaternion(entry.rotation);
+            }
+            if (entry.scale) {
+              splatObject.scale = new SPLAT.Vector3(
+                entry.scale[0],
+                entry.scale[1],
+                entry.scale[2],
+              );
+            }
+            if (entry.visible !== undefined) {
+              splatObject.visible = entry.visible;
+            }
           }
         }
 
@@ -284,7 +353,15 @@ export function GaussianSplatViewerComponent({
         style={{ position: "relative", width: "100%", height: "100%" }}
       />
       {isLoading &&
-        (loadingIndicator ?? <ProgressIndicator progress={progress} />)}
+        (loadingIndicator ?? (
+          <ProgressIndicator
+            progress={progress}
+            backgroundColor={progressBackgroundColor}
+            barColor={progressBarColor}
+            trackColor={progressTrackColor}
+            textColor={progressTextColor}
+          />
+        ))}
       {error && (
         <div
           style={{

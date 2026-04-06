@@ -16,6 +16,7 @@ export interface GaussianSplatHandle {
   position: Vec3;
   rotation: Vec3;
   scale: Vec3;
+  visible: boolean;
 }
 
 interface SplatProps {
@@ -33,19 +34,21 @@ export const GaussianSplatComponent = forwardRef<
 >(function GaussianSplatComponent({ props }, ref) {
   const config = useRef<GaussianSplatHandle>({
     src: props.src,
-    position: props.position ?? DEFAULT_POS,
-    rotation: props.rotation ?? DEFAULT_ROT,
-    scale: props.scale ?? DEFAULT_SCALE,
+    position: (props.position ?? DEFAULT_POS) as Vec3,
+    rotation: (props.rotation ?? DEFAULT_ROT) as Vec3,
+    scale: (props.scale ?? DEFAULT_SCALE) as Vec3,
+    visible: props.visible ?? true,
   });
 
   useEffect(() => {
     config.current = {
       src: props.src,
-      position: props.position ?? DEFAULT_POS,
-      rotation: props.rotation ?? DEFAULT_ROT,
-      scale: props.scale ?? DEFAULT_SCALE,
+      position: (props.position ?? DEFAULT_POS) as Vec3,
+      rotation: (props.rotation ?? DEFAULT_ROT) as Vec3,
+      scale: (props.scale ?? DEFAULT_SCALE) as Vec3,
+      visible: props.visible ?? true,
     };
-  }, [props.src, props.position, props.rotation, props.scale]);
+  }, [props.src, props.position, props.rotation, props.scale, props.visible]);
 
   useImperativeHandle(ref, () => config.current, [props]);
 
