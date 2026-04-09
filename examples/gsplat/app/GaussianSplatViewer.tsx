@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState, type ReactNode } from "react";
+"use client";
+
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import * as SPLAT from "gsplat";
-import type { GsplatProps } from "../catalog";
 
 type Vec3 = [number, number, number];
 
@@ -13,12 +14,24 @@ interface SplatEntry {
 }
 
 interface ViewerProps {
-  props: GsplatProps<"GaussianSplatViewer">;
-  children?: ReactNode;
+  width?: string;
+  height?: string;
+  backgroundColor?: string;
+  controls?: boolean;
+  autoRotate?: boolean;
+  autoRotateSpeed?: number;
+  cameraPosition?: Vec3 | null;
+  cameraTarget?: Vec3 | null;
+  fov?: number | null;
+  progressBarColor?: string;
+  progressTrackColor?: string;
+  progressTextColor?: string;
+  progressBackgroundColor?: string;
   /** Custom loading indicator — overrides the default progress bar */
   loadingIndicator?: ReactNode;
   /** Splat file URLs to load */
   splats?: SplatEntry[];
+  children?: ReactNode;
 }
 
 interface ProgressIndicatorProps {
@@ -112,9 +125,23 @@ function eulerToQuaternion(euler: Vec3): SPLAT.Quaternion {
 /**
  * Container that manages a WebGL canvas and loads gaussian splats
  * using Hugging Face's gsplat.js — a standalone WebGL renderer (no Three.js).
+ *
+ * This is an experimental demo component, kept inline in the example app.
  */
-export function GaussianSplatViewerComponent({
-  props,
+export function GaussianSplatViewer({
+  width = "100%",
+  height = "100%",
+  backgroundColor = "#000000",
+  controls: enableControls = true,
+  autoRotate = false,
+  autoRotateSpeed = 1,
+  cameraPosition = null,
+  cameraTarget = null,
+  fov = null,
+  progressBarColor,
+  progressTrackColor,
+  progressTextColor,
+  progressBackgroundColor,
   children,
   loadingIndicator,
   splats,
@@ -124,20 +151,6 @@ export function GaussianSplatViewerComponent({
   const [isLoading, setIsLoading] = useState(true);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
-
-  const width = props.width ?? "100%";
-  const height = props.height ?? "100%";
-  const backgroundColor = props.backgroundColor ?? "#000000";
-  const enableControls = props.controls ?? true;
-  const autoRotate = props.autoRotate ?? false;
-  const autoRotateSpeed = props.autoRotateSpeed ?? 1;
-  const cameraPosition = props.cameraPosition ?? null;
-  const cameraTarget = props.cameraTarget ?? null;
-  const fov = props.fov ?? null;
-  const progressBarColor = props.progressBarColor ?? undefined;
-  const progressTrackColor = props.progressTrackColor ?? undefined;
-  const progressTextColor = props.progressTextColor ?? undefined;
-  const progressBackgroundColor = props.progressBackgroundColor ?? undefined;
 
   useEffect(() => {
     if (!containerRef.current) return;

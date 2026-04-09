@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useSyncExternalStore } from "react";
-import { GaussianSplatViewerComponent } from "@json-render/gsplat";
+import { GaussianSplatViewer } from "./GaussianSplatViewer";
 import { scenes } from "./scenes";
 
 function highlightJson(json: string): string {
@@ -63,22 +63,16 @@ function SplatViewer({ sceneIndex }: { sceneIndex: number }) {
   const v = scene.viewer;
 
   return (
-    <GaussianSplatViewerComponent
-      props={{
-        width: "100%",
-        height: "100%",
-        backgroundColor: v.backgroundColor ?? "#0a0a0a",
-        controls: v.controls ?? true,
-        autoRotate: v.autoRotate ?? true,
-        autoRotateSpeed: v.autoRotateSpeed ?? 0.5,
-        cameraPosition: v.cameraPosition ?? [0, 2, 5],
-        cameraTarget: v.cameraTarget ?? [0, 0, 0],
-        fov: v.fov ?? 50,
-        progressBarColor: null,
-        progressTrackColor: null,
-        progressTextColor: null,
-        progressBackgroundColor: null,
-      }}
+    <GaussianSplatViewer
+      width="100%"
+      height="100%"
+      backgroundColor={v.backgroundColor ?? "#0a0a0a"}
+      controls={v.controls ?? true}
+      autoRotate={v.autoRotate ?? true}
+      autoRotateSpeed={v.autoRotateSpeed ?? 0.5}
+      cameraPosition={v.cameraPosition ?? [0, 2, 5]}
+      cameraTarget={v.cameraTarget ?? [0, 0, 0]}
+      fov={v.fov ?? 50}
       splats={scene.splats}
     />
   );

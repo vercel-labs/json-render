@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "json-render Gaussian Splatting Example",
   description:
-    "Gaussian splat rendering from JSON specs with @json-render/gsplat",
+    "Experimental gaussian splat viewer demo using gsplat.js (no Three.js)",
 };
 
 export default function RootLayout({

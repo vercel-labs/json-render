@@ -85,7 +85,6 @@ export const docsNavigation: NavSection[] = [
         title: "@json-render/react-three-fiber",
         href: "/docs/api/react-three-fiber",
       },
-      { title: "@json-render/gsplat", href: "/docs/api/gsplat" },
       { title: "@json-render/codegen", href: "/docs/api/codegen" },
       { title: "@json-render/mcp", href: "/docs/api/mcp" },
       { title: "@json-render/redux", href: "/docs/api/redux" },

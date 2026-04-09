@@ -110,9 +110,9 @@ export const examples: Example[] = [
   },
   {
     slug: "gsplat",
-    title: "Gaussian Splatting",
+    title: "Gaussian Splatting (experimental)",
     description:
-      "Standalone gaussian splat viewer rendering .splat files from JSON specs.",
+      "Experimental standalone gaussian splat viewer using gsplat.js — no Three.js dependency.",
     tags: ["React", "3D", "Next.js"],
     githubPath: "examples/gsplat",
   },

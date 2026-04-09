@@ -1,11 +1,5 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-  transpilePackages: [
-    "@json-render/core",
-    "@json-render/react",
-    "@json-render/gsplat",
-  ],
-};
+const nextConfig: NextConfig = {};
 
 export default nextConfig;

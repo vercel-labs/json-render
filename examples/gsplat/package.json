@@ -13,14 +13,10 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
-    "@json-render/core": "workspace:*",
-    "@json-render/react": "workspace:*",
-    "@json-render/gsplat": "workspace:*",
     "gsplat": "^1.2.9",
     "next": "16.1.6",
     "react": "19.2.4",
-    "react-dom": "19.2.4",
-    "zod": "4.3.6"
+    "react-dom": "19.2.4"
   },
   "devDependencies": {
     "@internal/eslint-config": "workspace:*",

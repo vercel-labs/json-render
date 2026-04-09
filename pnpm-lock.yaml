@@ -570,15 +570,6 @@ importers:
 
   examples/gsplat:
     dependencies:
-      '@json-render/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@json-render/gsplat':
-        specifier: workspace:*
-        version: link:../../packages/gsplat
-      '@json-render/react':
-        specifier: workspace:*
-        version: link:../../packages/react
       gsplat:
         specifier: ^1.2.9
         version: 1.2.9
@@ -591,9 +582,6 @@ importers:
       react-dom:
         specifier: 19.2.4
         version: 19.2.4(react@19.2.4)
-      zod:
-        specifier: 4.3.6
-        version: 4.3.6
     devDependencies:
       '@internal/eslint-config':
         specifier: workspace:*
@@ -1732,40 +1720,6 @@ importers:
       typescript-eslint:
         specifier: ^8.50.0
         version: 8.53.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
-
-  packages/gsplat:
-    dependencies:
-      '@json-render/core':
-        specifier: workspace:*
-        version: link:../core
-      '@json-render/react':
-        specifier: workspace:*
-        version: link:../react
-      gsplat:
-        specifier: ^1.2.9
-        version: 1.2.9
-      react:
-        specifier: ^19.0.0
-        version: 19.2.4
-      react-dom:
-        specifier: ^19.0.0
-        version: 19.2.4(react@19.2.4)
-    devDependencies:
-      '@internal/typescript-config':
-        specifier: workspace:*
-        version: link:../typescript-config
-      '@types/react':
-        specifier: 19.2.3
-        version: 19.2.3
-      tsup:
-        specifier: ^8.0.2
-        version: 8.5.1(jiti@2.6.1)(postcss@8.5.6)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3)
-      typescript:
-        specifier: ^5.4.5
-        version: 5.9.3
-      zod:
-        specifier: ^4.3.6
-        version: 4.3.6
 
   packages/image:
     dependencies:
@@ -19508,7 +19462,7 @@ snapshots:
   '@stripe/ui-extension-tools@0.0.1(@babel/core@7.29.0)(babel-jest@27.5.1(@babel/core@7.29.0))':
     dependencies:
       '@types/jest': 28.1.8
-      '@typescript-eslint/eslint-plugin': 5.62.0(@typescript-eslint/parser@5.62.0(eslint@9.39.2(jiti@2.6.1))(typescript@4.9.5))(eslint@8.57.1)(typescript@4.9.5)
+      '@typescript-eslint/eslint-plugin': 5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.1)(typescript@4.9.5))(eslint@8.57.1)(typescript@4.9.5)
       '@typescript-eslint/parser': 5.62.0(eslint@8.57.1)(typescript@4.9.5)
       eslint: 8.57.1
       eslint-plugin-react: 7.37.5(eslint@8.57.1)
@@ -20177,7 +20131,7 @@ snapshots:
       '@types/node': 22.19.6
     optional: true
 
-  '@typescript-eslint/eslint-plugin@5.62.0(@typescript-eslint/parser@5.62.0(eslint@9.39.2(jiti@2.6.1))(typescript@4.9.5))(eslint@8.57.1)(typescript@4.9.5)':
+  '@typescript-eslint/eslint-plugin@5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.1)(typescript@4.9.5))(eslint@8.57.1)(typescript@4.9.5)':
     dependencies:
       '@eslint-community/regexpp': 4.12.2
       '@typescript-eslint/parser': 5.62.0(eslint@8.57.1)(typescript@4.9.5)
