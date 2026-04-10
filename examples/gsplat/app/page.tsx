@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { GaussianSplatViewer } from "./GaussianSplatViewer";
 import { scenes } from "./scenes";
 
@@ -78,13 +84,50 @@ function SplatViewer({ sceneIndex }: { sceneIndex: number }) {
   );
 }
 
+function SceneListItem({
+  scene,
+  index,
+  isSelected,
+  onSelect,
+}: {
+  scene: (typeof scenes)[number];
+  index: number;
+  isSelected: boolean;
+  onSelect: (i: number) => void;
+}) {
+  return (
+    <button
+      role="option"
+      aria-selected={isSelected}
+      onClick={() => onSelect(index)}
+      style={{
+        display: "block",
+        width: "100%",
+        padding: "8px 16px",
+        fontSize: 13,
+        border: "none",
+        textAlign: "left",
+        background: isSelected ? "rgba(255,255,255,0.08)" : "transparent",
+        color: isSelected ? "#fff" : "#888",
+        fontWeight: isSelected ? 500 : 400,
+        cursor: "pointer",
+        borderLeft: isSelected ? "2px solid #fff" : "2px solid transparent",
+        fontFamily: "inherit",
+      }}
+    >
+      {scene.name}
+    </button>
+  );
+}
+
 function DesktopLayout() {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const selected = scenes[selectedIndex]!;
 
   return (
-    <div style={{ height: "100vh", display: "flex", background: "#0a0a0a" }}>
-      <div
+    <div style={{ height: "100dvh", display: "flex", background: "#0a0a0a" }}>
+      <nav
+        aria-label="Splat scenes"
         style={{
           width: LIST_WIDTH,
           flexShrink: 0,
@@ -95,39 +138,24 @@ function DesktopLayout() {
         }}
       >
         <div style={headerStyle}>Splat Scenes</div>
-        <div style={{ flex: 1, overflowY: "auto", padding: "6px 0" }}>
+        <div
+          role="listbox"
+          aria-label="Scene list"
+          style={{ flex: 1, overflowY: "auto", padding: "6px 0" }}
+        >
           {scenes.map((scene, i) => (
-            <button
+            <SceneListItem
               key={scene.name}
-              onClick={() => setSelectedIndex(i)}
-              style={{
-                display: "block",
-                width: "100%",
-                padding: "8px 16px",
-                fontSize: 13,
-                border: "none",
-                textAlign: "left",
-                background:
-                  i === selectedIndex
-                    ? "rgba(255,255,255,0.08)"
-                    : "transparent",
-                color: i === selectedIndex ? "#fff" : "#888",
-                fontWeight: i === selectedIndex ? 500 : 400,
-                cursor: "pointer",
-                borderLeft:
-                  i === selectedIndex
-                    ? "2px solid #fff"
-                    : "2px solid transparent",
-                fontFamily: "inherit",
-              }}
-            >
-              {scene.name}
-            </button>
+              scene={scene}
+              index={i}
+              isSelected={i === selectedIndex}
+              onSelect={setSelectedIndex}
+            />
           ))}
         </div>
-      </div>
+      </nav>
 
-      <div
+      <main
         style={{
           flex: 1,
           display: "flex",
@@ -139,9 +167,10 @@ function DesktopLayout() {
         <div style={{ flex: 1, background: "#000", position: "relative" }}>
           <SplatViewer key={selectedIndex} sceneIndex={selectedIndex} />
         </div>
-      </div>
+      </main>
 
-      <div
+      <aside
+        aria-label="Spec JSON"
         style={{
           width: JSON_WIDTH,
           flexShrink: 0,
@@ -176,7 +205,7 @@ function DesktopLayout() {
             ),
           }}
         />
-      </div>
+      </aside>
     </div>
   );
 }
@@ -186,6 +215,31 @@ function MobileLayout() {
   const [showJson, setShowJson] = useState(false);
   const [showScenes, setShowScenes] = useState(false);
   const selected = scenes[selectedIndex]!;
+  const scenePanelRef = useRef<HTMLDivElement>(null);
+  const jsonPanelRef = useRef<HTMLDivElement>(null);
+
+  const closeScenes = useCallback(() => setShowScenes(false), []);
+  const closeJson = useCallback(() => setShowJson(false), []);
+
+  // Close overlays on Escape
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (showScenes) closeScenes();
+        if (showJson) closeJson();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [showScenes, showJson, closeScenes, closeJson]);
+
+  // Focus the panel when it opens
+  useEffect(() => {
+    if (showScenes) scenePanelRef.current?.focus();
+  }, [showScenes]);
+  useEffect(() => {
+    if (showJson) jsonPanelRef.current?.focus();
+  }, [showJson]);
 
   return (
     <div
@@ -197,7 +251,7 @@ function MobileLayout() {
         overflow: "hidden",
       }}
     >
-      <div
+      <header
         style={{
           height: 48,
           display: "flex",
@@ -211,6 +265,8 @@ function MobileLayout() {
         }}
       >
         <button
+          aria-label={`Scene: ${selected.name}. Open scene list`}
+          aria-expanded={showScenes}
           onClick={() => {
             setShowScenes((v) => !v);
             setShowJson(false);
@@ -252,6 +308,8 @@ function MobileLayout() {
         </span>
 
         <button
+          aria-label="Toggle JSON panel"
+          aria-expanded={showJson}
           onClick={() => {
             setShowJson((v) => !v);
             setShowScenes(false);
@@ -272,7 +330,7 @@ function MobileLayout() {
         >
           JSON
         </button>
-      </div>
+      </header>
 
       <div style={{ flex: 1, position: "relative", minHeight: 0 }}>
         <SplatViewer key={selectedIndex} sceneIndex={selectedIndex} />
@@ -280,7 +338,7 @@ function MobileLayout() {
         {showScenes && (
           <>
             <div
-              onClick={() => setShowScenes(false)}
+              onClick={closeScenes}
               style={{
                 position: "absolute",
                 inset: 0,
@@ -289,6 +347,11 @@ function MobileLayout() {
               }}
             />
             <div
+              ref={scenePanelRef}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Scene list"
+              tabIndex={-1}
               style={{
                 position: "absolute",
                 top: 0,
@@ -305,37 +368,22 @@ function MobileLayout() {
               }}
             >
               <div style={{ ...headerStyle, height: 36 }}>Splat Scenes</div>
-              <div style={{ padding: "6px 0" }}>
+              <div
+                role="listbox"
+                aria-label="Scene list"
+                style={{ padding: "6px 0" }}
+              >
                 {scenes.map((scene, i) => (
-                  <button
+                  <SceneListItem
                     key={scene.name}
-                    onClick={() => {
-                      setSelectedIndex(i);
-                      setShowScenes(false);
+                    scene={scene}
+                    index={i}
+                    isSelected={i === selectedIndex}
+                    onSelect={(idx) => {
+                      setSelectedIndex(idx);
+                      closeScenes();
                     }}
-                    style={{
-                      display: "block",
-                      width: "100%",
-                      padding: "10px 16px",
-                      fontSize: 14,
-                      border: "none",
-                      textAlign: "left",
-                      background:
-                        i === selectedIndex
-                          ? "rgba(255,255,255,0.08)"
-                          : "transparent",
-                      color: i === selectedIndex ? "#fff" : "#888",
-                      fontWeight: i === selectedIndex ? 500 : 400,
-                      cursor: "pointer",
-                      borderLeft:
-                        i === selectedIndex
-                          ? "2px solid #fff"
-                          : "2px solid transparent",
-                      fontFamily: "inherit",
-                    }}
-                  >
-                    {scene.name}
-                  </button>
+                  />
                 ))}
               </div>
             </div>
@@ -345,7 +393,7 @@ function MobileLayout() {
         {showJson && (
           <>
             <div
-              onClick={() => setShowJson(false)}
+              onClick={closeJson}
               style={{
                 position: "absolute",
                 inset: 0,
@@ -354,6 +402,11 @@ function MobileLayout() {
               }}
             />
             <div
+              ref={jsonPanelRef}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Spec JSON"
+              tabIndex={-1}
               style={{
                 position: "absolute",
                 top: 0,

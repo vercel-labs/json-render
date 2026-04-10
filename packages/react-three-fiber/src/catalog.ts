@@ -319,6 +319,32 @@ export const threeComponentDefinitions = {
     },
   },
 
+  ExtrudedText: {
+    props: z.object({
+      ...transformProps,
+      ...shadowProps,
+      material: materialSchema.nullable(),
+      text: z.string(),
+      font: z.string().nullable(),
+      size: z.number().nullable(),
+      depth: z.number().nullable(),
+      curveSegments: z.number().nullable(),
+      bevelEnabled: z.boolean().nullable(),
+      bevelThickness: z.number().nullable(),
+      bevelSize: z.number().nullable(),
+      bevelSegments: z.number().nullable(),
+      centered: z.boolean().nullable(),
+    }),
+    description:
+      "Extruded 3D text with depth. Uses a typeface JSON font for geometry-based rendering with bevel support.",
+    example: {
+      text: "Hello",
+      size: 1,
+      depth: 0.2,
+      position: [0, 2, 0],
+    },
+  },
+
   // ===========================================================================
   // Effects / Atmosphere
   // ===========================================================================

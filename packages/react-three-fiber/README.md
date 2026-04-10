@@ -66,7 +66,7 @@ const { registry } = defineRegistry(catalog, {
 
 **Environment:** Environment, Fog, GridHelper
 
-**Text:** Text3D
+**Text:** Text3D, ExtrudedText
 
 **Camera/Controls:** PerspectiveCamera, OrbitControls
 

@@ -64,6 +64,7 @@ function ProgressIndicator({
       }}
     >
       <span
+        aria-live="polite"
         style={{
           color: textColor,
           fontFamily: "ui-monospace, monospace",
@@ -74,6 +75,11 @@ function ProgressIndicator({
         Loading splat... {pct}%
       </span>
       <div
+        role="progressbar"
+        aria-valuenow={pct}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="Loading progress"
         style={{
           width: 200,
           height: 2,
@@ -216,16 +222,20 @@ export function GaussianSplatViewer({
           }
         }
 
-        // Handle resize
+        // Handle resize (debounced to avoid layout thrashing)
+        let resizeTimer: ReturnType<typeof setTimeout>;
         const onResize = () => {
-          const r = container.getBoundingClientRect();
-          renderer.setSize(r.width, r.height);
-          // Update focal length on resize to maintain FOV
-          if (fov) {
-            const fl = fovToFocalLength(fov, r.height);
-            camera.data.fx = fl;
-            camera.data.fy = fl;
-          }
+          clearTimeout(resizeTimer);
+          resizeTimer = setTimeout(() => {
+            const r = container.getBoundingClientRect();
+            renderer.setSize(r.width, r.height);
+            // Update focal length on resize to maintain FOV
+            if (fov) {
+              const fl = fovToFocalLength(fov, r.height);
+              camera.data.fx = fl;
+              camera.data.fy = fl;
+            }
+          }, 100);
         };
         window.addEventListener("resize", onResize);
 
@@ -293,16 +303,25 @@ export function GaussianSplatViewer({
           lastTime = now;
 
           if (autoRotate) {
-            // Rotate the camera around the Y axis
+            // Rotate the camera around the camera target (not world origin)
             const speed = autoRotateSpeed * 0.5;
             const angle = speed * dt;
             const pos = camera.position;
+            const target = cameraTarget
+              ? new SPLAT.Vector3(
+                  cameraTarget[0],
+                  cameraTarget[1],
+                  cameraTarget[2],
+                )
+              : new SPLAT.Vector3(0, 0, 0);
+            const dx = pos.x - target.x;
+            const dz = pos.z - target.z;
             const cos = Math.cos(angle);
             const sin = Math.sin(angle);
             camera.position = new SPLAT.Vector3(
-              pos.x * cos - pos.z * sin,
+              target.x + dx * cos - dz * sin,
               pos.y,
-              pos.x * sin + pos.z * cos,
+              target.z + dx * sin + dz * cos,
             );
           }
 
@@ -315,6 +334,7 @@ export function GaussianSplatViewer({
         // Store cleanup function
         cleanupRef.current = () => {
           cancelAnimationFrame(animationId);
+          clearTimeout(resizeTimer);
           window.removeEventListener("resize", onResize);
           controls?.dispose();
           renderer.dispose();
@@ -377,13 +397,14 @@ export function GaussianSplatViewer({
         ))}
       {error && (
         <div
+          role="alert"
           style={{
             position: "absolute",
             inset: 0,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "#0a0a0a",
+            background: backgroundColor,
             color: "#ff4444",
             fontFamily: "ui-monospace, monospace",
             fontSize: 12,
