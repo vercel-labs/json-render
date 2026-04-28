@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { z } from "zod";
 import { defineSchema, defineCatalog } from "./schema";
 
@@ -538,6 +538,109 @@ describe("catalog.prompt", () => {
     expect(prompt).toContain("VISIBILITY CONDITIONS:");
     expect(prompt).toContain("DYNAMIC PROPS:");
     expect(prompt).toContain("RULES:");
+  });
+
+  describe("include / exclude filtering", () => {
+    const filterCatalog = defineCatalog(testSchema, {
+      components: {
+        Card: {
+          props: z.object({ title: z.string() }),
+          description: "Card container",
+          slots: ["default"],
+        },
+        Button: {
+          props: z.object({ label: z.string() }),
+          description: "Clickable button",
+          slots: [],
+        },
+        Metric: {
+          props: z.object({ value: z.number() }),
+          description: "Metric display",
+          slots: [],
+        },
+      },
+      actions: {},
+    });
+
+    it("only documents components listed in `include`", () => {
+      const prompt = filterCatalog.prompt({ include: ["Card", "Metric"] });
+      expect(prompt).toContain("AVAILABLE COMPONENTS (2):");
+      expect(prompt).toContain("- Card:");
+      expect(prompt).toContain("- Metric:");
+      expect(prompt).not.toMatch(/^- Button:/m);
+    });
+
+    it("omits components listed in `exclude`", () => {
+      const prompt = filterCatalog.prompt({ exclude: ["Button"] });
+      expect(prompt).toContain("AVAILABLE COMPONENTS (2):");
+      expect(prompt).toContain("- Card:");
+      expect(prompt).toContain("- Metric:");
+      expect(prompt).not.toMatch(/^- Button:/m);
+    });
+
+    it("treats `include` as authoritative when both are provided", () => {
+      const prompt = filterCatalog.prompt({
+        include: ["Button"],
+        exclude: ["Button"],
+      });
+      expect(prompt).toContain("AVAILABLE COMPONENTS (1):");
+      expect(prompt).toContain("- Button:");
+      expect(prompt).not.toMatch(/^- Card:/m);
+    });
+
+    it("uses filtered components in the streaming example output", () => {
+      const prompt = filterCatalog.prompt({ include: ["Metric"] });
+      expect(prompt).toContain('"type":"Metric"');
+      expect(prompt).not.toContain('"type":"Card"');
+      expect(prompt).not.toContain('"type":"Button"');
+    });
+
+    it("warns when `include` references an unknown component", () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      filterCatalog.prompt({ include: ["Card", "DoesNotExist"] });
+      expect(warn).toHaveBeenCalledWith(
+        '[json-render] catalog.prompt(): include references unknown component "DoesNotExist"',
+      );
+      warn.mockRestore();
+    });
+
+    it("warns when `exclude` references an unknown component", () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      filterCatalog.prompt({ exclude: ["Ghost"] });
+      expect(warn).toHaveBeenCalledWith(
+        '[json-render] catalog.prompt(): exclude references unknown component "Ghost"',
+      );
+      warn.mockRestore();
+    });
+
+    it("forwards filtered names to a custom promptTemplate", () => {
+      const customSchema = defineSchema(
+        (s) => ({
+          spec: s.object({ root: s.string() }),
+          catalog: s.object({
+            components: s.map({ props: s.zod(), description: s.string() }),
+          }),
+        }),
+        {
+          promptTemplate: (ctx) => ctx.componentNames.join(","),
+        },
+      );
+      const customCatalog = customSchema.createCatalog({
+        components: {
+          Alpha: { props: z.object({}), description: "" },
+          Beta: { props: z.object({}), description: "" },
+          Gamma: { props: z.object({}), description: "" },
+        },
+      });
+      expect(customCatalog.prompt({ include: ["Alpha", "Gamma"] })).toBe(
+        "Alpha,Gamma",
+      );
+      expect(customCatalog.prompt({ exclude: ["Beta"] })).toBe("Alpha,Gamma");
+    });
+
+    it("leaves the prompt unchanged when neither option is provided", () => {
+      expect(filterCatalog.prompt()).toBe(filterCatalog.prompt({}));
+    });
   });
 });
 

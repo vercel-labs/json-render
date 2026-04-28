@@ -77,6 +77,8 @@ interface PromptOptions {
   customRules?: string[];    // Additional rules to append
   mode?: "standalone" | "inline" | "generate" | "chat"; // Output mode (default: "standalone")
   editModes?: EditMode[];    // Edit modes to document in prompt (default: ["patch"])
+  include?: string[];        // Only document these components in the prompt
+  exclude?: string[];        // Skip these components (ignored if include is set)
 }
 
 interface SpecValidationResult<T> {
