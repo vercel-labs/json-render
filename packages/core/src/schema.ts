@@ -146,6 +146,17 @@ export interface PromptOptions {
   mode?: "standalone" | "inline" | "generate" | "chat";
   /** Edit modes to document in the system prompt. Default: `["patch"]`. */
   editModes?: EditMode[];
+  /**
+   * Only document components whose names appear in this list. Useful when the
+   * catalog is large and only a subset is relevant for the current request.
+   * Unknown names log a `console.warn`.
+   */
+  include?: string[];
+  /**
+   * Skip components whose names appear in this list. Unknown names log a
+   * `console.warn`. Ignored when `include` is also set.
+   */
+  exclude?: string[];
 }
 
 /**
@@ -570,17 +581,71 @@ function getPropsFromPath(path: string, catalogData: unknown): z.ZodType[] {
 }
 
 /**
+ * Apply `include` / `exclude` to the catalog's components, preserving the
+ * original declaration order. `include` wins when both are set.
+ */
+function resolveFilteredComponents(
+  components: Record<string, CatalogComponentDef> | undefined,
+  componentNames: string[],
+  options: PromptOptions,
+): {
+  components: Record<string, CatalogComponentDef> | undefined;
+  names: string[];
+} {
+  if (!components) return { components, names: componentNames };
+
+  const known = new Set(componentNames);
+  const warnUnknown = (kind: "include" | "exclude", name: string): void => {
+    console.warn(
+      `[json-render] catalog.prompt(): ${kind} references unknown component "${name}"`,
+    );
+  };
+
+  if (options.include) {
+    for (const name of options.include) {
+      if (!known.has(name)) warnUnknown("include", name);
+    }
+    const allowed = new Set(options.include);
+    const filtered: Record<string, CatalogComponentDef> = {};
+    for (const name of componentNames) {
+      if (allowed.has(name)) filtered[name] = components[name]!;
+    }
+    return { components: filtered, names: Object.keys(filtered) };
+  }
+
+  if (options.exclude && options.exclude.length > 0) {
+    for (const name of options.exclude) {
+      if (!known.has(name)) warnUnknown("exclude", name);
+    }
+    const denied = new Set(options.exclude);
+    const filtered: Record<string, CatalogComponentDef> = {};
+    for (const name of componentNames) {
+      if (!denied.has(name)) filtered[name] = components[name]!;
+    }
+    return { components: filtered, names: Object.keys(filtered) };
+  }
+
+  return { components, names: componentNames };
+}
+
+/**
  * Generate system prompt from catalog
  */
 function generatePrompt<TDef extends SchemaDefinition, TCatalog>(
   catalog: Catalog<TDef, TCatalog>,
   options: PromptOptions,
 ): string {
+  const rawComponents = (catalog.data as Record<string, unknown>).components as
+    | Record<string, CatalogComponentDef>
+    | undefined;
+  const { components: filteredComponents, names: filteredNames } =
+    resolveFilteredComponents(rawComponents, catalog.componentNames, options);
+
   // Check if schema has a custom prompt template
   if (catalog.schema.promptTemplate) {
     const context: PromptContext<TCatalog> = {
       catalog: catalog.data,
-      componentNames: catalog.componentNames,
+      componentNames: filteredNames,
       actionNames: catalog.actionNames,
       options,
       formatZodType,
@@ -644,10 +709,8 @@ function generatePrompt<TDef extends SchemaDefinition, TCatalog>(
   lines.push("");
 
   // Build example using actual catalog component names and props to avoid hallucinations
-  const allComponents = (catalog.data as Record<string, unknown>).components as
-    | Record<string, CatalogComponentDef>
-    | undefined;
-  const cn = catalog.componentNames;
+  const allComponents = filteredComponents;
+  const cn = filteredNames;
   const comp1 = cn[0] || "Component";
   const comp2 = cn.length > 1 ? cn[1]! : comp1;
   const comp1Def = allComponents?.[comp1];
@@ -791,7 +854,7 @@ Note: state patches appear right after the elements that use them, so the UI fil
   const components = allComponents;
 
   if (components) {
-    lines.push(`AVAILABLE COMPONENTS (${catalog.componentNames.length}):`);
+    lines.push(`AVAILABLE COMPONENTS (${filteredNames.length}):`);
     lines.push("");
 
     for (const [name, def] of Object.entries(components)) {
