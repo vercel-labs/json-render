@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/vercel-labs-json-render-badge.png)](https://mseep.ai/app/vercel-labs-json-render)
+
 # json-render
 
 **The Generative UI framework.**
