@@ -14,7 +14,7 @@ const testSchema = defineSchema((s) => ({
         type: s.ref("catalog.components"),
         props: s.propsOf("catalog.components"),
         children: s.array(s.string()),
-        visible: s.any(),
+        visible: { ...s.any(), ...s.optional() },
       }),
     ),
   }),
@@ -581,6 +581,21 @@ describe("catalog.validate", () => {
     const result = catalog.validate(spec);
     expect(result.success).toBe(true);
     expect(result.data).toEqual(spec);
+  });
+
+  it("does not require optional visible fields", () => {
+    const result = catalog.validate({
+      root: "card-1",
+      elements: {
+        "card-1": {
+          type: "Card",
+          props: { title: "Hello" },
+          children: [],
+        },
+      },
+    });
+
+    expect(result.success).toBe(true);
   });
 
   it("rejects spec with wrong root type", () => {

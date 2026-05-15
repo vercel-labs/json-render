@@ -23,7 +23,7 @@ export const schema = defineSchema(
           /** Child element keys (flat reference) */
           children: s.array(s.string()),
           /** Visibility condition */
-          visible: s.any(),
+          visible: { ...s.any(), ...s.optional() },
         }),
       ),
     }),

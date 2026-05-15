@@ -327,8 +327,16 @@ export type InferSpec<TDef extends SchemaDefinition, TCatalog> = TDef extends {
   ? InferSpecObject<Shape, TCatalog>
   : unknown;
 
+type OptionalSpecKeys<Shape> = {
+  [K in keyof Shape]: Shape[K] extends { optional: true } ? K : never;
+}[keyof Shape];
+
+type RequiredSpecKeys<Shape> = Exclude<keyof Shape, OptionalSpecKeys<Shape>>;
+
 type InferSpecObject<Shape, TCatalog> = {
-  [K in keyof Shape]: InferSpecField<Shape[K], TCatalog>;
+  [K in RequiredSpecKeys<Shape>]: InferSpecField<Shape[K], TCatalog>;
+} & {
+  [K in OptionalSpecKeys<Shape>]?: InferSpecField<Shape[K], TCatalog>;
 };
 
 type InferSpecField<T, TCatalog> =
