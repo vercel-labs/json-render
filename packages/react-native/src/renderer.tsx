@@ -12,6 +12,7 @@ import type {
   Catalog,
   SchemaDefinition,
   StateStore,
+  ComputedFunction,
 } from "@json-render/core";
 import {
   resolveElementProps,
@@ -136,6 +137,19 @@ class ElementErrorBoundary extends React.Component<
   }
 }
 
+// ---------------------------------------------------------------------------
+// FunctionsContext – provides $computed functions to the element tree
+// ---------------------------------------------------------------------------
+
+const EMPTY_FUNCTIONS: Record<string, ComputedFunction> = {};
+
+const FunctionsContext =
+  React.createContext<Record<string, ComputedFunction>>(EMPTY_FUNCTIONS);
+
+function useFunctions(): Record<string, ComputedFunction> {
+  return React.useContext(FunctionsContext);
+}
+
 interface ElementRendererProps {
   element: UIElement;
   spec: Spec;
@@ -159,20 +173,21 @@ const ElementRenderer = React.memo(function ElementRenderer({
   const { ctx } = useVisibility();
   const { execute } = useActions();
   const { getSnapshot } = useStateStore();
+  const functions = useFunctions();
 
-  // Build context with repeat scope (used for both visibility and props)
-  const fullCtx: PropResolutionContext = useMemo(
-    () =>
-      repeatScope
-        ? {
-            ...ctx,
-            repeatItem: repeatScope.item,
-            repeatIndex: repeatScope.index,
-            repeatBasePath: repeatScope.basePath,
-          }
-        : ctx,
-    [ctx, repeatScope],
-  );
+  // Build context with repeat scope and $computed functions (visibility + props)
+  const fullCtx: PropResolutionContext = useMemo(() => {
+    const base: PropResolutionContext = repeatScope
+      ? {
+          ...ctx,
+          repeatItem: repeatScope.item,
+          repeatIndex: repeatScope.index,
+          repeatBasePath: repeatScope.basePath,
+        }
+      : { ...ctx };
+    base.functions = functions;
+    return base;
+  }, [ctx, repeatScope, functions]);
 
   // Evaluate visibility (now supports $item/$index inside repeat scopes)
   const isVisible =
@@ -439,6 +454,8 @@ export interface JSONUIProviderProps {
     string,
     (value: unknown, args?: Record<string, unknown>) => boolean
   >;
+  /** Named functions for `$computed` expressions in props */
+  functions?: Record<string, ComputedFunction>;
   /** Callback when state changes (uncontrolled mode) */
   onStateChange?: (changes: Array<{ path: string; value: unknown }>) => void;
   children: ReactNode;
@@ -454,6 +471,7 @@ export function JSONUIProvider({
   handlers,
   navigate,
   validationFunctions,
+  functions,
   onStateChange,
   children,
 }: JSONUIProviderProps) {
@@ -465,10 +483,12 @@ export function JSONUIProvider({
     >
       <VisibilityProvider>
         <ActionProvider handlers={handlers} navigate={navigate}>
-          <ValidationProvider customFunctions={validationFunctions}>
-            {children}
-            <ConfirmationDialogManager />
-          </ValidationProvider>
+          <FunctionsContext.Provider value={functions ?? EMPTY_FUNCTIONS}>
+            <ValidationProvider customFunctions={validationFunctions}>
+              {children}
+              <ConfirmationDialogManager />
+            </ValidationProvider>
+          </FunctionsContext.Provider>
         </ActionProvider>
       </VisibilityProvider>
     </StateProvider>
@@ -663,6 +683,8 @@ export interface CreateRendererProps {
   onAction?: (actionName: string, params?: Record<string, unknown>) => void;
   /** Callback when state changes (uncontrolled mode) */
   onStateChange?: (changes: Array<{ path: string; value: unknown }>) => void;
+  /** Named functions for `$computed` expressions in props */
+  functions?: Record<string, ComputedFunction>;
   /** Whether the spec is currently loading/streaming */
   loading?: boolean;
   /** Fallback component for unknown types */
@@ -716,6 +738,7 @@ export function createRenderer<
     state,
     onAction,
     onStateChange,
+    functions,
     loading,
     fallback,
   }: CreateRendererProps) {
@@ -744,15 +767,17 @@ export function createRenderer<
       >
         <VisibilityProvider>
           <ActionProvider handlers={actionHandlers}>
-            <ValidationProvider>
-              <Renderer
-                spec={spec}
-                registry={registry}
-                loading={loading}
-                fallback={fallback}
-              />
-              <ConfirmationDialogManager />
-            </ValidationProvider>
+            <FunctionsContext.Provider value={functions ?? EMPTY_FUNCTIONS}>
+              <ValidationProvider>
+                <Renderer
+                  spec={spec}
+                  registry={registry}
+                  loading={loading}
+                  fallback={fallback}
+                />
+                <ConfirmationDialogManager />
+              </ValidationProvider>
+            </FunctionsContext.Provider>
           </ActionProvider>
         </VisibilityProvider>
       </StateProvider>

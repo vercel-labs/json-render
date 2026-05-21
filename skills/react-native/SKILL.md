@@ -118,6 +118,7 @@ Any prop value can be a data-driven expression resolved at render time:
 - **`{ "$bindState": "/path" }`** - two-way binding: use on the natural value prop (value, checked, pressed, etc.) of form components.
 - **`{ "$bindItem": "field" }`** - two-way binding to a repeat item field. Use inside repeat scopes.
 - **`{ "$cond": <condition>, "$then": <value>, "$else": <value> }`** - conditional value
+- **`{ "$computed": "name", "args": { ... } }`** - call a named function; register implementations with the `functions` prop on `JSONUIProvider` or `createRenderer` (same as `@json-render/react`)
 
 ```json
 {
@@ -147,6 +148,7 @@ The `setState` action is handled automatically by `ActionProvider` and updates t
 | `ActionProvider` | Handle actions dispatched from components |
 | `VisibilityProvider` | Enable conditional rendering based on state |
 | `ValidationProvider` | Form field validation |
+| `JSONUIProvider` | Combines the above providers; also accepts `functions` for `$computed` props |
 
 ### External Store (Controlled Mode)
 
