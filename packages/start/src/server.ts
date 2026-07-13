@@ -16,6 +16,9 @@
 // Schema (TanStack Start app spec format)
 export { schema, type StartSchema, type StartSpec } from "./schema";
 
+// App factory (getPageData / getHead / getStaticPaths)
+export { createStartApp } from "./create-app";
+
 // Router utilities
 export { matchRoute, splatToPath, collectStaticPaths } from "./router";
 

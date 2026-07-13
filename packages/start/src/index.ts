@@ -5,6 +5,38 @@
 // specs inside TanStack Start / TanStack Router applications.
 // =============================================================================
 
+// Provider + context
+export {
+  StartAppProvider,
+  useStartApp,
+  type StartAppContextValue,
+  type StartAppProviderProps,
+} from "./components/provider";
+
+// Page renderer
+export {
+  PageRenderer,
+  type PageRendererProps,
+} from "./components/page-renderer";
+
+// Error boundary
+export {
+  StartErrorBoundary,
+  type StartErrorBoundaryProps,
+} from "./components/error-boundary";
+
+// Loading
+export {
+  StartLoading,
+  type StartLoadingProps,
+} from "./components/loading-renderer";
+
+// Not found
+export { StartNotFound } from "./components/not-found-renderer";
+
+// Link
+export { Link, type LinkProps } from "./components/link";
+
 // Types (re-exported for convenience)
 export type {
   StartAppSpec,
