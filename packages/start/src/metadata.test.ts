@@ -52,6 +52,30 @@ describe("resolveMetadata", () => {
     expect(resolveMetadata(spec, route).title).toBe("Site");
   });
 
+  it("applies the global template to route default-title objects", () => {
+    const { spec, route } = specWith(
+      { title: { default: "Site", template: "%s | Site" } },
+      { title: { default: "About" } },
+    );
+    expect(resolveMetadata(spec, route).title).toBe("About | Site");
+  });
+
+  it("replaces every %s occurrence in the template", () => {
+    const { spec, route } = specWith(
+      { title: { default: "Site", template: "%s | Site | %s" } },
+      { title: "About" },
+    );
+    expect(resolveMetadata(spec, route).title).toBe("About | Site | About");
+  });
+
+  it("does not expand $-replacement patterns in route titles", () => {
+    const { spec, route } = specWith(
+      { title: { default: "Site", template: "%s | Site" } },
+      { title: "Cash $& Carry" },
+    );
+    expect(resolveMetadata(spec, route).title).toBe("Cash $& Carry | Site");
+  });
+
   it("ignores the template for absolute route titles", () => {
     const { spec, route } = specWith(
       { title: { default: "Site", template: "%s | Site" } },

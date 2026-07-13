@@ -171,21 +171,33 @@ function resolveTitle(
     return undefined;
   }
 
+  const template =
+    typeof globalTitle === "object" && globalTitle !== null
+      ? globalTitle.template
+      : undefined;
+
   if (typeof routeTitle === "object" && routeTitle !== null) {
     if (routeTitle.absolute) return routeTitle.absolute;
-    if (routeTitle.template || routeTitle.default) return routeTitle;
+    if (routeTitle.default) {
+      return applyTitleTemplate(template, routeTitle.default);
+    }
     return routeTitle;
   }
 
-  if (
-    typeof globalTitle === "object" &&
-    globalTitle !== null &&
-    globalTitle.template
-  ) {
-    return globalTitle.template.replace("%s", routeTitle as string);
-  }
+  return applyTitleTemplate(template, routeTitle as string);
+}
 
-  return routeTitle;
+/**
+ * Interpolate a title into a template, replacing every `%s` occurrence
+ * (mirrors Next.js, which uses a global replace). The function replacement
+ * avoids `$`-pattern expansion for titles containing e.g. `$&`.
+ */
+function applyTitleTemplate(
+  template: string | null | undefined,
+  title: string,
+): string {
+  if (!template) return title;
+  return template.replace(/%s/g, () => title);
 }
 
 /** Flatten a resolved title value into a display string. */
