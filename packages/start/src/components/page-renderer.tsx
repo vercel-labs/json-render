@@ -2,10 +2,7 @@ import React, { useMemo, type ReactNode } from "react";
 import type { Spec } from "@json-render/core";
 import {
   Renderer,
-  StateProvider,
-  VisibilityProvider,
-  ValidationProvider,
-  ActionProvider,
+  JSONUIProvider,
   type ComponentRegistry,
   type ComponentRenderProps,
 } from "@json-render/react";
@@ -73,36 +70,25 @@ export function PageRenderer({
     <Renderer spec={spec} registry={augmentedRegistry} loading={loading} />
   );
 
-  if (layoutSpec) {
-    return (
-      <StateProvider initialState={initialState}>
-        <VisibilityProvider>
-          <ValidationProvider>
-            <ActionProvider handlers={actionHandlers} navigate={navigate}>
-              <LayoutWithSlot
-                layoutSpec={layoutSpec}
-                registry={augmentedRegistry}
-                loading={loading}
-              >
-                {pageContent}
-              </LayoutWithSlot>
-            </ActionProvider>
-          </ValidationProvider>
-        </VisibilityProvider>
-      </StateProvider>
-    );
-  }
-
   return (
-    <StateProvider initialState={initialState}>
-      <VisibilityProvider>
-        <ValidationProvider>
-          <ActionProvider handlers={actionHandlers} navigate={navigate}>
-            {pageContent}
-          </ActionProvider>
-        </ValidationProvider>
-      </VisibilityProvider>
-    </StateProvider>
+    <JSONUIProvider
+      registry={augmentedRegistry}
+      initialState={initialState}
+      handlers={actionHandlers}
+      navigate={navigate}
+    >
+      {layoutSpec ? (
+        <LayoutWithSlot
+          layoutSpec={layoutSpec}
+          registry={augmentedRegistry}
+          loading={loading}
+        >
+          {pageContent}
+        </LayoutWithSlot>
+      ) : (
+        pageContent
+      )}
+    </JSONUIProvider>
   );
 }
 
