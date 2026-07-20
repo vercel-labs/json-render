@@ -23,6 +23,8 @@ npm install @json-render/core @json-render/vue
 npm install @json-render/core @json-render/svelte
 # or for SolidJS
 npm install @json-render/core @json-render/solid
+# or for Angular
+npm install @json-render/core @json-render/angular
 # or for terminal UIs
 npm install @json-render/core @json-render/ink ink react
 # or for full Next.js apps (routes, layouts, SSR, metadata)
@@ -126,6 +128,7 @@ function Dashboard({ spec }) {
 | `@json-render/vue`          | Vue 3 renderer, composables, providers                                 |
 | `@json-render/svelte`       | Svelte 5 renderer with runes-based reactivity                          |
 | `@json-render/solid`        | SolidJS renderer with fine-grained reactive contexts                   |
+| `@json-render/angular`      | Angular renderer with signals and dependency injection                 |
 | `@json-render/shadcn`       | 36 pre-built shadcn/ui components (Radix UI + Tailwind CSS)            |
 | `@json-render/shadcn-svelte`| 36 pre-built shadcn-svelte components (Svelte 5 + Tailwind CSS)        |
 | `@json-render/react-three-fiber` | React Three Fiber renderer for 3D scenes (20 built-in components, including GaussianSplat)  |
@@ -236,6 +239,44 @@ const { registry } = defineRegistry(catalog, {
 
 <Renderer spec={spec} registry={registry} />;
 ```
+
+### Angular (UI)
+
+```ts
+import { Component, input, signal } from "@angular/core";
+import {
+  JsonRendererComponent,
+  defineRegistry,
+  provideJsonRender,
+} from "@json-render/angular";
+
+@Component({
+  selector: "app-button",
+  standalone: true,
+  template: `<button (click)="emit()('press')">{{ element().props.label }}</button>`,
+})
+class ButtonComponent {
+  readonly element = input.required<{ props: { label: string } }>();
+  readonly emit = input.required<(event: string) => void>();
+}
+
+const { registry } = defineRegistry(catalog, {
+  components: { Button: ButtonComponent },
+});
+
+@Component({
+  selector: "app-root",
+  standalone: true,
+  imports: [JsonRendererComponent],
+  providers: [provideJsonRender({ registry })],
+  template: `<json-render [spec]="spec()" />`,
+})
+export class AppComponent {
+  readonly spec = signal(spec);
+}
+```
+
+Built with `ng-packagr` (Angular Package Format) so consumers get proper Angular typings and AOT support with no extra runtime dependency.
 
 ### shadcn/ui (Web)
 

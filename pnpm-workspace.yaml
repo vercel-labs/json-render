@@ -3,7 +3,10 @@ engineStrict: true
 allowBuilds:
   '@google/genai': false
   "@mongodb-js/zstd": false
+  '@parcel/watcher': false
   esbuild: false
+  lmdb: false
+  msgpackr-extract: false
   msw: false
   node-liblzma: false
   protobufjs: false

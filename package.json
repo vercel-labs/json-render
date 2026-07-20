@@ -21,6 +21,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:angular": "pnpm --filter @json-render/angular test",
     "test:e2e": "pnpm --filter e2e-tests test",
     "prepare": "husky",
     "version:sync": "node scripts/sync-version.js",

@@ -35,6 +35,11 @@ export default defineConfig({
     globals: true,
     environment: "jsdom",
     include: ["packages/**/*.test.ts", "packages/**/*.test.tsx"],
+    // The Angular package requires the Angular compiler pipeline
+    // (@analogjs/vite-plugin-angular), which is incompatible with the
+    // React/Svelte/Solid transforms configured here. It runs in its own Vitest
+    // config via `pnpm test:angular` (also wired into CI alongside `pnpm test`).
+    exclude: ["**/node_modules/**", "**/dist/**", "packages/angular/**"],
     server: {
       deps: {
         inline: [/bits-ui/, /runed/, /vaul-svelte/, /@lucide\/svelte/],

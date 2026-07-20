@@ -1,0 +1,68 @@
+{
+  "name": "@json-render/angular",
+  "version": "0.19.0",
+  "license": "Apache-2.0",
+  "description": "Angular renderer for @json-render/core. JSON becomes Angular components.",
+  "keywords": [
+    "json",
+    "ui",
+    "angular",
+    "ai",
+    "generative-ui",
+    "llm",
+    "renderer",
+    "streaming",
+    "components",
+    "signals"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vercel-labs/json-render.git",
+    "directory": "packages/angular"
+  },
+  "homepage": "https://json-render.dev",
+  "bugs": {
+    "url": "https://github.com/vercel-labs/json-render/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "directory": "dist"
+  },
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "ng-packagr -p ng-package.json -c tsconfig.lib.json",
+    "dev": "ng-packagr -p ng-package.json -c tsconfig.lib.json --watch",
+    "typecheck": "tsc --noEmit -p tsconfig.lib.json",
+    "check-types": "tsc --noEmit -p tsconfig.lib.json",
+    "test": "vitest run --config vitest.config.mts"
+  },
+  "dependencies": {
+    "@json-render/core": "workspace:*",
+    "tslib": "^2.8.1"
+  },
+  "devDependencies": {
+    "@analogjs/vite-plugin-angular": "2.6.3",
+    "@angular/build": "21.2.19",
+    "@angular/common": "21.2.18",
+    "@angular/compiler": "21.2.18",
+    "@angular/compiler-cli": "21.2.18",
+    "@angular/core": "21.2.18",
+    "@angular/platform-browser": "21.2.18",
+    "@internal/typescript-config": "workspace:*",
+    "jsdom": "^27.4.0",
+    "ng-packagr": "21.2.5",
+    "rxjs": "7.8.2",
+    "typescript": "~5.9.2",
+    "vitest": "^4.0.17",
+    "zone.js": "0.16.2"
+  },
+  "peerDependencies": {
+    "@angular/common": "^20.0.0 || ^21.0.0 || ^22.0.0",
+    "@angular/core": "^20.0.0 || ^21.0.0 || ^22.0.0",
+    "rxjs": "^7.8.0",
+    "zod": "^4.0.0"
+  }
+}
