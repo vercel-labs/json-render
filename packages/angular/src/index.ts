@@ -108,25 +108,3 @@ export {
   injectJsonRenderMessage,
   type JsonRenderMessage,
 } from "./lib/streaming/inject-json-render-message";
-
-// Selected core re-exports for building catalogs and directives
-export {
-  defineCatalog,
-  getByPath,
-  setByPath,
-  check,
-  createDirectiveRegistry,
-  defineDirective,
-  resolvePropValue,
-} from "@json-render/core";
-export type {
-  UIElement,
-  FlatElement,
-  ActionBinding,
-  VisibilityCondition,
-  Catalog,
-  ComputedFunction,
-  DirectiveRegistry,
-  ValidationCheck,
-  ValidationFunction,
-} from "@json-render/core";

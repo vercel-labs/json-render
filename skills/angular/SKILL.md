@@ -49,7 +49,8 @@ export class AppComponent {
 ## Creating a Catalog
 
 ```typescript
-import { defineCatalog, schema } from "@json-render/angular";
+import { defineCatalog } from "@json-render/core";
+import { schema } from "@json-render/angular";
 import { z } from "zod";
 
 export const catalog = defineCatalog(schema, {

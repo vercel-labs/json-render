@@ -19,7 +19,8 @@ Requires Angular 20, 21, or 22.
 The catalog declares the components the AI is allowed to use, with a Zod schema for each component's props.
 
 ```ts
-import { defineCatalog, schema } from "@json-render/angular";
+import { defineCatalog } from "@json-render/core";
+import { schema } from "@json-render/angular";
 import { z } from "zod";
 
 export const catalog = defineCatalog(schema, {
@@ -166,10 +167,10 @@ The renderer provides scoped injectable services (the Angular counterpart of the
 - `ActionDispatcherService` — resolve and run `on`/`watch` actions, with `loadingActions` and `pendingConfirmation` signals.
 - `RepeatScopeService` — the current `$item`/`$index` scope inside a `repeat`.
 
-`onStateChange` reports change deltas (`Array<{ path, value }>`), matching the other renderers:
+`stateChange` emits change deltas (`Array<{ path, value }>`), matching the other renderers:
 
 ```html
-<json-render [spec]="spec()" [onStateChange]="handleChange" />
+<json-render [spec]="spec()" (stateChange)="onChange($event)" />
 ```
 
 ## Visibility Conditions
@@ -262,6 +263,23 @@ The catalog builds the system prompt for you:
 ```ts
 const prompt = catalog.prompt();
 ```
+
+## Cross-Renderer Naming Map
+
+If you're coming from another json-render renderer, here's how the Angular equivalents map:
+
+| React / Vue / Solid | Angular Equivalent |
+| --- | --- |
+| `Renderer` / `JSONUIProvider` | `JsonRendererComponent` / `provideJsonRender` |
+| `useStateStore` / `useStateValue` | `SpecStateService` (inject) |
+| `useVisibility` | `VisibilityService` (inject) |
+| `useActions` / `useAction` | `ActionDispatcherService` (inject) |
+| `useValidation` | `ValidationService` (inject) |
+| `useRepeatScope` | `RepeatScopeService` (inject) |
+| `useBoundProp` | `injectBoundProp` / `boundProp` |
+| `useUIStream` / `useChatUI` | `injectUIStream` / `injectChatUI` |
+| `useJsonRenderMessage` | `injectJsonRenderMessage` |
+| `onStateChange` (callback prop) | `(stateChange)` (output event) |
 
 ## Key Exports
 
