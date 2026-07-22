@@ -2,10 +2,12 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  OutputEmitterRef,
   computed,
   effect,
   inject,
   input,
+  output,
 } from "@angular/core";
 import type { Spec, StateModel, StateStore } from "@json-render/core";
 
@@ -65,12 +67,13 @@ export class JsonRendererComponent {
    */
   readonly store = input<StateStore | null>(null);
   /**
-   * Callback invoked with the change delta(s) on every state write. Matches the
-   * baseline renderers' `onStateChange` shape: `Array<{ path, value }>`.
+   * Emits the change delta(s) on every state write. Matches the baseline
+   * renderers' `onStateChange` shape: `Array<{ path, value }>`.
+   *
+   * Usage: `<json-render [spec]="spec()" (stateChange)="onChange($event)" />`
    */
-  readonly onStateChange = input<
-    ((changes: StateChange[]) => void) | undefined
-  >(undefined);
+  readonly stateChange: OutputEmitterRef<StateChange[]> =
+    output<StateChange[]>();
 
   private readonly stateService = inject(SpecStateService);
   private readonly validationService = inject(ValidationService);
@@ -80,7 +83,6 @@ export class JsonRendererComponent {
   );
   private previousSpecState: Record<string, unknown> | undefined;
   private previousInitialState: string | undefined;
-  private changeUnsubscribe: (() => void) | null = null;
 
   readonly rootElement = computed(() => {
     const s = this.spec();
@@ -123,17 +125,13 @@ export class JsonRendererComponent {
       }
     });
 
-    // Wire onStateChange to delta notifications from the store.
-    effect(() => {
-      const callback = this.onStateChange();
-      this.changeUnsubscribe?.();
-      this.changeUnsubscribe = callback
-        ? this.stateService.onChange(callback)
-        : null;
-    });
+    // Forward state deltas to the output.
+    const changeUnsubscribe = this.stateService.onChange((changes) =>
+      this.stateChange.emit(changes),
+    );
 
     inject(DestroyRef).onDestroy(() => {
-      this.changeUnsubscribe?.();
+      changeUnsubscribe();
       this.stateService.disconnectStore();
     });
   }

@@ -59,12 +59,18 @@ function dispatchBinding(
   dispatcher: ActionDispatcherService,
 ): void {
   if (!binding.params) {
-    dispatcher.execute(binding);
+    dispatcher.execute(binding).catch(onEventDispatchError);
     return;
   }
   const resolved: Record<string, unknown> = {};
   for (const [key, val] of Object.entries(binding.params)) {
     resolved[key] = resolveActionParam(val, ctx);
   }
-  dispatcher.execute({ ...binding, params: resolved });
+  dispatcher
+    .execute({ ...binding, params: resolved })
+    .catch(onEventDispatchError);
+}
+
+function onEventDispatchError(error: unknown): void {
+  console.debug("[json-render] Event action rejected:", error);
 }
