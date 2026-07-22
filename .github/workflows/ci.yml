@@ -52,6 +52,7 @@ jobs:
       - name: Build packages
         run: pnpm turbo run build --filter='./packages/*'
       - run: pnpm test
+      - run: pnpm test:angular
 
   typecheck:
     name: Type Check

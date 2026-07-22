@@ -40,12 +40,11 @@
     "test": "vitest run --config vitest.config.mts"
   },
   "dependencies": {
-    "@json-render/core": "workspace:*",
-    "tslib": "^2.8.1"
+    "@json-render/core": "workspace:*"
   },
   "devDependencies": {
     "@analogjs/vite-plugin-angular": "2.6.3",
-    "@angular/build": "21.2.19",
+    "@angular/build": "21.2.18",
     "@angular/common": "21.2.18",
     "@angular/compiler": "21.2.18",
     "@angular/compiler-cli": "21.2.18",
