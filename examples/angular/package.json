@@ -1,0 +1,27 @@
+{
+  "name": "example-angular",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "ng serve",
+    "build": "ng build",
+    "check-types": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@angular/common": "21.2.18",
+    "@angular/compiler": "21.2.18",
+    "@angular/core": "21.2.18",
+    "@angular/platform-browser": "21.2.18",
+    "@json-render/angular": "workspace:*",
+    "@json-render/core": "workspace:*",
+    "rxjs": "7.8.2",
+    "zone.js": "0.16.2",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@angular/build": "21.2.18",
+    "@angular/cli": "21.2.18",
+    "typescript": "~5.9.2"
+  }
+}
