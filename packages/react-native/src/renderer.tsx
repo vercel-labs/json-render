@@ -12,6 +12,8 @@ import type {
   Catalog,
   SchemaDefinition,
   StateStore,
+  DirectiveDefinition,
+  DirectiveRegistry,
 } from "@json-render/core";
 import {
   resolveElementProps,
@@ -19,6 +21,7 @@ import {
   resolveActionParam,
   evaluateVisibility,
   getByPath,
+  createDirectiveRegistry,
   type PropResolutionContext,
   type VisibilityContext as CoreVisibilityContext,
 } from "@json-render/core";
@@ -39,6 +42,14 @@ import { ValidationProvider } from "./contexts/validation";
 import { ConfirmDialog } from "./contexts/actions";
 import { standardComponents } from "./components/standard";
 import { RepeatScopeProvider, useRepeatScope } from "./contexts/repeat-scope";
+
+const DirectivesContext = React.createContext<DirectiveRegistry | undefined>(
+  undefined,
+);
+
+function useDirectives(): DirectiveRegistry | undefined {
+  return React.useContext(DirectivesContext);
+}
 
 /**
  * Props passed to component renderers
@@ -159,6 +170,7 @@ const ElementRenderer = React.memo(function ElementRenderer({
   const { ctx } = useVisibility();
   const { execute } = useActions();
   const { getSnapshot } = useStateStore();
+  const directives = useDirectives();
 
   // Build context with repeat scope (used for both visibility and props)
   const fullCtx: PropResolutionContext = useMemo(
@@ -169,9 +181,10 @@ const ElementRenderer = React.memo(function ElementRenderer({
             repeatItem: repeatScope.item,
             repeatIndex: repeatScope.index,
             repeatBasePath: repeatScope.basePath,
+            directives,
           }
-        : ctx,
-    [ctx, repeatScope],
+        : { ...ctx, directives },
+    [ctx, repeatScope, directives],
   );
 
   // Evaluate visibility (now supports $item/$index inside repeat scopes)
@@ -439,6 +452,8 @@ export interface JSONUIProviderProps {
     string,
     (value: unknown, args?: Record<string, unknown>) => boolean
   >;
+  /** Custom directives for user-defined `$`-prefixed dynamic values */
+  directives?: DirectiveDefinition[];
   /** Callback when state changes (uncontrolled mode) */
   onStateChange?: (changes: Array<{ path: string; value: unknown }>) => void;
   children: ReactNode;
@@ -454,9 +469,15 @@ export function JSONUIProvider({
   handlers,
   navigate,
   validationFunctions,
+  directives,
   onStateChange,
   children,
 }: JSONUIProviderProps) {
+  const directiveRegistry = useMemo(
+    () => (directives ? createDirectiveRegistry(directives) : undefined),
+    [directives],
+  );
+
   return (
     <StateProvider
       store={store}
@@ -465,10 +486,12 @@ export function JSONUIProvider({
     >
       <VisibilityProvider>
         <ActionProvider handlers={handlers} navigate={navigate}>
-          <ValidationProvider customFunctions={validationFunctions}>
-            {children}
-            <ConfirmationDialogManager />
-          </ValidationProvider>
+          <DirectivesContext.Provider value={directiveRegistry}>
+            <ValidationProvider customFunctions={validationFunctions}>
+              {children}
+              <ConfirmationDialogManager />
+            </ValidationProvider>
+          </DirectivesContext.Provider>
         </ActionProvider>
       </VisibilityProvider>
     </StateProvider>

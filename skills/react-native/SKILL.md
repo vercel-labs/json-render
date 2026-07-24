@@ -131,6 +131,16 @@ Any prop value can be a data-driven expression resolved at render time:
 
 Components do not use a `statePath` prop for two-way binding. Use `{ "$bindState": "/path" }` on the natural value prop instead.
 
+### Custom directives
+
+Pass custom directive definitions to `JSONUIProvider` with the `directives` prop. Their resolvers can compose with built-in dynamic values such as `$state`:
+
+```tsx
+<JSONUIProvider directives={[uppercaseDirective]}>
+  <Renderer spec={spec} />
+</JSONUIProvider>
+```
+
 ## Built-in Actions
 
 The `setState` action is handled automatically by `ActionProvider` and updates the state model directly, which re-evaluates visibility conditions and dynamic prop expressions:

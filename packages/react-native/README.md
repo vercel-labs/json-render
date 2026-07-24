@@ -195,6 +195,29 @@ Any prop value can be a dynamic expression resolved at render time:
 
 See [@json-render/core](../core/README.md) for full expression syntax.
 
+### Custom directives
+
+Register custom directives through `JSONUIProvider` to resolve user-defined `$`-prefixed values in component props:
+
+```tsx
+import { defineDirective, resolvePropValue } from "@json-render/core";
+import { z } from "zod";
+
+const uppercase = defineDirective({
+  name: "$uppercase",
+  schema: z.object({ $uppercase: z.unknown() }),
+  resolve(value, ctx) {
+    return String(resolvePropValue(value.$uppercase, ctx)).toUpperCase();
+  },
+});
+
+<JSONUIProvider directives={[uppercase]}>
+  <Renderer spec={spec} />
+</JSONUIProvider>;
+```
+
+Directives can wrap built-in expressions such as `{ "$uppercase": { "$state": "/message" } }`. See the [directives documentation](https://json-render.dev/docs/directives) for more details.
+
 ## Tab Navigation Pattern
 
 Combine `Pressable`, `setState`, visibility conditions, and dynamic props for functional tabs:
