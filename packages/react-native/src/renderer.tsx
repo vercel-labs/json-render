@@ -12,6 +12,7 @@ import type {
   Catalog,
   SchemaDefinition,
   StateStore,
+  ComputedFunction,
   DirectiveDefinition,
   DirectiveRegistry,
 } from "@json-render/core";
@@ -42,6 +43,15 @@ import { ValidationProvider } from "./contexts/validation";
 import { ConfirmDialog } from "./contexts/actions";
 import { standardComponents } from "./components/standard";
 import { RepeatScopeProvider, useRepeatScope } from "./contexts/repeat-scope";
+
+const EMPTY_FUNCTIONS: Record<string, ComputedFunction> = {};
+
+const FunctionsContext =
+  React.createContext<Record<string, ComputedFunction>>(EMPTY_FUNCTIONS);
+
+function useFunctions(): Record<string, ComputedFunction> {
+  return React.useContext(FunctionsContext);
+}
 
 const DirectivesContext = React.createContext<DirectiveRegistry | undefined>(
   undefined,
@@ -170,6 +180,7 @@ const ElementRenderer = React.memo(function ElementRenderer({
   const { ctx } = useVisibility();
   const { execute } = useActions();
   const { getSnapshot } = useStateStore();
+  const functions = useFunctions();
   const directives = useDirectives();
 
   // Build context with repeat scope (used for both visibility and props)
@@ -181,10 +192,11 @@ const ElementRenderer = React.memo(function ElementRenderer({
             repeatItem: repeatScope.item,
             repeatIndex: repeatScope.index,
             repeatBasePath: repeatScope.basePath,
+            functions,
             directives,
           }
-        : { ...ctx, directives },
-    [ctx, repeatScope, directives],
+        : { ...ctx, functions, directives },
+    [ctx, repeatScope, functions, directives],
   );
 
   // Evaluate visibility (now supports $item/$index inside repeat scopes)
@@ -452,6 +464,8 @@ export interface JSONUIProviderProps {
     string,
     (value: unknown, args?: Record<string, unknown>) => boolean
   >;
+  /** Named functions for `$computed` expressions in props */
+  functions?: Record<string, ComputedFunction>;
   /** Custom directives for user-defined `$`-prefixed dynamic values */
   directives?: DirectiveDefinition[];
   /** Callback when state changes (uncontrolled mode) */
@@ -469,6 +483,7 @@ export function JSONUIProvider({
   handlers,
   navigate,
   validationFunctions,
+  functions,
   directives,
   onStateChange,
   children,
@@ -486,12 +501,14 @@ export function JSONUIProvider({
     >
       <VisibilityProvider>
         <ActionProvider handlers={handlers} navigate={navigate}>
-          <DirectivesContext.Provider value={directiveRegistry}>
-            <ValidationProvider customFunctions={validationFunctions}>
-              {children}
-              <ConfirmationDialogManager />
-            </ValidationProvider>
-          </DirectivesContext.Provider>
+          <FunctionsContext.Provider value={functions ?? EMPTY_FUNCTIONS}>
+            <DirectivesContext.Provider value={directiveRegistry}>
+              <ValidationProvider customFunctions={validationFunctions}>
+                {children}
+                <ConfirmationDialogManager />
+              </ValidationProvider>
+            </DirectivesContext.Provider>
+          </FunctionsContext.Provider>
         </ActionProvider>
       </VisibilityProvider>
     </StateProvider>
@@ -686,6 +703,8 @@ export interface CreateRendererProps {
   onAction?: (actionName: string, params?: Record<string, unknown>) => void;
   /** Callback when state changes (uncontrolled mode) */
   onStateChange?: (changes: Array<{ path: string; value: unknown }>) => void;
+  /** Named functions for `$computed` expressions in props */
+  functions?: Record<string, ComputedFunction>;
   /** Custom directives for user-defined `$`-prefixed dynamic values */
   directives?: DirectiveDefinition[];
   /** Whether the spec is currently loading/streaming */
@@ -741,6 +760,7 @@ export function createRenderer<
     state,
     onAction,
     onStateChange,
+    functions,
     directives,
     loading,
     fallback,
@@ -775,17 +795,19 @@ export function createRenderer<
       >
         <VisibilityProvider>
           <ActionProvider handlers={actionHandlers}>
-            <DirectivesContext.Provider value={directiveRegistry}>
-              <ValidationProvider>
-                <Renderer
-                  spec={spec}
-                  registry={registry}
-                  loading={loading}
-                  fallback={fallback}
-                />
-                <ConfirmationDialogManager />
-              </ValidationProvider>
-            </DirectivesContext.Provider>
+            <FunctionsContext.Provider value={functions ?? EMPTY_FUNCTIONS}>
+              <DirectivesContext.Provider value={directiveRegistry}>
+                <ValidationProvider>
+                  <Renderer
+                    spec={spec}
+                    registry={registry}
+                    loading={loading}
+                    fallback={fallback}
+                  />
+                  <ConfirmationDialogManager />
+                </ValidationProvider>
+              </DirectivesContext.Provider>
+            </FunctionsContext.Provider>
           </ActionProvider>
         </VisibilityProvider>
       </StateProvider>

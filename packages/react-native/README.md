@@ -195,6 +195,18 @@ Any prop value can be a dynamic expression resolved at render time:
 
 See [@json-render/core](../core/README.md) for full expression syntax.
 
+### Computed functions
+
+Register named functions through `JSONUIProvider` or a component returned by `createRenderer` to resolve `$computed` expressions:
+
+```tsx
+<JSONUIProvider
+  functions={{ fullName: (args) => `${args.first} ${args.last}` }}
+>
+  <Renderer spec={spec} />
+</JSONUIProvider>
+```
+
 ### Custom directives
 
 Register custom directives through `JSONUIProvider` or a component returned by `createRenderer` to resolve user-defined `$`-prefixed values in component props:
