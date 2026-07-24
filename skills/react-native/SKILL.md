@@ -133,7 +133,7 @@ Components do not use a `statePath` prop for two-way binding. Use `{ "$bindState
 
 ### Custom directives
 
-Pass custom directive definitions to `JSONUIProvider` with the `directives` prop. Their resolvers can compose with built-in dynamic values such as `$state`:
+Pass custom directive definitions to `JSONUIProvider` or a component returned by `createRenderer` with the `directives` prop. Their resolvers can compose with built-in dynamic values such as `$state`:
 
 ```tsx
 <JSONUIProvider directives={[uppercaseDirective]}>

@@ -197,7 +197,7 @@ See [@json-render/core](../core/README.md) for full expression syntax.
 
 ### Custom directives
 
-Register custom directives through `JSONUIProvider` to resolve user-defined `$`-prefixed values in component props:
+Register custom directives through `JSONUIProvider` or a component returned by `createRenderer` to resolve user-defined `$`-prefixed values in component props:
 
 ```tsx
 import { defineDirective, resolvePropValue } from "@json-render/core";

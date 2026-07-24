@@ -686,6 +686,8 @@ export interface CreateRendererProps {
   onAction?: (actionName: string, params?: Record<string, unknown>) => void;
   /** Callback when state changes (uncontrolled mode) */
   onStateChange?: (changes: Array<{ path: string; value: unknown }>) => void;
+  /** Custom directives for user-defined `$`-prefixed dynamic values */
+  directives?: DirectiveDefinition[];
   /** Whether the spec is currently loading/streaming */
   loading?: boolean;
   /** Fallback component for unknown types */
@@ -739,9 +741,15 @@ export function createRenderer<
     state,
     onAction,
     onStateChange,
+    directives,
     loading,
     fallback,
   }: CreateRendererProps) {
+    const directiveRegistry = useMemo(
+      () => (directives ? createDirectiveRegistry(directives) : undefined),
+      [directives],
+    );
+
     // Wrap onAction with a Proxy so any action name routes to the callback
     const actionHandlers = onAction
       ? new Proxy(
@@ -767,15 +775,17 @@ export function createRenderer<
       >
         <VisibilityProvider>
           <ActionProvider handlers={actionHandlers}>
-            <ValidationProvider>
-              <Renderer
-                spec={spec}
-                registry={registry}
-                loading={loading}
-                fallback={fallback}
-              />
-              <ConfirmationDialogManager />
-            </ValidationProvider>
+            <DirectivesContext.Provider value={directiveRegistry}>
+              <ValidationProvider>
+                <Renderer
+                  spec={spec}
+                  registry={registry}
+                  loading={loading}
+                  fallback={fallback}
+                />
+                <ConfirmationDialogManager />
+              </ValidationProvider>
+            </DirectivesContext.Provider>
           </ActionProvider>
         </VisibilityProvider>
       </StateProvider>
