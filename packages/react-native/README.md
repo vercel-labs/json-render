@@ -215,20 +215,55 @@ Register custom directives through `JSONUIProvider` or a component returned by `
 import { defineDirective, resolvePropValue } from "@json-render/core";
 import { z } from "zod";
 
-const uppercase = defineDirective({
-  name: "$uppercase",
-  schema: z.object({ $uppercase: z.unknown() }),
+const math = defineDirective({
+  name: "$math",
+  schema: z.object({
+    $math: z.literal("multiply"),
+    a: z.unknown(),
+    b: z.unknown(),
+  }),
   resolve(value, ctx) {
-    return String(resolvePropValue(value.$uppercase, ctx)).toUpperCase();
+    return Number(resolvePropValue(value.a, ctx)) *
+      Number(resolvePropValue(value.b, ctx));
   },
 });
 
-<JSONUIProvider directives={[uppercase]}>
+const format = defineDirective({
+  name: "$format",
+  schema: z.object({
+    $format: z.literal("currency"),
+    value: z.unknown(),
+    currency: z.string(),
+  }),
+  resolve(value, ctx) {
+    const amount = Number(resolvePropValue(value.value, ctx));
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: value.currency,
+    }).format(amount);
+  },
+});
+
+<JSONUIProvider directives={[math, format]}>
   <Renderer spec={spec} />
 </JSONUIProvider>;
 ```
 
-Directives can wrap built-in expressions such as `{ "$uppercase": { "$state": "/message" } }`. See the [directives documentation](https://json-render.dev/docs/directives) for more details.
+The directives compose in props, so `$format` can format a `$math` result that reads its operands from state:
+
+```json
+{
+  "$format": "currency",
+  "value": {
+    "$math": "multiply",
+    "a": { "$state": "/price" },
+    "b": { "$state": "/qty" }
+  },
+  "currency": "USD"
+}
+```
+
+See the [directives documentation](https://json-render.dev/docs/directives) for more details.
 
 ## Tab Navigation Pattern
 
