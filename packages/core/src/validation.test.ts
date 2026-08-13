@@ -110,28 +110,54 @@ describe("builtInValidationFunctions", () => {
   });
 
   describe("min", () => {
-    it("passes when number meets minimum", () => {
+    it("passes when a number or numeric string meets the minimum", () => {
       expect(builtInValidationFunctions.min(5, { min: 3 })).toBe(true);
       expect(builtInValidationFunctions.min(3, { min: 3 })).toBe(true);
+      expect(builtInValidationFunctions.min("5", { min: 3 })).toBe(true);
+      expect(builtInValidationFunctions.min("3", { min: 3 })).toBe(true);
     });
 
-    it("fails when number is below minimum", () => {
+    it("fails when a number or numeric string is below the minimum", () => {
       expect(builtInValidationFunctions.min(2, { min: 3 })).toBe(false);
+      expect(builtInValidationFunctions.min("2", { min: 3 })).toBe(false);
     });
 
-    it("fails for non-numbers", () => {
-      expect(builtInValidationFunctions.min("5", { min: 3 })).toBe(false);
+    it.each(["", " ", "5px", null, false, NaN, Infinity])(
+      "fails for non-numeric value %j",
+      (value) => {
+        expect(builtInValidationFunctions.min(value, { min: 3 })).toBe(false);
+      },
+    );
+
+    it("fails when min is missing or not a number", () => {
+      expect(builtInValidationFunctions.min(5, { min: "3" })).toBe(false);
+      expect(builtInValidationFunctions.min(5, {})).toBe(false);
     });
   });
 
   describe("max", () => {
-    it("passes when number meets maximum", () => {
+    it("passes when a number or numeric string meets the maximum", () => {
       expect(builtInValidationFunctions.max(3, { max: 5 })).toBe(true);
       expect(builtInValidationFunctions.max(5, { max: 5 })).toBe(true);
+      expect(builtInValidationFunctions.max("3", { max: 5 })).toBe(true);
+      expect(builtInValidationFunctions.max("5", { max: 5 })).toBe(true);
     });
 
-    it("fails when number exceeds maximum", () => {
+    it("fails when a number or numeric string exceeds the maximum", () => {
       expect(builtInValidationFunctions.max(6, { max: 5 })).toBe(false);
+      expect(builtInValidationFunctions.max("6", { max: 5 })).toBe(false);
+    });
+
+    it.each(["", " ", "5px", null, false, NaN, Infinity])(
+      "fails for non-numeric value %j",
+      (value) => {
+        expect(builtInValidationFunctions.max(value, { max: 5 })).toBe(false);
+      },
+    );
+
+    it("fails when max is missing or not a number", () => {
+      expect(builtInValidationFunctions.max(5, { max: "5" })).toBe(false);
+      expect(builtInValidationFunctions.max(5, {})).toBe(false);
     });
   });
 
