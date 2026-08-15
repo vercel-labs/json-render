@@ -95,7 +95,7 @@ store.set("/count", 1);
 
 ## defineRegistry
 
-Create a type-safe component registry from a catalog. Components receive `props`, `children`, `emit`, `on`, and `loading` with catalog-inferred types.
+Create a type-safe component registry from a catalog. Components receive `props`, `children`, `slots`, `emit`, `on`, and `loading` with catalog-inferred types.
 
 When the catalog declares actions, the `actions` field is required. When the catalog has no actions (e.g. `actions: {}`), the field is optional. When passing stubs, any `async () => {}` is sufficient.
 
@@ -105,8 +105,12 @@ import { defineRegistry } from "@json-render/vue";
 
 const { registry } = defineRegistry(catalog, {
   components: {
-    Card: ({ props, children }) =>
-      h("div", { class: "card" }, [h("h3", null, props.title), children]),
+    Layout: ({ slots }) =>
+      h("div", { class: "layout" }, [
+        h("header", null, slots.header?.()),
+        h("main", null, slots.default?.()),
+        h("footer", null, slots.footer?.()),
+      ]),
     Button: ({ props, emit }) =>
       h("button", { onClick: () => emit("press") }, props.label),
   },
@@ -136,11 +140,12 @@ const { registry } = defineRegistry(catalog, {
 ### Component Props (via defineRegistry)
 
 ```typescript
-import type { VNode } from "vue";
+import type { Slots, VNode } from "vue";
 
 interface ComponentContext<P> {
   props: P;                          // Typed props from catalog
   children?: VNode | VNode[];        // Rendered children (for container components)
+  slots: Slots;                      // Vue-native slot functions
   emit: (event: string) => void;     // Emit a named event (always defined)
   on: (event: string) => EventHandle; // Get event handle with metadata
   loading?: boolean;
@@ -153,6 +158,22 @@ interface EventHandle {
   bound: boolean;                // Whether any handler is bound
 }
 ```
+
+Use `children` for the default slot. For other slots declared by the catalog, add a top-level `slots` map to the spec element:
+
+```json
+{
+  "type": "Layout",
+  "props": {},
+  "children": ["main-content"],
+  "slots": {
+    "header": ["page-heading"],
+    "footer": ["page-actions"]
+  }
+}
+```
+
+The component renders these regions with Vue's native slot functions: `slots.header?.()`, `slots.footer?.()`, and so on. `slots.default?.()` renders the spec's `children`; `children` is a convenience alias for that rendered result. In the JSON spec, keep default content in `children` rather than adding a `default` entry to `slots`.
 
 Use `emit("press")` for simple event firing. Use `on("click")` when you need metadata like `shouldPreventDefault`:
 

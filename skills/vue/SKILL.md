@@ -28,7 +28,13 @@ export const catalog = defineCatalog(schema, {
   components: {
     Card: {
       props: z.object({ title: z.string(), description: z.string().nullable() }),
+      slots: ["default"],
       description: "A card container",
+    },
+    Layout: {
+      props: z.object({}),
+      slots: ["default", "header", "footer"],
+      description: "Layout with named content regions",
     },
     Button: {
       props: z.object({ label: z.string(), action: z.string() }),
@@ -54,11 +60,35 @@ export const { registry } = defineRegistry(catalog, {
         props.description ? h("p", null, props.description) : null,
         children,
       ]),
+    Layout: ({ slots }) =>
+      h("div", null, [
+        h("header", null, slots.header?.()),
+        h("main", null, slots.default?.()),
+        h("footer", null, slots.footer?.()),
+      ]),
     Button: ({ props, emit }) =>
       h("button", { onClick: () => emit("press") }, props.label),
   },
 });
 ```
+
+## Named Slots
+
+Use `children` for the `"default"` slot. Use the element's top-level `slots` object for other slot names declared by the catalog:
+
+```json
+{
+  "type": "Layout",
+  "props": {},
+  "children": ["main"],
+  "slots": {
+    "header": ["heading"],
+    "footer": ["actions"]
+  }
+}
+```
+
+Registry components receive Vue-native slot functions. Render them with `slots.header?.()`, `slots.footer?.()`, and so on. `slots.default?.()` renders the spec's `children`; the `children` context field is a convenience alias for that rendered result. In the JSON spec, keep default content in `children` rather than adding a `default` entry to `slots`.
 
 ### Render Specs
 

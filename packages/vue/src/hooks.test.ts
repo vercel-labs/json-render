@@ -128,6 +128,31 @@ describe("buildSpecFromParts", () => {
     ];
     expect(buildSpecFromParts(parts)).toBeNull();
   });
+
+  it("preserves named slots in nested spec parts", () => {
+    const spec = buildSpecFromParts([
+      {
+        type: SPEC_DATA_PART_TYPE,
+        data: {
+          type: "nested",
+          spec: {
+            type: "Layout",
+            props: {},
+            slots: {
+              header: [
+                { type: "Heading", props: { text: "Header" }, children: [] },
+              ],
+            },
+          },
+        },
+      },
+    ]);
+
+    expect(spec).not.toBeNull();
+    const root = spec!.elements[spec!.root]!;
+    expect(root.slots?.header).toHaveLength(1);
+    expect(spec!.elements[root.slots!.header![0]!]!.type).toBe("Heading");
+  });
 });
 
 // ---------------------------------------------------------------------------

@@ -1,12 +1,14 @@
 import { describe, it, expect, vi } from "vitest";
 import { defineComponent, h, type Component } from "vue";
 import { mount } from "@vue/test-utils";
-import type { Spec } from "@json-render/core";
+import { defineCatalog, type Spec } from "@json-render/core";
+import { z } from "zod";
 import { StateProvider } from "./composables/state";
 import { VisibilityProvider } from "./composables/visibility";
 import { ActionProvider } from "./composables/actions";
 import { ValidationProvider } from "./composables/validation";
 import { Renderer, defineRegistry, type ComponentRegistry } from "./renderer";
+import { schema } from "./schema";
 
 // ---------------------------------------------------------------------------
 // Minimal test catalog and registry
@@ -109,6 +111,56 @@ describe("defineRegistry", () => {
     const wrapper = mountRenderer(spec);
     expect(wrapper.find("[data-type='card']").exists()).toBe(true);
     expect(wrapper.find("[data-type='button']").exists()).toBe(true);
+  });
+
+  it("renders named slots as Vue slot functions through defineRegistry", () => {
+    const namedSlotsCatalog = defineCatalog(schema, {
+      components: {
+        Layout: {
+          props: z.object({}),
+          slots: ["default", "header", "footer"],
+        },
+        Text: {
+          props: z.object({ text: z.string() }),
+          slots: [],
+        },
+      },
+      actions: {},
+    });
+    const { registry: namedSlotsRegistry } = defineRegistry(namedSlotsCatalog, {
+      components: {
+        Layout: ({ slots }) =>
+          h("section", null, [
+            h("header", { "data-testid": "header-slot" }, slots.header?.()),
+            h("main", { "data-testid": "default-slot" }, slots.default?.()),
+            h("footer", { "data-testid": "footer-slot" }, slots.footer?.()),
+          ]),
+        Text: ({ props }) => h("span", null, props.text),
+      },
+    });
+    const spec: Spec = {
+      root: "layout",
+      elements: {
+        layout: {
+          type: "Layout",
+          props: {},
+          children: ["main"],
+          slots: {
+            header: ["header"],
+            footer: ["footer"],
+          },
+        },
+        header: { type: "Text", props: { text: "Header" } },
+        main: { type: "Text", props: { text: "Main" } },
+        footer: { type: "Text", props: { text: "Footer" } },
+      },
+    };
+
+    const wrapper = mountRenderer(spec, namedSlotsRegistry);
+
+    expect(wrapper.find('[data-testid="header-slot"]').text()).toBe("Header");
+    expect(wrapper.find('[data-testid="default-slot"]').text()).toBe("Main");
+    expect(wrapper.find('[data-testid="footer-slot"]').text()).toBe("Footer");
   });
 
   it("emit('press') fires the corresponding on.press action", async () => {

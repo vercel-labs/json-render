@@ -26,6 +26,7 @@ export const catalog = defineCatalog(schema, {
         title: z.string(),
         description: z.string().nullable(),
       }),
+      slots: ["default", "header", "footer"],
       description: "A card container",
     },
     Button: {
@@ -53,7 +54,7 @@ export const catalog = defineCatalog(schema, {
 
 ### 2. Define Component Implementations
 
-Components are written using Vue's `h()` render function. `children` is a `VNode | VNode[]` — pass it directly to your container element.
+Components are written using Vue's `h()` render function. The `slots` context uses Vue's native slot functions, so render a region with `slots.header?.()`. For convenience and React parity, `children` contains the already-rendered result of `slots.default?.()`.
 
 `defineRegistry` conditionally requires the `actions` field only when the catalog declares actions. Catalogs with `actions: {}` can omit it entirely.
 
@@ -64,11 +65,12 @@ import { catalog } from "./catalog";
 
 export const { registry } = defineRegistry(catalog, {
   components: {
-    Card: ({ props, children }) =>
+    Card: ({ props, slots }) =>
       h("div", { class: "card" }, [
-        h("h3", null, props.title),
+        h("header", null, slots.header?.() ?? h("h3", null, props.title)),
         props.description ? h("p", null, props.description) : null,
-        children,
+        slots.default?.(),
+        h("footer", null, slots.footer?.()),
       ]),
     Button: ({ props, emit }) =>
       h("button", { onClick: () => emit("press") }, props.label),
@@ -131,6 +133,7 @@ interface UIElement {
   type: string;                          // Component name from catalog
   props: Record<string, unknown>;        // Component props
   children?: string[];                   // Keys of child elements
+  slots?: Record<string, string[]>;      // Named slots mapped to child keys
   visible?: VisibilityCondition;         // Visibility condition
 }
 ```
@@ -162,6 +165,35 @@ Example spec:
   }
 }
 ```
+
+### Named Slots
+
+Use `children` for the default slot and the element's top-level `slots` object for other slot names declared by the catalog:
+
+```typescript
+Layout: ({ children, slots }) =>
+  h("div", null, [
+    h("header", null, slots.header?.()),
+    h("main", null, children),
+    h("footer", null, slots.footer?.()),
+  ]),
+```
+
+The corresponding spec maps element keys to each region:
+
+```json
+{
+  "type": "Layout",
+  "props": {},
+  "children": ["main-content"],
+  "slots": {
+    "header": ["page-heading"],
+    "footer": ["page-actions"]
+  }
+}
+```
+
+Registry components receive Vue-native slot functions and render them with `slots.header?.()`, `slots.footer?.()`, and so on. `slots.default?.()` renders the spec's `children`; `children` is an alias for that rendered result. In the JSON spec, keep default content in `children` rather than adding a `default` entry to `slots`.
 
 ## Providers
 
@@ -366,11 +398,12 @@ The `setState`, `pushState`, `removeState`, and `validateForm` actions are built
 When using `defineRegistry`, components receive these props via their render function:
 
 ```typescript
-import type { VNode } from "vue";
+import type { Slots, VNode } from "vue";
 
 interface ComponentContext<P> {
   props: P;                          // Typed props from the catalog (expressions resolved)
   children?: VNode | VNode[];        // Rendered children (for container components)
+  slots: Slots;                      // Vue-native slot functions
   emit: (event: string) => void;     // Emit a named event (always defined)
   on: (event: string) => EventHandle; // Get event handle with metadata
   loading?: boolean;                 // Whether the parent is loading

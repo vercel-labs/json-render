@@ -11,6 +11,7 @@ import {
   type Component,
   type ComputedRef,
   type PropType,
+  type Slots,
   type VNode,
 } from "vue";
 import type {
@@ -82,6 +83,11 @@ export interface ComponentRenderProps<P = Record<string, unknown>> {
  * Registry of component renderers (Vue component definitions)
  */
 export type ComponentRegistry = Record<string, Component>;
+
+const registryMetadata = new WeakMap<
+  ComponentRegistry,
+  Record<string, { slots?: string[] }>
+>();
 
 /**
  * Props for the Renderer component
@@ -395,6 +401,51 @@ const ElementRenderer = defineComponent({
         return null;
       }
 
+      const metadata = registryMetadata.get(props.registry)?.[
+        resolvedElement.type
+      ];
+      if (resolvedElement.slots && metadata?.slots) {
+        const availableSlots = new Set(metadata.slots);
+        for (const slotName of Object.keys(resolvedElement.slots)) {
+          if (slotName === "default") {
+            console.warn(
+              `[json-render] Component "${resolvedElement.type}" uses slots.default. Use "children" for default slot content.`,
+            );
+          } else if (!availableSlots.has(slotName)) {
+            console.warn(
+              `[json-render] Unknown slot "${slotName}" on component "${resolvedElement.type}". Available slots: ${metadata.slots.join(", ")}`,
+            );
+          }
+        }
+      }
+
+      const renderChildKeys = (childKeys: string[], slotName?: string) =>
+        childKeys
+          .map((childKey) => {
+            const childElement = props.spec.elements[childKey];
+            if (!childElement) {
+              if (!props.loading) {
+                const location = slotName
+                  ? `in slot "${slotName}" of "${resolvedElement.type}"`
+                  : `as child of "${resolvedElement.type}"`;
+                console.warn(
+                  `[json-render] Missing element "${childKey}" referenced ${location}. This element will not render.`,
+                );
+              }
+              return null;
+            }
+            return h(ElementRenderer, {
+              key: childKey,
+              element: childElement,
+              elementKey: childKey,
+              spec: props.spec,
+              registry: props.registry,
+              loading: props.loading,
+              fallback: props.fallback,
+            });
+          })
+          .filter((node): node is VNode => node !== null);
+
       // Render children
       const childrenVNodes: VNode | VNode[] | undefined = resolvedElement.repeat
         ? h(RepeatChildren, {
@@ -404,28 +455,20 @@ const ElementRenderer = defineComponent({
             loading: props.loading,
             fallback: props.fallback,
           })
-        : (resolvedElement.children
-            ?.map((childKey) => {
-              const childElement = props.spec.elements[childKey];
-              if (!childElement) {
-                if (!props.loading) {
-                  console.warn(
-                    `[json-render] Missing element "${childKey}" referenced as child of "${resolvedElement.type}". This element will not render.`,
-                  );
-                }
-                return null;
-              }
-              return h(ElementRenderer, {
-                key: childKey,
-                element: childElement,
-                elementKey: childKey,
-                spec: props.spec,
-                registry: props.registry,
-                loading: props.loading,
-                fallback: props.fallback,
-              });
-            })
-            .filter((n): n is VNode => n !== null) ?? undefined);
+        : resolvedElement.children
+          ? renderChildKeys(resolvedElement.children)
+          : undefined;
+
+      const namedSlots = resolvedElement.slots
+        ? Object.fromEntries(
+            Object.entries(resolvedElement.slots)
+              .filter(([slotName]) => slotName !== "default")
+              .map(([slotName, childKeys]) => [
+                slotName,
+                () => renderChildKeys(childKeys, slotName),
+              ]),
+          )
+        : {};
 
       const componentVNode = h(
         Component,
@@ -436,7 +479,7 @@ const ElementRenderer = defineComponent({
           bindings: elementBindings,
           loading: props.loading,
         },
-        { default: () => childrenVNodes },
+        { default: () => childrenVNodes, ...namedSlots },
       );
 
       // When devtools is mounted, wrap each element in a transparent span so
@@ -783,6 +826,7 @@ type DefineRegistryOptions<C extends Catalog> = {
 type DefineRegistryComponentFn = (ctx: {
   props: unknown;
   children?: VNode | VNode[];
+  slots: Slots;
   emit: (event: string) => void;
   on: (event: string) => EventHandle;
   bindings?: Record<string, string>;
@@ -815,7 +859,7 @@ type DefineRegistryActionFn = (
  * ```
  */
 export function defineRegistry<C extends Catalog>(
-  _catalog: C,
+  catalog: C,
   options: DefineRegistryOptions<C>,
 ): DefineRegistryResult {
   const registry: ComponentRegistry = {};
@@ -851,6 +895,7 @@ export function defineRegistry<C extends Catalog>(
             (componentFn as DefineRegistryComponentFn)({
               props: registryProps.element.props,
               children: slots.default?.(),
+              slots,
               emit: registryProps.emit,
               on: registryProps.on,
               bindings: registryProps.bindings,
@@ -859,6 +904,14 @@ export function defineRegistry<C extends Catalog>(
         },
       });
     }
+  }
+  const catalogComponents = (
+    catalog as {
+      data?: { components?: Record<string, { slots?: string[] }> };
+    }
+  ).data?.components;
+  if (catalogComponents) {
+    registryMetadata.set(registry, catalogComponents);
   }
 
   const actionMap = options.actions
@@ -957,6 +1010,12 @@ export function createRenderer<
 ): Component {
   const registry: ComponentRegistry =
     components as unknown as ComponentRegistry;
+  const catalogComponents = (
+    catalog.data as { components?: Record<string, { slots?: string[] }> }
+  ).components;
+  if (catalogComponents) {
+    registryMetadata.set(registry, catalogComponents);
+  }
 
   return defineComponent({
     name: "CatalogRenderer",

@@ -1,4 +1,4 @@
-import type { VNode } from "vue";
+import type { Slots, VNode } from "vue";
 import type {
   Catalog,
   InferCatalogComponents,
@@ -59,6 +59,8 @@ export interface BaseComponentProps<P = Record<string, unknown>> {
   props: P;
   /** Rendered children (from the default slot) */
   children?: VNode | VNode[];
+  /** Vue-native slot functions, including the default slot */
+  slots: Slots;
   /** Simple event emitter (shorthand). Fires the event and returns void. */
   emit: (event: string) => void;
   /** Get an event handle with metadata. Use when you need shouldPreventDefault or bound checks. */
