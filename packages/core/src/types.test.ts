@@ -215,6 +215,57 @@ describe("JSON Pointer escaping (RFC 6901)", () => {
   });
 });
 
+describe("JSON Patch array indexes (RFC 6902)", () => {
+  it.each(["1foo", "01", "1.5", "-1"])(
+    "rejects invalid array index %s",
+    (index) => {
+      const source = { items: ["a", "b", "c"] };
+      expect(getByPath(source, `/items/${index}`)).toBeUndefined();
+
+      const setData: Record<string, unknown> = { items: ["a", "b", "c"] };
+      setByPath(setData, `/items/${index}`, "x");
+      expect(setData.items).toEqual(["a", "b", "c"]);
+      expect(Object.keys(setData.items as unknown[])).toEqual(["0", "1", "2"]);
+
+      const addData: Record<string, unknown> = { items: ["a", "b", "c"] };
+      addByPath(addData, `/items/${index}`, "x");
+      expect(addData.items).toEqual(["a", "b", "c"]);
+
+      const removeData: Record<string, unknown> = { items: ["a", "b", "c"] };
+      removeByPath(removeData, `/items/${index}`);
+      expect(removeData.items).toEqual(["a", "b", "c"]);
+    },
+  );
+
+  it("accepts canonical array indexes", () => {
+    const data: Record<string, unknown> = { items: ["a", "b", "c"] };
+    setByPath(data, "/items/0", "first");
+    setByPath(data, "/items/2", "last");
+    expect(data.items).toEqual(["first", "b", "last"]);
+  });
+
+  it("preserves invalid-index-shaped keys on objects", () => {
+    const data = { items: { "01": "object key" } };
+    expect(getByPath(data, "/items/01")).toBe("object key");
+  });
+
+  it("treats unsafe numeric tokens as object keys when creating containers", () => {
+    const setData: Record<string, unknown> = {};
+    setByPath(setData, "/items/999999999999999999999", "x");
+    expect(setData).toEqual({ items: { "999999999999999999999": "x" } });
+
+    const addData: Record<string, unknown> = {};
+    addByPath(addData, "/items/999999999999999999999", "x");
+    expect(addData).toEqual({ items: { "999999999999999999999": "x" } });
+
+    const nestedData: Record<string, unknown> = { obj: {} };
+    setByPath(nestedData, "/obj/999999999999999999999/name", "value");
+    expect(nestedData).toEqual({
+      obj: { "999999999999999999999": { name: "value" } },
+    });
+  });
+});
+
 // =============================================================================
 // addByPath (RFC 6902 "add" semantics)
 // =============================================================================
