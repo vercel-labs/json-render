@@ -16,6 +16,6 @@ export const truncateDirective = defineDirective({
     const suffix = raw.suffix ?? "...";
 
     if (text.length <= maxLength) return text;
-    return text.slice(0, maxLength) + suffix;
+    return text.slice(0, maxLength - suffix.length) + suffix;
   },
 });
