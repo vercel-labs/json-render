@@ -149,6 +149,7 @@ function Dashboard({ spec }) {
 | `@json-render/xstate`       | XState Store (atom) adapter for `StateStore`                           |
 | `@json-render/mcp`          | MCP Apps integration for Claude, ChatGPT, Cursor, VS Code              |
 | `@json-render/yaml`         | YAML wire format with streaming parser, edit modes, AI SDK transform   |
+| [`ngx-json-render`](https://github.com/shteynu/ngx-json-render) | Community Angular renderer built on `@json-render/core` (signals-based, Angular ≥20) |
 
 ## Renderers
 
