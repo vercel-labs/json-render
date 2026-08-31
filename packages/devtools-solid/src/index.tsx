@@ -141,7 +141,7 @@ export function JsonRenderDevtools(props: JsonRenderDevtoolsProps) {
       reserveSpace: props.reserveSpace,
       allowDockToggle: props.allowDockToggle,
     });
-    unsubSelection = selection.subscribe((key) => {
+    unsubSelection = selection.subscribe((key: unknown) => {
       if (key) highlightElement(key);
     });
     releaseActive = markDevtoolsActive();
