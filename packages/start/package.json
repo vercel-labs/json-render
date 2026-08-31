@@ -1,0 +1,72 @@
+{
+  "name": "@json-render/start",
+  "version": "0.19.0",
+  "license": "Apache-2.0",
+  "description": "TanStack Start renderer for @json-render/core. JSON becomes full TanStack Start applications with routes, layouts, head metadata, and SSR.",
+  "keywords": [
+    "json",
+    "ui",
+    "tanstack",
+    "tanstack-start",
+    "tanstack-router",
+    "ai",
+    "generative-ui",
+    "llm",
+    "renderer",
+    "streaming",
+    "ssr",
+    "pages",
+    "routing"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vercel-labs/json-render.git",
+    "directory": "packages/start"
+  },
+  "homepage": "https://json-render.dev",
+  "bugs": {
+    "url": "https://github.com/vercel-labs/json-render/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.mjs",
+      "require": "./dist/server.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsup",
+    "dev": "tsup --watch",
+    "check-types": "tsc --noEmit",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@json-render/core": "workspace:*",
+    "@json-render/react": "workspace:*"
+  },
+  "devDependencies": {
+    "@internal/typescript-config": "workspace:*",
+    "@tanstack/react-router": "^1.130.0",
+    "@types/react": "19.2.14",
+    "tsup": "^8.0.2",
+    "typescript": "^5.4.5"
+  },
+  "peerDependencies": {
+    "@tanstack/react-router": "^1.130.0",
+    "react": "^19.2.3"
+  }
+}
