@@ -149,6 +149,30 @@ export const builtInValidationFunctions: Record<string, ValidationFunction> = {
   },
 
   /**
+   * Check if numeric value is within a range (inclusive).
+   * Combines min and max checks in a single validation.
+   */
+  between: (value: unknown, args?: Record<string, unknown>) => {
+    if (typeof value !== "number") return false;
+    const min = args?.min;
+    const max = args?.max;
+    if (typeof min !== "number" || typeof max !== "number") return false;
+    return value >= min && value <= max;
+  },
+
+  /**
+   * Check if string length is within a range (inclusive).
+   * Combines minLength and maxLength checks in a single validation.
+   */
+  lengthBetween: (value: unknown, args?: Record<string, unknown>) => {
+    if (typeof value !== "string") return false;
+    const min = args?.min;
+    const max = args?.max;
+    if (typeof min !== "number" || typeof max !== "number") return false;
+    return value.length >= min && value.length <= max;
+  },
+
+  /**
    * Check if value is a number
    */
   numeric: (value: unknown) => {
@@ -384,6 +408,22 @@ export const check = {
     type: "max",
     args: { max },
     message: message ?? `Must be at most ${max}`,
+  }),
+
+  between: (min: number, max: number, message?: string): ValidationCheck => ({
+    type: "between",
+    args: { min, max },
+    message: message ?? `Must be between ${min} and ${max}`,
+  }),
+
+  lengthBetween: (
+    min: number,
+    max: number,
+    message?: string,
+  ): ValidationCheck => ({
+    type: "lengthBetween",
+    args: { min, max },
+    message: message ?? `Must be between ${min} and ${max} characters`,
   }),
 
   url: (message = "Invalid URL"): ValidationCheck => ({
