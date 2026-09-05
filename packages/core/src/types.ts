@@ -589,13 +589,35 @@ export type SpecStreamLine = JsonPatch;
  *
  * SpecStream is json-render's streaming format where each line is a JSON patch
  * operation that progressively builds up the final spec.
+ *
+ * Includes truncation recovery: if JSON.parse fails, attempts to repair
+ * truncated JSON by closing unclosed brackets/braces before giving up.
  */
 export function parseSpecStreamLine(line: string): SpecStreamLine | null {
   const trimmed = line.trim();
   if (!trimmed || !trimmed.startsWith("{")) return null;
 
+  // First, try parsing as-is
+  const parsed = tryParseJsonPatch(trimmed);
+  if (parsed) return parsed;
+
+  // Attempt truncation recovery: close unclosed brackets/braces
+  const repaired = attemptJsonRepair(trimmed);
+  if (repaired && repaired !== trimmed) {
+    const repairedParsed = tryParseJsonPatch(repaired);
+    if (repairedParsed) return repairedParsed;
+  }
+
+  return null;
+}
+
+/**
+ * Try to parse a string as a JSON patch operation.
+ * Returns the patch if valid, null otherwise.
+ */
+function tryParseJsonPatch(str: string): SpecStreamLine | null {
   try {
-    const patch = JSON.parse(trimmed) as SpecStreamLine;
+    const patch = JSON.parse(str) as SpecStreamLine;
     if (patch.op && patch.path !== undefined) {
       return patch;
     }
@@ -603,6 +625,73 @@ export function parseSpecStreamLine(line: string): SpecStreamLine | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * Attempt to repair truncated JSON by closing unclosed brackets and braces.
+ * Only handles simple truncation cases where the JSON was cut off mid-stream.
+ *
+ * @example
+ * '{"op":"add","path":"/root","value":"main"' -> '{"op":"add","path":"/root","value":"main"}'
+ * '{"op":"add","path":"/items","value":[1,2' -> '{"op":"add","path":"/items","value":[1,2]}'
+ */
+function attemptJsonRepair(str: string): string | null {
+  // Track unclosed brackets/braces (ignoring those inside strings)
+  const stack: string[] = [];
+  let inString = false;
+  let escaped = false;
+
+  for (let i = 0; i < str.length; i++) {
+    const char = str[i]!;
+
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+
+    if (char === "\\") {
+      escaped = true;
+      continue;
+    }
+
+    if (char === '"') {
+      inString = !inString;
+      continue;
+    }
+
+    if (inString) continue;
+
+    if (char === "{" || char === "[") {
+      stack.push(char);
+    } else if (char === "}") {
+      if (stack.length === 0 || stack[stack.length - 1] !== "{") {
+        return null; // Malformed, not just truncated
+      }
+      stack.pop();
+    } else if (char === "]") {
+      if (stack.length === 0 || stack[stack.length - 1] !== "[") {
+        return null; // Malformed, not just truncated
+      }
+      stack.pop();
+    }
+  }
+
+  // If nothing is unclosed, the JSON is complete (but invalid for other reasons)
+  if (stack.length === 0) return null;
+
+  // If we're mid-string, close the string first
+  let repaired = str;
+  if (inString) {
+    repaired += '"';
+  }
+
+  // Close unclosed brackets/braces in reverse order
+  while (stack.length > 0) {
+    const opener = stack.pop()!;
+    repaired += opener === "{" ? "}" : "]";
+  }
+
+  return repaired;
 }
 
 /**
