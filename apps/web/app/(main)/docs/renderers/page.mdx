@@ -63,6 +63,15 @@ All renderers share the same workflow:
       <td>Native mobile views</td>
     </tr>
     <tr>
+      <td>TanStack Start</td>
+      <td>
+        <code>@json-render/tanstack-start</code>
+      </td>
+      <td>
+        Full React applications with routes, layouts, SSR, and head metadata
+      </td>
+    </tr>
+    <tr>
       <td>Image</td>
       <td>
         <code>@json-render/image</code>
@@ -212,6 +221,32 @@ const { registry } = defineRegistry(catalog, { components: {} });
 ```
 
 See the [@json-render/react-native API reference](/docs/api/react-native) for details.
+
+## TanStack Start
+
+Define complete TanStack Start applications with route specs, reusable layouts,
+loader-backed state, head metadata, and prerender paths. The integration uses
+the React renderer for each page and TanStack Router for navigation.
+
+```tsx
+import { createFileRoute, notFound } from "@tanstack/react-router";
+import { PageRenderer } from "@json-render/tanstack-start";
+import { createStartApp } from "@json-render/tanstack-start/server";
+
+const { getPageData, getHead } = createStartApp({ spec });
+
+export const Route = createFileRoute("/$")({
+  loader: async ({ location }) => {
+    const data = await getPageData({ pathname: location.pathname });
+    if (!data) throw notFound();
+    return data;
+  },
+  head: ({ match }) => getHead({ pathname: match.pathname }),
+  component: () => <PageRenderer {...Route.useLoaderData()} />,
+});
+```
+
+See the [@json-render/tanstack-start API reference](/docs/api/tanstack-start) for details.
 
 ## Image
 

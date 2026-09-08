@@ -46,6 +46,7 @@ export const PAGE_TITLES: Record<string, string> = {
   "docs/api/core": "@json-render/core API",
   "docs/api/react": "@json-render/react API",
   "docs/api/next": "@json-render/next API",
+  "docs/api/tanstack-start": "@json-render/tanstack-start API",
   "docs/api/vue": "@json-render/vue API",
   "docs/api/solid": "@json-render/solid API",
   "docs/api/react-pdf": "@json-render/react-pdf API",

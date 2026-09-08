@@ -10,6 +10,7 @@ json-render ships with skills that teach AI coding agents how to use each packag
 
 - **core** — Core schemas, catalogs, and AI prompt generation.
 - **react** — React renderer that turns JSON specs into React component trees.
+- **tanstack-start** — Full TanStack Start applications with routes, layouts, SSR loaders, and head metadata.
 - **react-pdf** — PDF renderer using `@react-pdf/renderer`.
 - **react-email** — Email renderer that produces HTML or plain-text emails.
 - **react-native** — React Native renderer for native mobile UIs.
@@ -31,6 +32,7 @@ json-render ships with skills that teach AI coding agents how to use each packag
 ```bash
 npx skills add vercel-labs/json-render --skill core
 npx skills add vercel-labs/json-render --skill react
+npx skills add vercel-labs/json-render --skill tanstack-start
 npx skills add vercel-labs/json-render --skill react-pdf
 npx skills add vercel-labs/json-render --skill react-email
 npx skills add vercel-labs/json-render --skill react-native
@@ -57,6 +59,10 @@ The foundational skill. Teaches agents how to define catalogs, create schemas, b
 ## react
 
 Teaches agents how to render JSON specs as React component trees using `JsonRender`, `JsonRenderClient`, and `useJsonRender`. Covers custom component registries, client-side interactivity, state management, and streaming integration.
+
+## tanstack-start
+
+Teaches agents how to build JSON-defined TanStack Start applications with splat routes, reusable layouts, SSR-safe loaders, head metadata, prerender paths, and client navigation.
 
 ## react-pdf
 

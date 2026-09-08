@@ -1,0 +1,349 @@
+import { pageMetadata } from "@/lib/page-metadata";
+
+export const metadata = pageMetadata("docs/api/tanstack-start");
+
+# @json-render/tanstack-start
+
+TanStack Start renderer for JSON-defined applications with routes, layouts,
+head metadata, SSR loaders, prerender paths, and client navigation.
+
+## Installation
+
+```bash
+npm install @json-render/core @json-render/react @json-render/tanstack-start
+```
+
+## schema
+
+Use the Start application schema to generate full multi-page specs.
+
+```typescript
+import { defineCatalog } from "@json-render/core";
+import {
+  schema,
+  startComponentDefinitions,
+} from "@json-render/tanstack-start/server";
+import { z } from "zod";
+
+const catalog = defineCatalog(schema, {
+  components: {
+    ...startComponentDefinitions,
+    Card: {
+      props: z.object({ title: z.string() }),
+      description: "Card container",
+    },
+    NavBar: {
+      props: z.object({}),
+      slots: ["default"],
+      description: "Application navigation",
+    },
+  },
+  actions: {},
+});
+```
+
+The generation prompt teaches TanStack Router's `$param` and `$` splat route
+syntax, reusable layouts, escaped JSON Patch route keys, and the built-in
+`Slot`, `Link`, and `navigate` capabilities.
+
+Include `startComponentDefinitions` in the catalog so generated `Slot` and
+`Link` elements pass validation. `PageRenderer` supplies their React
+implementations automatically.
+
+## createStartApp
+
+Create helpers for a TanStack Start splat route.
+
+```typescript
+import { createStartApp } from "@json-render/tanstack-start/server";
+
+export const { getPageData, getHead, getStaticPaths } = createStartApp({
+  spec,
+  loaders: {
+    post: async ({ slug }) => ({
+      post: await getPost(slug as string),
+    }),
+  },
+});
+```
+
+### Options
+
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <code>spec</code>
+      </td>
+      <td>
+        <code>
+          {"StartAppSpec | (() => StartAppSpec | Promise<StartAppSpec>)"}
+        </code>
+      </td>
+      <td>A static application spec or an async spec factory</td>
+    </tr>
+    <tr>
+      <td>
+        <code>loaders</code>
+      </td>
+      <td>
+        <code>{"Record<string, LoaderFn>"}</code>
+      </td>
+      <td>Named data loaders referenced by route specs</td>
+    </tr>
+  </tbody>
+</table>
+
+### Returns
+
+<table>
+  <thead>
+    <tr>
+      <th>Helper</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <code>getPageData</code>
+      </td>
+      <td>
+        Matches a pathname, runs its loader, and returns serializable page and
+        layout data
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <code>getHead</code>
+      </td>
+      <td>
+        Returns TanStack Router <code>meta</code> and <code>links</code>{" "}
+        descriptors
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <code>getStaticPaths</code>
+      </td>
+      <td>Returns concrete paths for TanStack Start prerendering</td>
+    </tr>
+  </tbody>
+</table>
+
+State is merged in this order: application state, page state, then loader
+data. Later sources override earlier values.
+
+## StartAppSpec
+
+```typescript
+interface StartAppSpec {
+  metadata?: StartMetadata;
+  routes: Record<string, StartRouteSpec>;
+  layouts?: Record<string, Spec>;
+  state?: Record<string, unknown>;
+}
+```
+
+Each route requires a `page` spec and can select a layout, metadata, a named
+loader, loading/error/not-found specs, and static parameters.
+
+### Route Patterns
+
+<table>
+  <thead>
+    <tr>
+      <th>Pattern</th>
+      <th>Example</th>
+      <th>Params</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <code>/</code>
+      </td>
+      <td>
+        <code>/</code>
+      </td>
+      <td>
+        <code>{"{}"}</code>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <code>/about</code>
+      </td>
+      <td>
+        <code>/about</code>
+      </td>
+      <td>
+        <code>{"{}"}</code>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <code>{"/blog/$slug"}</code>
+      </td>
+      <td>
+        <code>/blog/hello</code>
+      </td>
+      <td>
+        <code>{'{ slug: "hello" }'}</code>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <code>{"/docs/$"}</code>
+      </td>
+      <td>
+        <code>/docs/guides/intro</code>
+      </td>
+      <td>
+        <code>{'{ _splat: ["guides", "intro"] }'}</code>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+For prerendered dynamic routes, provide `staticParams`:
+
+```typescript
+routes: {
+  '/blog/$slug': {
+    page,
+    staticParams: [{ slug: 'hello' }, { slug: 'world' }],
+  },
+  '/docs/$': {
+    page: docsPage,
+    staticParams: [{ _splat: 'guides/intro' }],
+  },
+}
+```
+
+Map `getStaticPaths()` into TanStack Start's top-level `pages` configuration:
+
+```typescript
+const pages = (await getStaticPaths()).map((path) => ({ path }));
+```
+
+## TanStack Route Setup
+
+Wire the helpers to a file-based `$` splat route:
+
+```tsx
+// src/routes/$.tsx
+import { createFileRoute, notFound } from "@tanstack/react-router";
+import { PageRenderer } from "@json-render/tanstack-start";
+import { getHead, getPageData } from "@/lib/json-app";
+
+export const Route = createFileRoute("/$")({
+  loader: async ({ location }) => {
+    const data = await getPageData({ pathname: location.pathname });
+    if (!data) throw notFound();
+    return data;
+  },
+  head: ({ match }) => getHead({ pathname: match.pathname }),
+  component: Page,
+});
+
+function Page() {
+  return <PageRenderer {...Route.useLoaderData()} />;
+}
+```
+
+TanStack Router loaders are isomorphic. When a spec factory or named loader
+uses database clients, credentials, or server-only imports, invoke
+`getPageData` and `getHead` inside a TanStack Start `createServerFn` and call
+that server function from the route loader.
+
+## StartAppProvider
+
+Provide component implementations and action handlers around the root
+`Outlet`. Render `HeadContent` for route metadata.
+
+```tsx
+import {
+  createRootRoute,
+  HeadContent,
+  Outlet,
+  Scripts,
+} from "@tanstack/react-router";
+import { StartAppProvider } from "@json-render/tanstack-start";
+
+export const Route = createRootRoute({
+  component: () => (
+    <html lang="en">
+      <head>
+        <HeadContent />
+      </head>
+      <body>
+        <StartAppProvider registry={registry} handlers={handlers}>
+          <Outlet />
+        </StartAppProvider>
+        <Scripts />
+      </body>
+    </html>
+  ),
+});
+```
+
+## Built-ins
+
+- `Slot` inserts page content into a JSON-defined layout.
+- `Link` wraps TanStack Router's `Link`; generated specs use an `href` prop.
+- `navigate` performs client-side navigation from action bindings.
+- `StartLoading`, `StartErrorBoundary`, and `StartNotFound` can be used for
+  TanStack Router's route fallback component options.
+
+`Slot` and `Link` are automatically added to the page registry.
+
+## Server Utilities
+
+```typescript
+import {
+  collectStaticPaths,
+  matchRoute,
+  metadataToHead,
+  resolveMetadata,
+  splatToPath,
+} from "@json-render/tanstack-start/server";
+```
+
+## Entry Points
+
+<table>
+  <thead>
+    <tr>
+      <th>Import</th>
+      <th>Contents</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <code>@json-render/tanstack-start</code>
+      </td>
+      <td>Provider, page renderer, Link, and route fallback components</td>
+    </tr>
+    <tr>
+      <td>
+        <code>@json-render/tanstack-start/server</code>
+      </td>
+      <td>App factory, schema, matcher, metadata, and prerender helpers</td>
+    </tr>
+    <tr>
+      <td>
+        <code>@json-render/tanstack-start/catalog</code>
+      </td>
+      <td>Server-safe definitions for built-in Slot and Link components</td>
+    </tr>
+  </tbody>
+</table>
