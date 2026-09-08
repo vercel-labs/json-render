@@ -206,11 +206,15 @@ Pass named functions through the provider when generated props use
 | `/`           | `/`           | `{}`                     |
 | `/about`      | `/about`      | `{}`                     |
 | `/blog/$slug` | `/blog/hello` | `{ slug: "hello" }`      |
-| `/docs/$`     | `/docs/a/b`   | `{ _splat: ["a", "b"] }` |
+| `/docs/$`     | `/docs/a/b`   | `{ _splat: "a/b" }`       |
 
 Static routes are included in `getStaticPaths()`. Dynamic routes are included
 when their route spec supplies `staticParams`. Loader parameters are URL-decoded,
-and parameter values emitted by `getStaticPaths()` are URL-encoded.
+and splat content is a slash-delimited string under `_splat`. Parameter values
+emitted by `getStaticPaths()` are URL-encoded.
+
+Initial state is merged in this order: application state, layout state, page
+state, then loader data. Later sources override earlier values.
 
 Map the paths to TanStack Start's top-level `pages` option when prerendering:
 

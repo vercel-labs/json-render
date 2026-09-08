@@ -31,12 +31,14 @@ describe("createStartApp", () => {
     expect(data).toBeNull();
   });
 
-  it("merges global, page, and loader state in order", async () => {
+  it("merges global, layout, page, and loader state in order", async () => {
     const spec: StartAppSpec = {
       state: { a: 1, b: 1, c: 1 },
+      layouts: { main: page({ b: 2, c: 2, layout: true }) },
       routes: {
         "/blog/$slug": {
-          page: page({ b: 2, c: 2 }),
+          page: page({ c: 3, page: true }),
+          layout: "main",
           loader: "post",
         },
       },
@@ -44,12 +46,19 @@ describe("createStartApp", () => {
     const app = createStartApp({
       spec,
       loaders: {
-        post: (params) => ({ c: 3, slug: params.slug }),
+        post: (params) => ({ c: 4, slug: params.slug }),
       },
     });
     expect(
       (await app.getPageData({ pathname: "/blog/hello" }))?.initialState,
-    ).toEqual({ a: 1, b: 2, c: 3, slug: "hello" });
+    ).toEqual({
+      a: 1,
+      b: 2,
+      c: 4,
+      layout: true,
+      page: true,
+      slug: "hello",
+    });
   });
 
   it("supports async spec factories", async () => {

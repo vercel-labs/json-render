@@ -89,8 +89,8 @@ export const spec: StartAppSpec = {
 ```
 
 Routes use `/posts/$slug` for named parameters and `/docs/$` for a splat.
-Splat loader parameters are arrays under `_splat`. Escape route-key slashes as
-`~1` when generating RFC 6902 patches.
+Splat loader parameters are slash-delimited strings under `_splat`. Escape
+route-key slashes as `~1` when generating RFC 6902 patches.
 
 Every layout needs a `Slot` element. Declare `Slot` and `Link` through
 `startComponentDefinitions`; do not require consumers to register React
@@ -109,12 +109,12 @@ export const { getPageData, getHead, getStaticPaths } = createStartApp({
 });
 ```
 
-State merge precedence is application state, page state, then loader data.
-`getHead` merges app and route metadata into TanStack `meta` and `links`
-descriptors. `getStaticPaths` includes static routes plus dynamic routes with
-`staticParams`. Convert its strings to `{ path }` objects for TanStack Start's
-top-level `pages` plugin option. Loader params are URL-decoded, while values
-from `staticParams` are URL-encoded in generated paths.
+State merge precedence is application state, layout state, page state, then
+loader data. `getHead` merges app and route metadata into TanStack `meta` and
+`links` descriptors. `getStaticPaths` includes static routes plus dynamic
+routes with `staticParams`. Convert its strings to `{ path }` objects for
+TanStack Start's top-level `pages` plugin option. Loader params are URL-decoded,
+while values from `staticParams` are URL-encoded in generated paths.
 
 ## Route Wiring
 

@@ -1,3 +1,5 @@
+"use client";
+
 // React components for TanStack Start applications.
 
 export {

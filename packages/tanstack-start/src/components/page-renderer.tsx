@@ -50,9 +50,9 @@ export function PageRenderer({
   );
   const resolvedInitialState = useMemo(() => {
     if (initialState !== undefined) return initialState;
-    if (!appSpec?.state && !spec.state) return undefined;
-    return { ...appSpec?.state, ...spec.state };
-  }, [appSpec?.state, initialState, spec.state]);
+    if (!appSpec?.state && !layoutSpec?.state && !spec.state) return undefined;
+    return { ...appSpec?.state, ...layoutSpec?.state, ...spec.state };
+  }, [appSpec?.state, initialState, layoutSpec?.state, spec.state]);
 
   const page = (
     <Renderer spec={spec} registry={augmentedRegistry} loading={loading} />

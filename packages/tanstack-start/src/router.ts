@@ -71,18 +71,13 @@ export function matchRoute(
     const match = candidate.regex.exec(normalizedPath);
     if (!match) continue;
 
-    const params: Record<string, string | string[]> = {};
+    const params: Record<string, string> = {};
     let validParams = true;
     for (let index = 0; index < candidate.paramNames.length; index++) {
       const name = candidate.paramNames[index]!;
       const value = match[index + 1];
       try {
-        params[name] =
-          name === SPLAT_PARAM
-            ? value
-              ? value.split("/").map(decodeURIComponent)
-              : []
-            : decodeURIComponent(value ?? "");
+        params[name] = decodeURIComponent(value ?? "");
       } catch {
         validParams = false;
         break;
@@ -100,10 +95,10 @@ export function matchRoute(
   return null;
 }
 
-/** Convert splat segments to a pathname. */
-export function splatToPath(splat: string[] | undefined): string {
-  if (!splat || splat.length === 0) return "/";
-  return `/${splat.join("/")}`;
+/** Convert TanStack Router splat content to a pathname. */
+export function splatToPath(splat: string | undefined): string {
+  if (!splat) return "/";
+  return `/${splat}`;
 }
 
 /** Collect concrete pathnames suitable for TanStack Start prerendering. */

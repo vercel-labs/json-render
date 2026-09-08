@@ -43,16 +43,22 @@ export function createStartApp(
     const { route } = matched;
     const loader = route.loader ? loaders?.[route.loader] : undefined;
     const loaderData = loader ? await loader(matched.params) : undefined;
-    const initialState = mergeState(spec.state, route.page.state, loaderData);
+    const layoutSpec =
+      route.layout && spec.layouts
+        ? (spec.layouts[route.layout] ?? null)
+        : null;
+    const initialState = mergeState(
+      spec.state,
+      layoutSpec?.state,
+      route.page.state,
+      loaderData,
+    );
 
     return {
       spec: route.page,
       initialState:
         Object.keys(initialState).length > 0 ? initialState : undefined,
-      layoutSpec:
-        route.layout && spec.layouts
-          ? (spec.layouts[route.layout] ?? null)
-          : null,
+      layoutSpec,
     };
   }
 

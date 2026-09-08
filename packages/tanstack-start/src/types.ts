@@ -76,12 +76,12 @@ export interface StartAppSpec {
 export interface MatchedRoute {
   route: StartRouteSpec;
   pattern: string;
-  /** Splat segments are returned as an array under `_splat`. */
-  params: Record<string, string | string[]>;
+  /** Splat content is returned as a slash-delimited string under `_splat`. */
+  params: Record<string, string>;
 }
 
 export type LoaderFn = (
-  params: Record<string, string | string[]>,
+  params: Record<string, string>,
 ) => Promise<Record<string, unknown>> | Record<string, unknown>;
 
 export interface CreateStartAppOptions {

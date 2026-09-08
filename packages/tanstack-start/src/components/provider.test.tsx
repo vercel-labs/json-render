@@ -23,6 +23,10 @@ function Text({ element }: ComponentRenderProps<{ value: unknown }>) {
   return <span>{String(element.props.value)}</span>;
 }
 
+function Container({ children }: ComponentRenderProps) {
+  return <div>{children}</div>;
+}
+
 async function renderInRouter(component: React.ReactNode) {
   const rootRoute = createRootRoute({ component: () => component });
   const router = createRouter({
@@ -89,5 +93,40 @@ describe("StartAppProvider", () => {
     );
 
     expect(screen.getByText("Loading route")).toBeTruthy();
+  });
+
+  it("uses layout state when page data is rendered directly", async () => {
+    const page: Spec = {
+      root: "page",
+      elements: {
+        page: { type: "Text", props: { value: "Page" }, children: [] },
+      },
+    };
+    const layout: Spec = {
+      root: "layout",
+      state: { message: "Layout state" },
+      elements: {
+        layout: {
+          type: "Container",
+          props: {},
+          children: ["message", "slot"],
+        },
+        message: {
+          type: "Text",
+          props: { value: { $state: "/message" } },
+          children: [],
+        },
+        slot: { type: "Slot", props: {}, children: [] },
+      },
+    };
+
+    await renderInRouter(
+      <StartAppProvider registry={{ Container, Text }}>
+        <PageRenderer spec={page} layoutSpec={layout} />
+      </StartAppProvider>,
+    );
+
+    expect(screen.getByText("Layout state")).toBeTruthy();
+    expect(screen.getByText("Page")).toBeTruthy();
   });
 });

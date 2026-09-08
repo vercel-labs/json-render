@@ -43,7 +43,7 @@ describe("matchRoute", () => {
     expect(
       matchRoute(specWith({ "/docs/$": {} }), "/docs/guides/hello%20world")
         ?.params,
-    ).toEqual({ _splat: ["guides", "hello world"] });
+    ).toEqual({ _splat: "guides/hello world" });
   });
 
   it("does not match malformed encoded parameters", () => {
@@ -54,9 +54,9 @@ describe("matchRoute", () => {
 
   it("captures zero or more splat segments under _splat", () => {
     const spec = specWith({ "/docs/$": {} });
-    expect(matchRoute(spec, "/docs")?.params).toEqual({ _splat: [] });
+    expect(matchRoute(spec, "/docs")?.params).toEqual({ _splat: "" });
     expect(matchRoute(spec, "/docs/guides/intro")?.params).toEqual({
-      _splat: ["guides", "intro"],
+      _splat: "guides/intro",
     });
   });
 
@@ -99,9 +99,9 @@ describe("matchRoute", () => {
 });
 
 describe("static paths", () => {
-  it("converts splat arrays to pathnames", () => {
+  it("converts splat content to pathnames", () => {
     expect(splatToPath(undefined)).toBe("/");
-    expect(splatToPath(["docs", "intro"])).toBe("/docs/intro");
+    expect(splatToPath("docs/intro")).toBe("/docs/intro");
   });
 
   it("includes static routes and expands dynamic route params", () => {

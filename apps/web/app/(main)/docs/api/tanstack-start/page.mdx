@@ -138,8 +138,8 @@ export const { getPageData, getHead, getStaticPaths } = createStartApp({
   </tbody>
 </table>
 
-State is merged in this order: application state, page state, then loader
-data. Later sources override earlier values.
+State is merged in this order: application state, layout state, page state,
+then loader data. Later sources override earlier values.
 
 ## StartAppSpec
 
@@ -207,14 +207,15 @@ loader, loading/error/not-found specs, and static parameters.
         <code>/docs/guides/intro</code>
       </td>
       <td>
-        <code>{'{ _splat: ["guides", "intro"] }'}</code>
+        <code>{'{ _splat: "guides/intro" }'}</code>
       </td>
     </tr>
   </tbody>
 </table>
 
-Loader parameters are URL-decoded before they reach named loaders. Parameter
-values supplied through `staticParams` are URL-encoded in the paths returned by
+Loader parameters are URL-decoded before they reach named loaders. Splat
+content is a slash-delimited string under `_splat`. Parameter values supplied
+through `staticParams` are URL-encoded in the paths returned by
 `getStaticPaths()`.
 
 For prerendered dynamic routes, provide `staticParams`:
