@@ -1,4 +1,5 @@
 import React, { useMemo, type ReactNode } from "react";
+import { useMatch } from "@tanstack/react-router";
 import type { Spec } from "@json-render/core";
 import {
   JSONUIProvider,
@@ -34,6 +35,10 @@ export function PageRenderer({
     functions,
     navigate,
   } = useStartApp();
+  const renderedPathname = useMatch({
+    strict: false,
+    select: (match) => match.pathname,
+  });
   const augmentedRegistry: ComponentRegistry = useMemo(
     () => ({ ...registry, Link, Slot }),
     [registry],
@@ -58,8 +63,12 @@ export function PageRenderer({
     <Renderer spec={spec} registry={augmentedRegistry} loading={loading} />
   );
 
+  // Key from the rendered match rather than the global location. During a
+  // pending navigation, TanStack advances the location while keeping the
+  // previous match mounted until the next page is ready.
   return (
     <JSONUIProvider
+      key={renderedPathname}
       registry={augmentedRegistry}
       initialState={resolvedInitialState}
       handlers={actionHandlers}

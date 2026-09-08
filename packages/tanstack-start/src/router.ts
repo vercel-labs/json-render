@@ -54,7 +54,7 @@ export function matchRoute(
   spec: StartAppSpec,
   pathname: string,
 ): MatchedRoute | null {
-  const normalizedPath = pathname === "" ? "/" : pathname;
+  const normalizedPath = normalizePathname(pathname);
   const compiled = Object.keys(spec.routes).map(compileRoute);
 
   compiled.sort((a, b) => {
@@ -93,6 +93,11 @@ export function matchRoute(
   }
 
   return null;
+}
+
+function normalizePathname(pathname: string): string {
+  if (pathname === "" || pathname === "/") return "/";
+  return pathname.replace(/\/+$/, "") || "/";
 }
 
 /** Convert TanStack Router splat content to a pathname. */

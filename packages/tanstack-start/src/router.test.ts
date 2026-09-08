@@ -35,6 +35,14 @@ describe("matchRoute", () => {
     expect(matched?.params).toEqual({ slug: "hello" });
   });
 
+  it("matches static and dynamic routes with trailing slashes", () => {
+    const spec = specWith({ "/about": {}, "/blog/$slug": {} });
+    expect(matchRoute(spec, "/about/")?.pattern).toBe("/about");
+    expect(matchRoute(spec, "/blog/hello/")?.params).toEqual({
+      slug: "hello",
+    });
+  });
+
   it("decodes dynamic and splat parameters", () => {
     expect(
       matchRoute(specWith({ "/blog/$slug": {} }), "/blog/hello%20world")

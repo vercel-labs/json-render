@@ -15,7 +15,8 @@ export default defineConfig([
     format: ["cjs", "esm"],
     dts: true,
     sourcemap: true,
-    splitting: true,
+    splitting: false,
+    banner: ({ format }) => (format === "cjs" ? { js: '"use client";' } : {}),
     external: sharedExternal,
   },
   {
