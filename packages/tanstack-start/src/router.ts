@@ -23,7 +23,7 @@ function compileRoute(pattern: string): CompiledRoute {
     if (segment === "$") {
       paramNames.push(SPLAT_PARAM);
       segmentRanks.push(SPLAT_SEGMENT_RANK);
-      regexParts.push("(?:/(.+))?");
+      regexParts.push("(?:/(.*))?");
     } else if (segment.startsWith("$") && segment.length > 1) {
       paramNames.push(segment.slice(1));
       segmentRanks.push(DYNAMIC_SEGMENT_RANK);

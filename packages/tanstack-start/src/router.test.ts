@@ -55,8 +55,15 @@ describe("matchRoute", () => {
   it("captures zero or more splat segments under _splat", () => {
     const spec = specWith({ "/docs/$": {} });
     expect(matchRoute(spec, "/docs")?.params).toEqual({ _splat: "" });
+    expect(matchRoute(spec, "/docs/")?.params).toEqual({ _splat: "" });
     expect(matchRoute(spec, "/docs/guides/intro")?.params).toEqual({
       _splat: "guides/intro",
+    });
+  });
+
+  it("matches an empty top-level splat at the root pathname", () => {
+    expect(matchRoute(specWith({ "/$": {} }), "/")?.params).toEqual({
+      _splat: "",
     });
   });
 
