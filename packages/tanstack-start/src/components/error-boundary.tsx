@@ -1,12 +1,14 @@
 import React from "react";
 import type { Spec } from "@json-render/core";
 import { PageRenderer } from "./page-renderer";
+import { resolveRouteFallback } from "./route-fallback";
 import { useOptionalStartApp } from "./provider";
 
 /** Props accepted by TanStack Router's `errorComponent`. */
 export interface StartErrorBoundaryProps {
   error: Error;
   reset: () => void;
+  /** Explicit fallback override; otherwise the matched route's spec is used. */
   errorSpec?: Spec | null;
 }
 
@@ -17,8 +19,14 @@ export function StartErrorBoundary({
   errorSpec,
 }: StartErrorBoundaryProps) {
   const context = useOptionalStartApp();
-  if (errorSpec && context) {
-    return <PageRenderer spec={errorSpec} />;
+  const resolvedSpec = resolveRouteFallback(
+    context?.spec,
+    context?.pathname,
+    "error",
+    errorSpec,
+  );
+  if (resolvedSpec && context) {
+    return <PageRenderer spec={resolvedSpec} />;
   }
 
   return (

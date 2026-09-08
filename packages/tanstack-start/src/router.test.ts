@@ -35,6 +35,23 @@ describe("matchRoute", () => {
     expect(matched?.params).toEqual({ slug: "hello" });
   });
 
+  it("decodes dynamic and splat parameters", () => {
+    expect(
+      matchRoute(specWith({ "/blog/$slug": {} }), "/blog/hello%20world")
+        ?.params,
+    ).toEqual({ slug: "hello world" });
+    expect(
+      matchRoute(specWith({ "/docs/$": {} }), "/docs/guides/hello%20world")
+        ?.params,
+    ).toEqual({ _splat: ["guides", "hello world"] });
+  });
+
+  it("does not match malformed encoded parameters", () => {
+    expect(
+      matchRoute(specWith({ "/blog/$slug": {} }), "/blog/%E0%A4%A"),
+    ).toBeNull();
+  });
+
   it("captures zero or more splat segments under _splat", () => {
     const spec = specWith({ "/docs/$": {} });
     expect(matchRoute(spec, "/docs")?.params).toEqual({ _splat: [] });
@@ -52,6 +69,28 @@ describe("matchRoute", () => {
     expect(matchRoute(spec, "/blog/featured")?.pattern).toBe("/blog/featured");
     expect(matchRoute(spec, "/blog/post")?.pattern).toBe("/blog/$slug");
     expect(matchRoute(spec, "/blog/2026/post")?.pattern).toBe("/blog/$");
+  });
+
+  it("ranks earlier static segments ahead of later static segments", () => {
+    const spec = specWith({
+      "/$type/edit": {},
+      "/posts/$id": {},
+    });
+    expect(matchRoute(spec, "/posts/edit")?.pattern).toBe("/posts/$id");
+  });
+
+  it("lets an earlier static segment outrank a later splat", () => {
+    const spec = specWith({
+      "/$type/edit": {},
+      "/posts/$": {},
+    });
+    expect(matchRoute(spec, "/posts/edit")?.pattern).toBe("/posts/$");
+  });
+
+  it("matches static segments case-insensitively like TanStack Router", () => {
+    expect(matchRoute(specWith({ "/about": {} }), "/ABOUT")?.pattern).toBe(
+      "/about",
+    );
   });
 
   it("returns null for an unmatched path", () => {
@@ -73,6 +112,7 @@ describe("static paths", () => {
         staticParams: [{ slug: "hello" }, { slug: "world" }],
       },
       "/docs/$": { staticParams: [{ _splat: "guides/intro" }] },
+      "/search/$query": { staticParams: [{ query: "hello world" }] },
       "/users/$id": {},
     });
     expect(collectStaticPaths(spec)).toEqual([
@@ -81,6 +121,7 @@ describe("static paths", () => {
       "/blog/hello",
       "/blog/world",
       "/docs/guides/intro",
+      "/search/hello%20world",
     ]);
   });
 });

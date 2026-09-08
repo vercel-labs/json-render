@@ -213,6 +213,10 @@ loader, loading/error/not-found specs, and static parameters.
   </tbody>
 </table>
 
+Loader parameters are URL-decoded before they reach named loaders. Parameter
+values supplied through `staticParams` are URL-encoded in the paths returned by
+`getStaticPaths()`.
+
 For prerendered dynamic routes, provide `staticParams`:
 
 ```typescript
@@ -241,7 +245,12 @@ Wire the helpers to a file-based `$` splat route:
 ```tsx
 // src/routes/$.tsx
 import { createFileRoute, notFound } from "@tanstack/react-router";
-import { PageRenderer } from "@json-render/tanstack-start";
+import {
+  PageRenderer,
+  StartErrorBoundary,
+  StartLoading,
+  StartNotFound,
+} from "@json-render/tanstack-start";
 import { getHead, getPageData } from "@/lib/json-app";
 
 export const Route = createFileRoute("/$")({
@@ -252,6 +261,9 @@ export const Route = createFileRoute("/$")({
   },
   head: ({ match }) => getHead({ pathname: match.pathname }),
   component: Page,
+  pendingComponent: StartLoading,
+  errorComponent: StartErrorBoundary,
+  notFoundComponent: StartNotFound,
 });
 
 function Page() {
@@ -277,6 +289,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { StartAppProvider } from "@json-render/tanstack-start";
+import { spec } from "@/lib/spec";
 
 export const Route = createRootRoute({
   component: () => (
@@ -285,7 +298,11 @@ export const Route = createRootRoute({
         <HeadContent />
       </head>
       <body>
-        <StartAppProvider registry={registry} handlers={handlers}>
+        <StartAppProvider
+          registry={registry}
+          handlers={handlers}
+          spec={spec}
+        >
           <Outlet />
         </StartAppProvider>
         <Scripts />
@@ -295,13 +312,32 @@ export const Route = createRootRoute({
 });
 ```
 
+Passing `spec` lets `StartLoading`, `StartErrorBoundary`, and `StartNotFound`
+automatically select the matched route's fallback specs. Their explicit
+`loadingSpec`, `errorSpec`, and `notFoundSpec` props take precedence. For a
+server-only application spec, omit `spec` and pass client-safe fallback specs
+explicitly.
+
+Pass named functions through `functions` when props use `$computed`:
+
+```tsx
+<StartAppProvider
+  registry={registry}
+  spec={spec}
+  functions={{ uppercase: ({ value }) => String(value).toUpperCase() }}
+>
+  <Outlet />
+</StartAppProvider>
+```
+
 ## Built-ins
 
 - `Slot` inserts page content into a JSON-defined layout.
 - `Link` wraps TanStack Router's `Link`; generated specs use an `href` prop.
 - `navigate` performs client-side navigation from action bindings.
-- `StartLoading`, `StartErrorBoundary`, and `StartNotFound` can be used for
-  TanStack Router's route fallback component options.
+- `StartLoading`, `StartErrorBoundary`, and `StartNotFound` resolve the matched
+  route's fallback specs when they are used as TanStack Router boundary
+  components and the provider receives `spec`.
 
 `Slot` and `Link` are automatically added to the page registry.
 

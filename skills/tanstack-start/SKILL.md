@@ -113,13 +113,19 @@ State merge precedence is application state, page state, then loader data.
 `getHead` merges app and route metadata into TanStack `meta` and `links`
 descriptors. `getStaticPaths` includes static routes plus dynamic routes with
 `staticParams`. Convert its strings to `{ path }` objects for TanStack Start's
-top-level `pages` plugin option.
+top-level `pages` plugin option. Loader params are URL-decoded, while values
+from `staticParams` are URL-encoded in generated paths.
 
 ## Route Wiring
 
 ```tsx
 import { createFileRoute, notFound } from "@tanstack/react-router";
-import { PageRenderer } from "@json-render/tanstack-start";
+import {
+  PageRenderer,
+  StartErrorBoundary,
+  StartLoading,
+  StartNotFound,
+} from "@json-render/tanstack-start";
 import { getHead, getPageData } from "@/lib/json-app";
 
 export const Route = createFileRoute("/$")({
@@ -130,6 +136,9 @@ export const Route = createFileRoute("/$")({
   },
   head: ({ match }) => getHead({ pathname: match.pathname }),
   component: () => <PageRenderer {...Route.useLoaderData()} />,
+  pendingComponent: StartLoading,
+  errorComponent: StartErrorBoundary,
+  notFoundComponent: StartNotFound,
 });
 ```
 
@@ -151,6 +160,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { StartAppProvider } from "@json-render/tanstack-start";
+import { spec } from "@/lib/spec";
 
 export const Route = createRootRoute({
   component: () => (
@@ -159,7 +169,11 @@ export const Route = createRootRoute({
         <HeadContent />
       </head>
       <body>
-        <StartAppProvider registry={registry} handlers={handlers}>
+        <StartAppProvider
+          registry={registry}
+          handlers={handlers}
+          spec={spec}
+        >
           <Outlet />
         </StartAppProvider>
         <Scripts />
@@ -171,7 +185,9 @@ export const Route = createRootRoute({
 
 Use `StartLoading`, `StartErrorBoundary`, and `StartNotFound` for TanStack
 Router's `pendingComponent`, `errorComponent`, and `notFoundComponent` options.
-Each accepts an optional json-render fallback spec.
+When `StartAppProvider` receives `spec`, each component selects the matched
+route's corresponding fallback. Explicit fallback props override that lookup.
+Pass named `$computed` implementations through `StartAppProvider.functions`.
 
 Import React components from `@json-render/tanstack-start`. Import `schema`,
 `createStartApp`, `matchRoute`, `resolveMetadata`, and static path helpers from

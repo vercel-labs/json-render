@@ -46,7 +46,7 @@ export type {
   SetState,
   StateModel,
 } from "./catalog-types";
-export type { Spec, StateStore } from "@json-render/core";
+export type { ComputedFunction, Spec, StateStore } from "@json-render/core";
 export { createStateStore } from "@json-render/core";
 export type {
   ComponentRegistry,

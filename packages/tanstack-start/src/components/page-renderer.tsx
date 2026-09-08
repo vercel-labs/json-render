@@ -27,7 +27,13 @@ export function PageRenderer({
   layoutSpec,
   loading,
 }: PageRendererProps) {
-  const { registry, handlers, navigate } = useStartApp();
+  const {
+    registry,
+    handlers,
+    spec: appSpec,
+    functions,
+    navigate,
+  } = useStartApp();
   const augmentedRegistry: ComponentRegistry = useMemo(
     () => ({ ...registry, Link, Slot }),
     [registry],
@@ -42,6 +48,11 @@ export function PageRenderer({
     }),
     [handlers, navigate],
   );
+  const resolvedInitialState = useMemo(() => {
+    if (initialState !== undefined) return initialState;
+    if (!appSpec?.state && !spec.state) return undefined;
+    return { ...appSpec?.state, ...spec.state };
+  }, [appSpec?.state, initialState, spec.state]);
 
   const page = (
     <Renderer spec={spec} registry={augmentedRegistry} loading={loading} />
@@ -50,9 +61,10 @@ export function PageRenderer({
   return (
     <JSONUIProvider
       registry={augmentedRegistry}
-      initialState={initialState}
+      initialState={resolvedInitialState}
       handlers={actionHandlers}
       navigate={navigate}
+      functions={functions}
     >
       {layoutSpec ? (
         <LayoutWithSlot

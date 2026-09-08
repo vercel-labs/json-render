@@ -112,7 +112,12 @@ export const { getPageData, getHead, getStaticPaths } = createStartApp({
 ```tsx
 // src/routes/$.tsx
 import { createFileRoute, notFound } from "@tanstack/react-router";
-import { PageRenderer } from "@json-render/tanstack-start";
+import {
+  PageRenderer,
+  StartErrorBoundary,
+  StartLoading,
+  StartNotFound,
+} from "@json-render/tanstack-start";
 import { getHead, getPageData } from "@/lib/json-app";
 
 export const Route = createFileRoute("/$")({
@@ -123,6 +128,9 @@ export const Route = createFileRoute("/$")({
   },
   head: ({ match }) => getHead({ pathname: match.pathname }),
   component: Page,
+  pendingComponent: StartLoading,
+  errorComponent: StartErrorBoundary,
+  notFoundComponent: StartNotFound,
 });
 
 function Page() {
@@ -147,6 +155,7 @@ import {
 } from "@tanstack/react-router";
 import { StartAppProvider } from "@json-render/tanstack-start";
 import { registry, handlers } from "@/lib/registry";
+import { spec } from "@/lib/spec";
 
 export const Route = createRootRoute({ component: Root });
 
@@ -157,7 +166,11 @@ function Root() {
         <HeadContent />
       </head>
       <body>
-        <StartAppProvider registry={registry} handlers={handlers}>
+        <StartAppProvider
+          registry={registry}
+          handlers={handlers}
+          spec={spec}
+        >
           <Outlet />
         </StartAppProvider>
         <Scripts />
@@ -165,6 +178,25 @@ function Root() {
     </html>
   );
 }
+```
+
+Passing `spec` lets the Router boundary components automatically render the
+matched route's `loading`, `error`, and `notFound` specs. An explicit
+`loadingSpec`, `errorSpec`, or `notFoundSpec` prop overrides this lookup. If the
+application spec is server-only, omit `spec` from the provider and supply those
+explicit props from client-safe fallback specs.
+
+Pass named functions through the provider when generated props use
+`$computed`:
+
+```tsx
+<StartAppProvider
+  registry={registry}
+  spec={spec}
+  functions={{ uppercase: ({ value }) => String(value).toUpperCase() }}
+>
+  <Outlet />
+</StartAppProvider>
 ```
 
 ## Route Patterns
@@ -177,7 +209,8 @@ function Root() {
 | `/docs/$`     | `/docs/a/b`   | `{ _splat: ["a", "b"] }` |
 
 Static routes are included in `getStaticPaths()`. Dynamic routes are included
-when their route spec supplies `staticParams`.
+when their route spec supplies `staticParams`. Loader parameters are URL-decoded,
+and parameter values emitted by `getStaticPaths()` are URL-encoded.
 
 Map the paths to TanStack Start's top-level `pages` option when prerendering:
 

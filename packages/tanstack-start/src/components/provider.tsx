@@ -1,6 +1,8 @@
 import React, { createContext, useContext, type ReactNode } from "react";
-import { useRouter } from "@tanstack/react-router";
+import { useLocation, useRouter } from "@tanstack/react-router";
+import type { ComputedFunction } from "@json-render/core";
 import type { ComponentRegistry } from "@json-render/react";
+import type { StartAppSpec } from "../types";
 
 export interface StartAppContextValue {
   registry: ComponentRegistry;
@@ -8,6 +10,9 @@ export interface StartAppContextValue {
     string,
     (params: Record<string, unknown>) => Promise<unknown> | unknown
   >;
+  spec?: StartAppSpec;
+  functions?: Record<string, ComputedFunction>;
+  pathname: string;
   navigate: (href: string) => void;
 }
 
@@ -19,16 +24,23 @@ export interface StartAppProviderProps {
     string,
     (params: Record<string, unknown>) => Promise<unknown> | unknown
   >;
+  /** Application spec used to resolve route-specific fallback components. */
+  spec?: StartAppSpec;
+  /** Named functions available to `$computed` prop expressions. */
+  functions?: Record<string, ComputedFunction>;
   children: ReactNode;
 }
 
-/** Provide the component registry, actions, and TanStack navigation. */
+/** Provide rendering dependencies, route fallbacks, and TanStack navigation. */
 export function StartAppProvider({
   registry,
   handlers,
+  spec,
+  functions,
   children,
 }: StartAppProviderProps) {
   const router = useRouter();
+  const pathname = useLocation({ select: (location) => location.pathname });
   const navigate = React.useCallback(
     (href: string) => {
       void router.navigate({ to: href });
@@ -36,8 +48,8 @@ export function StartAppProvider({
     [router],
   );
   const value = React.useMemo(
-    () => ({ registry, handlers, navigate }),
-    [registry, handlers, navigate],
+    () => ({ registry, handlers, spec, functions, pathname, navigate }),
+    [registry, handlers, spec, functions, pathname, navigate],
   );
 
   return (

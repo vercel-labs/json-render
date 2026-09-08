@@ -4,40 +4,44 @@ interface CompiledRoute {
   pattern: string;
   regex: RegExp;
   paramNames: string[];
-  splat: boolean;
-  specificity: number;
+  segmentRanks: number[];
 }
 
 const SPLAT_PARAM = "_splat";
+const STATIC_SEGMENT_RANK = 3;
+const DYNAMIC_SEGMENT_RANK = 2;
+const SPLAT_SEGMENT_RANK = 1;
 
 /** Compile a TanStack Router pattern into a pathname matcher. */
 function compileRoute(pattern: string): CompiledRoute {
   const paramNames: string[] = [];
-  let splat = false;
-  let specificity = 0;
   const segments = pattern === "/" ? [""] : pattern.split("/").slice(1);
   const regexParts: string[] = [];
+  const segmentRanks: number[] = [];
 
   for (const segment of segments) {
     if (segment === "$") {
       paramNames.push(SPLAT_PARAM);
-      splat = true;
+      segmentRanks.push(SPLAT_SEGMENT_RANK);
       regexParts.push("(?:/(.+))?");
     } else if (segment.startsWith("$") && segment.length > 1) {
       paramNames.push(segment.slice(1));
+      segmentRanks.push(DYNAMIC_SEGMENT_RANK);
       regexParts.push("/([^/]+)");
     } else {
-      specificity++;
+      segmentRanks.push(STATIC_SEGMENT_RANK);
       regexParts.push(`/${escapeRegExp(segment)}`);
     }
   }
 
   return {
     pattern,
-    regex: new RegExp(pattern === "/" ? "^/$" : `^${regexParts.join("")}$`),
+    regex: new RegExp(
+      pattern === "/" ? "^/$" : `^${regexParts.join("")}$`,
+      "i",
+    ),
     paramNames,
-    splat,
-    specificity,
+    segmentRanks,
   };
 }
 
@@ -54,11 +58,13 @@ export function matchRoute(
   const compiled = Object.keys(spec.routes).map(compileRoute);
 
   compiled.sort((a, b) => {
-    if (a.splat !== b.splat) return a.splat ? 1 : -1;
-    if (a.specificity !== b.specificity) {
-      return b.specificity - a.specificity;
+    const segmentCount = Math.max(a.segmentRanks.length, b.segmentRanks.length);
+    for (let index = 0; index < segmentCount; index++) {
+      const aRank = a.segmentRanks[index] ?? 0;
+      const bRank = b.segmentRanks[index] ?? 0;
+      if (aRank !== bRank) return bRank - aRank;
     }
-    return a.paramNames.length - b.paramNames.length;
+    return 0;
   });
 
   for (const candidate of compiled) {
@@ -66,12 +72,23 @@ export function matchRoute(
     if (!match) continue;
 
     const params: Record<string, string | string[]> = {};
+    let validParams = true;
     for (let index = 0; index < candidate.paramNames.length; index++) {
       const name = candidate.paramNames[index]!;
       const value = match[index + 1];
-      params[name] =
-        name === SPLAT_PARAM ? (value ? value.split("/") : []) : (value ?? "");
+      try {
+        params[name] =
+          name === SPLAT_PARAM
+            ? value
+              ? value.split("/").map(decodeURIComponent)
+              : []
+            : decodeURIComponent(value ?? "");
+      } catch {
+        validParams = false;
+        break;
+      }
     }
+    if (!validParams) continue;
 
     return {
       route: spec.routes[candidate.pattern]!,
@@ -117,11 +134,11 @@ function buildPathFromPattern(
   for (const segment of pattern.split("/").slice(1)) {
     if (segment === "$") {
       const value = params[SPLAT_PARAM];
-      if (value) result.push(...value.split("/"));
+      if (value) result.push(...value.split("/").map(encodeURIComponent));
     } else if (segment.startsWith("$") && segment.length > 1) {
       const value = params[segment.slice(1)];
       if (!value) return null;
-      result.push(value);
+      result.push(encodeURIComponent(value));
     } else {
       result.push(segment);
     }

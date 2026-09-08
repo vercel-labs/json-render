@@ -541,7 +541,13 @@ const app = createNextApp({ spec });
 
 ```tsx
 import { createFileRoute, notFound } from "@tanstack/react-router";
-import { PageRenderer, type StartAppSpec } from "@json-render/tanstack-start";
+import {
+  PageRenderer,
+  StartErrorBoundary,
+  StartLoading,
+  StartNotFound,
+  type StartAppSpec,
+} from "@json-render/tanstack-start";
 import { createStartApp } from "@json-render/tanstack-start/server";
 
 const spec: StartAppSpec = {
@@ -569,8 +575,15 @@ export const Route = createFileRoute("/$")({
   },
   head: ({ match }) => getHead({ pathname: match.pathname }),
   component: () => <PageRenderer {...Route.useLoaderData()} />,
+  pendingComponent: StartLoading,
+  errorComponent: StartErrorBoundary,
+  notFoundComponent: StartNotFound,
 });
 ```
+
+Wrap the root route's outlet with `<StartAppProvider spec={spec}>` so route
+fallback components can resolve the current route. Pass named `$computed`
+implementations through its `functions` prop.
 
 ### shadcn-svelte (Svelte)
 
