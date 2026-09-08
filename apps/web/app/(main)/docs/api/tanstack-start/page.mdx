@@ -218,6 +218,10 @@ content is a slash-delimited string under `_splat`. Parameter values supplied
 through `staticParams` are URL-encoded in the paths returned by
 `getStaticPaths()`.
 
+Route matching treats trailing slashes as optional and accepts both encoded and
+decoded pathname representations. This keeps loader data and route metadata in
+sync for static paths containing spaces or non-ASCII characters.
+
 For prerendered dynamic routes, provide `staticParams`:
 
 ```typescript
@@ -339,6 +343,9 @@ Pass named functions through `functions` when props use `$computed`:
 - `StartLoading`, `StartErrorBoundary`, and `StartNotFound` resolve the matched
   route's fallback specs when they are used as TanStack Router boundary
   components and the provider receives `spec`.
+
+The default `StartErrorBoundary` fallback invalidates the router and reruns the
+failed loader when the user selects **Try again**.
 
 `Slot` and `Link` are automatically added to the page registry.
 

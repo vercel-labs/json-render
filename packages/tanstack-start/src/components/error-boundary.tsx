@@ -1,4 +1,5 @@
 import React from "react";
+import { useRouter } from "@tanstack/react-router";
 import type { Spec } from "@json-render/core";
 import { PageRenderer } from "./page-renderer";
 import { resolveRouteFallback } from "./route-fallback";
@@ -18,7 +19,11 @@ export function StartErrorBoundary({
   reset,
   errorSpec,
 }: StartErrorBoundaryProps) {
+  const router = useRouter();
   const context = useOptionalStartApp();
+  const retry = React.useCallback(() => {
+    void router.invalidate().then(reset, reset);
+  }, [reset, router]);
   const resolvedSpec = resolveRouteFallback(
     context?.spec,
     context?.pathname,
@@ -36,7 +41,7 @@ export function StartErrorBoundary({
         {error.message || "An unexpected error occurred."}
       </p>
       <button
-        onClick={reset}
+        onClick={retry}
         style={{
           padding: "0.5rem 1rem",
           borderRadius: "0.375rem",

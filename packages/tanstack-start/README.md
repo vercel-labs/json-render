@@ -186,6 +186,9 @@ matched route's `loading`, `error`, and `notFound` specs. An explicit
 application spec is server-only, omit `spec` from the provider and supply those
 explicit props from client-safe fallback specs.
 
+The default `StartErrorBoundary` fallback invalidates the router and reruns the
+failed loader when the user selects **Try again**.
+
 Pass named functions through the provider when generated props use
 `$computed`:
 
@@ -212,6 +215,10 @@ Static routes are included in `getStaticPaths()`. Dynamic routes are included
 when their route spec supplies `staticParams`. Loader parameters are URL-decoded,
 and splat content is a slash-delimited string under `_splat`. Parameter values
 emitted by `getStaticPaths()` are URL-encoded.
+
+Route matching treats trailing slashes as optional and accepts both encoded and
+decoded pathname representations. This keeps loader data and route metadata in
+sync for static paths containing spaces or non-ASCII characters.
 
 Initial state is merged in this order: application state, layout state, page
 state, then loader data. Later sources override earlier values.

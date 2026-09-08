@@ -92,4 +92,24 @@ describe("createStartApp", () => {
     });
     expect(await app.getStaticPaths()).toEqual(["/about", "/blog/hello"]);
   });
+
+  it("resolves route metadata from an encoded static pathname", async () => {
+    const spec: StartAppSpec = {
+      metadata: { title: "Global" },
+      routes: {
+        "/café": {
+          page: page(),
+          metadata: { title: "Café" },
+        },
+      },
+    };
+    const app = createStartApp({ spec });
+
+    expect(await app.getPageData({ pathname: "/café" })).not.toBeNull();
+    expect((await app.getHead({ pathname: "/caf%C3%A9" })).meta).toContainEqual(
+      {
+        title: "Café",
+      },
+    );
+  });
 });

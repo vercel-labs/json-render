@@ -15,7 +15,9 @@ const SPLAT_SEGMENT_RANK = 1;
 /** Compile a TanStack Router pattern into a pathname matcher. */
 function compileRoute(pattern: string): CompiledRoute {
   const paramNames: string[] = [];
-  const segments = pattern === "/" ? [""] : pattern.split("/").slice(1);
+  const normalizedPattern = normalizePathname(pattern);
+  const segments =
+    normalizedPattern === "/" ? [""] : normalizedPattern.split("/").slice(1);
   const regexParts: string[] = [];
   const segmentRanks: number[] = [];
 
@@ -37,7 +39,7 @@ function compileRoute(pattern: string): CompiledRoute {
   return {
     pattern,
     regex: new RegExp(
-      pattern === "/" ? "^/$" : `^${regexParts.join("")}$`,
+      normalizedPattern === "/" ? "^/$" : `^${regexParts.join("")}$`,
       "i",
     ),
     paramNames,
@@ -96,8 +98,12 @@ export function matchRoute(
 }
 
 function normalizePathname(pathname: string): string {
-  if (pathname === "" || pathname === "/") return "/";
-  return pathname.replace(/\/+$/, "") || "/";
+  const withoutTrailingSlash = pathname.replace(/\/+$/, "") || "/";
+  try {
+    return decodeURI(withoutTrailingSlash);
+  } catch {
+    return withoutTrailingSlash;
+  }
 }
 
 /** Convert TanStack Router splat content to a pathname. */

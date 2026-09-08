@@ -43,6 +43,20 @@ describe("matchRoute", () => {
     });
   });
 
+  it("matches route patterns that end in trailing slashes", () => {
+    const spec = specWith({ "/about/": {}, "/blog/$slug/": {} });
+    expect(matchRoute(spec, "/about/")?.pattern).toBe("/about/");
+    expect(matchRoute(spec, "/blog/hello/")?.params).toEqual({
+      slug: "hello",
+    });
+  });
+
+  it("matches encoded and decoded static pathnames", () => {
+    const spec = specWith({ "/café": {} });
+    expect(matchRoute(spec, "/café")?.pattern).toBe("/café");
+    expect(matchRoute(spec, "/caf%C3%A9")?.pattern).toBe("/café");
+  });
+
   it("decodes dynamic and splat parameters", () => {
     expect(
       matchRoute(specWith({ "/blog/$slug": {} }), "/blog/hello%20world")
@@ -138,5 +152,18 @@ describe("static paths", () => {
       "/docs/guides/intro",
       "/search/hello%20world",
     ]);
+  });
+
+  it("emits matchable paths for route patterns with trailing slashes", () => {
+    const spec = specWith({
+      "/about/": {},
+      "/blog/$slug/": { staticParams: [{ slug: "hello" }] },
+    });
+    const paths = collectStaticPaths(spec);
+
+    expect(paths).toEqual(["/about/", "/blog/hello/"]);
+    expect(
+      paths.map((pathname) => matchRoute(spec, pathname)?.pattern),
+    ).toEqual(["/about/", "/blog/$slug/"]);
   });
 });

@@ -115,6 +115,9 @@ loader data. `getHead` merges app and route metadata into TanStack `meta` and
 routes with `staticParams`. Convert its strings to `{ path }` objects for
 TanStack Start's top-level `pages` plugin option. Loader params are URL-decoded,
 while values from `staticParams` are URL-encoded in generated paths.
+Route matching treats trailing slashes as optional and accepts encoded or
+decoded pathname representations so loader data and metadata resolve the same
+static route.
 
 ## Route Wiring
 
@@ -188,6 +191,8 @@ Router's `pendingComponent`, `errorComponent`, and `notFoundComponent` options.
 When `StartAppProvider` receives `spec`, each component selects the matched
 route's corresponding fallback. Explicit fallback props override that lookup.
 Pass named `$computed` implementations through `StartAppProvider.functions`.
+The default error boundary invalidates the router and reruns a failed loader
+when the user selects **Try again**.
 
 Import React components from `@json-render/tanstack-start`. Import `schema`,
 `createStartApp`, `matchRoute`, `resolveMetadata`, and static path helpers from
