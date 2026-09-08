@@ -100,7 +100,9 @@ export function matchRoute(
 function normalizePathname(pathname: string): string {
   const withoutTrailingSlash = pathname.replace(/\/+$/, "") || "/";
   try {
-    return decodeURI(withoutTrailingSlash);
+    // TanStack preserves encoded percent signs in pathnames so route params
+    // can decode them exactly once. Shield them while decoding static text.
+    return decodeURI(withoutTrailingSlash.replace(/%25/gi, "%2525"));
   } catch {
     return withoutTrailingSlash;
   }

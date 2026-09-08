@@ -68,6 +68,18 @@ describe("matchRoute", () => {
     ).toEqual({ _splat: "guides/hello world" });
   });
 
+  it("decodes percent signs in dynamic and splat parameters exactly once", () => {
+    expect(
+      matchRoute(specWith({ "/coupon/$code": {} }), "/coupon/100%25")?.params,
+    ).toEqual({ code: "100%" });
+    expect(
+      matchRoute(specWith({ "/coupon/$code": {} }), "/coupon/%2525")?.params,
+    ).toEqual({ code: "%25" });
+    expect(
+      matchRoute(specWith({ "/docs/$": {} }), "/docs/rates/100%25")?.params,
+    ).toEqual({ _splat: "rates/100%" });
+  });
+
   it("does not match malformed encoded parameters", () => {
     expect(
       matchRoute(specWith({ "/blog/$slug": {} }), "/blog/%E0%A4%A"),
@@ -165,5 +177,24 @@ describe("static paths", () => {
     expect(
       paths.map((pathname) => matchRoute(spec, pathname)?.pattern),
     ).toEqual(["/about/", "/blog/$slug/"]);
+  });
+
+  it("round trips percent signs in static params", () => {
+    const spec = specWith({
+      "/coupon/$code": {
+        staticParams: [{ code: "100%" }, { code: "%25" }],
+      },
+      "/docs/$": { staticParams: [{ _splat: "rates/100%" }] },
+    });
+    const paths = collectStaticPaths(spec);
+
+    expect(paths).toEqual([
+      "/coupon/100%25",
+      "/coupon/%2525",
+      "/docs/rates/100%25",
+    ]);
+    expect(paths.map((pathname) => matchRoute(spec, pathname)?.params)).toEqual(
+      [{ code: "100%" }, { code: "%25" }, { _splat: "rates/100%" }],
+    );
   });
 });
