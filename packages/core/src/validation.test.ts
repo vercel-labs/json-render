@@ -135,6 +135,91 @@ describe("builtInValidationFunctions", () => {
     });
   });
 
+  describe("between", () => {
+    it("passes when number is within range", () => {
+      expect(builtInValidationFunctions.between(5, { min: 1, max: 10 })).toBe(
+        true,
+      );
+      expect(builtInValidationFunctions.between(1, { min: 1, max: 10 })).toBe(
+        true,
+      );
+      expect(builtInValidationFunctions.between(10, { min: 1, max: 10 })).toBe(
+        true,
+      );
+    });
+
+    it("fails when number is below range", () => {
+      expect(builtInValidationFunctions.between(0, { min: 1, max: 10 })).toBe(
+        false,
+      );
+    });
+
+    it("fails when number is above range", () => {
+      expect(builtInValidationFunctions.between(11, { min: 1, max: 10 })).toBe(
+        false,
+      );
+    });
+
+    it("fails for non-numbers", () => {
+      expect(builtInValidationFunctions.between("5", { min: 1, max: 10 })).toBe(
+        false,
+      );
+    });
+
+    it("fails when min or max is not provided", () => {
+      expect(builtInValidationFunctions.between(5, { min: 1 })).toBe(false);
+      expect(builtInValidationFunctions.between(5, { max: 10 })).toBe(false);
+      expect(builtInValidationFunctions.between(5, {})).toBe(false);
+    });
+  });
+
+  describe("lengthBetween", () => {
+    it("passes when string length is within range", () => {
+      expect(
+        builtInValidationFunctions.lengthBetween("hello", { min: 3, max: 10 }),
+      ).toBe(true);
+      expect(
+        builtInValidationFunctions.lengthBetween("abc", { min: 3, max: 10 }),
+      ).toBe(true);
+      expect(
+        builtInValidationFunctions.lengthBetween("abcdefghij", {
+          min: 3,
+          max: 10,
+        }),
+      ).toBe(true);
+    });
+
+    it("fails when string is too short", () => {
+      expect(
+        builtInValidationFunctions.lengthBetween("ab", { min: 3, max: 10 }),
+      ).toBe(false);
+    });
+
+    it("fails when string is too long", () => {
+      expect(
+        builtInValidationFunctions.lengthBetween("abcdefghijk", {
+          min: 3,
+          max: 10,
+        }),
+      ).toBe(false);
+    });
+
+    it("fails for non-strings", () => {
+      expect(
+        builtInValidationFunctions.lengthBetween(12345, { min: 3, max: 10 }),
+      ).toBe(false);
+    });
+
+    it("fails when min or max is not provided", () => {
+      expect(
+        builtInValidationFunctions.lengthBetween("hello", { min: 3 }),
+      ).toBe(false);
+      expect(
+        builtInValidationFunctions.lengthBetween("hello", { max: 10 }),
+      ).toBe(false);
+    });
+  });
+
   describe("numeric", () => {
     it("passes for numbers", () => {
       expect(builtInValidationFunctions.numeric(42)).toBe(true);
@@ -599,6 +684,38 @@ describe("check helper", () => {
 
       expect(c.type).toBe("max");
       expect(c.args).toEqual({ max: 100 });
+    });
+  });
+
+  describe("between", () => {
+    it("creates between check with args", () => {
+      const c = check.between(1, 100, "Out of range");
+
+      expect(c.type).toBe("between");
+      expect(c.args).toEqual({ min: 1, max: 100 });
+      expect(c.message).toBe("Out of range");
+    });
+
+    it("uses default message", () => {
+      const c = check.between(0, 10);
+
+      expect(c.message).toBe("Must be between 0 and 10");
+    });
+  });
+
+  describe("lengthBetween", () => {
+    it("creates lengthBetween check with args", () => {
+      const c = check.lengthBetween(3, 50, "Invalid length");
+
+      expect(c.type).toBe("lengthBetween");
+      expect(c.args).toEqual({ min: 3, max: 50 });
+      expect(c.message).toBe("Invalid length");
+    });
+
+    it("uses default message", () => {
+      const c = check.lengthBetween(5, 100);
+
+      expect(c.message).toBe("Must be between 5 and 100 characters");
     });
   });
 
