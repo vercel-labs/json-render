@@ -272,7 +272,7 @@ export function JsonRenderDevtools(props: JsonRenderDevtoolsProps) {
     handleRef.current = panel;
 
     // Highlight in the host DOM as the selection changes.
-    const unsubSelection = selection.subscribe((key) => {
+    const unsubSelection = selection.subscribe((key: unknown) => {
       if (key) highlightElement(key);
     });
 
