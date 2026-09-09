@@ -72,6 +72,15 @@ const matchesImpl: ValidationFunction = (
   return value === other;
 };
 
+const toFiniteNumber = (value: unknown): number | null => {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : null;
+  }
+  if (typeof value !== "string" || value.trim() === "") return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+};
+
 /**
  * Built-in validation functions
  */
@@ -132,20 +141,22 @@ export const builtInValidationFunctions: Record<string, ValidationFunction> = {
    * Check minimum numeric value
    */
   min: (value: unknown, args?: Record<string, unknown>) => {
-    if (typeof value !== "number") return false;
+    const number = toFiniteNumber(value);
+    if (number === null) return false;
     const min = args?.min;
     if (typeof min !== "number") return false;
-    return value >= min;
+    return number >= min;
   },
 
   /**
    * Check maximum numeric value
    */
   max: (value: unknown, args?: Record<string, unknown>) => {
-    if (typeof value !== "number") return false;
+    const number = toFiniteNumber(value);
+    if (number === null) return false;
     const max = args?.max;
     if (typeof max !== "number") return false;
-    return value <= max;
+    return number <= max;
   },
 
   /**

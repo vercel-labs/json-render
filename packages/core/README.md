@@ -601,8 +601,8 @@ Watchers only fire on value changes, not on initial render. Multiple action bind
 | `numeric` | Must be a number | — |
 | `minLength` | Minimum string length | `{ min: number }` |
 | `maxLength` | Maximum string length | `{ max: number }` |
-| `min` | Minimum numeric value | `{ min: number }` |
-| `max` | Maximum numeric value | `{ max: number }` |
+| `min` | Minimum value for numbers and numeric strings | `{ min: number }` |
+| `max` | Maximum value for numbers and numeric strings | `{ max: number }` |
 | `pattern` | Must match regex | `{ pattern: string }` |
 | `matches` | Must equal another field | `{ other: { $state: "/path" } }` |
 | `equalTo` | Alias for matches | `{ other: { $state: "/path" } }` |
