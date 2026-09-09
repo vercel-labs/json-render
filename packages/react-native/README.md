@@ -195,6 +195,33 @@ Any prop value can be a dynamic expression resolved at render time:
 
 See [@json-render/core](../core/README.md) for full expression syntax.
 
+### `$template` and `$computed`
+
+```json
+{
+  "label": { "$template": "Hello, ${/user/name}!" },
+  "fullName": {
+    "$computed": "fullName",
+    "args": {
+      "first": { "$state": "/form/firstName" },
+      "last": { "$state": "/form/lastName" }
+    }
+  }
+}
+```
+
+Register named functions via the `functions` prop on `JSONUIProvider` or `createRenderer` (same as [@json-render/react](../react/README.md)):
+
+```tsx
+<JSONUIProvider
+  registry={registry}
+  initialState={{}}
+  functions={{ fullName: (args) => `${args.first} ${args.last}` }}
+>
+  <Renderer spec={spec} registry={registry} />
+</JSONUIProvider>
+```
+
 ## Tab Navigation Pattern
 
 Combine `Pressable`, `setState`, visibility conditions, and dynamic props for functional tabs:
