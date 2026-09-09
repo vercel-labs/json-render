@@ -39,7 +39,11 @@ export interface SpecIssue {
     | "empty_spec"
     | "on_in_props"
     | "repeat_in_props"
-    | "watch_in_props";
+    | "watch_in_props"
+    | "action_in_props"
+    | "actionParams_in_props"
+    | "children_in_props"
+    | "state_in_props";
 }
 
 /**
@@ -211,6 +215,46 @@ export function validateSpec(
         message: `Element "${key}" has "watch" inside "props". It should be a top-level field on the element (sibling of type/props/children).`,
         elementKey: key,
         code: "watch_in_props",
+      });
+    }
+
+    // 3f. `action` inside props (legacy pattern, should use `on` field)
+    if (props && "action" in props && props.action !== undefined) {
+      issues.push({
+        severity: "error",
+        message: `Element "${key}" has "action" inside "props". Use the "on" field instead: { "on": { "press": { "action": "...", "params": {...} } } }`,
+        elementKey: key,
+        code: "action_in_props",
+      });
+    }
+
+    // 3g. `actionParams` inside props (legacy pattern, should use `on` field)
+    if (props && "actionParams" in props && props.actionParams !== undefined) {
+      issues.push({
+        severity: "error",
+        message: `Element "${key}" has "actionParams" inside "props". Use the "on" field instead: { "on": { "press": { "action": "...", "params": {...} } } }`,
+        elementKey: key,
+        code: "actionParams_in_props",
+      });
+    }
+
+    // 3h. `children` inside props (should be a top-level field)
+    if (props && "children" in props && props.children !== undefined) {
+      issues.push({
+        severity: "error",
+        message: `Element "${key}" has "children" inside "props". It should be a top-level field on the element (sibling of type/props).`,
+        elementKey: key,
+        code: "children_in_props",
+      });
+    }
+
+    // 3i. `state` inside props (should be at spec level or use $state/$bindState)
+    if (props && "state" in props && props.state !== undefined) {
+      issues.push({
+        severity: "error",
+        message: `Element "${key}" has "state" inside "props". State should be defined at spec.state level, not inside element props. Use { "$state": "/path" } or { "$bindState": "/path" } for state references.`,
+        elementKey: key,
+        code: "state_in_props",
       });
     }
   }
@@ -455,6 +499,53 @@ export function autoFixSpec(
         watch: watch as UIElement["watch"],
       };
       fixes.push(`Moved "watch" from props to element level on "${key}".`);
+    }
+
+    // Fix children inside props → move to element level
+    currentProps = fixed.props as Record<string, unknown> | undefined;
+    if (
+      currentProps &&
+      "children" in currentProps &&
+      currentProps.children !== undefined
+    ) {
+      const { children, ...restProps } = currentProps;
+      // Only move if it's an array of strings (element keys)
+      if (
+        Array.isArray(children) &&
+        children.every((c) => typeof c === "string")
+      ) {
+        fixed = {
+          ...fixed,
+          props: restProps,
+          children: children as string[],
+        };
+        fixes.push(`Moved "children" from props to element level on "${key}".`);
+      }
+    }
+
+    // Fix legacy action/actionParams → convert to on.press
+    currentProps = fixed.props as Record<string, unknown> | undefined;
+    if (
+      currentProps &&
+      "action" in currentProps &&
+      currentProps.action !== undefined
+    ) {
+      const { action, actionParams, ...restProps } = currentProps;
+      const actionBinding = {
+        action: action as string,
+        ...(actionParams ? { params: actionParams as Record<string, unknown> } : {}),
+      };
+      fixed = {
+        ...fixed,
+        props: restProps,
+        on: {
+          ...(fixed.on ?? {}),
+          press: actionBinding,
+        },
+      };
+      fixes.push(
+        `Converted legacy "action"/"actionParams" to "on.press" on "${key}".`,
+      );
     }
 
     fixedElements[key] = fixed;
