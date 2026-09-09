@@ -14,9 +14,92 @@ import {
   createSpecStreamCompiler,
   createMixedStreamParser,
   createJsonRenderTransform,
+  parseSpecStreamLine,
   SPEC_DATA_PART_TYPE,
 } from "./types";
 import type { Spec, SpecStreamLine, StreamChunk } from "./types";
+
+// =============================================================================
+// parseSpecStreamLine - including truncation recovery
+// =============================================================================
+
+describe("parseSpecStreamLine", () => {
+  it("parses valid JSON patch operations", () => {
+    const result = parseSpecStreamLine(
+      '{"op":"add","path":"/root","value":"main"}',
+    );
+    expect(result).toEqual({ op: "add", path: "/root", value: "main" });
+  });
+
+  it("returns null for empty input", () => {
+    expect(parseSpecStreamLine("")).toBeNull();
+    expect(parseSpecStreamLine("   ")).toBeNull();
+  });
+
+  it("returns null for non-JSON input", () => {
+    expect(parseSpecStreamLine("hello world")).toBeNull();
+    expect(parseSpecStreamLine("not json")).toBeNull();
+  });
+
+  it("returns null for JSON without op field", () => {
+    expect(parseSpecStreamLine('{"path":"/root","value":"x"}')).toBeNull();
+  });
+
+  it("returns null for JSON without path field", () => {
+    expect(parseSpecStreamLine('{"op":"add","value":"x"}')).toBeNull();
+  });
+
+  describe("truncation recovery", () => {
+    it("repairs truncated JSON missing closing brace", () => {
+      const result = parseSpecStreamLine(
+        '{"op":"add","path":"/root","value":"main"',
+      );
+      expect(result).toEqual({ op: "add", path: "/root", value: "main" });
+    });
+
+    it("repairs truncated JSON missing closing bracket and brace", () => {
+      const result = parseSpecStreamLine(
+        '{"op":"add","path":"/items","value":[1,2,3]',
+      );
+      expect(result).toEqual({ op: "add", path: "/items", value: [1, 2, 3] });
+    });
+
+    it("repairs deeply nested truncated JSON", () => {
+      const result = parseSpecStreamLine(
+        '{"op":"add","path":"/el","value":{"type":"Card","props":{"title":"Hi"},"children":[]',
+      );
+      expect(result).toEqual({
+        op: "add",
+        path: "/el",
+        value: { type: "Card", props: { title: "Hi" }, children: [] },
+      });
+    });
+
+    it("repairs truncated JSON with unclosed string", () => {
+      const result = parseSpecStreamLine(
+        '{"op":"add","path":"/root","value":"main',
+      );
+      expect(result).toEqual({ op: "add", path: "/root", value: "main" });
+    });
+
+    it("repairs truncated array inside value", () => {
+      const result = parseSpecStreamLine(
+        '{"op":"add","path":"/arr","value":["a","b"',
+      );
+      expect(result).toEqual({ op: "add", path: "/arr", value: ["a", "b"] });
+    });
+
+    it("returns null for truly malformed JSON (mismatched brackets)", () => {
+      expect(parseSpecStreamLine('{"op":"add"]')).toBeNull();
+      expect(parseSpecStreamLine('{"op":"add","value":[}')).toBeNull();
+    });
+
+    it("returns null for incomplete patch without required fields", () => {
+      // Even if repaired, missing required fields = null
+      expect(parseSpecStreamLine('{"op":"add"')).toBeNull();
+    });
+  });
+});
 
 describe("getByPath", () => {
   it("gets nested values with JSON pointer paths", () => {
