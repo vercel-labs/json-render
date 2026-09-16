@@ -886,6 +886,8 @@ export const shadcnComponents = {
       hasValidation ? { checks: props.checks ?? [], validateOn } : undefined,
     );
 
+    const isHorizontal = props.direction === "horizontal";
+
     return (
       <div className="space-y-2">
         {props.label && <Label>{props.label}</Label>}
@@ -896,6 +898,7 @@ export const shadcnComponents = {
             if (hasValidation && validateOn === "change") validate();
             emit("change");
           }}
+          className={isHorizontal ? "flex flex-row flex-wrap gap-4" : undefined}
         >
           {options.map((opt, idx) => (
             <div key={`${idx}-${opt}`} className="flex items-center space-x-2">
