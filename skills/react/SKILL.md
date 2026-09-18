@@ -121,7 +121,7 @@ Use `visible` on elements to show/hide based on state. New syntax: `{ "$state": 
 | `StateProvider`      | Share state across components (JSON Pointer paths). Accepts optional `store` prop for controlled mode. |
 | `ActionProvider`     | Handle actions dispatched via the event system                                                         |
 | `VisibilityProvider` | Enable conditional rendering based on state                                                            |
-| `ValidationProvider` | Form field validation                                                                                  |
+| `ValidationProvider` | Form field validation; mounted controls unregister without deleting stored values                      |
 
 ### External Store (Controlled Mode)
 

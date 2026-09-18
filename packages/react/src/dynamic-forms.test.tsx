@@ -656,6 +656,438 @@ describe("validateForm action", () => {
     const state = getState();
     expect(state.formValidation).toEqual({ valid: true, errors: {} });
   });
+
+  it("unregisters a conditional field when it is hidden", async () => {
+    const Stack = ({
+      children,
+    }: ComponentRenderProps<Record<string, unknown>>) => <div>{children}</div>;
+    const reg = { ...registry, Stack };
+
+    const spec: Spec = {
+      state: {
+        showGuest: false,
+        form: { guestName: "" },
+        result: null,
+      },
+      root: "wrapper",
+      elements: {
+        wrapper: {
+          type: "Stack",
+          props: {},
+          children: ["showGuest", "hideGuest", "guestName", "submit"],
+        },
+        showGuest: {
+          type: "Button",
+          props: { label: "Show guest" },
+          on: {
+            press: {
+              action: "setState",
+              params: { statePath: "/showGuest", value: true },
+            },
+          },
+          children: [],
+        },
+        hideGuest: {
+          type: "Button",
+          props: { label: "Hide guest" },
+          on: {
+            press: {
+              action: "setState",
+              params: { statePath: "/showGuest", value: false },
+            },
+          },
+          children: [],
+        },
+        guestName: {
+          type: "Input",
+          props: {
+            label: "Guest name",
+            value: { $bindState: "/form/guestName" },
+            checks: [{ type: "required", message: "Guest name is required" }],
+          },
+          visible: { $state: "/showGuest", eq: true },
+          children: [],
+        },
+        submit: {
+          type: "Button",
+          props: { label: "Submit" },
+          on: {
+            press: {
+              action: "validateForm",
+              params: { statePath: "/result" },
+            },
+          },
+          children: [],
+        },
+      },
+    };
+
+    render(
+      <JSONUIProvider registry={reg} initialState={spec.state}>
+        <Renderer spec={spec} registry={reg} />
+        <StateProbe />
+      </JSONUIProvider>,
+    );
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Show guest" }));
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    });
+    expect(getState().result).toEqual({
+      valid: false,
+      errors: { "/form/guestName": ["Guest name is required"] },
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Hide guest" }));
+    });
+    expect(screen.queryByText("Guest name")).toBeNull();
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    });
+    expect(getState()).toMatchObject({
+      form: { guestName: "" },
+      result: { valid: true, errors: {} },
+    });
+  });
+
+  it("validates only the fields in the active tab", async () => {
+    const Stack = ({
+      children,
+    }: ComponentRenderProps<Record<string, unknown>>) => <div>{children}</div>;
+    const reg = { ...registry, Stack };
+
+    const spec: Spec = {
+      state: {
+        activeTab: "guest",
+        form: { guestName: "", accountName: "Ada" },
+        result: null,
+      },
+      root: "wrapper",
+      elements: {
+        wrapper: {
+          type: "Stack",
+          props: {},
+          children: [
+            "guestTab",
+            "accountTab",
+            "guestName",
+            "accountName",
+            "submit",
+          ],
+        },
+        guestTab: {
+          type: "Button",
+          props: { label: "Guest tab" },
+          on: {
+            press: {
+              action: "setState",
+              params: { statePath: "/activeTab", value: "guest" },
+            },
+          },
+          children: [],
+        },
+        accountTab: {
+          type: "Button",
+          props: { label: "Account tab" },
+          on: {
+            press: {
+              action: "setState",
+              params: { statePath: "/activeTab", value: "account" },
+            },
+          },
+          children: [],
+        },
+        guestName: {
+          type: "Input",
+          props: {
+            label: "Guest name",
+            value: { $bindState: "/form/guestName" },
+            checks: [{ type: "required", message: "Guest name is required" }],
+          },
+          visible: { $state: "/activeTab", eq: "guest" },
+          children: [],
+        },
+        accountName: {
+          type: "Input",
+          props: {
+            label: "Account name",
+            value: { $bindState: "/form/accountName" },
+            checks: [{ type: "required", message: "Account name is required" }],
+          },
+          visible: { $state: "/activeTab", eq: "account" },
+          children: [],
+        },
+        submit: {
+          type: "Button",
+          props: { label: "Submit" },
+          on: {
+            press: {
+              action: "validateForm",
+              params: { statePath: "/result" },
+            },
+          },
+          children: [],
+        },
+      },
+    };
+
+    render(
+      <JSONUIProvider registry={reg} initialState={spec.state}>
+        <Renderer spec={spec} registry={reg} />
+        <StateProbe />
+      </JSONUIProvider>,
+    );
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    });
+    expect(getState().result).toEqual({
+      valid: false,
+      errors: { "/form/guestName": ["Guest name is required"] },
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Account tab" }));
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    });
+    expect(getState().result).toEqual({ valid: true, errors: {} });
+  });
+
+  it("unregisters a mounted field when its checks are removed", async () => {
+    const Stack = ({
+      children,
+    }: ComponentRenderProps<Record<string, unknown>>) => <div>{children}</div>;
+    const reg = { ...registry, Stack };
+    const createSpec = (withChecks: boolean): Spec => ({
+      state: { form: { name: "" }, result: null },
+      root: "wrapper",
+      elements: {
+        wrapper: {
+          type: "Stack",
+          props: {},
+          children: ["name", "submit"],
+        },
+        name: {
+          type: "Input",
+          props: {
+            label: "Name",
+            value: { $bindState: "/form/name" },
+            ...(withChecks
+              ? {
+                  checks: [{ type: "required", message: "Name is required" }],
+                }
+              : {}),
+          },
+          children: [],
+        },
+        submit: {
+          type: "Button",
+          props: { label: "Submit" },
+          on: {
+            press: {
+              action: "validateForm",
+              params: { statePath: "/result" },
+            },
+          },
+          children: [],
+        },
+      },
+    });
+    const spec = createSpec(true);
+    const view = render(
+      <JSONUIProvider registry={reg} initialState={spec.state}>
+        <Renderer spec={spec} registry={reg} />
+        <StateProbe />
+      </JSONUIProvider>,
+    );
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    });
+    expect(screen.getByTestId("input-error").textContent).toBe(
+      "Name is required",
+    );
+
+    const specWithoutChecks = createSpec(false);
+    view.rerender(
+      <JSONUIProvider registry={reg} initialState={spec.state}>
+        <Renderer spec={specWithoutChecks} registry={reg} />
+        <StateProbe />
+      </JSONUIProvider>,
+    );
+    expect(screen.queryByTestId("input-error")).toBeNull();
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    });
+    expect(getState().result).toEqual({ valid: true, errors: {} });
+  });
+
+  it("keeps a shared path registered when one control unmounts", async () => {
+    const Stack = ({
+      children,
+    }: ComponentRenderProps<Record<string, unknown>>) => <div>{children}</div>;
+    const reg = { ...registry, Stack };
+    const required = [{ type: "required", message: "Name is required" }];
+
+    const spec: Spec = {
+      state: { showDuplicate: true, form: { name: "" }, result: null },
+      root: "wrapper",
+      elements: {
+        wrapper: {
+          type: "Stack",
+          props: {},
+          children: ["primary", "duplicate", "hideDuplicate", "submit"],
+        },
+        primary: {
+          type: "Input",
+          props: {
+            label: "Primary name",
+            value: { $bindState: "/form/name" },
+            checks: required,
+          },
+          children: [],
+        },
+        duplicate: {
+          type: "Input",
+          props: {
+            label: "Duplicate name",
+            value: { $bindState: "/form/name" },
+            checks: required,
+          },
+          visible: { $state: "/showDuplicate", eq: true },
+          children: [],
+        },
+        hideDuplicate: {
+          type: "Button",
+          props: { label: "Hide duplicate" },
+          on: {
+            press: {
+              action: "setState",
+              params: { statePath: "/showDuplicate", value: false },
+            },
+          },
+          children: [],
+        },
+        submit: {
+          type: "Button",
+          props: { label: "Submit" },
+          on: {
+            press: {
+              action: "validateForm",
+              params: { statePath: "/result" },
+            },
+          },
+          children: [],
+        },
+      },
+    };
+
+    render(
+      <JSONUIProvider registry={reg} initialState={spec.state}>
+        <Renderer spec={spec} registry={reg} />
+        <StateProbe />
+      </JSONUIProvider>,
+    );
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    });
+    expect(screen.getAllByTestId("input-error")).toHaveLength(2);
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Hide duplicate" }));
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    });
+    expect(getState().result).toEqual({
+      valid: false,
+      errors: { "/form/name": ["Name is required"] },
+    });
+
+    await act(async () => {
+      fireEvent.change(screen.getByTestId("input"), {
+        target: { value: "Ada" },
+      });
+      fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    });
+    expect(getState().result).toEqual({ valid: true, errors: {} });
+  });
+
+  it("moves validation when a control changes binding paths", async () => {
+    const Stack = ({
+      children,
+    }: ComponentRenderProps<Record<string, unknown>>) => <div>{children}</div>;
+    const reg = { ...registry, Stack };
+    const createSpec = (path: string): Spec => ({
+      state: { form: { oldName: "", currentName: "" }, result: null },
+      root: "wrapper",
+      elements: {
+        wrapper: {
+          type: "Stack",
+          props: {},
+          children: ["name", "submit"],
+        },
+        name: {
+          type: "Input",
+          props: {
+            label: "Name",
+            value: { $bindState: path },
+            checks: [{ type: "required", message: "Name is required" }],
+          },
+          children: [],
+        },
+        submit: {
+          type: "Button",
+          props: { label: "Submit" },
+          on: {
+            press: {
+              action: "validateForm",
+              params: { statePath: "/result" },
+            },
+          },
+          children: [],
+        },
+      },
+    });
+    const oldSpec = createSpec("/form/oldName");
+    const view = render(
+      <JSONUIProvider registry={reg} initialState={oldSpec.state}>
+        <Renderer spec={oldSpec} registry={reg} />
+        <StateProbe />
+      </JSONUIProvider>,
+    );
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    });
+    expect(getState().result).toEqual({
+      valid: false,
+      errors: { "/form/oldName": ["Name is required"] },
+    });
+
+    const currentSpec = createSpec("/form/currentName");
+    view.rerender(
+      <JSONUIProvider registry={reg} initialState={oldSpec.state}>
+        <Renderer spec={currentSpec} registry={reg} />
+        <StateProbe />
+      </JSONUIProvider>,
+    );
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    });
+    expect(getState().result).toEqual({
+      valid: false,
+      errors: { "/form/currentName": ["Name is required"] },
+    });
+  });
 });
 
 // =============================================================================

@@ -254,6 +254,8 @@ Use the built-in `validateForm` action to validate all registered fields at once
 
 The `validateForm` action runs `validateAll()` and writes `{ valid: boolean }` to the specified state path (defaults to `/formValidation`). Your submit handler can then check `{ "$state": "/formResult/valid" }` to decide whether to proceed.
 
+Controls registered through `useFieldValidation` participate in `validateForm` while they are mounted with a binding path and validation configuration. When one of these controls unmounts, changes its binding path, or removes its validation configuration, its stale errors are cleared while its stored state value is preserved. If multiple mounted controls share a path, that path remains registered until the last one unmounts. Direct calls to `useValidation().registerField()` create a durable registration that remains for the lifetime of the `ValidationProvider`.
+
 > **Note:** Actions in a list execute sequentially, but `submitForm` does not automatically gate on validation. Guard submission with a `$cond` visibility condition on the button or check `{ "$state": "/formResult/valid" }` inside your action handler to skip submission when the form is invalid.
 
 ## Next

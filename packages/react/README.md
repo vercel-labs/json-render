@@ -255,6 +255,8 @@ const { errors, validate } = useFieldValidation("/form/email", {
 });
 ```
 
+Controls registered through `useFieldValidation` participate in form-wide validation while they are mounted with a binding path and validation configuration. Unmounting one of these controls, changing its binding, or removing its validation configuration clears that path's validation errors without deleting its stored value. Direct calls to `useValidation().registerField()` create a durable registration that remains for the lifetime of the `ValidationProvider`.
+
 ## Hooks
 
 | Hook                               | Purpose                                                         |
