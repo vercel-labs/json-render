@@ -849,13 +849,28 @@ export interface SpecStreamCompiler<T> {
 }
 
 /**
+ * Options for createSpecStreamCompiler.
+ */
+export interface SpecStreamCompilerOptions<T> {
+  /** Initial state */
+  initial?: Partial<T>;
+  /**
+   * Called when a line fails to parse as a valid patch.
+   * Useful for logging malformed JSON during debugging.
+   */
+  onError?: (line: string, error?: unknown) => void;
+}
+
+/**
  * Create a streaming SpecStream compiler.
  *
  * SpecStream is json-render's streaming format. AI outputs patch operations
  * line by line, and this compiler progressively builds the final spec.
  *
  * @example
- * const compiler = createSpecStreamCompiler<TimelineSpec>();
+ * const compiler = createSpecStreamCompiler<TimelineSpec>({
+ *   onError: (line) => console.warn('Failed to parse:', line),
+ * });
  *
  * // Process streaming response
  * const reader = response.body.getReader();
@@ -870,8 +885,9 @@ export interface SpecStreamCompiler<T> {
  * }
  */
 export function createSpecStreamCompiler<T = Record<string, unknown>>(
-  initial: Partial<T> = {},
+  options: SpecStreamCompilerOptions<T> = {},
 ): SpecStreamCompiler<T> {
+  const { initial = {}, onError } = options;
   let result = { ...initial } as T;
   let buffer = "";
   const appliedPatches: SpecStreamLine[] = [];
@@ -893,9 +909,19 @@ export function createSpecStreamCompiler<T = Record<string, unknown>>(
 
         const patch = parseSpecStreamLine(trimmed);
         if (patch) {
-          applySpecStreamPatch(result as Record<string, unknown>, patch);
-          appliedPatches.push(patch);
-          newPatches.push(patch);
+          try {
+            applySpecStreamPatch(result as Record<string, unknown>, patch);
+            appliedPatches.push(patch);
+            newPatches.push(patch);
+          } catch (error) {
+            // Patch failed to apply (e.g., test operation failed)
+            if (onError) {
+              onError(trimmed, error);
+            }
+          }
+        } else if (trimmed.startsWith("{") && onError) {
+          // Line looks like JSON but failed to parse
+          onError(trimmed);
         }
       }
 
@@ -910,12 +936,21 @@ export function createSpecStreamCompiler<T = Record<string, unknown>>(
     getResult(): T {
       // Process any remaining buffer
       if (buffer.trim()) {
-        const patch = parseSpecStreamLine(buffer);
-        if (patch && !processedLines.has(buffer.trim())) {
-          processedLines.add(buffer.trim());
-          applySpecStreamPatch(result as Record<string, unknown>, patch);
-          appliedPatches.push(patch);
-          result = { ...result };
+        const trimmed = buffer.trim();
+        const patch = parseSpecStreamLine(trimmed);
+        if (patch && !processedLines.has(trimmed)) {
+          processedLines.add(trimmed);
+          try {
+            applySpecStreamPatch(result as Record<string, unknown>, patch);
+            appliedPatches.push(patch);
+            result = { ...result };
+          } catch (error) {
+            if (onError) {
+              onError(trimmed, error);
+            }
+          }
+        } else if (trimmed.startsWith("{") && !patch && onError) {
+          onError(trimmed);
         }
         buffer = "";
       }
