@@ -177,6 +177,8 @@ SpecStream format uses [RFC 6902 JSON Patch](https://datatracker.ietf.org/doc/ht
 
 All six RFC 6902 operations are supported: `add`, `remove`, `replace`, `move`, `copy`, `test`.
 
+For prototype safety, JSON Pointer paths containing `__proto__`, `constructor`, or `prototype` tokens are rejected by path utilities, state stores, and SpecStream. This applies to both `path` and `from` in compound patches.
+
 ### Low-Level Utilities
 
 ```typescript
@@ -329,6 +331,21 @@ const unsubscribe = store.subscribe(() => {
 
 Pass the store to `StateProvider` in any renderer package (`@json-render/react`, `@json-render/react-native`, `@json-render/react-pdf`) for controlled mode.
 
+#### Array paths and no-op writes
+
+When a JSON Pointer token addresses an array, it must be a canonical decimal
+index: `0` or a non-zero digit followed by digits, from `0` through
+`4294967294`. For example, `/items/1` is valid, while `/items/01`,
+`/items/1.5`, and `/items/1e1` are not. Object keys remain literal, so an
+object can still contain a key named `"01"`.
+
+`setByPath` and `addByPath` accept a terminal `-` to append to an array. It is
+not valid for array reads, removals, or intermediate traversal. Invalid array
+writes are no-ops: they do not create named array properties, change a store
+snapshot, or notify subscribers. A batched `update` applies accepted entries
+against the progressively updated snapshot and notifies once only when at
+least one entry changes state.
+
 ### Store Utilities (for adapter authors)
 
 Available via `@json-render/core/store-utils`:
@@ -357,6 +374,10 @@ const store = createStoreAdapter({
 ```
 
 The official adapter packages (`@json-render/redux`, `@json-render/zustand`, `@json-render/jotai`) are all built on top of `createStoreAdapter`.
+
+Like `createStateStore`, adapters skip their `setSnapshot` call when every
+write in a batch is unchanged or rejected. This keeps externally managed
+snapshots stable for all-invalid updates.
 
 ### Types
 

@@ -60,6 +60,126 @@ describe("getByPath", () => {
   });
 });
 
+const invalidArrayTokens = [
+  "01",
+  "00",
+  "1x",
+  "1.5",
+  "+1",
+  "-1",
+  "-0",
+  "1e1",
+  "0x10",
+  "",
+  " ",
+  "1\n",
+  "NaN",
+  "Infinity",
+  "4294967295",
+  "9007199254740992",
+  "1234567890123456789012345678901234567890",
+] as const;
+
+function expectUntouchedArray(array: unknown[], values: unknown[]) {
+  expect(array).toEqual(values);
+  expect(Object.keys(array)).toEqual(values.map((_, index) => String(index)));
+}
+
+describe("array JSON Pointer tokens", () => {
+  it.each(invalidArrayTokens)(
+    "does not coerce invalid token %j at an array leaf",
+    (token) => {
+      const data: Record<string, unknown> = { items: ["zero", "one"] };
+      const items = data.items as unknown[];
+
+      expect(getByPath(data, `/items/${token}`)).toBeUndefined();
+      setByPath(data, `/items/${token}`, "set");
+      addByPath(data, `/items/${token}`, "add");
+      removeByPath(data, `/items/${token}`);
+
+      expectUntouchedArray(items, ["zero", "one"]);
+    },
+  );
+
+  it.each(invalidArrayTokens)(
+    "does not mutate or create properties below invalid intermediate token %j",
+    (token) => {
+      const data: Record<string, unknown> = {
+        items: [{ values: ["zero", "one"] }],
+      };
+      const values = (data.items as Array<Record<string, unknown>>)[0]!
+        .values as unknown[];
+
+      expect(getByPath(data, `/items/0/values/${token}/name`)).toBeUndefined();
+      setByPath(data, `/items/0/values/${token}/name`, "set");
+      addByPath(data, `/items/0/values/${token}/name`, "add");
+      removeByPath(data, `/items/0/values/${token}/name`);
+
+      expectUntouchedArray(values, ["zero", "one"]);
+    },
+  );
+
+  it("keeps numeric-looking and special tokens as literal object keys", () => {
+    const data: Record<string, unknown> = {
+      records: { "01": {}, "": {}, "-": {}, "a/b": {} },
+    };
+
+    setByPath(data, "/records/01/name", "leading zero");
+    setByPath(data, "/records//name", "empty");
+    setByPath(data, "/records/-/name", "dash");
+    setByPath(data, "/records/a~1b/name", "escaped slash");
+
+    expect(data.records).toEqual({
+      "01": { name: "leading zero" },
+      "": { name: "empty" },
+      "-": { name: "dash" },
+      "a/b": { name: "escaped slash" },
+    });
+  });
+
+  it("infers arrays only for canonical indices and a terminal append token", () => {
+    const data: Record<string, unknown> = {};
+
+    setByPath(data, "/items/0/name", "first");
+    setByPath(data, "/appended/-", "last");
+    setByPath(data, "/records/01/name", "literal");
+    setByPath(data, "/empty//name", "literal empty");
+    setByPath(data, "/dash/-/name", "literal dash");
+
+    expect(data.items).toEqual([{ name: "first" }]);
+    expect(data.appended).toEqual(["last"]);
+    expect(data.records).toEqual({ "01": { name: "literal" } });
+    expect(data.empty).toEqual({ "": { name: "literal empty" } });
+    expect(data.dash).toEqual({ "-": { name: "literal dash" } });
+  });
+
+  it("supports canonical indices, ordering, and terminal append", () => {
+    const data: Record<string, unknown> = { items: ["zero", "two"] };
+
+    setByPath(data, "/items/1", "one");
+    addByPath(data, "/items/1", "inserted");
+    addByPath(data, "/items/-", "last");
+    removeByPath(data, "/items/1");
+
+    expect(data.items).toEqual(["zero", "one", "last"]);
+    expect(getByPath(data, "/items/-")).toBeUndefined();
+    removeByPath(data, "/items/-");
+    expect(data.items).toEqual(["zero", "one", "last"]);
+  });
+
+  it("rejects an append token for reads, removals, and intermediate traversal", () => {
+    const data: Record<string, unknown> = { items: ["zero"] };
+    const items = data.items as unknown[];
+
+    expect(getByPath(data, "/items/-")).toBeUndefined();
+    setByPath(data, "/items/-/name", "ignored");
+    addByPath(data, "/items/-/name", "ignored");
+    removeByPath(data, "/items/-/name");
+
+    expectUntouchedArray(items, ["zero"]);
+  });
+});
+
 describe("resolveRepeatStatePath", () => {
   it("preserves string paths exactly", () => {
     expect(resolveRepeatStatePath("/items")).toBe("/items");
@@ -213,6 +333,67 @@ describe("JSON Pointer escaping (RFC 6901)", () => {
     expect(getByPath(data, "/items/0")).toBe(10);
     expect(getByPath(data, "/items/2")).toBe(30);
   });
+});
+
+// =============================================================================
+// JSON Pointer prototype safety
+// =============================================================================
+
+describe("JSON Pointer prototype safety", () => {
+  const blockedTokens = ["__proto__", "constructor", "prototype"];
+
+  it.each(blockedTokens)("rejects %s in path utility writes", (token) => {
+    const pollutionKey = "__json_render_pollution_probe__";
+    const data: Record<string, unknown> = {};
+
+    try {
+      setByPath(data, `/${token}/${pollutionKey}`, "set");
+      addByPath(data, `/safe/${token}/${pollutionKey}`, "add");
+
+      expect(data).toEqual({});
+      expect(Object.prototype).not.toHaveProperty(pollutionKey);
+    } finally {
+      delete (Object.prototype as Record<string, unknown>)[pollutionKey];
+    }
+  });
+
+  it("does not read or remove values through Object.prototype", () => {
+    const pollutionKey = "__json_render_inherited_probe__";
+    (Object.prototype as Record<string, unknown>)[pollutionKey] = "keep";
+
+    try {
+      expect(getByPath({}, `/__proto__/${pollutionKey}`)).toBeUndefined();
+      removeByPath({}, `/__proto__/${pollutionKey}`);
+      expect((Object.prototype as Record<string, unknown>)[pollutionKey]).toBe(
+        "keep",
+      );
+    } finally {
+      delete (Object.prototype as Record<string, unknown>)[pollutionKey];
+    }
+  });
+
+  it.each(blockedTokens)(
+    "rejects compound patches containing %s before mutation",
+    (token) => {
+      const destination: Record<string, unknown> = { source: "one" };
+      applySpecStreamPatch(destination, {
+        op: "move",
+        from: "/source",
+        path: `/${token}/moved`,
+      });
+
+      const source: Record<string, unknown> = {};
+      applySpecStreamPatch(source, {
+        op: "copy",
+        from: `/${token}/value`,
+        path: "/copy",
+      });
+
+      expect(destination).toEqual({ source: "one" });
+      expect(source).toEqual({});
+      expect(Object.hasOwn(source, "copy")).toBe(false);
+    },
+  );
 });
 
 // =============================================================================
@@ -418,6 +599,119 @@ describe("applySpecStreamPatch", () => {
       const obj: Record<string, unknown> = { a: 1 };
       applySpecStreamPatch(obj, { op: "copy", path: "/b" });
       expect(obj).toEqual({ a: 1 });
+    });
+  });
+
+  describe("malformed array paths", () => {
+    it("does not copy undefined from a malformed source or write to a malformed destination", () => {
+      const malformedSource: Record<string, unknown> = { items: ["one"] };
+      applySpecStreamPatch(malformedSource, {
+        op: "copy",
+        from: "/items/01",
+        path: "/copy",
+      });
+
+      const malformedDestination: Record<string, unknown> = {
+        source: "one",
+        items: ["two"],
+      };
+      applySpecStreamPatch(malformedDestination, {
+        op: "copy",
+        from: "/source",
+        path: "/items/01",
+      });
+
+      expect(malformedSource).toEqual({ items: ["one"] });
+      expect(malformedDestination).toEqual({
+        source: "one",
+        items: ["two"],
+      });
+      expect(Object.keys(malformedDestination.items as unknown[])).toEqual([
+        "0",
+      ]);
+    });
+
+    it("does not delete a move source when its destination is malformed", () => {
+      const obj: Record<string, unknown> = {
+        source: "one",
+        items: ["two"],
+      };
+
+      applySpecStreamPatch(obj, {
+        op: "move",
+        from: "/source",
+        path: "/items/01",
+      });
+
+      expect(obj).toEqual({ source: "one", items: ["two"] });
+      expect(Object.keys(obj.items as unknown[])).toEqual(["0"]);
+    });
+
+    it("stages a move destination after removing its source", () => {
+      const obj: Record<string, unknown> = { items: ["one"] };
+
+      applySpecStreamPatch(obj, {
+        op: "move",
+        from: "/items",
+        path: "/items/01/value",
+      });
+
+      expect(obj).toEqual({ items: { "01": { value: ["one"] } } });
+    });
+
+    it("does not traverse unrelated branches while staging a move", () => {
+      const unrelated: Record<string, unknown> = {};
+      let current = unrelated;
+      for (let i = 0; i < 12_000; i++) {
+        const next: Record<string, unknown> = {};
+        current.next = next;
+        current = next;
+      }
+      const obj: Record<string, unknown> = { a: "one", b: "two", unrelated };
+
+      applySpecStreamPatch(obj, { op: "move", from: "/a", path: "/b" });
+
+      expect(obj).toEqual({ b: "one", unrelated });
+      expect(obj.unrelated).toBe(unrelated);
+    });
+
+    it("does not access unrelated properties while staging a move", () => {
+      const obj: Record<string, unknown> = { a: "one", b: "two" };
+      Object.defineProperty(obj, "unrelated", {
+        enumerable: true,
+        get() {
+          throw new Error("unrelated property was accessed");
+        },
+      });
+
+      expect(() =>
+        applySpecStreamPatch(obj, { op: "move", from: "/a", path: "/b" }),
+      ).not.toThrow();
+      expect(obj.b).toBe("one");
+      expect("a" in obj).toBe(false);
+    });
+
+    it("does not throw or delete the source for a self-referential staged destination", () => {
+      const obj: Record<string, unknown> = { source: "one" };
+
+      expect(() =>
+        applySpecStreamPatch(obj, {
+          op: "move",
+          from: "/source",
+          path: "/__proto__/moved",
+        }),
+      ).not.toThrow();
+
+      expect(obj).toEqual({ source: "one" });
+      expect(Object.prototype).not.toHaveProperty("moved");
+    });
+
+    it("keeps applying later stream patches after a malformed path", () => {
+      const result = compileSpecStream(`{"op":"add","path":"/items","value":[]}
+{"op":"add","path":"/items/01","value":"ignored"}
+{"op":"add","path":"/items/-","value":"accepted"}`);
+
+      expect(result).toEqual({ items: ["accepted"] });
     });
   });
 

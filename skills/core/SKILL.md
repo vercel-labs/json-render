@@ -96,6 +96,8 @@ const { result, newPatches } = compiler.push(chunk);
 const finalSpec = compiler.getResult();
 ```
 
+JSON Pointer paths containing `__proto__`, `constructor`, or `prototype` tokens are rejected by path utilities, state stores, and SpecStream. For `move` and `copy`, this applies to both `path` and `from`.
+
 ## Dynamic Prop Expressions
 
 Any prop value can be a dynamic expression resolved at render time:
@@ -261,6 +263,20 @@ store.subscribe(() => {
 ```
 
 The `StateStore` interface: `get(path)`, `set(path, value)`, `update(updates)`, `getSnapshot()`, `subscribe(listener)`.
+
+### State path rules
+
+Use JSON Pointer paths. When a token addresses an array, it must be a canonical
+decimal index (`0` or a non-zero digit followed by digits) in the JavaScript
+array-index range. Do not use leading zeros, fractions, signs, exponents, or
+whitespace: use `/items/1`, not `/items/01` or `/items/1e1`. Object keys remain
+literal, including keys such as `"01"`, `""`, and `"-"`.
+
+`set` and `update` accept a final `-` token to append to an array. It is not
+valid for reads, removals, or intermediate array traversal. Invalid array
+writes are silent no-ops: they preserve snapshot identity and do not notify
+subscribers or call an adapter's snapshot writer. A batch applies valid entries
+in order and emits at most one notification/write when state changes.
 
 ## Key Exports
 

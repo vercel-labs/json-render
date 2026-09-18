@@ -539,6 +539,21 @@ const value = getByPath(state, '/user/name');  // "Alice"
 setByPath(state, '/user/email', 'alice@example.com');
 ```
 
+Array tokens must use canonical decimal indices: `0` or a non-zero digit
+followed by digits, from `0` through `4294967294`. For example, `/items/1` is
+valid, but `/items/01`, `/items/1.5`, and `/items/1e1` are not. Object keys are
+always literal, so `{ "01": "value" }` can be addressed with `/01` when the
+current value is an object.
+
+`setByPath` and `addByPath` accept a terminal `-` to append to an array.
+Invalid array reads return `undefined`, and invalid writes or removals are
+no-ops. A `-` token is not valid for reads, removals, or intermediate array
+segments.
+
+For prototype safety, path utilities, state stores, and SpecStream patches
+reject JSON Pointer paths containing `__proto__`, `constructor`, or `prototype`
+tokens. Compound patches validate both `path` and `from` before mutating data.
+
 ### resolveDynamicValue
 
 ```typescript

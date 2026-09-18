@@ -47,6 +47,17 @@ Given this state:
 "/todos/1/done"   -> true
 ```
 
+When a token addresses an array, write the index in canonical decimal form:
+`0` or a non-zero digit followed by digits. `/todos/1` is valid; `/todos/01`,
+`/todos/1.5`, and `/todos/1e1` are not. This rule applies only to arrays, so
+an object key named `"01"` remains a literal key. Invalid array paths resolve
+to `undefined` instead of coercing to another item.
+
+For writes, a final `-` token appends to an array (for example,
+`/todos/-`). It cannot be used to read, remove, or traverse through an array.
+Rejected array writes are no-ops and do not create hidden named properties on
+arrays.
+
 ## Expressions
 
 Expressions are special objects you place in props to read dynamic values instead of hardcoding them. There are six expression types.

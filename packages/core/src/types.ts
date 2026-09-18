@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { ActionBinding } from "./actions";
+import { parseArrayIndex } from "./path-utils";
 
 /**
  * Dynamic value - can be a literal or a `{ $state }` reference to the state model.
@@ -280,34 +281,84 @@ export function parseJsonPointer(path: string): string[] {
   return raw.map(unescapeJsonPointer);
 }
 
+const blockedJsonPointerTokens = new Set([
+  "__proto__",
+  "constructor",
+  "prototype",
+]);
+
+/**
+ * Reject tokens that can traverse or modify JavaScript prototype chains.
+ * Validation happens after JSON Pointer unescaping so encoded paths cannot
+ * bypass it.
+ */
+function hasBlockedJsonPointerToken(segments: string[]): boolean {
+  return segments.some((segment) => blockedJsonPointerTokens.has(segment));
+}
+
+/** @internal Shared by JSON Pointer-based state stores. */
+export function isSafeJsonPointerPath(path: string): boolean {
+  return !hasBlockedJsonPointerToken(parseJsonPointer(path));
+}
+
 /**
  * Get a value from an object by JSON Pointer path (RFC 6901)
  */
 export function getByPath(obj: unknown, path: string): unknown {
+  const result = readByPath(obj, path);
+  return result.exists ? result.value : undefined;
+}
+
+interface PathReadResult {
+  /** False when an array token is not a canonical array index. */
+  valid: boolean;
+  /** False when a syntactically valid path does not resolve to a value. */
+  exists: boolean;
+  value?: unknown;
+}
+
+/**
+ * Read a path while preserving the distinction between a missing path and an
+ * invalid array token. Patch operations use that distinction to avoid turning
+ * malformed paths into writes of `undefined`.
+ */
+function readByPath(obj: unknown, path: string): PathReadResult {
   if (!path || path === "/") {
-    return obj;
+    return { valid: true, exists: true, value: obj };
   }
 
   const segments = parseJsonPointer(path);
+  if (hasBlockedJsonPointerToken(segments)) {
+    return { valid: false, exists: false };
+  }
 
   let current: unknown = obj;
 
   for (const segment of segments) {
     if (current === null || current === undefined) {
-      return undefined;
+      return { valid: true, exists: false };
     }
 
     if (Array.isArray(current)) {
-      const index = parseInt(segment, 10);
+      const index = parseArrayIndex(segment);
+      if (index === undefined) {
+        return { valid: false, exists: false };
+      }
+      if (!(index in current)) {
+        return { valid: true, exists: false };
+      }
       current = current[index];
     } else if (typeof current === "object") {
+      if (!(segment in current)) {
+        return { valid: true, exists: false };
+      }
       current = (current as Record<string, unknown>)[segment];
     } else {
-      return undefined;
+      return { valid: true, exists: false };
     }
   }
 
-  return current;
+  return { valid: true, exists: true, value: current };
 }
 
 export function resolveRepeatStatePath(
@@ -344,11 +395,150 @@ function joinStatePath(basePath: string, childPath: string): string {
   return `${basePath}/${child}`;
 }
 
+function isContainer(
+  value: unknown,
+): value is Record<string, unknown> | unknown[] {
+  return value !== null && typeof value === "object";
+}
+
+function createMissingContainer(
+  nextSegment: string,
+  nextIsTerminal: boolean,
+): Record<string, unknown> | unknown[] {
+  return parseArrayIndex(nextSegment) !== undefined ||
+    (nextIsTerminal && nextSegment === "-")
+    ? []
+    : {};
+}
+
 /**
- * Check if a string is a numeric index
+ * Validate a set/add path without mutating it. This prevents an invalid array
+ * token late in a path from leaving partially-created containers behind.
  */
-function isNumericIndex(str: string): boolean {
-  return /^\d+$/.test(str);
+function canWriteBySegments(
+  root: Record<string, unknown>,
+  segments: string[],
+): boolean {
+  if (hasBlockedJsonPointerToken(segments)) return false;
+
+  let current: unknown = root;
+
+  for (let i = 0; i < segments.length - 1; i++) {
+    const segment = segments[i]!;
+    const nextSegment = segments[i + 1]!;
+    const nextIsTerminal = i + 1 === segments.length - 1;
+
+    if (Array.isArray(current)) {
+      const index = parseArrayIndex(segment);
+      if (index === undefined) return false;
+      const child = current[index];
+      current = isContainer(child)
+        ? child
+        : createMissingContainer(nextSegment, nextIsTerminal);
+    } else if (isContainer(current)) {
+      const object = current as Record<string, unknown>;
+      const child = object[segment];
+      current = isContainer(child)
+        ? child
+        : createMissingContainer(nextSegment, nextIsTerminal);
+    } else {
+      return false;
+    }
+  }
+
+  if (Array.isArray(current)) {
+    const lastSegment = segments[segments.length - 1]!;
+    return lastSegment === "-" || parseArrayIndex(lastSegment) !== undefined;
+  }
+
+  return isContainer(current);
+}
+
+/**
+ * Return the mutable parent for a valid write path, creating intermediate
+ * containers after validation has succeeded.
+ */
+function getWritableParent(
+  root: Record<string, unknown>,
+  segments: string[],
+): Record<string, unknown> | unknown[] | undefined {
+  if (!canWriteBySegments(root, segments)) return undefined;
+
+  let current: Record<string, unknown> | unknown[] = root;
+
+  for (let i = 0; i < segments.length - 1; i++) {
+    const segment = segments[i]!;
+    const nextSegment = segments[i + 1]!;
+    const nextIsTerminal = i + 1 === segments.length - 1;
+
+    if (Array.isArray(current)) {
+      const index = parseArrayIndex(segment)!;
+      const child = current[index];
+      if (!isContainer(child)) {
+        current[index] = createMissingContainer(nextSegment, nextIsTerminal);
+      }
+      current = current[index] as Record<string, unknown> | unknown[];
+    } else {
+      const object = current as Record<string, unknown>;
+      const child = object[segment];
+      if (!isContainer(child)) {
+        object[segment] = createMissingContainer(nextSegment, nextIsTerminal);
+      }
+      current = object[segment] as Record<string, unknown> | unknown[];
+    }
+  }
+
+  return current;
+}
+
+function setByPathInternal(
+  obj: Record<string, unknown>,
+  path: string,
+  value: unknown,
+): boolean {
+  const segments = parseJsonPointer(path);
+  if (segments.length === 0) return false;
+
+  const current = getWritableParent(obj, segments);
+  if (!current) return false;
+
+  const lastSegment = segments[segments.length - 1]!;
+  if (Array.isArray(current)) {
+    if (lastSegment === "-") {
+      current.push(value);
+    } else {
+      current[parseArrayIndex(lastSegment)!] = value;
+    }
+  } else {
+    current[lastSegment] = value;
+  }
+
+  return true;
+}
+
+function addByPathInternal(
+  obj: Record<string, unknown>,
+  path: string,
+  value: unknown,
+): boolean {
+  const segments = parseJsonPointer(path);
+  if (segments.length === 0) return false;
+
+  const current = getWritableParent(obj, segments);
+  if (!current) return false;
+
+  const lastSegment = segments[segments.length - 1]!;
+  if (Array.isArray(current)) {
+    if (lastSegment === "-") {
+      current.push(value);
+    } else {
+      current.splice(parseArrayIndex(lastSegment)!, 0, value);
+    }
+  } else {
+    current[lastSegment] = value;
+  }
+
+  return true;
 }
 
 /**
@@ -360,44 +550,7 @@ export function setByPath(
   path: string,
   value: unknown,
 ): void {
-  const segments = parseJsonPointer(path);
-
-  if (segments.length === 0) return;
-
-  let current: Record<string, unknown> | unknown[] = obj;
-
-  for (let i = 0; i < segments.length - 1; i++) {
-    const segment = segments[i]!;
-    const nextSegment = segments[i + 1];
-    const nextIsNumeric =
-      nextSegment !== undefined &&
-      (isNumericIndex(nextSegment) || nextSegment === "-");
-
-    if (Array.isArray(current)) {
-      const index = parseInt(segment, 10);
-      if (current[index] === undefined || typeof current[index] !== "object") {
-        current[index] = nextIsNumeric ? [] : {};
-      }
-      current = current[index] as Record<string, unknown> | unknown[];
-    } else {
-      if (!(segment in current) || typeof current[segment] !== "object") {
-        current[segment] = nextIsNumeric ? [] : {};
-      }
-      current = current[segment] as Record<string, unknown> | unknown[];
-    }
-  }
-
-  const lastSegment = segments[segments.length - 1]!;
-  if (Array.isArray(current)) {
-    if (lastSegment === "-") {
-      current.push(value);
-    } else {
-      const index = parseInt(lastSegment, 10);
-      current[index] = value;
-    }
-  } else {
-    current[lastSegment] = value;
-  }
+  setByPathInternal(obj, path, value);
 }
 
 /**
@@ -410,44 +563,7 @@ export function addByPath(
   path: string,
   value: unknown,
 ): void {
-  const segments = parseJsonPointer(path);
-
-  if (segments.length === 0) return;
-
-  let current: Record<string, unknown> | unknown[] = obj;
-
-  for (let i = 0; i < segments.length - 1; i++) {
-    const segment = segments[i]!;
-    const nextSegment = segments[i + 1];
-    const nextIsNumeric =
-      nextSegment !== undefined &&
-      (isNumericIndex(nextSegment) || nextSegment === "-");
-
-    if (Array.isArray(current)) {
-      const index = parseInt(segment, 10);
-      if (current[index] === undefined || typeof current[index] !== "object") {
-        current[index] = nextIsNumeric ? [] : {};
-      }
-      current = current[index] as Record<string, unknown> | unknown[];
-    } else {
-      if (!(segment in current) || typeof current[segment] !== "object") {
-        current[segment] = nextIsNumeric ? [] : {};
-      }
-      current = current[segment] as Record<string, unknown> | unknown[];
-    }
-  }
-
-  const lastSegment = segments[segments.length - 1]!;
-  if (Array.isArray(current)) {
-    if (lastSegment === "-") {
-      current.push(value);
-    } else {
-      const index = parseInt(lastSegment, 10);
-      current.splice(index, 0, value);
-    }
-  } else {
-    current[lastSegment] = value;
-  }
+  addByPathInternal(obj, path, value);
 }
 
 /**
@@ -456,9 +572,19 @@ export function addByPath(
  * For arrays: splice out the element at the given index.
  */
 export function removeByPath(obj: Record<string, unknown>, path: string): void {
+  removeByPathInternal(obj, path);
+}
+
+function removeByPathInternal(
+  obj: Record<string, unknown>,
+  path: string,
+  stageObjectRemoval = false,
+): boolean {
   const segments = parseJsonPointer(path);
 
-  if (segments.length === 0) return;
+  if (segments.length === 0 || hasBlockedJsonPointerToken(segments)) {
+    return false;
+  }
 
   let current: Record<string, unknown> | unknown[] = obj;
 
@@ -466,28 +592,162 @@ export function removeByPath(obj: Record<string, unknown>, path: string): void {
     const segment = segments[i]!;
 
     if (Array.isArray(current)) {
-      const index = parseInt(segment, 10);
-      if (current[index] === undefined || typeof current[index] !== "object") {
-        return; // path does not exist
+      const index = parseArrayIndex(segment);
+      if (index === undefined || !isContainer(current[index])) {
+        return false; // path does not exist or is invalid
       }
       current = current[index] as Record<string, unknown> | unknown[];
     } else {
-      if (!(segment in current) || typeof current[segment] !== "object") {
-        return; // path does not exist
+      const object = current as Record<string, unknown>;
+      if (!(segment in object) || !isContainer(object[segment])) {
+        return false; // path does not exist
       }
-      current = current[segment] as Record<string, unknown> | unknown[];
+      current = object[segment] as Record<string, unknown> | unknown[];
     }
   }
 
   const lastSegment = segments[segments.length - 1]!;
   if (Array.isArray(current)) {
-    const index = parseInt(lastSegment, 10);
-    if (index >= 0 && index < current.length) {
+    const index = parseArrayIndex(lastSegment);
+    if (index !== undefined && index < current.length) {
       current.splice(index, 1);
+      return true;
     }
   } else {
-    delete current[lastSegment];
+    // A staged object inherits untouched properties from the original. Shadow
+    // an own removed property with undefined so destination validation observes
+    // the state after removal without mutating or copying unrelated properties.
+    if (stageObjectRemoval) {
+      const source = Object.getPrototypeOf(current);
+      if (
+        Object.hasOwn(current, lastSegment) ||
+        (source !== null && Object.hasOwn(source, lastSegment))
+      ) {
+        current[lastSegment] = undefined;
+      }
+    } else {
+      delete current[lastSegment];
+    }
+    return true;
   }
+
+  return false;
+}
+
+type MutableContainer = Record<string, unknown> | unknown[];
+
+/**
+ * Make a path-local copy-on-write container for move preflight. Objects defer
+ * unrelated properties to the original through their prototype; arrays are
+ * copied because staging a splice must preserve their indexed semantics.
+ */
+function clonePatchContainer(value: MutableContainer): MutableContainer {
+  if (Array.isArray(value)) {
+    const copy: unknown[] = new Array(value.length);
+    for (const key of Object.keys(value)) {
+      (copy as unknown as Record<string, unknown>)[key] = (
+        value as unknown as Record<string, unknown>
+      )[key];
+    }
+    return copy;
+  }
+
+  return Object.create(value) as Record<string, unknown>;
+}
+
+/**
+ * Clone only existing containers leading to a path's parent. Missing and
+ * primitive children do not need cloning because the staged write will replace
+ * them on an already-cloned parent.
+ */
+function stagePathContainers(
+  root: MutableContainer,
+  segments: string[],
+  clones: WeakMap<object, MutableContainer>,
+  stagedContainers: WeakSet<object>,
+): boolean {
+  let current = root;
+
+  for (let i = 0; i < segments.length - 1; i++) {
+    const segment = segments[i]!;
+    let child: unknown;
+    let arrayIndex: number | undefined;
+
+    if (Array.isArray(current)) {
+      arrayIndex = parseArrayIndex(segment);
+      if (arrayIndex === undefined) return true;
+      child = current[arrayIndex];
+    } else {
+      child = current[segment];
+    }
+
+    if (!isContainer(child)) return true;
+
+    let stagedChild: MutableContainer;
+    if (stagedContainers.has(child)) {
+      stagedChild = child;
+    } else {
+      stagedChild = clones.get(child) ?? clonePatchContainer(child);
+      clones.set(child, stagedChild);
+      stagedContainers.add(stagedChild);
+    }
+
+    // A prototype-backed lookup can resolve the original root back to its
+    // staged clone (for example through `__proto__`). Assigning that clone to
+    // itself would throw, while continuing without the assignment would let
+    // preflight mutate the original. Treat the move as invalid instead.
+    if (stagedChild === current) return false;
+
+    if (stagedChild !== child) {
+      if (Array.isArray(current)) {
+        current[arrayIndex!] = stagedChild;
+      } else {
+        current[segment] = stagedChild;
+      }
+    }
+    current = stagedChild;
+  }
+
+  return true;
+}
+
+/**
+ * Verify a move against a path-local staged target. The destination must be
+ * evaluated after the source is removed, without touching unrelated branches.
+ */
+function canMoveByPath(
+  obj: Record<string, unknown>,
+  from: string,
+  path: string,
+  value: unknown,
+): boolean {
+  const staged = clonePatchContainer(obj) as Record<string, unknown>;
+  const clones = new WeakMap<object, MutableContainer>([[obj, staged]]);
+  const stagedContainers = new WeakSet<object>([staged]);
+
+  if (
+    !stagePathContainers(
+      staged,
+      parseJsonPointer(from),
+      clones,
+      stagedContainers,
+    )
+  ) {
+    return false;
+  }
+  if (!removeByPathInternal(staged, from, true)) return false;
+
+  if (
+    !stagePathContainers(
+      staged,
+      parseJsonPointer(path),
+      clones,
+      stagedContainers,
+    )
+  ) {
+    return false;
+  }
+  return addByPathInternal(staged, path, value);
 }
 
 /**
@@ -617,6 +877,15 @@ export function applySpecStreamPatch<T extends Record<string, unknown>>(
   obj: T,
   patch: SpecStreamLine,
 ): T {
+  if (!isSafeJsonPointerPath(patch.path)) return obj;
+  if (
+    (patch.op === "move" || patch.op === "copy") &&
+    patch.from !== undefined &&
+    !isSafeJsonPointerPath(patch.from)
+  ) {
+    return obj;
+  }
+
   switch (patch.op) {
     case "add":
       addByPath(obj, patch.path, patch.value);
@@ -630,15 +899,24 @@ export function applySpecStreamPatch<T extends Record<string, unknown>>(
       break;
     case "move": {
       if (!patch.from) break;
-      const moveValue = getByPath(obj, patch.from);
-      removeByPath(obj, patch.from);
-      addByPath(obj, patch.path, moveValue);
+      const source = readByPath(obj, patch.from);
+      if (!source.valid || !source.exists) break;
+
+      // A move's destination is evaluated after its source is removed. Stage
+      // both operations first so a malformed destination cannot delete source.
+      if (!canMoveByPath(obj, patch.from, patch.path, source.value)) {
+        break;
+      }
+
+      removeByPathInternal(obj, patch.from);
+      addByPathInternal(obj, patch.path, source.value);
       break;
     }
     case "copy": {
       if (!patch.from) break;
-      const copyValue = getByPath(obj, patch.from);
-      addByPath(obj, patch.path, copyValue);
+      const source = readByPath(obj, patch.from);
+      if (!source.valid || !source.exists) break;
+      addByPathInternal(obj, patch.path, source.value);
       break;
     }
     case "test": {

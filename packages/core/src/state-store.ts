@@ -1,9 +1,68 @@
 import {
   getByPath,
+  isSafeJsonPointerPath,
   parseJsonPointer,
   type StateModel,
   type StateStore,
 } from "./types";
+import { parseArrayIndex } from "./path-utils";
+
+function isContainer(
+  value: unknown,
+): value is Record<string, unknown> | unknown[] {
+  return value !== null && typeof value === "object";
+}
+
+function createMissingContainer(
+  nextSegment: string,
+  nextIsTerminal: boolean,
+): Record<string, unknown> | unknown[] {
+  return parseArrayIndex(nextSegment) !== undefined ||
+    (nextIsTerminal && nextSegment === "-")
+    ? []
+    : {};
+}
+
+/**
+ * Validate a path before cloning so rejected array tokens retain the original
+ * snapshot reference and cannot create a partial branch.
+ */
+function canImmutableSetBySegments(
+  root: StateModel,
+  segments: string[],
+): boolean {
+  let current: unknown = root;
+
+  for (let i = 0; i < segments.length - 1; i++) {
+    const segment = segments[i]!;
+    const nextSegment = segments[i + 1]!;
+    const nextIsTerminal = i + 1 === segments.length - 1;
+
+    if (Array.isArray(current)) {
+      const index = parseArrayIndex(segment);
+      if (index === undefined) return false;
+      const child = current[index];
+      current = isContainer(child)
+        ? child
+        : createMissingContainer(nextSegment, nextIsTerminal);
+    } else if (isContainer(current)) {
+      const object = current as Record<string, unknown>;
+      const child = object[segment];
+      current = isContainer(child)
+        ? child
+        : createMissingContainer(nextSegment, nextIsTerminal);
+    } else {
+      return false;
+    }
+  }
+
+  if (Array.isArray(current)) {
+    const lastSegment = segments[segments.length - 1]!;
+    return lastSegment === "-" || parseArrayIndex(lastSegment) !== undefined;
+  }
+
+  return isContainer(current);
+}
 
 /**
  * Immutably set a value at a JSON Pointer path using structural sharing.
@@ -15,32 +74,47 @@ export function immutableSetByPath(
   path: string,
   value: unknown,
 ): StateModel {
+  if (!isSafeJsonPointerPath(path)) return root;
+
   const segments = parseJsonPointer(path);
   if (segments.length === 0) return root;
+  if (!canImmutableSetBySegments(root, segments)) return root;
 
   const result = { ...root };
-  let current: Record<string, unknown> = result;
+  let current: Record<string, unknown> | unknown[] = result;
 
   for (let i = 0; i < segments.length - 1; i++) {
     const seg = segments[i]!;
-    const child = current[seg];
-    if (Array.isArray(child)) {
-      current[seg] = [...child];
-    } else if (child !== null && typeof child === "object") {
-      current[seg] = { ...(child as Record<string, unknown>) };
+    const nextSegment = segments[i + 1]!;
+    const nextIsTerminal = i + 1 === segments.length - 1;
+
+    if (Array.isArray(current)) {
+      const index = parseArrayIndex(seg)!;
+      const child = current[index];
+      current[index] = Array.isArray(child)
+        ? [...child]
+        : isContainer(child)
+          ? { ...child }
+          : createMissingContainer(nextSegment, nextIsTerminal);
+      current = current[index] as Record<string, unknown> | unknown[];
     } else {
-      const nextSeg = segments[i + 1];
-      current[seg] = nextSeg !== undefined && /^\d+$/.test(nextSeg) ? [] : {};
+      const object = current as Record<string, unknown>;
+      const child = object[seg];
+      object[seg] = Array.isArray(child)
+        ? [...child]
+        : isContainer(child)
+          ? { ...child }
+          : createMissingContainer(nextSegment, nextIsTerminal);
+      current = object[seg] as Record<string, unknown> | unknown[];
     }
-    current = current[seg] as Record<string, unknown>;
   }
 
   const lastSeg = segments[segments.length - 1]!;
   if (Array.isArray(current)) {
     if (lastSeg === "-") {
-      (current as unknown[]).push(value);
+      current.push(value);
     } else {
-      (current as unknown[])[parseInt(lastSeg, 10)] = value;
+      current[parseArrayIndex(lastSeg)!] = value;
     }
   } else {
     current[lastSeg] = value;
@@ -72,8 +146,11 @@ export function createStateStore(initialState: StateModel = {}): StateStore {
     },
 
     set(path: string, value: unknown): void {
+      if (!isSafeJsonPointerPath(path)) return;
       if (getByPath(state, path) === value) return;
-      state = immutableSetByPath(state, path, value);
+      const next = immutableSetByPath(state, path, value);
+      if (next === state) return;
+      state = next;
       notify();
     },
 
@@ -81,9 +158,13 @@ export function createStateStore(initialState: StateModel = {}): StateStore {
       let changed = false;
       let next = state;
       for (const [path, value] of Object.entries(updates)) {
+        if (!isSafeJsonPointerPath(path)) continue;
         if (getByPath(next, path) !== value) {
-          next = immutableSetByPath(next, path, value);
-          changed = true;
+          const updated = immutableSetByPath(next, path, value);
+          if (updated !== next) {
+            next = updated;
+            changed = true;
+          }
         }
       }
       if (!changed) return;
@@ -137,18 +218,25 @@ export function createStoreAdapter(config: StoreAdapterConfig): StateStore {
     },
 
     set(path: string, value: unknown): void {
+      if (!isSafeJsonPointerPath(path)) return;
       const current = config.getSnapshot();
       if (getByPath(current, path) === value) return;
-      config.setSnapshot(immutableSetByPath(current, path, value));
+      const next = immutableSetByPath(current, path, value);
+      if (next === current) return;
+      config.setSnapshot(next);
     },
 
     update(updates: Record<string, unknown>): void {
       let next = config.getSnapshot();
       let changed = false;
       for (const [path, value] of Object.entries(updates)) {
+        if (!isSafeJsonPointerPath(path)) continue;
         if (getByPath(next, path) !== value) {
-          next = immutableSetByPath(next, path, value);
-          changed = true;
+          const updated = immutableSetByPath(next, path, value);
+          if (updated !== next) {
+            next = updated;
+            changed = true;
+          }
         }
       }
       if (!changed) return;
