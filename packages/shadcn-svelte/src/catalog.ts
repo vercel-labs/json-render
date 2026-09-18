@@ -401,7 +401,10 @@ export const shadcnComponentDefinitions = {
   Link: {
     props: z.object({
       label: z.string(),
-      href: z.string(),
+      href: z.union([
+        z.url({ protocol: /^(https?|mailto)$/ }),
+        z.string().regex(/^\/(?!\/)/),
+      ]),
     }),
     events: ["press"],
     description: "Anchor link. Bind on.press for click handler.",
