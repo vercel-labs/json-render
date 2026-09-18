@@ -30,6 +30,32 @@ describe("createStateStore", () => {
     expect(store.getSnapshot()).toEqual({ x: 1 });
   });
 
+  it.each(["1foo", "01", "1.5", "-1", "999999999999999999999"])(
+    "set ignores invalid array index %s",
+    (index) => {
+      const store = createStateStore({ items: ["a", "b", "c"] });
+      const snapshot = store.getSnapshot();
+      const listener = vi.fn();
+      store.subscribe(listener);
+
+      store.set(`/items/${index}`, "x");
+
+      expect(store.getSnapshot()).toBe(snapshot);
+      expect(store.getSnapshot().items).toEqual(["a", "b", "c"]);
+      expect(listener).not.toHaveBeenCalled();
+    },
+  );
+
+  it("preserves unsafe numeric tokens as object keys", () => {
+    const store = createStateStore({ obj: {} });
+
+    store.set("/obj/999999999999999999999/name", "value");
+
+    expect(store.getSnapshot()).toEqual({
+      obj: { "999999999999999999999": { name: "value" } },
+    });
+  });
+
   it("update notifies subscribers once", () => {
     const store = createStateStore({});
     const listener = vi.fn();
