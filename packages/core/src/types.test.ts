@@ -17,6 +17,52 @@ import {
   SPEC_DATA_PART_TYPE,
 } from "./types";
 import type { Spec, SpecStreamLine, StreamChunk } from "./types";
+import { DynamicValueSchema } from "./types";
+import { resolveActionParam } from "./props";
+import type { PropResolutionContext } from "./props";
+
+describe("DynamicValueSchema matches resolveActionParam's runtime contract", () => {
+  const ctx: PropResolutionContext = {
+    stateModel: { form: { text: "hi" } },
+    repeatBasePath: "/todos/2",
+    repeatIndex: 2,
+  } as PropResolutionContext;
+
+  const shapes: [string, unknown][] = [
+    ["string literal", "hello"],
+    ["number literal", 42],
+    ["boolean literal", true],
+    ["null", null],
+    ["$state expression", { $state: "/form/text" }],
+    ["$item expression", { $item: "field" }],
+    ["$index expression", { $index: true }],
+    ["array of literals", ["a", "b"]],
+    ["array of expressions", [{ $state: "/form/text" }, { $index: true }]],
+    [
+      "object with nested expression values",
+      { id: { $state: "/form/text" }, label: "static" },
+    ],
+  ];
+
+  it.each(shapes)("accepts and resolves %s", (_name, value) => {
+    expect(DynamicValueSchema.safeParse(value).success).toBe(true);
+    // The runtime resolver must not throw on the same shape.
+    expect(() => resolveActionParam(value, ctx)).not.toThrow();
+  });
+
+  it("resolves the widened shapes the way the runtime documents them", () => {
+    expect(resolveActionParam({ $index: true }, ctx)).toBe(2);
+    expect(resolveActionParam(["a", "b"], ctx)).toEqual(["a", "b"]);
+    expect(resolveActionParam({ id: { $state: "/form/text" } }, ctx)).toEqual({
+      id: "hi",
+    });
+  });
+
+  it("rejects values outside the contract", () => {
+    expect(DynamicValueSchema.safeParse(undefined).success).toBe(false);
+    expect(DynamicValueSchema.safeParse(() => {}).success).toBe(false);
+  });
+});
 
 describe("getByPath", () => {
   it("gets nested values with JSON pointer paths", () => {
