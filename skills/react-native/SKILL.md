@@ -119,6 +119,7 @@ Any prop value can be a data-driven expression resolved at render time:
 - **`{ "$bindItem": "field" }`** - two-way binding to a repeat item field. Use inside repeat scopes.
 - Nested lists use `{ "repeat": { "statePath": { "$item": "comments" } } }` inside an enclosing repeat.
 - **`{ "$cond": <condition>, "$then": <value>, "$else": <value> }`** - conditional value
+- **`{ "$computed": "name", "args": { ... } }`** - call a named function; register implementations with the `functions` prop on `JSONUIProvider` or `createRenderer` (same as `@json-render/react`)
 
 ```json
 {
@@ -148,6 +149,7 @@ The `setState` action is handled automatically by `ActionProvider` and updates t
 | `ActionProvider` | Handle actions dispatched from components |
 | `VisibilityProvider` | Enable conditional rendering based on state |
 | `ValidationProvider` | Form field validation |
+| `JSONUIProvider` | Combines the above providers; also accepts `functions` for `$computed` props |
 
 ### External Store (Controlled Mode)
 

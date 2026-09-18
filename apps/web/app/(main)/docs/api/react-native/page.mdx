@@ -149,6 +149,40 @@ Conditions in specs use the `VisibilityCondition` format with `$state` paths (e.
 </ValidationProvider>
 ```
 
+### JSONUIProvider
+
+Convenience wrapper that combines `StateProvider`, `VisibilityProvider`, `ActionProvider`, and `ValidationProvider`. It accepts the same props as those providers, plus:
+
+<table>
+  <thead>
+    <tr>
+      <th>Prop</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>functions</code></td>
+      <td><code>Record&lt;string, ComputedFunction&gt;</code></td>
+      <td>Named functions for <code>$computed</code> expressions in props</td>
+    </tr>
+  </tbody>
+</table>
+
+```tsx
+<JSONUIProvider
+  registry={registry}
+  initialState={{}}
+  handlers={handlers}
+  functions={{ fullName: (args) => `${args.first} ${args.last}` }}
+>
+  <Renderer spec={spec} registry={registry} />
+</JSONUIProvider>
+```
+
+The `functions` prop is also available on `createRenderer`.
+
 ## defineRegistry
 
 Create a type-safe component registry. Standard components are built-in; only register custom components.
