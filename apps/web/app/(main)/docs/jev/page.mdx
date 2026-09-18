@@ -151,6 +151,8 @@ Initialize your renderer's state from `spec.state`. Keep user interaction disabl
 
 On `complete`, inspect `stopReason`: `finish` means composition finished; `unavailable` means the evaluator could not fulfill the request; `limit` means a call, element, or depth budget prevented completion. A complete event can contain a partial spec, or `null` when no root was added. Completion is not a correctness guarantee. Errors and cancellation throw; retain the last snapshot and label it incomplete. Each batched trace is one evaluation (`select` or `layout`), with the individual choices in `step.answers` and usage/timing counted once.
 
+To avoid visible rearrangement, the playground waits for a successful `complete` event before revealing a new tree in one render. Decision metadata still streams while composing. Follow-up edits continue to update the existing preview incrementally. Apps can choose the same display policy while retaining the core API's provisional snapshots for inspection.
+
 The playground is a reference implementation: [candidates and server wrapper](https://github.com/vercel-labs/json-render/tree/main/apps/web/lib/jev), [streaming route](https://github.com/vercel-labs/json-render/blob/main/apps/web/app/api/generate/route.ts), and [client](https://github.com/vercel-labs/json-render/blob/main/apps/web/components/playground.tsx).
 
 ## Validation and v1 limits

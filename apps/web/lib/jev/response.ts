@@ -83,11 +83,20 @@ export function createCompositionResponse(
         )) {
           if (event.type === "error") throw new Error(event.message);
           if (event.type === "step") {
-            sendSpec(event.spec);
+            // New trees have a provisional catalog order until layout finishes.
+            // Stream its decision metadata without displaying a moving UI.
+            if (initialSpec) sendSpec(event.spec);
             send({ __meta: "decision", ...event.step });
             decisions++;
           } else {
-            if (event.spec) sendSpec(event.spec);
+            if (event.spec) {
+              if (initialSpec) sendSpec(event.spec);
+              else if (event.stopReason === "finish") {
+                // The existing JSON edit protocol applies a full new tree in
+                // one render, including its state and final child order.
+                send({ __json_edit: true, ...event.spec });
+              }
+            }
             for (const step of event.steps.slice(decisions))
               send({ __meta: "decision", ...step });
             send({

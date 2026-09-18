@@ -21,10 +21,10 @@ Select Jev, choose Create account settings, and send the request. Edit the name,
 Jev exposes Choice, Boolean, and Score outputs. It does not produce free-form JSON or prose. We express new UI construction as two batches of finite choices:
 
 1. Offer the root and independent component membership questions in one evaluation. Exclusive resource variants share a question; reusable recipes get bounded counts. Candidate values include state/action bindings owned by the app.
-2. Assemble and validate the selected content, then stream a preview immediately. This preview uses catalog order and the root's default slot. Root selection takes precedence over speculative membership for the same recipe/resource.
-3. Ask final parent slots and sibling positions in a second evaluation against the actual selected set. Validate the combined tree, including depth and cycles, before streaming it. Equal positions retain catalog order. A single root or one child in a single slot needs no second call. No separate finish call is needed.
+2. Assemble and validate the selected content. The core API emits a provisional snapshot in catalog order and the root's default slot; the playground streams its decision metadata but waits to display new content. Root selection takes precedence over speculative membership for the same recipe/resource.
+3. Ask final parent slots and sibling positions in a second evaluation against the actual selected set. Validate the combined tree, including depth and cycles, before revealing the finished spec in one JSON edit message. Equal positions retain catalog order. A single root or one child in a single slot needs no second call. No separate finish call is needed.
 4. On follow-ups, use the selected spec with the sequential edit protocol: add, replace, remove, or move/reorder. Replacements and moves select a target, then choose a valid recipe or destination in a second evaluation. Preserve unchanged elements and earlier versions.
-5. Each trace represents one evaluation. Batched traces use `select`/`layout` with the independent decisions in `answers`; timing and usage are counted once per call. Provider errors or invalid combined layouts preserve the last valid preview and report failure.
+5. Each trace represents one evaluation. Batched traces use `select`/`layout` with the independent decisions in `answers`; timing and usage are counted once per call. Provider errors or invalid combined layouts report failure. New trees remain hidden until successful completion; follow-up edits retain their last valid preview.
 
 There are **no complete UI templates** and no generative-model calls. The example prompt buttons only populate the request text. Jev chooses which elements to include, their order, grouping, and which offered action bindings to use. The registry owns appearance and behavior.
 
@@ -48,7 +48,7 @@ The composer validates tree structure and candidate values; it does not guarante
 
 Name required sections explicitly. For example, request an orders table at the top, revenue/orders/customer metrics in a row, then a weekly revenue chart. The shorter request "a dashboard with the table at the top" can select only a table. Follow-up requests can move an existing table without reconstructing its data.
 
-The code bounds new batches to 14 elements, each request to 14 evaluation calls, nesting depth four, ten seconds per provider request, and 55 seconds overall. The selected seed may contain up to 100 elements. A limit, cancellation, or error retains the current preview and labels it partial. The shared endpoint uses the web app's request rate limiters. Both models edit the selected version; Clear starts fresh. The stream tab exposes construction decisions alongside spec patches. Provider calls and spec assembly never execute the selected UI actions.
+The code bounds new batches to 14 elements, each request to 14 evaluation calls, nesting depth four, ten seconds per provider request, and 55 seconds overall. The selected seed may contain up to 100 elements. A limit, cancellation, or error retains the current preview for edits and labels the result partial; new trees remain hidden. The shared endpoint uses the web app's request rate limiters. Both models edit the selected version; Clear starts fresh. The stream tab exposes construction decisions alongside spec patches. Provider calls and spec assembly never execute the selected UI actions.
 
 Try `Design a user profile card`, then `Remove the bio` or `Make the avatar smaller`. For settings, try `Remove the email notifications switch`, `Change the heading to "Account settings"`, or `Move the email field above the name field`. The server shares existing display labels and matching candidate descriptions to identify edit targets, without sharing raw state or entered field values. Existing specs must use the supported expression subset and form a valid tree. Edits retain state from the selected spec, as in the default model flow; interactive preview state is not saved into version history.
 
@@ -64,7 +64,7 @@ The server uses Gateway's experimental v4 evaluation transport with model `types
 - `packages/core/src/experimental-evaluator.ts`: public Gateway evaluator adapter.
 - `compose.ts`: public API consumer with playground instructions and cost display.
 - `../../app/api/generate/route.ts`: shared rate-limited endpoint, dispatching the selected model.
-- `response.ts`: adapts composition snapshots into the playground's JSONL spec patches and decision metadata.
+- `response.ts`: reveals finished new trees atomically using the JSON edit protocol, streams follow-up spec patches, and preserves decision metadata.
 - `../../components/playground.tsx`: shared model toggle, experimental info tooltip, prompt, version history, live preview, and inspectors.
 - `compose.test.ts`: structure, action boundaries, unknown usage, cancellation, and limits.
 
