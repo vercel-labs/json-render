@@ -3,5 +3,9 @@ export default function PlaygroundLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <div className="h-dvh flex flex-col overflow-hidden">{children}</div>;
+  return (
+    <main className="h-[calc(100dvh-4rem)] flex flex-col overflow-hidden">
+      {children}
+    </main>
+  );
 }

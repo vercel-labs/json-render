@@ -1,0 +1,123 @@
+---
+title: "Directives"
+---
+
+Extend the spec language with custom `$`-prefixed dynamic values. Directives let you add formatting, math, string manipulation, i18n, and any other transformation without modifying core.
+
+## Overview
+
+A directive is a user-defined dynamic value expression, like `$state` or `$computed`, but defined in userland. Each directive has a `$`-prefixed name, a Zod schema for validation, and a resolver function.
+
+```json
+{
+  "type": "Text",
+  "props": {
+    "text": {
+      "$format": "currency",
+      "value": { "$state": "/cart/total" },
+      "currency": "USD"
+    }
+  },
+  "children": []
+}
+```
+
+## Defining a Directive
+
+Use `defineDirective` from `@json-render/core`:
+
+```typescript
+import { defineDirective, resolvePropValue } from '@json-render/core';
+import { z } from 'zod';
+
+const doubleDirective = defineDirective({
+  name: '$double',
+  description: 'Double a numeric value.',
+  schema: z.object({
+    $double: z.unknown(),
+  }),
+  resolve(value, ctx) {
+    const resolved = resolvePropValue(value.$double, ctx);
+    return (resolved as number) * 2;
+  },
+});
+```
+
+The `description` field is optional. When generating prompts, the directive's schema fields are auto-described from the Zod schema; the `description` adds short behavioral context the schema can't express.
+
+## Wiring Directives
+
+Pass directives to both the renderer (for runtime resolution) and the catalog prompt (for AI generation).
+
+### Runtime
+
+```tsx
+import { JSONUIProvider, Renderer } from '@json-render/react';
+import { standardDirectives } from '@json-render/directives';
+
+<JSONUIProvider registry={registry} directives={standardDirectives}>
+  <Renderer spec={spec} registry={registry} />
+</JSONUIProvider>
+```
+
+Or with `createRenderer`:
+
+```tsx
+const MyRenderer = createRenderer(catalog, components);
+
+<MyRenderer spec={spec} directives={directives} />
+```
+
+All four renderers (React, Vue, Svelte, Solid) accept the `directives` prop on their provider and `createRenderer` output.
+
+### Prompt Generation
+
+```typescript
+const prompt = catalog.prompt({ directives });
+```
+
+Each directive's schema is auto-described in the "CUSTOM DYNAMIC VALUES" section of the system prompt. The optional `description` field adds behavioral context inline.
+
+## Pre-built Directives
+
+The `@json-render/directives` package ships ready-to-use directives:
+
+```typescript
+import { standardDirectives, createI18nDirective } from '@json-render/directives';
+```
+
+`standardDirectives` includes `$format`, `$math`, `$concat`, `$count`, `$truncate`, `$pluralize`, and `$join`. Add factory directives by spreading:
+
+```typescript
+const directives = [...standardDirectives, createI18nDirective(config)];
+```
+
+See the [API reference](/docs/api/directives) for details on each directive.
+
+## Composition
+
+Directives compose naturally. Each resolver calls `resolvePropValue` on its inputs, so directives can wrap other directives or built-in expressions like `$state`:
+
+```json
+{
+  "$format": "currency",
+  "value": {
+    "$math": "multiply",
+    "a": { "$state": "/price" },
+    "b": { "$state": "/qty" }
+  },
+  "currency": "USD"
+}
+```
+
+This resolves inside-out: `$state` reads from state, `$math` multiplies the values, and `$format` formats the result as currency.
+
+## Built-in Precedence
+
+Built-in expressions (`$state`, `$computed`, `$cond`, `$template`, etc.) always take precedence over custom directives. `defineDirective` throws if you try to register a name that conflicts with a built-in key.
+
+## Next
+
+- [API Reference](/docs/api/directives) — full directive reference
+- [Computed Values](/docs/computed-values) — `$computed` and `$template` expressions
+- [Data Binding](/docs/data-binding) — `$state`, `$item`, and binding expressions

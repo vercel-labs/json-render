@@ -39,6 +39,12 @@ pnpm dev
 
 Requires global [`portless`](https://github.com/vercel-labs/portless). The `predev` script checks for it automatically.
 
+## Build checks
+
+From the monorepo root, run `pnpm --filter example-chat check-types` and `pnpm turbo run build --filter=example-chat`.
+
+The type check also verifies that Streamdown and `@streamdown/code` resolve the same Shiki installation. The workspace dependency extension and scoped override keep their exported highlighting types compatible without relying on whichever Shiki version happens to be hoisted.
+
 ## Files
 
 - `app/page.tsx` -- chat UI with `useChat`, message rendering, and inline spec display

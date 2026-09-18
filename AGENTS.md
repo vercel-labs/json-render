@@ -66,6 +66,8 @@ Do **not** add `--port` flags -- portless handles port assignment automatically.
 ## Workflow
 
 - Run `pnpm type-check` after each turn to ensure type safety
+- Documentation lives in `apps/web/content/docs/` and uses Geistdocs frontmatter. Keep public `/docs` URLs, heading IDs, `lib/page-titles.ts`, `lib/docs-navigation.ts`, and the content `meta.json` files in sync.
+- For docs routing or infrastructure changes, run `pnpm turbo run build --filter='web^...'`, `pnpm --filter web build`, and `pnpm --filter web test:routes`. Existing-page source and Markdown parity are covered by `apps/web/tests/fixtures/docs-baseline.json`; update fixtures only when intentionally changing the documented content.
 - When making user-facing changes (new packages, API changes, new features, renamed exports, changed behavior), update the relevant documentation:
   - Package `README.md` files in `packages/*/README.md`
   - Root `README.md` (if packages table, install commands, or examples are affected)
@@ -90,7 +92,7 @@ When asked to prepare a release (e.g. "prepare v0.17.0"):
 5. **Fill documentation gaps** — every public package should have:
    - A row in the root `README.md` packages table
    - A renderer section in the root `README.md` (if it's a renderer)
-   - An API reference page at `apps/web/app/(main)/docs/api/<name>/page.mdx`
+   - An API reference page at `apps/web/content/docs/api/<name>.mdx`
    - An entry in `apps/web/lib/page-titles.ts` and `apps/web/lib/docs-navigation.ts`
    - An entry in the docs-chat system prompt (`apps/web/app/api/docs-chat/route.ts`)
    - A skill at `skills/<name>/SKILL.md`

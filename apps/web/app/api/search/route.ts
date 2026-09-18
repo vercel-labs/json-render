@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSearchIndex } from "@/lib/search-index";
+import { createSearchRoute } from "@vercel/geistdocs/routes/search";
+import { geistdocsSource } from "@/lib/geistdocs/source";
+import { config } from "@/lib/geistdocs/config";
+
+const docsSearch = createSearchRoute({ config, source: geistdocsSource });
 
 export async function GET(req: NextRequest) {
+  if (req.nextUrl.searchParams.has("query")) return docsSearch(req);
   const q = req.nextUrl.searchParams.get("q")?.trim().toLowerCase();
 
   if (!q) {

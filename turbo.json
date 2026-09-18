@@ -1,10 +1,24 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
   "ui": "tui",
-  "globalEnv": ["AI_GATEWAY_API_KEY", "ANTHROPIC_API_KEY", "CLAUDE_CODE_MODEL", "OPENAI_API_KEY", "CODEX_MODEL", "PI_MODEL", "AI_GATEWAY_MODEL", "ELEVENLABS_API_KEY", "KV_REST_API_URL", "KV_REST_API_TOKEN", "RATE_LIMIT_PER_MINUTE", "RATE_LIMIT_PER_DAY"],
+  "globalEnv": [
+    "AI_GATEWAY_API_KEY",
+    "ANTHROPIC_API_KEY",
+    "CLAUDE_CODE_MODEL",
+    "OPENAI_API_KEY",
+    "CODEX_MODEL",
+    "PI_MODEL",
+    "AI_GATEWAY_MODEL",
+    "ELEVENLABS_API_KEY",
+    "KV_REST_API_URL",
+    "KV_REST_API_TOKEN",
+    "RATE_LIMIT_PER_MINUTE",
+    "RATE_LIMIT_PER_DAY"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
+      "env": ["VERCEL_ENV"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**", ".svelte-kit/**"]
     },
@@ -19,6 +33,11 @@
     },
     "check-types": {
       "dependsOn": ["^build"]
+    },
+    "test:routes": {
+      "dependsOn": ["build"],
+      "env": ["DOCS_TEST_URL", "DOCS_EXPECT_NOINDEX", "VERCEL_ENV"],
+      "cache": false
     },
     "dev": {
       "dependsOn": ["^build"],

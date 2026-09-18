@@ -1,9 +1,16 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import "@vercel/geistdocs/styles.css";
+
+@theme {
+  --breakpoint-sm: 40rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
+  --breakpoint-2xl: 96rem;
+}
 
 @source "../node_modules/streamdown/dist/index.js";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:is(.dark-theme *));
 
 :root {
   --radius: 0.5rem;
@@ -31,7 +38,7 @@
   --chat-bg: oklch(0.95 0 0);
 }
 
-.dark {
+.dark-theme {
   --ds-gray-500: oklch(0.39 0 0);
   /* Monochrome dark theme */
   --background: oklch(0.0 0 0);
@@ -189,9 +196,31 @@ article table {
   background-color: var(--shiki-light-bg) !important;
 }
 
-.dark .shiki,
-.dark .shiki span {
+.dark-theme .shiki,
+.dark-theme .shiki span {
   color: var(--shiki-dark) !important;
   background-color: var(--shiki-dark-bg) !important;
+}
+
+@container (width < 1200px) {
+  #nd-page { @apply px-6 pt-6; }
+  #nd-page > [data-mobile-docs-bar],
+  #nd-page > div:has([data-mobile-toc-trigger]) { display: flex; }
+  #nd-page [data-mobile-toc-trigger] { width: 44px; height: 44px; }
+  #nd-page > div:has(> h1) { padding-inline-end: 3.5rem; }
+  #nd-page > div:has(> h1) + div,
+  #nd-page > div:has(> h1) + p + div { margin-top: 0; }
+}
+
+@container (961px <= width < 1200px) {
+  #nd-page > [data-mobile-docs-bar] { display: none; }
+}
+
+header .pointer-events-none.opacity-0 {
+  visibility: hidden;
+}
+
+#nd-page div:has(> [aria-live="polite"]) > div > .max-sm\:hidden {
+  display: flex;
 }
 

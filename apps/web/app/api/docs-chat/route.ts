@@ -1,11 +1,8 @@
-import { readFile } from "fs/promises";
-import { join } from "path";
 import { convertToModelMessages, stepCountIs, streamText } from "ai";
 import type { ModelMessage, UIMessage } from "ai";
 import { createBashTool } from "bash-tool";
 import { headers } from "next/headers";
-import { allDocsPages } from "@/lib/docs-navigation";
-import { mdxToCleanMarkdown } from "@/lib/mdx-to-markdown";
+import { loadAllDocsSources } from "@/lib/docs-source";
 import { minuteRateLimit, dailyRateLimit } from "@/lib/rate-limit";
 
 export const maxDuration = 60;
@@ -32,37 +29,13 @@ When answering questions:
 - Do NOT use emojis in your responses`;
 
 async function loadDocsFiles(): Promise<Record<string, string>> {
-  const files: Record<string, string> = {};
-
-  const results = await Promise.allSettled(
-    allDocsPages.map(async (page) => {
-      const slug =
-        page.href === "/docs" ? "" : page.href.replace(/^\/docs\/?/, "");
-      const filePath = slug
-        ? join(
-            process.cwd(),
-            "app",
-            "(main)",
-            "docs",
-            ...slug.split("/"),
-            "page.mdx",
-          )
-        : join(process.cwd(), "app", "(main)", "docs", "page.mdx");
-
-      const raw = await readFile(filePath, "utf-8");
-      const md = mdxToCleanMarkdown(raw);
-      const fileName = slug ? `/docs/${slug}.md` : "/docs/index.md";
-      return { fileName, md };
-    }),
+  const pages = await loadAllDocsSources();
+  return Object.fromEntries(
+    pages.map((page) => [
+      page.href === "/docs" ? "/docs/index.md" : `${page.href}.md`,
+      page.markdown,
+    ]),
   );
-
-  for (const result of results) {
-    if (result.status === "fulfilled") {
-      files[result.value.fileName] = result.value.md;
-    }
-  }
-
-  return files;
 }
 
 function addCacheControl(messages: ModelMessage[]): ModelMessage[] {

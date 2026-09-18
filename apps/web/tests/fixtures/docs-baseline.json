@@ -1,0 +1,3717 @@
+{
+  "commit": "e11d2d0e6368d93333197c5e9c0c159ae182697c",
+  "pages": [
+    {
+      "path": "/docs/a2ui",
+      "file": "content/docs/a2ui.mdx",
+      "title": "A2UI Integration",
+      "metadataTitle": "A2UI Integration | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/a2ui\")\n\n# A2UI Integration\n",
+      "sourceSha256": "5f47b48ce4e66db4aa86c089f58dbbd980fe6f53da50c16fbb66033953e78263",
+      "bodySha256": "d618964314ce40c1a659262a00b00a84a463bff988e631ee29114452da3e8e0d",
+      "markdownSha256": "5cc59d6dd4e0834f9208b20006a0c0d5c8718e7a3692b95bd8038583d8f24a1a",
+      "headings": [
+        {
+          "title": "Native A2UI Support",
+          "id": "native-a2ui-support"
+        },
+        {
+          "title": "Example A2UI Message",
+          "id": "example-a2ui-message"
+        },
+        {
+          "title": "Define the A2UI Catalog",
+          "id": "define-the-a2ui-catalog"
+        },
+        {
+          "title": "Define the A2UI Schema",
+          "id": "define-the-a2ui-schema"
+        },
+        {
+          "title": "Build an A2UI Renderer",
+          "id": "build-an-a2ui-renderer"
+        },
+        {
+          "title": "Usage",
+          "id": "usage"
+        },
+        {
+          "title": "Next",
+          "id": "next"
+        }
+      ]
+    },
+    {
+      "path": "/docs/adaptive-cards",
+      "file": "content/docs/adaptive-cards.mdx",
+      "title": "Adaptive Cards Integration",
+      "metadataTitle": "Adaptive Cards Integration | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/adaptive-cards\")\n\n# Adaptive Cards Integration\n",
+      "sourceSha256": "5b9a96d5ee5371bc46a5e84abeb8686802746fbf2386225e4885637611ba8d34",
+      "bodySha256": "c42f3c8a3a707729c79ab7c05737944f239ec758377fed12b0f8ab007f7c292b",
+      "markdownSha256": "e2868f38487f0c847e70458ef1d47b9d6ff7a988c3e0b51c1bb3b62a90dcd33c",
+      "headings": [
+        {
+          "title": "Adaptive Cards Overview",
+          "id": "adaptive-cards-overview"
+        },
+        {
+          "title": "Example Adaptive Card",
+          "id": "example-adaptive-card"
+        },
+        {
+          "title": "Creating an Adaptive Cards Catalog",
+          "id": "creating-an-adaptive-cards-catalog"
+        },
+        {
+          "title": "Building an Adaptive Cards Renderer",
+          "id": "building-an-adaptive-cards-renderer"
+        },
+        {
+          "title": "Usage Example",
+          "id": "usage-example"
+        },
+        {
+          "title": "Handling Action.Execute for Bots",
+          "id": "handling-actionexecute-for-bots"
+        },
+        {
+          "title": "Next",
+          "id": "next"
+        }
+      ]
+    },
+    {
+      "path": "/docs/ag-ui",
+      "file": "content/docs/ag-ui.mdx",
+      "title": "AG-UI Integration",
+      "metadataTitle": "AG-UI Integration | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/ag-ui\")\n\n# AG-UI Integration\n",
+      "sourceSha256": "67c2622c98421fbafe5ceaef132194f8bca9998c458984a7443ad2d5207847a1",
+      "bodySha256": "d5d392f37a8b88b2a6dcc20bcb41b32dcfe02eadbe6eaec0b56e805672bb93f6",
+      "markdownSha256": "8e389a89c84c476d970b32ac8b7cca20f0818391c0683b15c4f695c714ac4567",
+      "headings": [
+        {
+          "title": "What is AG-UI?",
+          "id": "what-is-ag-ui"
+        },
+        {
+          "title": "AG-UI Event Types",
+          "id": "ag-ui-event-types"
+        },
+        {
+          "title": "Example AG-UI Event Stream",
+          "id": "example-ag-ui-event-stream"
+        },
+        {
+          "title": "Define the AG-UI Schema",
+          "id": "define-the-ag-ui-schema"
+        },
+        {
+          "title": "Define the AG-UI Catalog",
+          "id": "define-the-ag-ui-catalog"
+        },
+        {
+          "title": "Build an AG-UI Event Processor",
+          "id": "build-an-ag-ui-event-processor"
+        },
+        {
+          "title": "Usage Example",
+          "id": "usage-example"
+        },
+        {
+          "title": "Next",
+          "id": "next"
+        }
+      ]
+    },
+    {
+      "path": "/docs/ai-sdk",
+      "file": "content/docs/ai-sdk.mdx",
+      "title": "AI SDK Integration",
+      "metadataTitle": "AI SDK Integration | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/ai-sdk\")\n\n# AI SDK Integration\n",
+      "sourceSha256": "29a693954de5c57001bb2d715143fe4ec95744e5b55897866782de01a9e6d927",
+      "bodySha256": "d3a76b778dc7cb2fdfea9b12d963152885212b8e918285443c6b09cdfa17ff62",
+      "markdownSha256": "8fd68001f93eb735cc00db4c3efcd053311eee576e32ef6783d1295cd819a089",
+      "headings": [
+        {
+          "title": "Installation",
+          "id": "installation"
+        },
+        {
+          "title": "Standalone Mode",
+          "id": "standalone-mode"
+        },
+        {
+          "title": "API Route",
+          "id": "api-route"
+        },
+        {
+          "title": "Client",
+          "id": "client"
+        },
+        {
+          "title": "Inline Mode",
+          "id": "inline-mode"
+        },
+        {
+          "title": "API Route",
+          "id": "api-route"
+        },
+        {
+          "title": "Client",
+          "id": "client"
+        },
+        {
+          "title": "Prompt Engineering",
+          "id": "prompt-engineering"
+        },
+        {
+          "title": "Custom Rules",
+          "id": "custom-rules"
+        },
+        {
+          "title": "Inline Mode Prompt",
+          "id": "inline-mode-prompt"
+        },
+        {
+          "title": "Which Mode?",
+          "id": "which-mode"
+        },
+        {
+          "title": "Next",
+          "id": "next"
+        }
+      ]
+    },
+    {
+      "path": "/docs/api/codegen",
+      "file": "content/docs/api/codegen.mdx",
+      "title": "@json-render/codegen",
+      "metadataTitle": "@json-render/codegen API | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/codegen\")\n\n# @json-render/codegen\n",
+      "sourceSha256": "ffe7c5b39084d393a6706d18cf40c8b5b0fa654d46bc89771f6e6a3a79102be5",
+      "bodySha256": "89f627bc21e5fafae1e498d9e9369a93b30f9b24eb4539dac5d69ac03e61b180",
+      "markdownSha256": "3ecfc1393d0538ac49c34e0daf5c95aa716238f0dad4b711871d6f82fefe66eb",
+      "headings": [
+        {
+          "title": "Tree Traversal",
+          "id": "tree-traversal"
+        },
+        {
+          "title": "traverseSpec",
+          "id": "traversespec"
+        },
+        {
+          "title": "collectUsedComponents",
+          "id": "collectusedcomponents"
+        },
+        {
+          "title": "collectStatePaths",
+          "id": "collectstatepaths"
+        },
+        {
+          "title": "collectActions",
+          "id": "collectactions"
+        },
+        {
+          "title": "Serialization",
+          "id": "serialization"
+        },
+        {
+          "title": "serializePropValue",
+          "id": "serializepropvalue"
+        },
+        {
+          "title": "serializeProps",
+          "id": "serializeprops"
+        },
+        {
+          "title": "escapeString",
+          "id": "escapestring"
+        },
+        {
+          "title": "Types",
+          "id": "types"
+        },
+        {
+          "title": "GeneratedFile",
+          "id": "generatedfile"
+        },
+        {
+          "title": "CodeGenerator",
+          "id": "codegenerator"
+        },
+        {
+          "title": "SerializeOptions",
+          "id": "serializeoptions"
+        }
+      ]
+    },
+    {
+      "path": "/docs/api/core",
+      "file": "content/docs/api/core.mdx",
+      "title": "@json-render/core",
+      "metadataTitle": "@json-render/core API | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/core\")\n\n# @json-render/core\n",
+      "sourceSha256": "a3d4e3f174759d31873a0d1c2fdbc54913515c2418f7caf913c2cedce102becd",
+      "bodySha256": "3b8cb8d811990df34fa2fff77ffe58e03921f5b55847b13e0cd1a3b0171960a5",
+      "markdownSha256": "606d75774b33771b3e221de5671f642e62c76379955d086031388bf52f09f8d1",
+      "headings": [
+        {
+          "title": "defineCatalog",
+          "id": "definecatalog"
+        },
+        {
+          "title": "CatalogConfig",
+          "id": "catalogconfig"
+        },
+        {
+          "title": "Catalog Instance",
+          "id": "catalog-instance"
+        },
+        {
+          "title": "Catalog Methods",
+          "id": "catalog-methods"
+        },
+        {
+          "title": "Schema System",
+          "id": "schema-system"
+        },
+        {
+          "title": "schema",
+          "id": "schema"
+        },
+        {
+          "title": "SchemaOptions",
+          "id": "schemaoptions"
+        },
+        {
+          "title": "defineSchema",
+          "id": "defineschema"
+        },
+        {
+          "title": "Schema Builder API",
+          "id": "schema-builder-api"
+        },
+        {
+          "title": "Zod Schemas",
+          "id": "zod-schemas"
+        },
+        {
+          "title": "Dynamic Value Schemas",
+          "id": "dynamic-value-schemas"
+        },
+        {
+          "title": "Visibility Schemas",
+          "id": "visibility-schemas"
+        },
+        {
+          "title": "Action Schemas",
+          "id": "action-schemas"
+        },
+        {
+          "title": "Validation Schemas",
+          "id": "validation-schemas"
+        },
+        {
+          "title": "SpecStream",
+          "id": "specstream"
+        },
+        {
+          "title": "createSpecStreamCompiler",
+          "id": "createspecstreamcompiler"
+        },
+        {
+          "title": "compileSpecStream",
+          "id": "compilespecstream"
+        },
+        {
+          "title": "Low-Level Utilities",
+          "id": "low-level-utilities"
+        },
+        {
+          "title": "applySpecPatch",
+          "id": "applyspecpatch"
+        },
+        {
+          "title": "nestedToFlat",
+          "id": "nestedtoflat"
+        },
+        {
+          "title": "createJsonRenderTransform",
+          "id": "createjsonrendertransform"
+        },
+        {
+          "title": "createMixedStreamParser",
+          "id": "createmixedstreamparser"
+        },
+        {
+          "title": "pipeJsonRender",
+          "id": "pipejsonrender"
+        },
+        {
+          "title": "SpecStream Types",
+          "id": "specstream-types"
+        },
+        {
+          "title": "Utility Functions",
+          "id": "utility-functions"
+        },
+        {
+          "title": "Path Utilities",
+          "id": "path-utilities"
+        },
+        {
+          "title": "resolveDynamicValue",
+          "id": "resolvedynamicvalue"
+        },
+        {
+          "title": "findFormValue",
+          "id": "findformvalue"
+        },
+        {
+          "title": "buildUserPrompt",
+          "id": "builduserprompt"
+        },
+        {
+          "title": "Fresh generation",
+          "id": "fresh-generation"
+        },
+        {
+          "title": "Refinement (edit modes)",
+          "id": "refinement-edit-modes"
+        },
+        {
+          "title": "With state context",
+          "id": "with-state-context"
+        },
+        {
+          "title": "Edit Modes",
+          "id": "edit-modes"
+        },
+        {
+          "title": "buildEditInstructions",
+          "id": "buildeditinstructions"
+        },
+        {
+          "title": "buildEditUserPrompt",
+          "id": "buildedituserprompt"
+        },
+        {
+          "title": "isNonEmptySpec",
+          "id": "isnonemptyspec"
+        },
+        {
+          "title": "Deep Merge and Diff",
+          "id": "deep-merge-and-diff"
+        },
+        {
+          "title": "deepMergeSpec",
+          "id": "deepmergespec"
+        },
+        {
+          "title": "diffToPatches",
+          "id": "difftopatches"
+        },
+        {
+          "title": "evaluateVisibility",
+          "id": "evaluatevisibility"
+        },
+        {
+          "title": "Types",
+          "id": "types"
+        },
+        {
+          "title": "UIElement",
+          "id": "uielement"
+        },
+        {
+          "title": "Spec (Element Tree)",
+          "id": "spec-element-tree"
+        },
+        {
+          "title": "ActionBinding",
+          "id": "actionbinding"
+        },
+        {
+          "title": "ValidationSchema",
+          "id": "validationschema"
+        }
+      ]
+    },
+    {
+      "path": "/docs/api/devtools",
+      "file": "content/docs/api/devtools.mdx",
+      "title": "@json-render/devtools",
+      "metadataTitle": "@json-render/devtools API | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/devtools\")\n\n# @json-render/devtools\n",
+      "sourceSha256": "037aea395f97015e2fea6edf79f49afc6dfb763bd8b60673976c4ddadff5dd00",
+      "bodySha256": "e57b54b1f382bdac5506d58ed1b2fe188eba523258f7ecd9213cc7b8c1a044d6",
+      "markdownSha256": "ec0d311370659ac802c59cc87ffef1034e0c0a58902abc46e811a2cbc872940c",
+      "headings": [
+        {
+          "title": "Event Store",
+          "id": "event-store"
+        },
+        {
+          "title": "createEventStore",
+          "id": "createeventstore"
+        },
+        {
+          "title": "Panel",
+          "id": "panel"
+        },
+        {
+          "title": "createPanel",
+          "id": "createpanel"
+        },
+        {
+          "title": "Panel tabs",
+          "id": "panel-tabs"
+        },
+        {
+          "title": "Stream Taps",
+          "id": "stream-taps"
+        },
+        {
+          "title": "tapJsonRenderStream",
+          "id": "tapjsonrenderstream"
+        },
+        {
+          "title": "tapYamlStream",
+          "id": "tapyamlstream"
+        },
+        {
+          "title": "scanMessageParts",
+          "id": "scanmessageparts"
+        },
+        {
+          "title": "Picker",
+          "id": "picker"
+        },
+        {
+          "title": "startPicker",
+          "id": "startpicker"
+        },
+        {
+          "title": "findElementByKey / highlightElement",
+          "id": "findelementbykey-highlightelement"
+        },
+        {
+          "title": "Types",
+          "id": "types"
+        },
+        {
+          "title": "DevtoolsEvent",
+          "id": "devtoolsevent"
+        },
+        {
+          "title": "isProduction",
+          "id": "isproduction"
+        }
+      ]
+    },
+    {
+      "path": "/docs/api/devtools-react",
+      "file": "content/docs/api/devtools-react.mdx",
+      "title": "@json-render/devtools-react",
+      "metadataTitle": "@json-render/devtools-react API | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/devtools-react\")\n\n# @json-render/devtools-react\n",
+      "sourceSha256": "ef696a235254e22d73f98e1a9cc7fd634ec895233fbe8a4479557e08a7e2f717",
+      "bodySha256": "418b966fd326f84dcc82da17efca7bdc1663f1686cdb1c8d15f448b568c95c78",
+      "markdownSha256": "c38be627dc6135f1481e12fc433139c950f6cbc1ccc336588d1e8e8e771ef5ab",
+      "headings": [
+        {
+          "title": "JsonRenderDevtools",
+          "id": "jsonrenderdevtools"
+        },
+        {
+          "title": "Props",
+          "id": "props"
+        },
+        {
+          "title": "useJsonRenderDevtools",
+          "id": "usejsonrenderdevtools"
+        }
+      ]
+    },
+    {
+      "path": "/docs/api/devtools-solid",
+      "file": "content/docs/api/devtools-solid.mdx",
+      "title": "@json-render/devtools-solid",
+      "metadataTitle": "@json-render/devtools-solid API | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/devtools-solid\")\n\n# @json-render/devtools-solid\n",
+      "sourceSha256": "753ff930b3e12173e131c26afc1201050eabc7556a989592f4f199fea9f936f1",
+      "bodySha256": "3d07f5f5aa307b0ed9a8148664ca95d820ea1f5a8611ef033b4f275e1c15c006",
+      "markdownSha256": "8558800bc1ecb779d5c8cc599dab6038eb6243208f9e5275098ff03d9e233772",
+      "headings": [
+        {
+          "title": "JsonRenderDevtools",
+          "id": "jsonrenderdevtools"
+        },
+        {
+          "title": "Props",
+          "id": "props"
+        }
+      ]
+    },
+    {
+      "path": "/docs/api/devtools-svelte",
+      "file": "content/docs/api/devtools-svelte.mdx",
+      "title": "@json-render/devtools-svelte",
+      "metadataTitle": "@json-render/devtools-svelte API | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/devtools-svelte\")\n\n# @json-render/devtools-svelte\n",
+      "sourceSha256": "957a1fc1cb86869a8c25964c1a7a3b1edb1ef032e4c2d96c4865f96bc53f89b3",
+      "bodySha256": "1f1473e091d74994650b46cf4027ac9c7126b73889f4078c689f46811dab8a88",
+      "markdownSha256": "5e8ff16fc85a4f1694a256326ccf86d49bab988c771a5b408402ad94294fb12e",
+      "headings": [
+        {
+          "title": "JsonRenderDevtools",
+          "id": "jsonrenderdevtools"
+        },
+        {
+          "title": "Props",
+          "id": "props"
+        }
+      ]
+    },
+    {
+      "path": "/docs/api/devtools-vue",
+      "file": "content/docs/api/devtools-vue.mdx",
+      "title": "@json-render/devtools-vue",
+      "metadataTitle": "@json-render/devtools-vue API | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/devtools-vue\")\n\n# @json-render/devtools-vue\n",
+      "sourceSha256": "42c4939d0199fd329dc3060d86d8c4c57f085ed7eaf29ddcf43cc60b56702274",
+      "bodySha256": "f6a0deec7e65845dfacb2d7060bbaee35848028f8f341c877539f56c98f73fed",
+      "markdownSha256": "247e01155602035c36115420400c77ca5d60f4b587fd3a8bf6fdd6d792b78cb3",
+      "headings": [
+        {
+          "title": "JsonRenderDevtools",
+          "id": "jsonrenderdevtools"
+        },
+        {
+          "title": "Props",
+          "id": "props"
+        }
+      ]
+    },
+    {
+      "path": "/docs/api/directives",
+      "file": "content/docs/api/directives.mdx",
+      "title": "@json-render/directives",
+      "metadataTitle": "@json-render/directives API | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/directives\")\n\n# @json-render/directives\n",
+      "sourceSha256": "71eb337b8feab01a100c7115d469fd1924aa9998eba39d2614932cb429e6d8bb",
+      "bodySha256": "de3b063dc62c839276808ca5d8cd05c812460f8b4dba7803c57aba3398095edd",
+      "markdownSha256": "7eba58b9b5a9ed3a703149d978ac97d58545f5c43acc34a495935e9ee9d6058b",
+      "headings": [
+        {
+          "title": "Install",
+          "id": "install"
+        },
+        {
+          "title": "Quick Start",
+          "id": "quick-start"
+        },
+        {
+          "title": "Directives",
+          "id": "directives"
+        },
+        {
+          "title": "$format — Locale-aware value formatting",
+          "id": "format-locale-aware-value-formatting"
+        },
+        {
+          "title": "$math — Arithmetic operations",
+          "id": "math-arithmetic-operations"
+        },
+        {
+          "title": "$concat — String concatenation",
+          "id": "concat-string-concatenation"
+        },
+        {
+          "title": "$count — Array/string length",
+          "id": "count-arraystring-length"
+        },
+        {
+          "title": "$truncate — Text truncation",
+          "id": "truncate-text-truncation"
+        },
+        {
+          "title": "$pluralize — Singular/plural forms",
+          "id": "pluralize-singularplural-forms"
+        },
+        {
+          "title": "$join — Join array elements",
+          "id": "join-join-array-elements"
+        },
+        {
+          "title": "createI18nDirective — Internationalization",
+          "id": "createi18ndirective-internationalization"
+        },
+        {
+          "title": "Composition",
+          "id": "composition"
+        }
+      ]
+    },
+    {
+      "path": "/docs/api/image",
+      "file": "content/docs/api/image.mdx",
+      "title": "@json-render/image",
+      "metadataTitle": "@json-render/image API | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/image\")\n\n# @json-render/image\n",
+      "sourceSha256": "1028817240a11db9308494fad333aa7dd242717da3111d02005b8639e650771f",
+      "bodySha256": "017b4c36ba26294499088e36febc382cb2b001524fb0aa70ee266e4884f28ccb",
+      "markdownSha256": "d09fb633b501ef0016b7fa94dc0b15177e90befc9de9b85f1e0fee5f29805cc5",
+      "headings": [
+        {
+          "title": "Install",
+          "id": "install"
+        },
+        {
+          "title": "schema",
+          "id": "schema"
+        },
+        {
+          "title": "Render Functions",
+          "id": "render-functions"
+        },
+        {
+          "title": "RenderOptions",
+          "id": "renderoptions"
+        },
+        {
+          "title": "Standard Components",
+          "id": "standard-components"
+        },
+        {
+          "title": "Root",
+          "id": "root"
+        },
+        {
+          "title": "Layout",
+          "id": "layout"
+        },
+        {
+          "title": "Content",
+          "id": "content"
+        },
+        {
+          "title": "Decorative",
+          "id": "decorative"
+        },
+        {
+          "title": "Catalog Definitions",
+          "id": "catalog-definitions"
+        },
+        {
+          "title": "Server-Safe Import",
+          "id": "server-safe-import"
+        },
+        {
+          "title": "Sub-path Exports",
+          "id": "sub-path-exports"
+        },
+        {
+          "title": "Types",
+          "id": "types"
+        }
+      ]
+    },
+    {
+      "path": "/docs/api/ink",
+      "file": "content/docs/api/ink.mdx",
+      "title": "@json-render/ink",
+      "metadataTitle": "@json-render/ink API | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/ink\")\n\n# @json-render/ink\n",
+      "sourceSha256": "fd176ef2df700a87c4d1d093d0aa2d8f928c34d7ee6a9130d0a278978b62ce92",
+      "bodySha256": "1d4bfa48fd23ac1b7d9e3b564970245936a7129f1e44bef0a4038a2d234f6117",
+      "markdownSha256": "e6d8c4ea01377c78cc340c2c120dbc0628fe0d3663f71a503a849b25dd04042f",
+      "headings": [
+        {
+          "title": "Installation",
+          "id": "installation"
+        },
+        {
+          "title": "Standard Components",
+          "id": "standard-components"
+        },
+        {
+          "title": "Layout",
+          "id": "layout"
+        },
+        {
+          "title": "Content",
+          "id": "content"
+        },
+        {
+          "title": "Data",
+          "id": "data"
+        },
+        {
+          "title": "Interactive",
+          "id": "interactive"
+        },
+        {
+          "title": "Providers",
+          "id": "providers"
+        },
+        {
+          "title": "JSONUIProvider",
+          "id": "jsonuiprovider"
+        },
+        {
+          "title": "StateProvider",
+          "id": "stateprovider"
+        },
+        {
+          "title": "ActionProvider",
+          "id": "actionprovider"
+        },
+        {
+          "title": "VisibilityProvider",
+          "id": "visibilityprovider"
+        },
+        {
+          "title": "ValidationProvider",
+          "id": "validationprovider"
+        },
+        {
+          "title": "FocusProvider",
+          "id": "focusprovider"
+        },
+        {
+          "title": "defineRegistry",
+          "id": "defineregistry"
+        },
+        {
+          "title": "createRenderer",
+          "id": "createrenderer"
+        },
+        {
+          "title": "Hooks",
+          "id": "hooks"
+        },
+        {
+          "title": "useUIStream",
+          "id": "useuistream"
+        },
+        {
+          "title": "useStateStore",
+          "id": "usestatestore"
+        },
+        {
+          "title": "useStateValue",
+          "id": "usestatevalue"
+        },
+        {
+          "title": "useBoundProp",
+          "id": "useboundprop"
+        },
+        {
+          "title": "useActions",
+          "id": "useactions"
+        },
+        {
+          "title": "useIsVisible",
+          "id": "useisvisible"
+        },
+        {
+          "title": "useFocus",
+          "id": "usefocus"
+        },
+        {
+          "title": "useFocusDisable",
+          "id": "usefocusdisable"
+        },
+        {
+          "title": "Catalog Exports",
+          "id": "catalog-exports"
+        },
+        {
+          "title": "Server Export",
+          "id": "server-export"
+        }
+      ]
+    },
+    {
+      "path": "/docs/api/jotai",
+      "file": "content/docs/api/jotai.mdx",
+      "title": "@json-render/jotai",
+      "metadataTitle": "@json-render/jotai API | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/jotai\")\n\n# @json-render/jotai\n",
+      "sourceSha256": "674237b50c0f871fcb2cc9ec1ffa86406850e13dcec7141bd779c61caf2e2791",
+      "bodySha256": "e733f9bd966a6a4241dcbeb485773b5bc48f84efbeb22225fb895f028c013d93",
+      "markdownSha256": "4507bfe8c53a70c9ada91c327f181bdefb1b8f26a5020c402f2ef86e8928861d",
+      "headings": [
+        {
+          "title": "Installation",
+          "id": "installation"
+        },
+        {
+          "title": "jotaiStateStore",
+          "id": "jotaistatestore"
+        },
+        {
+          "title": "Options",
+          "id": "options"
+        },
+        {
+          "title": "Example",
+          "id": "example"
+        },
+        {
+          "title": "Shared Jotai Store",
+          "id": "shared-jotai-store"
+        },
+        {
+          "title": "Re-exports",
+          "id": "re-exports"
+        }
+      ]
+    },
+    {
+      "path": "/docs/api/mcp",
+      "file": "content/docs/api/mcp.mdx",
+      "title": "@json-render/mcp",
+      "metadataTitle": "@json-render/mcp API | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/mcp\")\n\n# @json-render/mcp\n",
+      "sourceSha256": "5e4c315e6a9c363bea6d77bf64a8f5aa798caf2f763983d831e1317bb684ed4a",
+      "bodySha256": "dc990fe9a19a66a68c3408e34bd2ddc8ac04fc714b0039f0c192709e65b33633",
+      "markdownSha256": "9772c7f3666aa846ba6a400f6f2f43a8d78da6c7e98b4f9f74ebb8698ea2e37f",
+      "headings": [
+        {
+          "title": "Install",
+          "id": "install"
+        },
+        {
+          "title": "Overview",
+          "id": "overview"
+        },
+        {
+          "title": "Server API",
+          "id": "server-api"
+        },
+        {
+          "title": "createMcpApp",
+          "id": "createmcpapp"
+        },
+        {
+          "title": "registerJsonRenderTool",
+          "id": "registerjsonrendertool"
+        },
+        {
+          "title": "registerJsonRenderResource",
+          "id": "registerjsonrenderresource"
+        },
+        {
+          "title": "Client API (@json-render/mcp/app)",
+          "id": "client-api-json-rendermcpapp"
+        },
+        {
+          "title": "useJsonRenderApp",
+          "id": "usejsonrenderapp"
+        },
+        {
+          "title": "buildAppHtml",
+          "id": "buildapphtml"
+        },
+        {
+          "title": "Client Configuration",
+          "id": "client-configuration"
+        },
+        {
+          "title": "Cursor",
+          "id": "cursor"
+        },
+        {
+          "title": "Claude Desktop",
+          "id": "claude-desktop"
+        },
+        {
+          "title": "Supported Clients",
+          "id": "supported-clients"
+        }
+      ]
+    },
+    {
+      "path": "/docs/api/next",
+      "file": "content/docs/api/next.mdx",
+      "title": "@json-render/next",
+      "metadataTitle": "@json-render/next API | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/next\")\n\n# @json-render/next\n",
+      "sourceSha256": "fcb2b5aac8a6849e3c744d008eca96e196f68683dd0e7b35a8fa3b405561e5cd",
+      "bodySha256": "47e1c83be544eb7fcfa821721f4068c04bab23a17ef2fc52066378eef018967d",
+      "markdownSha256": "5ebc68fd21f16599a5b5331013af4c8ba00f0461b1ce03ac047589d2a84f6d19",
+      "headings": [
+        {
+          "title": "Installation",
+          "id": "installation"
+        },
+        {
+          "title": "schema",
+          "id": "schema"
+        },
+        {
+          "title": "createNextApp",
+          "id": "createnextapp"
+        },
+        {
+          "title": "Options",
+          "id": "options"
+        },
+        {
+          "title": "Returns",
+          "id": "returns"
+        },
+        {
+          "title": "NextAppSpec",
+          "id": "nextappspec"
+        },
+        {
+          "title": "Route Patterns",
+          "id": "route-patterns"
+        },
+        {
+          "title": "NextAppProvider",
+          "id": "nextappprovider"
+        },
+        {
+          "title": "Built-in Components",
+          "id": "built-in-components"
+        },
+        {
+          "title": "Slot",
+          "id": "slot"
+        },
+        {
+          "title": "Link",
+          "id": "link"
+        },
+        {
+          "title": "Built-in Actions",
+          "id": "built-in-actions"
+        },
+        {
+          "title": "Server Utilities",
+          "id": "server-utilities"
+        },
+        {
+          "title": "matchRoute",
+          "id": "matchroute"
+        },
+        {
+          "title": "resolveMetadata",
+          "id": "resolvemetadata"
+        },
+        {
+          "title": "slugToPath",
+          "id": "slugtopath"
+        },
+        {
+          "title": "Entry Points",
+          "id": "entry-points"
+        }
+      ]
+    },
+    {
+      "path": "/docs/api/react",
+      "file": "content/docs/api/react.mdx",
+      "title": "@json-render/react",
+      "metadataTitle": "@json-render/react API | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/react\")\n\n# @json-render/react\n",
+      "sourceSha256": "bac613efe7bbebe6c00606489a0ae21d367deb6753d15e334693b43b0f132ef3",
+      "bodySha256": "cd0213ad5a970a305d6a361ea802d469dd1ae079fcaac6d658ae3eef43902360",
+      "markdownSha256": "c45348165d2e6d1e6cd5e6104ea5fa58b187373fd1664866d4bcfde3361cf4c8",
+      "headings": [
+        {
+          "title": "Providers",
+          "id": "providers"
+        },
+        {
+          "title": "StateProvider",
+          "id": "stateprovider"
+        },
+        {
+          "title": "ActionProvider",
+          "id": "actionprovider"
+        },
+        {
+          "title": "VisibilityProvider",
+          "id": "visibilityprovider"
+        },
+        {
+          "title": "ValidationProvider",
+          "id": "validationprovider"
+        },
+        {
+          "title": "defineRegistry",
+          "id": "defineregistry"
+        },
+        {
+          "title": "Components",
+          "id": "components"
+        },
+        {
+          "title": "Renderer",
+          "id": "renderer"
+        },
+        {
+          "title": "JSONUIProvider",
+          "id": "jsonuiprovider"
+        },
+        {
+          "title": "Component Props (via defineRegistry)",
+          "id": "component-props-via-defineregistry"
+        },
+        {
+          "title": "BaseComponentProps",
+          "id": "basecomponentprops"
+        },
+        {
+          "title": "Hooks",
+          "id": "hooks"
+        },
+        {
+          "title": "useUIStream",
+          "id": "useuistream"
+        },
+        {
+          "title": "useStateStore",
+          "id": "usestatestore"
+        },
+        {
+          "title": "useStateValue",
+          "id": "usestatevalue"
+        },
+        {
+          "title": "useStateBinding (deprecated)",
+          "id": "usestatebinding-deprecated"
+        },
+        {
+          "title": "useActions",
+          "id": "useactions"
+        },
+        {
+          "title": "useAction",
+          "id": "useaction"
+        },
+        {
+          "title": "useIsVisible",
+          "id": "useisvisible"
+        },
+        {
+          "title": "useFieldValidation",
+          "id": "usefieldvalidation"
+        },
+        {
+          "title": "useOptionalValidation",
+          "id": "useoptionalvalidation"
+        },
+        {
+          "title": "useBoundProp",
+          "id": "useboundprop"
+        },
+        {
+          "title": "Chat Hooks",
+          "id": "chat-hooks"
+        },
+        {
+          "title": "useChatUI",
+          "id": "usechatui"
+        },
+        {
+          "title": "useJsonRenderMessage",
+          "id": "usejsonrendermessage"
+        },
+        {
+          "title": "buildSpecFromParts / getTextFromParts",
+          "id": "buildspecfromparts-gettextfromparts"
+        }
+      ]
+    },
+    {
+      "path": "/docs/api/react-email",
+      "file": "content/docs/api/react-email.mdx",
+      "title": "@json-render/react-email",
+      "metadataTitle": "@json-render/react-email API | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/react-email\")\n\n# @json-render/react-email\n",
+      "sourceSha256": "f08803e8d421df4adda8203a518a626f771b0f6b18ac517b48381f79131ea449",
+      "bodySha256": "6a5346f5b5628ad14d6c93f83a0339f747be26ea6f91638db802f711579006fa",
+      "markdownSha256": "65fdb92a2355d412fcf464d32bf08ef7bb466e4866f9ea7d69a5a7269fc31450",
+      "headings": [
+        {
+          "title": "Install",
+          "id": "install"
+        },
+        {
+          "title": "schema",
+          "id": "schema"
+        },
+        {
+          "title": "Render Functions",
+          "id": "render-functions"
+        },
+        {
+          "title": "RenderOptions",
+          "id": "renderoptions"
+        },
+        {
+          "title": "defineRegistry",
+          "id": "defineregistry"
+        },
+        {
+          "title": "createRenderer",
+          "id": "createrenderer"
+        },
+        {
+          "title": "Renderer",
+          "id": "renderer"
+        },
+        {
+          "title": "Standard Components",
+          "id": "standard-components"
+        },
+        {
+          "title": "Document structure",
+          "id": "document-structure"
+        },
+        {
+          "title": "Layout",
+          "id": "layout"
+        },
+        {
+          "title": "Content",
+          "id": "content"
+        },
+        {
+          "title": "Utility",
+          "id": "utility"
+        },
+        {
+          "title": "Server-Safe Import",
+          "id": "server-safe-import"
+        },
+        {
+          "title": "Sub-path Exports",
+          "id": "sub-path-exports"
+        },
+        {
+          "title": "Types",
+          "id": "types"
+        }
+      ]
+    },
+    {
+      "path": "/docs/api/react-native",
+      "file": "content/docs/api/react-native.mdx",
+      "title": "@json-render/react-native",
+      "metadataTitle": "@json-render/react-native API | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/react-native\")\n\n# @json-render/react-native\n",
+      "sourceSha256": "11ab0716faeab4b32a12fdce9bcf675dbf96711f897d9fb2165c04f9944eb3cd",
+      "bodySha256": "748a283fcf941916093611aa073b9356592253bc59a80d37b6a17e90c061886d",
+      "markdownSha256": "47f762b707223d573dc157055034ba3c60782fc3baf36d63d8a88b959006ee5c",
+      "headings": [
+        {
+          "title": "Standard Components",
+          "id": "standard-components"
+        },
+        {
+          "title": "Layout",
+          "id": "layout"
+        },
+        {
+          "title": "Content",
+          "id": "content"
+        },
+        {
+          "title": "Input",
+          "id": "input"
+        },
+        {
+          "title": "Feedback",
+          "id": "feedback"
+        },
+        {
+          "title": "Composite",
+          "id": "composite"
+        },
+        {
+          "title": "Providers",
+          "id": "providers"
+        },
+        {
+          "title": "StateProvider",
+          "id": "stateprovider"
+        },
+        {
+          "title": "ActionProvider",
+          "id": "actionprovider"
+        },
+        {
+          "title": "VisibilityProvider",
+          "id": "visibilityprovider"
+        },
+        {
+          "title": "ValidationProvider",
+          "id": "validationprovider"
+        },
+        {
+          "title": "defineRegistry",
+          "id": "defineregistry"
+        },
+        {
+          "title": "Hooks",
+          "id": "hooks"
+        },
+        {
+          "title": "useUIStream",
+          "id": "useuistream"
+        },
+        {
+          "title": "useStateStore",
+          "id": "usestatestore"
+        },
+        {
+          "title": "useStateValue",
+          "id": "usestatevalue"
+        },
+        {
+          "title": "useStateBinding (deprecated)",
+          "id": "usestatebinding-deprecated"
+        },
+        {
+          "title": "useActions",
+          "id": "useactions"
+        },
+        {
+          "title": "useIsVisible",
+          "id": "useisvisible"
+        },
+        {
+          "title": "Catalog Exports",
+          "id": "catalog-exports"
+        }
+      ]
+    },
+    {
+      "path": "/docs/api/react-pdf",
+      "file": "content/docs/api/react-pdf.mdx",
+      "title": "@json-render/react-pdf",
+      "metadataTitle": "@json-render/react-pdf API | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/react-pdf\")\n\n# @json-render/react-pdf\n",
+      "sourceSha256": "cc7edb8944a9c66c8412be14859cd0c075b5bdf258b15a1b1812386d75596a0b",
+      "bodySha256": "173076c150cfad920e819c0bebd7acd550e5751971f4c25a2bfbd568fa55f334",
+      "markdownSha256": "7cb3704f2e24941dbfd2b9e615bc21d458ccaee35b5b798eaf5bbde2ae10581a",
+      "headings": [
+        {
+          "title": "Install",
+          "id": "install"
+        },
+        {
+          "title": "schema",
+          "id": "schema"
+        },
+        {
+          "title": "Render Functions",
+          "id": "render-functions"
+        },
+        {
+          "title": "RenderOptions",
+          "id": "renderoptions"
+        },
+        {
+          "title": "defineRegistry",
+          "id": "defineregistry"
+        },
+        {
+          "title": "createRenderer",
+          "id": "createrenderer"
+        },
+        {
+          "title": "Renderer",
+          "id": "renderer"
+        },
+        {
+          "title": "Standard Components",
+          "id": "standard-components"
+        },
+        {
+          "title": "Document Structure",
+          "id": "document-structure"
+        },
+        {
+          "title": "Layout",
+          "id": "layout"
+        },
+        {
+          "title": "Content",
+          "id": "content"
+        },
+        {
+          "title": "Data",
+          "id": "data"
+        },
+        {
+          "title": "Decorative",
+          "id": "decorative"
+        },
+        {
+          "title": "Page-Level",
+          "id": "page-level"
+        },
+        {
+          "title": "External Store (Controlled Mode)",
+          "id": "external-store-controlled-mode"
+        },
+        {
+          "title": "Server-Safe Import",
+          "id": "server-safe-import"
+        },
+        {
+          "title": "Sub-path Exports",
+          "id": "sub-path-exports"
+        },
+        {
+          "title": "Types",
+          "id": "types"
+        }
+      ]
+    },
+    {
+      "path": "/docs/api/react-three-fiber",
+      "file": "content/docs/api/react-three-fiber.mdx",
+      "title": "@json-render/react-three-fiber",
+      "metadataTitle": "@json-render/react-three-fiber API | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/react-three-fiber\")\n\n# @json-render/react-three-fiber\n",
+      "sourceSha256": "2f539d660ccfe52649a7642bb662cced390afd47ccb96cb7ce0efbbf73ba9ded",
+      "bodySha256": "46119e127fbae3f80e2c47d5a5023669b782631fedafb9e003700ac87310544e",
+      "markdownSha256": "cd25a34c693a9172a2e83bd264c7507e796cf105dfcddff3b228a4b24f1a88cb",
+      "headings": [
+        {
+          "title": "Installation",
+          "id": "installation"
+        },
+        {
+          "title": "Entry Points",
+          "id": "entry-points"
+        },
+        {
+          "title": "Usage",
+          "id": "usage"
+        },
+        {
+          "title": "ThreeCanvas (convenience)",
+          "id": "threecanvas-convenience"
+        },
+        {
+          "title": "Manual Canvas Setup",
+          "id": "manual-canvas-setup"
+        },
+        {
+          "title": "Components",
+          "id": "components"
+        },
+        {
+          "title": "Primitives",
+          "id": "primitives"
+        },
+        {
+          "title": "Material Schema",
+          "id": "material-schema"
+        },
+        {
+          "title": "Lights",
+          "id": "lights"
+        },
+        {
+          "title": "Other Components",
+          "id": "other-components"
+        },
+        {
+          "title": "Shared Schemas",
+          "id": "shared-schemas"
+        },
+        {
+          "title": "ThreeRenderer",
+          "id": "threerenderer"
+        },
+        {
+          "title": "ThreeCanvas",
+          "id": "threecanvas"
+        },
+        {
+          "title": "Type Helpers",
+          "id": "type-helpers"
+        }
+      ]
+    },
+    {
+      "path": "/docs/api/redux",
+      "file": "content/docs/api/redux.mdx",
+      "title": "@json-render/redux",
+      "metadataTitle": "@json-render/redux API | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/redux\")\n\n# @json-render/redux\n",
+      "sourceSha256": "feb27249d21f70f5d578e46c175f12379c14e3c71542873a20458d2af7d9a24b",
+      "bodySha256": "62b4a21257920e510e0e04f30fd9afafedac74fede84a527a21aa6048ccf36ea",
+      "markdownSha256": "d6729d0d5e38fe3eaffa40dd6f851eeb16b9a22078001cef49471f1f80bc6f78",
+      "headings": [
+        {
+          "title": "Installation",
+          "id": "installation"
+        },
+        {
+          "title": "reduxStateStore",
+          "id": "reduxstatestore"
+        },
+        {
+          "title": "Options",
+          "id": "options"
+        },
+        {
+          "title": "Example",
+          "id": "example"
+        },
+        {
+          "title": "Re-exports",
+          "id": "re-exports"
+        }
+      ]
+    },
+    {
+      "path": "/docs/api/remotion",
+      "file": "content/docs/api/remotion.mdx",
+      "title": "@json-render/remotion",
+      "metadataTitle": "@json-render/remotion API | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/remotion\")\n\n# @json-render/remotion\n",
+      "sourceSha256": "df0f176aa33b5f20986f3289bcd93a7831e0e0b17f6c997e2ad0488a9645f4c1",
+      "bodySha256": "80a2a7e748f50a282851ee542b738d72583db04d1b3dc5aaf93584a4b3e1a9f0",
+      "markdownSha256": "ed4d3d22f59fe18cb19877098268aa8da2d5434eaabfe98ae2b1de1d40b1a18e",
+      "headings": [
+        {
+          "title": "schema",
+          "id": "schema"
+        },
+        {
+          "title": "Renderer",
+          "id": "renderer"
+        },
+        {
+          "title": "Custom Components",
+          "id": "custom-components"
+        },
+        {
+          "title": "Standard Components",
+          "id": "standard-components"
+        },
+        {
+          "title": "TitleCard Props",
+          "id": "titlecard-props"
+        },
+        {
+          "title": "TypingText Props",
+          "id": "typingtext-props"
+        },
+        {
+          "title": "Catalog Definitions",
+          "id": "catalog-definitions"
+        },
+        {
+          "title": "Hooks & Utilities",
+          "id": "hooks-utilities"
+        },
+        {
+          "title": "useTransition",
+          "id": "usetransition"
+        },
+        {
+          "title": "ClipWrapper",
+          "id": "clipwrapper"
+        },
+        {
+          "title": "Types",
+          "id": "types"
+        },
+        {
+          "title": "TimelineSpec",
+          "id": "timelinespec"
+        },
+        {
+          "title": "Clip",
+          "id": "clip"
+        },
+        {
+          "title": "TransitionStyles",
+          "id": "transitionstyles"
+        },
+        {
+          "title": "ComponentRegistry",
+          "id": "componentregistry"
+        },
+        {
+          "title": "Transitions",
+          "id": "transitions"
+        }
+      ]
+    },
+    {
+      "path": "/docs/api/shadcn",
+      "file": "content/docs/api/shadcn.mdx",
+      "title": "@json-render/shadcn",
+      "metadataTitle": "@json-render/shadcn API | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/shadcn\")\n\n# @json-render/shadcn\n",
+      "sourceSha256": "1d49bfa1175e72c857b977e19d27edfa2a72f35116bafd2c8da624771a37a25f",
+      "bodySha256": "fe6b3f334b0971fef057ff58a201e7c1619a8b2d78d79adba8279c2554a3ce60",
+      "markdownSha256": "643b1629f02d63106f681051ff603760a307b2e11470a6308224750aacd9b591",
+      "headings": [
+        {
+          "title": "Installation",
+          "id": "installation"
+        },
+        {
+          "title": "Entry Points",
+          "id": "entry-points"
+        },
+        {
+          "title": "Usage",
+          "id": "usage"
+        },
+        {
+          "title": "Extending with Custom Components",
+          "id": "extending-with-custom-components"
+        },
+        {
+          "title": "Available Components",
+          "id": "available-components"
+        },
+        {
+          "title": "Layout",
+          "id": "layout"
+        },
+        {
+          "title": "Navigation",
+          "id": "navigation"
+        },
+        {
+          "title": "Overlay",
+          "id": "overlay"
+        },
+        {
+          "title": "Content",
+          "id": "content"
+        },
+        {
+          "title": "Feedback",
+          "id": "feedback"
+        },
+        {
+          "title": "Input",
+          "id": "input"
+        },
+        {
+          "title": "Notes",
+          "id": "notes"
+        }
+      ]
+    },
+    {
+      "path": "/docs/api/shadcn-svelte",
+      "file": "content/docs/api/shadcn-svelte.mdx",
+      "title": "@json-render/shadcn-svelte",
+      "metadataTitle": "@json-render/shadcn-svelte API | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/shadcn-svelte\")\n\n# @json-render/shadcn-svelte\n",
+      "sourceSha256": "80cc6c14712a3ffc685bf383df8a9f8ec4b61e23d89c96ed37ea2ee44fe6c5c7",
+      "bodySha256": "961049524b843bb6f61f447df125cb0cf0b073217e5f4894b3a5c7ad961807df",
+      "markdownSha256": "e086cb3c66d79bb5a820dc9e14edf5a9fcc97889e338471883670391ebaf43a6",
+      "headings": [
+        {
+          "title": "Installation",
+          "id": "installation"
+        },
+        {
+          "title": "Entry Points",
+          "id": "entry-points"
+        },
+        {
+          "title": "Usage",
+          "id": "usage"
+        },
+        {
+          "title": "Available Components",
+          "id": "available-components"
+        },
+        {
+          "title": "Layout",
+          "id": "layout"
+        },
+        {
+          "title": "Navigation",
+          "id": "navigation"
+        },
+        {
+          "title": "Overlay",
+          "id": "overlay"
+        },
+        {
+          "title": "Content",
+          "id": "content"
+        },
+        {
+          "title": "Feedback",
+          "id": "feedback"
+        },
+        {
+          "title": "Input",
+          "id": "input"
+        },
+        {
+          "title": "Notes",
+          "id": "notes"
+        }
+      ]
+    },
+    {
+      "path": "/docs/api/solid",
+      "file": "content/docs/api/solid.mdx",
+      "title": "@json-render/solid",
+      "metadataTitle": "@json-render/solid API | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\";\nexport const metadata = pageMetadata(\"docs/api/solid\");\n\n# @json-render/solid\n",
+      "sourceSha256": "1efd8c84c9840a7ab9dba2f2e6ccde4923910c11c34b5a7e8abe7b218ddb057a",
+      "bodySha256": "9a3e72fe0df40bda69fcaf50478fc944f38e12029bb1fe5ecb6ab5c66feb1b4c",
+      "markdownSha256": "383082dd3154a0294e33ace4bd85b84d9ec65fd58ae8324c789cc977af112a12",
+      "headings": [
+        {
+          "title": "Installation",
+          "id": "installation"
+        },
+        {
+          "title": "Providers",
+          "id": "providers"
+        },
+        {
+          "title": "StateProvider",
+          "id": "stateprovider"
+        },
+        {
+          "title": "ActionProvider",
+          "id": "actionprovider"
+        },
+        {
+          "title": "VisibilityProvider",
+          "id": "visibilityprovider"
+        },
+        {
+          "title": "ValidationProvider",
+          "id": "validationprovider"
+        },
+        {
+          "title": "JSONUIProvider",
+          "id": "jsonuiprovider"
+        },
+        {
+          "title": "defineRegistry",
+          "id": "defineregistry"
+        },
+        {
+          "title": "Components",
+          "id": "components"
+        },
+        {
+          "title": "Renderer",
+          "id": "renderer"
+        },
+        {
+          "title": "createRenderer",
+          "id": "createrenderer"
+        },
+        {
+          "title": "Hooks",
+          "id": "hooks"
+        },
+        {
+          "title": "Built-in Actions",
+          "id": "built-in-actions"
+        },
+        {
+          "title": "Component Props",
+          "id": "component-props"
+        },
+        {
+          "title": "Reactivity Notes",
+          "id": "reactivity-notes"
+        }
+      ]
+    },
+    {
+      "path": "/docs/api/svelte",
+      "file": "content/docs/api/svelte.mdx",
+      "title": "@json-render/svelte",
+      "metadataTitle": "@json-render/svelte API | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/svelte\")\n\n# @json-render/svelte\n",
+      "sourceSha256": "99cd7cef6450efe1acefc63adfec229928b2f7befaa53f15de34da32a2d8cb1f",
+      "bodySha256": "6cf92dc1b1afe8f6d57a06b2ec26da257c88de73a075cf26b7ea4b5ed3e741e0",
+      "markdownSha256": "c481932be48e8f35eb222fd28fdcabfcf2edc3d45eb9575860f9da83c9e99669",
+      "headings": [
+        {
+          "title": "Installation",
+          "id": "installation"
+        },
+        {
+          "title": "Components",
+          "id": "components"
+        },
+        {
+          "title": "Renderer",
+          "id": "renderer"
+        },
+        {
+          "title": "JsonUIProvider",
+          "id": "jsonuiprovider"
+        },
+        {
+          "title": "defineRegistry",
+          "id": "defineregistry"
+        },
+        {
+          "title": "Component Props",
+          "id": "component-props"
+        },
+        {
+          "title": "Context Helpers",
+          "id": "context-helpers"
+        },
+        {
+          "title": "Streaming",
+          "id": "streaming"
+        },
+        {
+          "title": "createUIStream",
+          "id": "createuistream"
+        },
+        {
+          "title": "createChatUI",
+          "id": "createchatui"
+        },
+        {
+          "title": "Schema Export",
+          "id": "schema-export"
+        }
+      ]
+    },
+    {
+      "path": "/docs/api/tanstack-start",
+      "file": "content/docs/api/tanstack-start.mdx",
+      "title": "@json-render/tanstack-start",
+      "metadataTitle": "@json-render/tanstack-start API | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\";\n\nexport const metadata = pageMetadata(\"docs/api/tanstack-start\");\n\n# @json-render/tanstack-start\n",
+      "sourceSha256": "2e1d886d7b6adadd9f63c2a175deb2a5f12ab12adfd5821006d710f820b87a83",
+      "bodySha256": "9566d95c908ba18445d25f5969ca112f50d17570ea4a5f7635bbacf751b12c61",
+      "markdownSha256": "eabdf0a752d1ff4adcd4ac3c361caf4c94d7f56bcebd15dd2f2419e4657334e4",
+      "headings": [
+        {
+          "title": "Installation",
+          "id": "installation"
+        },
+        {
+          "title": "schema",
+          "id": "schema"
+        },
+        {
+          "title": "createStartApp",
+          "id": "createstartapp"
+        },
+        {
+          "title": "Options",
+          "id": "options"
+        },
+        {
+          "title": "Returns",
+          "id": "returns"
+        },
+        {
+          "title": "StartAppSpec",
+          "id": "startappspec"
+        },
+        {
+          "title": "Route Patterns",
+          "id": "route-patterns"
+        },
+        {
+          "title": "TanStack Route Setup",
+          "id": "tanstack-route-setup"
+        },
+        {
+          "title": "StartAppProvider",
+          "id": "startappprovider"
+        },
+        {
+          "title": "Built-ins",
+          "id": "built-ins"
+        },
+        {
+          "title": "Server Utilities",
+          "id": "server-utilities"
+        },
+        {
+          "title": "Entry Points",
+          "id": "entry-points"
+        }
+      ]
+    },
+    {
+      "path": "/docs/api/vue",
+      "file": "content/docs/api/vue.mdx",
+      "title": "@json-render/vue",
+      "metadataTitle": "@json-render/vue API | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/vue\")\n\n# @json-render/vue\n",
+      "sourceSha256": "d93d6bf91b5aee7b31cc775716096b2564edfd5c41b3b04c1c6fa50faf8ed571",
+      "bodySha256": "10bb9139554c3dae0927a9a23f1fdd47b624207519a4e5849238a1a5b3812256",
+      "markdownSha256": "89da16610a601f10d0b651f6445eba2fb342dc7663527f766e08aef60925a398",
+      "headings": [
+        {
+          "title": "Providers",
+          "id": "providers"
+        },
+        {
+          "title": "StateProvider",
+          "id": "stateprovider"
+        },
+        {
+          "title": "ActionProvider",
+          "id": "actionprovider"
+        },
+        {
+          "title": "VisibilityProvider",
+          "id": "visibilityprovider"
+        },
+        {
+          "title": "ValidationProvider",
+          "id": "validationprovider"
+        },
+        {
+          "title": "defineRegistry",
+          "id": "defineregistry"
+        },
+        {
+          "title": "Components",
+          "id": "components"
+        },
+        {
+          "title": "Renderer",
+          "id": "renderer"
+        },
+        {
+          "title": "Component Props (via defineRegistry)",
+          "id": "component-props-via-defineregistry"
+        },
+        {
+          "title": "BaseComponentProps",
+          "id": "basecomponentprops"
+        },
+        {
+          "title": "Composables",
+          "id": "composables"
+        },
+        {
+          "title": "useStateStore",
+          "id": "usestatestore"
+        },
+        {
+          "title": "useStateValue",
+          "id": "usestatevalue"
+        },
+        {
+          "title": "useStateBinding (deprecated)",
+          "id": "usestatebinding-deprecated"
+        },
+        {
+          "title": "useActions",
+          "id": "useactions"
+        },
+        {
+          "title": "useAction",
+          "id": "useaction"
+        },
+        {
+          "title": "useIsVisible",
+          "id": "useisvisible"
+        },
+        {
+          "title": "useFieldValidation",
+          "id": "usefieldvalidation"
+        },
+        {
+          "title": "Differences from @json-render/react",
+          "id": "differences-from-json-renderreact"
+        }
+      ]
+    },
+    {
+      "path": "/docs/api/xstate",
+      "file": "content/docs/api/xstate.mdx",
+      "title": "@json-render/xstate",
+      "metadataTitle": "@json-render/xstate API | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/xstate\")\n\n# @json-render/xstate\n",
+      "sourceSha256": "0eb8019100793c5ee9ca352655636b4e2c661de76ec563c0bf07e5d62bc31fa3",
+      "bodySha256": "b2bbb62fab9f76acaad6689b3a3355f9c2ccba221c7444bcab72223aece9d75d",
+      "markdownSha256": "601c3868f3377a5c9e2b99070e137e47182a675a757abf3fd666c6ffa6dd7a77",
+      "headings": [
+        {
+          "title": "Installation",
+          "id": "installation"
+        },
+        {
+          "title": "xstateStoreStateStore",
+          "id": "xstatestorestatestore"
+        },
+        {
+          "title": "Options",
+          "id": "options"
+        },
+        {
+          "title": "Example",
+          "id": "example"
+        },
+        {
+          "title": "Re-exports",
+          "id": "re-exports"
+        }
+      ]
+    },
+    {
+      "path": "/docs/api/yaml",
+      "file": "content/docs/api/yaml.mdx",
+      "title": "@json-render/yaml",
+      "metadataTitle": "@json-render/yaml API | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/yaml\")\n\n# @json-render/yaml\n",
+      "sourceSha256": "94df2604b54bc051507ad9558bdbe0b7a8f9996d49393c31e3efbd5954b1af60",
+      "bodySha256": "284a9e520ebf01b0cf7ac54fb3cf05cca138b65ac63382243df02a291117ed34",
+      "markdownSha256": "caa78d90340912995e4cdde4c3c32e610d9f417bd4294f63c4253a5c7d1928f1",
+      "headings": [
+        {
+          "title": "Prompt Generation",
+          "id": "prompt-generation"
+        },
+        {
+          "title": "yamlPrompt",
+          "id": "yamlprompt"
+        },
+        {
+          "title": "YamlPromptOptions",
+          "id": "yamlpromptoptions"
+        },
+        {
+          "title": "AI SDK Transform",
+          "id": "ai-sdk-transform"
+        },
+        {
+          "title": "createYamlTransform",
+          "id": "createyamltransform"
+        },
+        {
+          "title": "pipeYamlRender",
+          "id": "pipeyamlrender"
+        },
+        {
+          "title": "Streaming Parser",
+          "id": "streaming-parser"
+        },
+        {
+          "title": "createYamlStreamCompiler",
+          "id": "createyamlstreamcompiler"
+        },
+        {
+          "title": "YamlStreamCompiler",
+          "id": "yamlstreamcompiler"
+        },
+        {
+          "title": "Fence Constants",
+          "id": "fence-constants"
+        },
+        {
+          "title": "Re-exports from @json-render/core",
+          "id": "re-exports-from-json-rendercore"
+        },
+        {
+          "title": "diffToPatches",
+          "id": "difftopatches"
+        },
+        {
+          "title": "deepMergeSpec",
+          "id": "deepmergespec"
+        }
+      ]
+    },
+    {
+      "path": "/docs/api/zustand",
+      "file": "content/docs/api/zustand.mdx",
+      "title": "@json-render/zustand",
+      "metadataTitle": "@json-render/zustand API | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/zustand\")\n\n# @json-render/zustand\n",
+      "sourceSha256": "08a831399fe933770b5a1e34e62f20bba965519333419b78966f0a16cddd51b1",
+      "bodySha256": "7bf82ca15ed53f54652c309387fc3fd9133c4c595b76a217f5a109986de256b9",
+      "markdownSha256": "fc680f0d9ac5daad213a942c42a92ea92f76c43e33f98d665c85a971e5904a41",
+      "headings": [
+        {
+          "title": "Installation",
+          "id": "installation"
+        },
+        {
+          "title": "zustandStateStore",
+          "id": "zustandstatestore"
+        },
+        {
+          "title": "Options",
+          "id": "options"
+        },
+        {
+          "title": "Example",
+          "id": "example"
+        },
+        {
+          "title": "Nested Slice",
+          "id": "nested-slice"
+        },
+        {
+          "title": "Re-exports",
+          "id": "re-exports"
+        }
+      ]
+    },
+    {
+      "path": "/docs/catalog",
+      "file": "content/docs/catalog.mdx",
+      "title": "Catalog",
+      "metadataTitle": "Catalog | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\";\nexport const metadata = pageMetadata(\"docs/catalog\");\n\n# Catalog\n",
+      "sourceSha256": "e91bfd64d853e03c5c352257473ea3e1640be259d879bebee21867e32722caae",
+      "bodySha256": "4c41c614ed69e10f0c1d2893960a341b650129c5d9b108461db0aa847940de35",
+      "markdownSha256": "cc2cdca558b0661a1c4dee12fe523bd19a9233593b996172813730228ef38738",
+      "headings": [
+        {
+          "title": "What is a Catalog?",
+          "id": "what-is-a-catalog"
+        },
+        {
+          "title": "Creating a Catalog",
+          "id": "creating-a-catalog"
+        },
+        {
+          "title": "Component Definition",
+          "id": "component-definition"
+        },
+        {
+          "title": "Generating AI Prompts",
+          "id": "generating-ai-prompts"
+        },
+        {
+          "title": "Next",
+          "id": "next"
+        }
+      ]
+    },
+    {
+      "path": "/docs/changelog",
+      "file": "content/docs/changelog.mdx",
+      "title": "Changelog",
+      "metadataTitle": "Changelog | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/changelog\")\n\n# Changelog\n",
+      "sourceSha256": "916d551de5205da56dd4868527c02cc967e50ad97385bbf615b3564f41608064",
+      "bodySha256": "2888ce7353a709099ce9a9260935a099990804df72f25a2c0e16f53899a7506d",
+      "markdownSha256": "8fe5cb543df9b59eb70ac97dcc0617ee18cbb921c6de2b5cdbff6f8acac11e7d",
+      "headings": [
+        {
+          "title": "v0.20.0",
+          "id": "v0200"
+        },
+        {
+          "title": "New: Named Slots for React",
+          "id": "new-named-slots-for-react"
+        },
+        {
+          "title": "New: Nested Repeats",
+          "id": "new-nested-repeats"
+        },
+        {
+          "title": "New: Harness Chat Example",
+          "id": "new-harness-chat-example"
+        },
+        {
+          "title": "Fixed: Chained Action Params",
+          "id": "fixed-chained-action-params"
+        },
+        {
+          "title": "Improved: Spec Validation and Compatibility",
+          "id": "improved-spec-validation-and-compatibility"
+        },
+        {
+          "title": "Improved: Release Toolchain",
+          "id": "improved-release-toolchain"
+        },
+        {
+          "title": "v0.19.0",
+          "id": "v0190"
+        },
+        {
+          "title": "New: Custom Directives API",
+          "id": "new-custom-directives-api"
+        },
+        {
+          "title": "New: @json-render/directives",
+          "id": "new-json-renderdirectives"
+        },
+        {
+          "title": "v0.18.0",
+          "id": "v0180"
+        },
+        {
+          "title": "New: Devtools",
+          "id": "new-devtools"
+        },
+        {
+          "title": "New: Devtools Example",
+          "id": "new-devtools-example"
+        },
+        {
+          "title": "New: Action Observer and Devtools Flag in Core",
+          "id": "new-action-observer-and-devtools-flag-in-core"
+        },
+        {
+          "title": "Fixed: Zod 4 Schema Formatting",
+          "id": "fixed-zod-4-schema-formatting"
+        },
+        {
+          "title": "v0.17.0",
+          "id": "v0170"
+        },
+        {
+          "title": "New: Gaussian Splatting",
+          "id": "new-gaussian-splatting"
+        },
+        {
+          "title": "New: R3F Gaussian Splatting Example",
+          "id": "new-r3f-gaussian-splatting-example"
+        },
+        {
+          "title": "New: Standalone gsplat Example",
+          "id": "new-standalone-gsplat-example"
+        },
+        {
+          "title": "Improved: AI Output Quality",
+          "id": "improved-ai-output-quality"
+        },
+        {
+          "title": "v0.16.0",
+          "id": "v0160"
+        },
+        {
+          "title": "New: @json-render/next",
+          "id": "new-json-rendernext"
+        },
+        {
+          "title": "New: @json-render/shadcn-svelte",
+          "id": "new-json-rendershadcn-svelte"
+        },
+        {
+          "title": "Improved: Release Process",
+          "id": "improved-release-process"
+        },
+        {
+          "title": "v0.15.0",
+          "id": "v0150"
+        },
+        {
+          "title": "New: @json-render/ink",
+          "id": "new-json-renderink"
+        },
+        {
+          "title": "Improved: YAML Format Support in buildUserPrompt",
+          "id": "improved-yaml-format-support-in-builduserprompt"
+        },
+        {
+          "title": "v0.14.0",
+          "id": "v0140"
+        },
+        {
+          "title": "New: @json-render/yaml",
+          "id": "new-json-renderyaml"
+        },
+        {
+          "title": "New: Universal Edit Modes",
+          "id": "new-universal-edit-modes"
+        },
+        {
+          "title": "Improved: Playground",
+          "id": "improved-playground"
+        },
+        {
+          "title": "Improved: Prompt Caching",
+          "id": "improved-prompt-caching"
+        },
+        {
+          "title": "v0.13.0",
+          "id": "v0130"
+        },
+        {
+          "title": "New: @json-render/solid",
+          "id": "new-json-rendersolid"
+        },
+        {
+          "title": "New: @json-render/react-three-fiber",
+          "id": "new-json-renderreact-three-fiber"
+        },
+        {
+          "title": "Improved: Strict JSON Schema Mode",
+          "id": "improved-strict-json-schema-mode"
+        },
+        {
+          "title": "v0.12.1",
+          "id": "v0121"
+        },
+        {
+          "title": "Changed: Generation Mode Renames",
+          "id": "changed-generation-mode-renames"
+        },
+        {
+          "title": "Fixed: MCP React Duplicate Module Error",
+          "id": "fixed-mcp-react-duplicate-module-error"
+        },
+        {
+          "title": "v0.12.0",
+          "id": "v0120"
+        },
+        {
+          "title": "New: @json-render/svelte",
+          "id": "new-json-rendersvelte"
+        },
+        {
+          "title": "New: @json-render/react-email",
+          "id": "new-json-renderreact-email"
+        },
+        {
+          "title": "New: @json-render/mcp",
+          "id": "new-json-rendermcp"
+        },
+        {
+          "title": "v0.11.0",
+          "id": "v0110"
+        },
+        {
+          "title": "New: @json-render/image",
+          "id": "new-json-renderimage"
+        },
+        {
+          "title": "v0.10.0",
+          "id": "v0100"
+        },
+        {
+          "title": "New: @json-render/vue",
+          "id": "new-json-rendervue"
+        },
+        {
+          "title": "New: @json-render/xstate",
+          "id": "new-json-renderxstate"
+        },
+        {
+          "title": "New: $computed and $template Expressions",
+          "id": "new-computed-and-template-expressions"
+        },
+        {
+          "title": "New: State Watchers",
+          "id": "new-state-watchers"
+        },
+        {
+          "title": "New: Cross-Field Validation",
+          "id": "new-cross-field-validation"
+        },
+        {
+          "title": "New: validateForm Action",
+          "id": "new-validateform-action"
+        },
+        {
+          "title": "Improved: shadcn/ui Validation",
+          "id": "improved-shadcnui-validation"
+        },
+        {
+          "title": "New Examples",
+          "id": "new-examples"
+        },
+        {
+          "title": "v0.9.1",
+          "id": "v091"
+        },
+        {
+          "title": "Fixed: Install failure due to private dependency",
+          "id": "fixed-install-failure-due-to-private-dependency"
+        },
+        {
+          "title": "v0.9.0",
+          "id": "v090"
+        },
+        {
+          "title": "New: External State Store",
+          "id": "new-external-state-store"
+        },
+        {
+          "title": "Changed: onStateChange signature updated (breaking)",
+          "id": "changed-onstatechange-signature-updated-breaking"
+        },
+        {
+          "title": "Fixed: Server-safe schema import",
+          "id": "fixed-server-safe-schema-import"
+        },
+        {
+          "title": "Fixed: Chaining actions",
+          "id": "fixed-chaining-actions"
+        },
+        {
+          "title": "Fixed: Zod array inner type resolution",
+          "id": "fixed-zod-array-inner-type-resolution"
+        },
+        {
+          "title": "v0.8.0",
+          "id": "v080"
+        },
+        {
+          "title": "New: @json-render/react-pdf",
+          "id": "new-json-renderreact-pdf"
+        },
+        {
+          "title": "v0.7.0",
+          "id": "v070"
+        },
+        {
+          "title": "New: @json-render/shadcn",
+          "id": "new-json-rendershadcn"
+        },
+        {
+          "title": "New: Event Handles (on())",
+          "id": "new-event-handles-on"
+        },
+        {
+          "title": "New: BaseComponentProps",
+          "id": "new-basecomponentprops"
+        },
+        {
+          "title": "New: Built-in Actions in Schema",
+          "id": "new-built-in-actions-in-schema"
+        },
+        {
+          "title": "New: preventDefault on ActionBinding",
+          "id": "new-preventdefault-on-actionbinding"
+        },
+        {
+          "title": "Improved: Stream Transform Text Block Splitting",
+          "id": "improved-stream-transform-text-block-splitting"
+        },
+        {
+          "title": "Improved: defineRegistry Actions Requirement",
+          "id": "improved-defineregistry-actions-requirement"
+        },
+        {
+          "title": "v0.6.0",
+          "id": "v060"
+        },
+        {
+          "title": "New: Chat Mode (Inline GenUI)",
+          "id": "new-chat-mode-inline-genui"
+        },
+        {
+          "title": "New: AI SDK Integration",
+          "id": "new-ai-sdk-integration"
+        },
+        {
+          "title": "New: Two-Way Binding",
+          "id": "new-two-way-binding"
+        },
+        {
+          "title": "New: Expression-Based Props and Visibility",
+          "id": "new-expression-based-props-and-visibility"
+        },
+        {
+          "title": "New: React Chat Hooks",
+          "id": "new-react-chat-hooks"
+        },
+        {
+          "title": "New: Chat Example",
+          "id": "new-chat-example"
+        },
+        {
+          "title": "Improved: Renderer Performance",
+          "id": "improved-renderer-performance"
+        },
+        {
+          "title": "Improved: Utilities",
+          "id": "improved-utilities"
+        },
+        {
+          "title": "Breaking Changes",
+          "id": "breaking-changes"
+        },
+        {
+          "title": "v0.5.0",
+          "id": "v050"
+        },
+        {
+          "title": "New: @json-render/react-native",
+          "id": "new-json-renderreact-native"
+        },
+        {
+          "title": "New: Event System",
+          "id": "new-event-system"
+        },
+        {
+          "title": "New: Repeat/List Rendering",
+          "id": "new-repeatlist-rendering"
+        },
+        {
+          "title": "New: User Prompt Builder",
+          "id": "new-user-prompt-builder"
+        },
+        {
+          "title": "New: Spec Validation",
+          "id": "new-spec-validation"
+        },
+        {
+          "title": "Improved: State Management",
+          "id": "improved-state-management"
+        },
+        {
+          "title": "Improved: AI Prompts",
+          "id": "improved-ai-prompts"
+        },
+        {
+          "title": "Improved: Documentation",
+          "id": "improved-documentation"
+        },
+        {
+          "title": "Breaking Changes",
+          "id": "breaking-changes"
+        },
+        {
+          "title": "v0.4.0",
+          "id": "v040"
+        },
+        {
+          "title": "New: Custom Schema System",
+          "id": "new-custom-schema-system"
+        },
+        {
+          "title": "New: Component Slots",
+          "id": "new-component-slots"
+        },
+        {
+          "title": "New: AI Prompt Generation",
+          "id": "new-ai-prompt-generation"
+        },
+        {
+          "title": "New: @json-render/remotion",
+          "id": "new-json-renderremotion"
+        },
+        {
+          "title": "New: SpecStream",
+          "id": "new-specstream"
+        },
+        {
+          "title": "Improved: Dashboard Example",
+          "id": "improved-dashboard-example"
+        },
+        {
+          "title": "Improved: Documentation",
+          "id": "improved-documentation"
+        },
+        {
+          "title": "Breaking Changes",
+          "id": "breaking-changes"
+        },
+        {
+          "title": "v0.3.0",
+          "id": "v030"
+        },
+        {
+          "title": "v0.2.0",
+          "id": "v020"
+        }
+      ]
+    },
+    {
+      "path": "/docs/code-export",
+      "file": "content/docs/code-export.mdx",
+      "title": "Code Export",
+      "metadataTitle": "Code Export | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/code-export\")\n\n# Code Export\n",
+      "sourceSha256": "c88b4f674179a1b726453b2769d309cdf55d567e9821d9c542737cbbb8320da7",
+      "bodySha256": "deff258ad189742aa53a43477c719dff4e5128735ae015d382c3fd77abff2f82",
+      "markdownSha256": "8cd8e759040c6bc140f18192a2dfb0a98f50050eb0ac6dc816c1f5efb348997c",
+      "headings": [
+        {
+          "title": "Overview",
+          "id": "overview"
+        },
+        {
+          "title": "Architecture",
+          "id": "architecture"
+        },
+        {
+          "title": "1. @json-render/codegen (utilities)",
+          "id": "1-json-rendercodegen-utilities"
+        },
+        {
+          "title": "2. Your Project (generator)",
+          "id": "2-your-project-generator"
+        },
+        {
+          "title": "Example: Next.js Export",
+          "id": "example-nextjs-export"
+        },
+        {
+          "title": "Standalone Components",
+          "id": "standalone-components"
+        },
+        {
+          "title": "Using the Utilities",
+          "id": "using-the-utilities"
+        },
+        {
+          "title": "traverseSpec",
+          "id": "traversespec"
+        },
+        {
+          "title": "collectUsedComponents",
+          "id": "collectusedcomponents"
+        },
+        {
+          "title": "serializeProps",
+          "id": "serializeprops"
+        },
+        {
+          "title": "Try It",
+          "id": "try-it"
+        }
+      ]
+    },
+    {
+      "path": "/docs/computed-values",
+      "file": "content/docs/computed-values.mdx",
+      "title": "Computed Values",
+      "metadataTitle": "Computed Values | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/computed-values\")\n\n# Computed Values\n",
+      "sourceSha256": "e55a624626d84d872b4810f6d3747898881c4dc811d8830e531efaf0feef1071",
+      "bodySha256": "453914a4cae4956da073401a2343d8c665182a895e3e06348e5657acf0467f18",
+      "markdownSha256": "183ac788bf19b2b024cc34bc0c8a2cd7d93b8befc4227afefe373767fc450153",
+      "headings": [
+        {
+          "title": "$template — String Interpolation",
+          "id": "template-string-interpolation"
+        },
+        {
+          "title": "$computed — Registered Functions",
+          "id": "computed-registered-functions"
+        },
+        {
+          "title": "Registering Functions",
+          "id": "registering-functions"
+        },
+        {
+          "title": "Using with createRenderer",
+          "id": "using-with-createrenderer"
+        },
+        {
+          "title": "Combining Expressions",
+          "id": "combining-expressions"
+        },
+        {
+          "title": "Next",
+          "id": "next"
+        }
+      ]
+    },
+    {
+      "path": "/docs/custom-schema",
+      "file": "content/docs/custom-schema.mdx",
+      "title": "Custom Schema & Renderer",
+      "metadataTitle": "Custom Schema & Renderer | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/custom-schema\")\n\n# Custom Schema & Renderer\n",
+      "sourceSha256": "36f8227138b8cb3ec395b3f9f4e32be3fe3a52f04e557b5c4dff225c7f191cbd",
+      "bodySha256": "b49244cbfd74ce6951b85f05089be5db934fefc97b0d4080994f9989d22f79ef",
+      "markdownSha256": "440330cfd9e0de242d9a3722508fa41be9b841baaf4e019af058374f142291b3",
+      "headings": [
+        {
+          "title": "Overview",
+          "id": "overview"
+        },
+        {
+          "title": "1. Define Your Schema",
+          "id": "1-define-your-schema"
+        },
+        {
+          "title": "2. Create the Catalog",
+          "id": "2-create-the-catalog"
+        },
+        {
+          "title": "3. Define the Root Schema",
+          "id": "3-define-the-root-schema"
+        },
+        {
+          "title": "4. Build the Renderer",
+          "id": "4-build-the-renderer"
+        },
+        {
+          "title": "5. Generate LLM Prompts",
+          "id": "5-generate-llm-prompts"
+        },
+        {
+          "title": "6. Validate Specs",
+          "id": "6-validate-specs"
+        },
+        {
+          "title": "Usage Example",
+          "id": "usage-example"
+        },
+        {
+          "title": "Next",
+          "id": "next"
+        }
+      ]
+    },
+    {
+      "path": "/docs/data-binding",
+      "file": "content/docs/data-binding.mdx",
+      "title": "Data Binding",
+      "metadataTitle": "Data Binding | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/data-binding\")\n\n# Data Binding\n",
+      "sourceSha256": "ffccda5226ebad40ec43e4a8a4e95d52128e0a525a767266b916c1cfa8ea867a",
+      "bodySha256": "51ce521332a2e67a197c3263e2dc54fa1cad337d44be55a9cbe96f9861cdfc69",
+      "markdownSha256": "a1915aefc5af9cab386b6c4b3409625c35b9e51d754968056906c9605a59e51f",
+      "headings": [
+        {
+          "title": "State Model",
+          "id": "state-model"
+        },
+        {
+          "title": "JSON Pointer Paths",
+          "id": "json-pointer-paths"
+        },
+        {
+          "title": "Expressions",
+          "id": "expressions"
+        },
+        {
+          "title": "$state — Read from state",
+          "id": "state-read-from-state"
+        },
+        {
+          "title": "$item — Read from the current repeat item",
+          "id": "item-read-from-the-current-repeat-item"
+        },
+        {
+          "title": "$index — Current repeat index",
+          "id": "index-current-repeat-index"
+        },
+        {
+          "title": "Repeat",
+          "id": "repeat"
+        },
+        {
+          "title": "Two-Way Binding with $bindState",
+          "id": "two-way-binding-with-bindstate"
+        },
+        {
+          "title": "Value prop (text inputs)",
+          "id": "value-prop-text-inputs"
+        },
+        {
+          "title": "Checked prop (switches, checkboxes)",
+          "id": "checked-prop-switches-checkboxes"
+        },
+        {
+          "title": "Pressed prop (toggle buttons)",
+          "id": "pressed-prop-toggle-buttons"
+        },
+        {
+          "title": "Two-Way Binding with $bindItem",
+          "id": "two-way-binding-with-binditem"
+        },
+        {
+          "title": "Conditional Props",
+          "id": "conditional-props"
+        },
+        {
+          "title": "Template Strings",
+          "id": "template-strings"
+        },
+        {
+          "title": "Quick Reference",
+          "id": "quick-reference"
+        },
+        {
+          "title": "External Store (Controlled Mode)",
+          "id": "external-store-controlled-mode"
+        },
+        {
+          "title": "Next",
+          "id": "next"
+        }
+      ]
+    },
+    {
+      "path": "/docs/devtools",
+      "file": "content/docs/devtools.mdx",
+      "title": "Devtools",
+      "metadataTitle": "Devtools | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/devtools\")\n\n# Devtools\n",
+      "sourceSha256": "9171c67075cff7a82b0e78bc358ef627e4adf29ad33ce23c61dee0528dd1ae3e",
+      "bodySha256": "b4d0851584d3d08f39a94e11efa660c7a63c79651f6697846420392f1d7056ad",
+      "markdownSha256": "98071771a6c26cc920691dba83bd6b21dfbb5ba41cf14bda54bf40208c1dfe8a",
+      "headings": [
+        {
+          "title": "Install",
+          "id": "install"
+        },
+        {
+          "title": "React",
+          "id": "react"
+        },
+        {
+          "title": "Vue",
+          "id": "vue"
+        },
+        {
+          "title": "Svelte",
+          "id": "svelte"
+        },
+        {
+          "title": "Solid",
+          "id": "solid"
+        },
+        {
+          "title": "Quick Start",
+          "id": "quick-start"
+        },
+        {
+          "title": "Chat apps (AI SDK)",
+          "id": "chat-apps-ai-sdk"
+        },
+        {
+          "title": "Panels",
+          "id": "panels"
+        },
+        {
+          "title": "Props",
+          "id": "props"
+        },
+        {
+          "title": "Production Safety",
+          "id": "production-safety"
+        },
+        {
+          "title": "Advanced",
+          "id": "advanced"
+        },
+        {
+          "title": "Imperative controls",
+          "id": "imperative-controls"
+        },
+        {
+          "title": "Server-side stream tap",
+          "id": "server-side-stream-tap"
+        }
+      ]
+    },
+    {
+      "path": "/docs/directives",
+      "file": "content/docs/directives.mdx",
+      "title": "Directives",
+      "metadataTitle": "Directives | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/directives\")\n\n# Directives\n",
+      "sourceSha256": "6beb76c381be7e23eea91a11e2346a4ac6d606f6b84d3a0a0678f085696ce515",
+      "bodySha256": "5a1f3e0c4b28316865839d63cd9a9b78a98762085ead5910ec80e9aa4e1de15e",
+      "markdownSha256": "564746bc6c0855ae79cfa063d80ea2c381af63c4e58f0ab616810b3411b65432",
+      "headings": [
+        {
+          "title": "Overview",
+          "id": "overview"
+        },
+        {
+          "title": "Defining a Directive",
+          "id": "defining-a-directive"
+        },
+        {
+          "title": "Wiring Directives",
+          "id": "wiring-directives"
+        },
+        {
+          "title": "Runtime",
+          "id": "runtime"
+        },
+        {
+          "title": "Prompt Generation",
+          "id": "prompt-generation"
+        },
+        {
+          "title": "Pre-built Directives",
+          "id": "pre-built-directives"
+        },
+        {
+          "title": "Composition",
+          "id": "composition"
+        },
+        {
+          "title": "Built-in Precedence",
+          "id": "built-in-precedence"
+        },
+        {
+          "title": "Next",
+          "id": "next"
+        }
+      ]
+    },
+    {
+      "path": "/docs/generation-modes",
+      "file": "content/docs/generation-modes.mdx",
+      "title": "Generation Modes",
+      "metadataTitle": "Generation Modes | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/generation-modes\")\n\n# Generation Modes\n",
+      "sourceSha256": "f74a61660fb3794501215efabf837524e6cf135ec4b48994b7668fd8bea28587",
+      "bodySha256": "dd177fe6eb3e8eff9b76bcc36368416725f0b1bdc604b2dd48f5ca1eced73699",
+      "markdownSha256": "7082d16b441f27b278751364f77afef27b6782cb47390690f787d8e2a0bc7dad",
+      "headings": [
+        {
+          "title": "Standalone Mode",
+          "id": "standalone-mode"
+        },
+        {
+          "title": "Setup",
+          "id": "setup"
+        },
+        {
+          "title": "Client",
+          "id": "client"
+        },
+        {
+          "title": "Example output",
+          "id": "example-output"
+        },
+        {
+          "title": "Inline Mode",
+          "id": "inline-mode"
+        },
+        {
+          "title": "Setup",
+          "id": "setup"
+        },
+        {
+          "title": "Client",
+          "id": "client"
+        },
+        {
+          "title": "Example output",
+          "id": "example-output"
+        },
+        {
+          "title": "Quick Comparison",
+          "id": "quick-comparison"
+        },
+        {
+          "title": "Next",
+          "id": "next"
+        }
+      ]
+    },
+    {
+      "path": "/docs/installation",
+      "file": "content/docs/installation.mdx",
+      "title": "Installation",
+      "metadataTitle": "Installation | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/installation\")\n\n# Installation\n",
+      "sourceSha256": "937bfb315b619c999082fac5253c2609db1e68d736ca0bf011c7eded9ec93593",
+      "bodySha256": "13b1b9d4c4f7de99ed2493358608eabb4565a956db8750f458efd437ffc6c8d1",
+      "markdownSha256": "08bbe2a46b41b4354feeb3538416a85f6d5cf9b5343d4dbf524e21ae8d56b46f",
+      "headings": [
+        {
+          "title": "For React UI",
+          "id": "for-react-ui"
+        },
+        {
+          "title": "For Vue",
+          "id": "for-vue"
+        },
+        {
+          "title": "For Svelte",
+          "id": "for-svelte"
+        },
+        {
+          "title": "For React UI with shadcn/ui",
+          "id": "for-react-ui-with-shadcnui"
+        },
+        {
+          "title": "For React Native",
+          "id": "for-react-native"
+        },
+        {
+          "title": "For Remotion Video",
+          "id": "for-remotion-video"
+        },
+        {
+          "title": "For React Email",
+          "id": "for-react-email"
+        },
+        {
+          "title": "For External State Management (Optional)",
+          "id": "for-external-state-management-optional"
+        },
+        {
+          "title": "For AI Integration",
+          "id": "for-ai-integration"
+        }
+      ]
+    },
+    {
+      "path": "/docs/migration",
+      "file": "content/docs/migration.mdx",
+      "title": "Migration Guide",
+      "metadataTitle": "Migration Guide | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/migration\")\n\n# Migration Guide\n",
+      "sourceSha256": "97430a735e73f824f2111fe8249803f0db0d174db3290d2c1ffd714ebf3156b7",
+      "bodySha256": "7ab30b54f7ad372559a64e048936f084504725a9dca5bedd091107736328b1a7",
+      "markdownSha256": "eb9ce4dc986f1fd816f39a9fedca55242740a91be64567c82aa8e3ed06b25520",
+      "headings": [
+        {
+          "title": "State Provider",
+          "id": "state-provider"
+        },
+        {
+          "title": "Dynamic Expressions",
+          "id": "dynamic-expressions"
+        },
+        {
+          "title": "Two-Way Binding",
+          "id": "two-way-binding"
+        },
+        {
+          "title": "Visibility Conditions",
+          "id": "visibility-conditions"
+        },
+        {
+          "title": "Event System",
+          "id": "event-system"
+        },
+        {
+          "title": "Actions Context",
+          "id": "actions-context"
+        },
+        {
+          "title": "Repeat / List Rendering",
+          "id": "repeat-list-rendering"
+        },
+        {
+          "title": "Catalog Creation",
+          "id": "catalog-creation"
+        },
+        {
+          "title": "Generation Modes",
+          "id": "generation-modes"
+        },
+        {
+          "title": "Validation",
+          "id": "validation"
+        },
+        {
+          "title": "Visibility Provider",
+          "id": "visibility-provider"
+        },
+        {
+          "title": "Codegen",
+          "id": "codegen"
+        },
+        {
+          "title": "Action Params",
+          "id": "action-params"
+        },
+        {
+          "title": "Removed Exports",
+          "id": "removed-exports"
+        }
+      ]
+    },
+    {
+      "path": "/docs/openapi",
+      "file": "content/docs/openapi.mdx",
+      "title": "OpenAPI Integration",
+      "metadataTitle": "OpenAPI Integration | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/openapi\")\n\n# OpenAPI Integration\n",
+      "sourceSha256": "ecb338099c6f47e97711921e21940e59be68573bb36a33b483d6dcc4ff70f753",
+      "bodySha256": "8663bf0b9962f553cf0ff9315ba158205156b93380f04c07e8048f60d2ae111a",
+      "markdownSha256": "cf63386b2e21bd165b3a03178f7706bef5c86abdf721e76857e75294171eb243",
+      "headings": [
+        {
+          "title": "Why OpenAPI?",
+          "id": "why-openapi"
+        },
+        {
+          "title": "Example OpenAPI Schema",
+          "id": "example-openapi-schema"
+        },
+        {
+          "title": "Define an OpenAPI-to-UI Catalog",
+          "id": "define-an-openapi-to-ui-catalog"
+        },
+        {
+          "title": "Convert OpenAPI Schema to Spec",
+          "id": "convert-openapi-schema-to-spec"
+        },
+        {
+          "title": "Usage Example",
+          "id": "usage-example"
+        },
+        {
+          "title": "Auto-generating from OpenAPI Document",
+          "id": "auto-generating-from-openapi-document"
+        },
+        {
+          "title": "Next",
+          "id": "next"
+        }
+      ]
+    },
+    {
+      "path": "/docs",
+      "file": "content/docs/index.mdx",
+      "title": "Introduction",
+      "metadataTitle": "Introduction | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs\")\n\n# Introduction\n",
+      "sourceSha256": "3dc14fafd02b8a28766791efe52da560d7b7af2b10d5044e5bbe3d70e715fb99",
+      "bodySha256": "208c84bd7c75844ec6a5d7c4eb8b074d45311b3716e9f6ce03fa55eb4e8c2f9c",
+      "markdownSha256": "75d7bdc9d21a90df0be5874fbf35f5857cb3128733b2573e5993fab1a3d6b68d",
+      "headings": [
+        {
+          "title": "What is Generative UI?",
+          "id": "what-is-generative-ui"
+        },
+        {
+          "title": "How json-render Works",
+          "id": "how-json-render-works"
+        },
+        {
+          "title": "1. Define your catalog",
+          "id": "1-define-your-catalog"
+        },
+        {
+          "title": "2. AI generates a spec",
+          "id": "2-ai-generates-a-spec"
+        },
+        {
+          "title": "3. Your components render it",
+          "id": "3-your-components-render-it"
+        },
+        {
+          "title": "Key Concepts",
+          "id": "key-concepts"
+        },
+        {
+          "title": "Next",
+          "id": "next"
+        }
+      ]
+    },
+    {
+      "path": "/docs/quick-start",
+      "file": "content/docs/quick-start.mdx",
+      "title": "Quick Start",
+      "metadataTitle": "Quick Start | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/quick-start\")\n\n# Quick Start\n",
+      "sourceSha256": "3da45226be41bbd4734f4172641d31a60bc4be7466968bccb4178a876d4498f1",
+      "bodySha256": "9ed11fe69a6d215e912c3a8210574504e0483029b117f3cebd27a1ea06e3216a",
+      "markdownSha256": "8b3879f48decbe9b53bccfd904ba52f5c309351fb4ba667e69c812aff5de570c",
+      "headings": [
+        {
+          "title": "1. Define your catalog",
+          "id": "1-define-your-catalog"
+        },
+        {
+          "title": "2. Define your components",
+          "id": "2-define-your-components"
+        },
+        {
+          "title": "3. Create an API route",
+          "id": "3-create-an-api-route"
+        },
+        {
+          "title": "4. Render the UI",
+          "id": "4-render-the-ui"
+        },
+        {
+          "title": "Quick Start with shadcn/ui",
+          "id": "quick-start-with-shadcnui"
+        },
+        {
+          "title": "Next steps",
+          "id": "next-steps"
+        }
+      ]
+    },
+    {
+      "path": "/docs/registry",
+      "file": "content/docs/registry.mdx",
+      "title": "Registry",
+      "metadataTitle": "Registry | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\";\nexport const metadata = pageMetadata(\"docs/registry\");\n\n# Registry\n",
+      "sourceSha256": "0736a214267d9537ce6fdbd82d3b4ab543b60da4bacab3d972e360cb1824ef99",
+      "bodySha256": "9db7659e18a7bca3a65e0de02ed71521db4fe07a412c82368d857d6fd936b6e7",
+      "markdownSha256": "abe0fbf46046358028c1eb7b7f701a02c5d5251f2746aa166621eaf2902476e0",
+      "headings": [
+        {
+          "title": "@json-render/react",
+          "id": "json-renderreact"
+        },
+        {
+          "title": "defineRegistry",
+          "id": "defineregistry"
+        },
+        {
+          "title": "Component Props",
+          "id": "component-props"
+        },
+        {
+          "title": "Action Handlers",
+          "id": "action-handlers"
+        },
+        {
+          "title": "Data Binding",
+          "id": "data-binding"
+        },
+        {
+          "title": "Using the Renderer",
+          "id": "using-the-renderer"
+        },
+        {
+          "title": "@json-render/react-native",
+          "id": "json-renderreact-native"
+        },
+        {
+          "title": "@json-render/react-email",
+          "id": "json-renderreact-email"
+        },
+        {
+          "title": "@json-render/remotion",
+          "id": "json-renderremotion"
+        },
+        {
+          "title": "Next",
+          "id": "next"
+        }
+      ]
+    },
+    {
+      "path": "/docs/renderers",
+      "file": "content/docs/renderers.mdx",
+      "title": "Renderers",
+      "metadataTitle": "Renderers | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\";\nexport const metadata = pageMetadata(\"docs/renderers\");\n\n# Renderers\n",
+      "sourceSha256": "05ddf37d2fe0f5d75cc8240e6363e68d3e26c9170c0de5cdde5da84174b22351",
+      "bodySha256": "d3a7220e4ce39b41f6218f062ed9a57658b96b5bb3b210a0c4dc9c2436c39417",
+      "markdownSha256": "79011088fe6f256ae139cabd0be5ac6c7669de0bc9b07b0d2786e48c26d68da2",
+      "headings": [
+        {
+          "title": "React",
+          "id": "react"
+        },
+        {
+          "title": "Vue",
+          "id": "vue"
+        },
+        {
+          "title": "Svelte",
+          "id": "svelte"
+        },
+        {
+          "title": "Solid",
+          "id": "solid"
+        },
+        {
+          "title": "shadcn/ui",
+          "id": "shadcnui"
+        },
+        {
+          "title": "React Native",
+          "id": "react-native"
+        },
+        {
+          "title": "TanStack Start",
+          "id": "tanstack-start"
+        },
+        {
+          "title": "Image",
+          "id": "image"
+        },
+        {
+          "title": "React PDF",
+          "id": "react-pdf"
+        },
+        {
+          "title": "Remotion",
+          "id": "remotion"
+        },
+        {
+          "title": "Ink (Terminal)",
+          "id": "ink-terminal"
+        },
+        {
+          "title": "Custom Renderers",
+          "id": "custom-renderers"
+        }
+      ]
+    },
+    {
+      "path": "/docs/schemas",
+      "file": "content/docs/schemas.mdx",
+      "title": "Schemas",
+      "metadataTitle": "Schemas | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/schemas\")\n\n# Schemas\n",
+      "sourceSha256": "2d5254a28c0cc6426676604e2639be01c817006883f77edfc2a2b7d1da994669",
+      "bodySha256": "fa48e1a922801038ae8a67da1791398492c77c144951c4983f944195ae5843ea",
+      "markdownSha256": "9e872add4b02389cddcac38110a012a973c03e845c2eb3c0b54fcfd59701950a",
+      "headings": [
+        {
+          "title": "What is a Schema?",
+          "id": "what-is-a-schema"
+        },
+        {
+          "title": "Schema-Agnostic by Design",
+          "id": "schema-agnostic-by-design"
+        },
+        {
+          "title": "Built-in Schema",
+          "id": "built-in-schema"
+        },
+        {
+          "title": "Schema Components",
+          "id": "schema-components"
+        },
+        {
+          "title": "Element Structure",
+          "id": "element-structure"
+        },
+        {
+          "title": "Data Binding Syntax",
+          "id": "data-binding-syntax"
+        },
+        {
+          "title": "Action Format",
+          "id": "action-format"
+        },
+        {
+          "title": "Custom Schemas",
+          "id": "custom-schemas"
+        },
+        {
+          "title": "Schema vs Catalog",
+          "id": "schema-vs-catalog"
+        },
+        {
+          "title": "Next",
+          "id": "next"
+        }
+      ]
+    },
+    {
+      "path": "/docs/skills",
+      "file": "content/docs/skills.mdx",
+      "title": "Skills",
+      "metadataTitle": "Skills | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\";\n\nexport const metadata = pageMetadata(\"docs/skills\");\n\n# Skills\n",
+      "sourceSha256": "479c38abb563584a3c57ef76baa2b98b5b89943053cf497ff5c26dae012ed827",
+      "bodySha256": "37aefc3b677a21eeea290881170d5ba5fb315bf26b9475edbeed236ba6104da0",
+      "markdownSha256": "ba59607f46fe9e05cc31435192553d3b66a51aa468edddb9bf12f43b4c89b28c",
+      "headings": [
+        {
+          "title": "Available Skills",
+          "id": "available-skills"
+        },
+        {
+          "title": "Installation",
+          "id": "installation"
+        },
+        {
+          "title": "core",
+          "id": "core"
+        },
+        {
+          "title": "react",
+          "id": "react"
+        },
+        {
+          "title": "tanstack-start",
+          "id": "tanstack-start"
+        },
+        {
+          "title": "react-pdf",
+          "id": "react-pdf"
+        },
+        {
+          "title": "react-email",
+          "id": "react-email"
+        },
+        {
+          "title": "react-native",
+          "id": "react-native"
+        },
+        {
+          "title": "shadcn",
+          "id": "shadcn"
+        },
+        {
+          "title": "image",
+          "id": "image"
+        },
+        {
+          "title": "remotion",
+          "id": "remotion"
+        },
+        {
+          "title": "vue",
+          "id": "vue"
+        },
+        {
+          "title": "svelte",
+          "id": "svelte"
+        },
+        {
+          "title": "solid",
+          "id": "solid"
+        },
+        {
+          "title": "codegen",
+          "id": "codegen"
+        },
+        {
+          "title": "mcp",
+          "id": "mcp"
+        },
+        {
+          "title": "redux",
+          "id": "redux"
+        },
+        {
+          "title": "zustand",
+          "id": "zustand"
+        },
+        {
+          "title": "jotai",
+          "id": "jotai"
+        },
+        {
+          "title": "xstate",
+          "id": "xstate"
+        },
+        {
+          "title": "Source",
+          "id": "source"
+        }
+      ]
+    },
+    {
+      "path": "/docs/specs",
+      "file": "content/docs/specs.mdx",
+      "title": "Specs",
+      "metadataTitle": "Specs | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\";\nexport const metadata = pageMetadata(\"docs/specs\");\n\n# Specs\n",
+      "sourceSha256": "14a29e881fe4c1380a261b49534b1728a1d32e35d69ab5da86b1e40485554b65",
+      "bodySha256": "c579395d773559efa78988e73544dea206b07f926557d187569d77133be1dc75",
+      "markdownSha256": "8a353073eb8d8dc10e0d37f11a7293314fd4a8bb4db893ac74651bd7bdef5433",
+      "headings": [
+        {
+          "title": "What is a Spec?",
+          "id": "what-is-a-spec"
+        },
+        {
+          "title": "Example Specs",
+          "id": "example-specs"
+        },
+        {
+          "title": "Simple Spec",
+          "id": "simple-spec"
+        },
+        {
+          "title": "Complex Spec",
+          "id": "complex-spec"
+        },
+        {
+          "title": "Block-Level Spec",
+          "id": "block-level-spec"
+        },
+        {
+          "title": "Spec Anatomy",
+          "id": "spec-anatomy"
+        },
+        {
+          "title": "Root and Elements",
+          "id": "root-and-elements"
+        },
+        {
+          "title": "Element Structure",
+          "id": "element-structure"
+        },
+        {
+          "title": "Dynamic Data",
+          "id": "dynamic-data"
+        },
+        {
+          "title": "Conditional Visibility",
+          "id": "conditional-visibility"
+        },
+        {
+          "title": "Working with Specs",
+          "id": "working-with-specs"
+        },
+        {
+          "title": "Validating a Spec",
+          "id": "validating-a-spec"
+        },
+        {
+          "title": "Rendering a Spec (React)",
+          "id": "rendering-a-spec-react"
+        },
+        {
+          "title": "Streaming a Spec (React)",
+          "id": "streaming-a-spec-react"
+        },
+        {
+          "title": "Spec Sources",
+          "id": "spec-sources"
+        },
+        {
+          "title": "Next",
+          "id": "next"
+        }
+      ]
+    },
+    {
+      "path": "/docs/streaming",
+      "file": "content/docs/streaming.mdx",
+      "title": "Streaming",
+      "metadataTitle": "Streaming | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/streaming\")\n\n# Streaming\n",
+      "sourceSha256": "16a120c7ba25b4407b8df35999667b1bf29a4604a8e696f51d13bcaef84dfe0e",
+      "bodySha256": "98d032cbeed5dae0502abd7669f77ae1dac182dab3a4166da3cf8a7c6bff6172",
+      "markdownSha256": "dbcd985a40aa790017707efa3de647c4f462a65d5f851ba82b9c91f40e801666",
+      "headings": [
+        {
+          "title": "SpecStream Format",
+          "id": "specstream-format"
+        },
+        {
+          "title": "Patch Operations (RFC 6902)",
+          "id": "patch-operations-rfc-6902"
+        },
+        {
+          "title": "Path Format",
+          "id": "path-format"
+        },
+        {
+          "title": "Server-Side Setup",
+          "id": "server-side-setup"
+        },
+        {
+          "title": "Low-Level SpecStream API",
+          "id": "low-level-specstream-api"
+        },
+        {
+          "title": "One-Shot Compilation",
+          "id": "one-shot-compilation"
+        },
+        {
+          "title": "Usage with React",
+          "id": "usage-with-react"
+        },
+        {
+          "title": "useUIStream Hook",
+          "id": "useuistream-hook"
+        },
+        {
+          "title": "Progressive Rendering",
+          "id": "progressive-rendering"
+        },
+        {
+          "title": "Aborting Streams",
+          "id": "aborting-streams"
+        }
+      ]
+    },
+    {
+      "path": "/docs/validation",
+      "file": "content/docs/validation.mdx",
+      "title": "Validation",
+      "metadataTitle": "Validation | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/validation\")\n\n# Validation\n",
+      "sourceSha256": "1008c30b0dd2f3914dbba090919ca977adda9126a3620e8ec8686be7cde8d2cc",
+      "bodySha256": "0cc68073de28e6da40645c0420328e22cef7031d43594c963a6a6b3e3af7b7ad",
+      "markdownSha256": "6640ad40ee2e16325cb2696db4bce794a65b341bb2654a7abd2f06ae07f3455f",
+      "headings": [
+        {
+          "title": "Built-in Validators",
+          "id": "built-in-validators"
+        },
+        {
+          "title": "Using Validation in JSON",
+          "id": "using-validation-in-json"
+        },
+        {
+          "title": "Validation with Parameters",
+          "id": "validation-with-parameters"
+        },
+        {
+          "title": "Custom Validation Functions",
+          "id": "custom-validation-functions"
+        },
+        {
+          "title": "Usage with React",
+          "id": "usage-with-react"
+        },
+        {
+          "title": "Using in Components",
+          "id": "using-in-components"
+        },
+        {
+          "title": "Cross-Field Validation",
+          "id": "cross-field-validation"
+        },
+        {
+          "title": "Conditional Validation",
+          "id": "conditional-validation"
+        },
+        {
+          "title": "Validation Timing",
+          "id": "validation-timing"
+        },
+        {
+          "title": "Form-Level Validation",
+          "id": "form-level-validation"
+        },
+        {
+          "title": "Next",
+          "id": "next"
+        }
+      ]
+    },
+    {
+      "path": "/docs/visibility",
+      "file": "content/docs/visibility.mdx",
+      "title": "Visibility",
+      "metadataTitle": "Visibility | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/visibility\")\n\n# Visibility\n",
+      "sourceSha256": "0353301975a5fe6eccb035a54e2444c0b15baa19d3db3f7070d6a7dbc0733d01",
+      "bodySha256": "061c9c1a49bb2d274ea06b2c8c1419ad921499df937191659adfaa330d84f5fd",
+      "markdownSha256": "5948a0efc1414d1f0390b4a4ebd367877547ceb32a9837169193d504ad02e9e3",
+      "headings": [
+        {
+          "title": "State-Based Visibility",
+          "id": "state-based-visibility"
+        },
+        {
+          "title": "Negation",
+          "id": "negation"
+        },
+        {
+          "title": "Auth-Based Visibility",
+          "id": "auth-based-visibility"
+        },
+        {
+          "title": "Comparison Operators",
+          "id": "comparison-operators"
+        },
+        {
+          "title": "Combining Conditions (AND)",
+          "id": "combining-conditions-and"
+        },
+        {
+          "title": "OR Conditions",
+          "id": "or-conditions"
+        },
+        {
+          "title": "Explicit AND",
+          "id": "explicit-and"
+        },
+        {
+          "title": "Always / Never",
+          "id": "always-never"
+        },
+        {
+          "title": "Repeat-Scoped Conditions",
+          "id": "repeat-scoped-conditions"
+        },
+        {
+          "title": "$item — Condition on item field",
+          "id": "item-condition-on-item-field"
+        },
+        {
+          "title": "$index — Condition on array index",
+          "id": "index-condition-on-array-index"
+        },
+        {
+          "title": "Filtered lists — $item on the repeat container",
+          "id": "filtered-lists-item-on-the-repeat-container"
+        },
+        {
+          "title": "Complex Example",
+          "id": "complex-example"
+        },
+        {
+          "title": "Quick Reference",
+          "id": "quick-reference"
+        },
+        {
+          "title": "Usage with React",
+          "id": "usage-with-react"
+        },
+        {
+          "title": "Next",
+          "id": "next"
+        }
+      ]
+    },
+    {
+      "path": "/docs/watchers",
+      "file": "content/docs/watchers.mdx",
+      "title": "Watchers",
+      "metadataTitle": "Watchers | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/watchers\")\n\n# Watchers\n",
+      "sourceSha256": "b720bbea112499b4af0107274e6d11d783b7b1199e174bf86561403b9d5d5bf7",
+      "bodySha256": "dd7604677687b3b244930f1837ca0b14275a1c48514a12b89aa52bf0565255f3",
+      "markdownSha256": "0b292b5e0f66ae7763ee1138cd1e99c15b567acd0a51050fea0eb3b3dfe7b8df",
+      "headings": [
+        {
+          "title": "The watch Field",
+          "id": "the-watch-field"
+        },
+        {
+          "title": "Cascading Selects",
+          "id": "cascading-selects"
+        },
+        {
+          "title": "Action Handler",
+          "id": "action-handler"
+        },
+        {
+          "title": "Multiple Watchers",
+          "id": "multiple-watchers"
+        },
+        {
+          "title": "Behavior",
+          "id": "behavior"
+        },
+        {
+          "title": "When to Use watch vs on",
+          "id": "when-to-use-watch-vs-on"
+        },
+        {
+          "title": "Next",
+          "id": "next"
+        }
+      ]
+    }
+  ]
+}

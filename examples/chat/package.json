@@ -9,7 +9,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint --max-warnings 0",
-    "check-types": "tsc --noEmit"
+    "check-types": "node scripts/check-highlighter.mjs && tsc --noEmit"
   },
   "dependencies": {
     "@ai-sdk/gateway": "^3.0.13",

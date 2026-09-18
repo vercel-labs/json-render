@@ -141,6 +141,7 @@ export function DocsChat({
   );
   const messagesScrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const launcherRef = useRef<HTMLButtonElement>(null);
   const restoredRef = useRef(false);
   const isDraggingRef = useRef(false);
 
@@ -173,13 +174,51 @@ export function DocsChat({
     }
   }, [open, hasMounted]);
 
+  useEffect(() => {
+    const launcher = launcherRef.current;
+    if (!hasMounted || open || !launcher) return;
+    const footer = document.querySelector("footer");
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const rect = document
+        .querySelector("footer fieldset")
+        ?.getBoundingClientRect();
+      const overlap =
+        rect && rect.width > 0 && rect.bottom > 0
+          ? Math.max(0, innerHeight - rect.top)
+          : 0;
+      launcher.style.setProperty("--chat-launcher-bottom", `${24 + overlap}px`);
+    };
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    const resize = new ResizeObserver(schedule);
+    resize.observe(document.body);
+    const mutation = new MutationObserver(schedule);
+    if (footer) {
+      resize.observe(footer);
+      mutation.observe(footer, { childList: true, subtree: true });
+    }
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    update();
+    return () => {
+      cancelAnimationFrame(frame);
+      resize.disconnect();
+      mutation.disconnect();
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+    };
+  }, [hasMounted, open]);
+
   // Push page content on desktop when pane is open.
   // Use padding on body so the page scrollbar stays at the viewport edge (behind the sidebar)
   // instead of appearing right next to the sidebar's scrollbar.
   useEffect(() => {
     const body = document.body;
     if (isDesktop && open) {
-      body.style.paddingRight = `${desktopWidth}px`;
+      body.style.paddingRight = `min(${desktopWidth}px, calc(100vw - 320px))`;
       if (!isDraggingRef.current) {
         body.style.transition = "padding-right 150ms ease";
       }
@@ -273,7 +312,13 @@ export function DocsChat({
           return !prev;
         });
       }
-      if (e.key === "Escape" && open && isDesktop) {
+      if (
+        e.key === "Escape" &&
+        open &&
+        (isDesktop ||
+          (e.target instanceof Element &&
+            e.target.closest("#json-render-chat-mobile")))
+      ) {
         setOpen(false);
       }
     };
@@ -459,6 +504,7 @@ export function DocsChat({
           rows={1}
           enterKeyHint="send"
           placeholder="Ask a question..."
+          aria-label="Ask a question"
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
@@ -496,12 +542,19 @@ export function DocsChat({
       {/* Ask AI trigger button */}
       {!open && (
         <button
+          ref={launcherRef}
+          data-docs-chat-launcher
           onClick={() => setOpen(true)}
-          className="fixed z-50 bottom-4 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-4 flex items-center gap-2 px-4 py-2 rounded-lg border border-primary bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors text-sm font-medium"
+          className="fixed z-30 bottom-[calc(1rem+env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 min-[640px]:left-auto min-[640px]:translate-x-0 min-[640px]:right-6 min-[640px]:bottom-[var(--chat-launcher-bottom,24px)] flex h-10 items-center gap-2 px-4 py-2 rounded-lg border border-primary bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors text-sm font-medium"
           aria-label="Ask AI"
+          aria-expanded={open}
+          aria-controls={
+            isDesktop ? "json-render-chat-desktop" : "json-render-chat-mobile"
+          }
+          aria-keyshortcuts="Meta+I Control+I"
         >
           Ask AI
-          <kbd className="hidden sm:inline-flex items-center gap-0.5 text-xs opacity-60 font-mono">
+          <kbd className="hidden min-[640px]:inline-flex items-center gap-0.5 text-xs opacity-60 font-mono">
             <span>&#8984;</span>I
           </kbd>
         </button>
@@ -509,9 +562,11 @@ export function DocsChat({
 
       {/* Desktop: resizable side pane — always rendered, hidden on mobile via CSS */}
       <aside
+        id="json-render-chat-desktop"
+        inert={!open || !isDesktop}
         className={`hidden sm:flex fixed top-0 right-0 bottom-0 z-40 border-l bg-background transition-transform duration-150 ease-in-out ${open ? "translate-x-0" : "translate-x-full"}`}
-        style={{ width: desktopWidth }}
-        aria-hidden={!open}
+        style={{ width: `min(${desktopWidth}px, calc(100vw - 320px))` }}
+        aria-hidden={!open || !isDesktop}
       >
         {/* Resize handle */}
         <div
@@ -525,6 +580,8 @@ export function DocsChat({
       {hasMounted && !isDesktop && (
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetContent
+            id="json-render-chat-mobile"
+            aria-describedby={undefined}
             side="right"
             overlayClassName="!bg-background"
             className="!inset-0 !w-full !h-full !max-w-none p-0 flex flex-col"

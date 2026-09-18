@@ -45,7 +45,7 @@
     "satori": "0.25.0",
     "solid-js": "^1.9.11",
     "svelte": "^5.0.0",
-    "turbo": "^2.7.4",
+    "turbo": "^2.9.7",
     "typescript": "5.9.2",
     "vite-plugin-solid": "^2.11.10",
     "vitest": "^4.0.17"

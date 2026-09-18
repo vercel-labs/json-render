@@ -20,7 +20,6 @@ import {
 import { CodeBlock } from "./code-block";
 import { CopyButton } from "./copy-button";
 import { Toaster } from "./ui/sonner";
-import { Header } from "./header";
 import { Sheet, SheetContent, SheetTitle } from "./ui/sheet";
 import { JsonEditor } from "@visual-json/react";
 import type { JsonValue } from "@visual-json/react";
@@ -201,6 +200,11 @@ export function Playground() {
   const mobileInputRef = useRef<HTMLTextAreaElement>(null);
   const versionsEndRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    const input = inputRef.current;
+    if (input?.getClientRects().length) input.focus({ preventScroll: true });
+  }, []);
+
   // Track the currently generating version ID
   const generatingVersionIdRef = useRef<string | null>(null);
 
@@ -266,7 +270,8 @@ export function Playground() {
 
   // Scroll to bottom when versions change
   useEffect(() => {
-    versionsEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = versionsEndRef.current?.parentElement;
+    container?.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
   }, [versions]);
 
   // Update version when streaming completes
@@ -560,7 +565,6 @@ ${jsx}
           placeholder="Describe changes..."
           className="w-full bg-background text-base sm:text-sm resize-none outline-none placeholder:text-muted-foreground/50"
           rows={2}
-          autoFocus
         />
         <div className="flex justify-between items-center mt-2">
           <PlaygroundControls
@@ -896,8 +900,6 @@ ${jsx}
 
   return (
     <div className="h-full flex flex-col">
-      <Header />
-
       {/* Desktop: 3-pane resizable layout */}
       <div className="hidden lg:flex flex-1 min-h-0">
         <ResizablePanelGroup className="flex-1">

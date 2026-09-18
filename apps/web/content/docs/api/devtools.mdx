@@ -1,0 +1,145 @@
+---
+title: "@json-render/devtools"
+---
+
+Framework-agnostic core for the json-render devtools — vanilla TS panel UI, event store, DOM picker, and stream tap utilities. Every framework-specific adapter package depends on this.
+
+Most users never import from this package directly. Pick the adapter that matches your renderer (`@json-render/devtools-react`, `@json-render/devtools-vue`, etc.) and drop the `<JsonRenderDevtools />` component into your app.
+
+See the [Devtools guide](/docs/devtools) for the drop-in walkthrough.
+
+## Event Store
+
+### createEventStore
+
+```ts
+function createEventStore(options?: { bufferSize?: number }): EventStore
+
+interface EventStore {
+  push: (event: DevtoolsEvent) => void;
+  snapshot: () => DevtoolsEvent[];
+  subscribe: (listener: () => void) => () => void;
+  clear: () => void;
+  size: () => number;
+}
+```
+
+Ring-buffered pub/sub of `DevtoolsEvent`. Shared by every panel and every stream tap.
+
+## Panel
+
+### createPanel
+
+```ts
+function createPanel(options: PanelOptions): PanelHandle
+
+interface PanelHandle {
+  open: () => void;
+  close: () => void;
+  toggle: () => void;
+  isOpen: () => boolean;
+  refresh: () => void;
+  destroy: () => void;
+}
+```
+
+Mount the panel into a host document. Adapters call this internally.
+
+### Panel tabs
+
+Each tab is a factory function that returns a `TabDef`:
+
+```ts
+import {
+  specTab,
+  stateTab,
+  actionsTab,
+  streamTab,
+  catalogTab,
+  pickerTab,
+} from "@json-render/devtools";
+```
+
+## Stream Taps
+
+### tapJsonRenderStream
+
+```ts
+function tapJsonRenderStream(
+  stream: ReadableStream<StreamChunk>,
+  events: EventStore,
+): ReadableStream<StreamChunk>
+```
+
+Mirror the spec patches flowing through a `pipeJsonRender` transform into a devtools event store. Returns the original stream unchanged — the tap just forks a copy.
+
+### tapYamlStream
+
+```ts
+function tapYamlStream(
+  stream: ReadableStream<StreamChunk>,
+  events: EventStore,
+): ReadableStream<StreamChunk>
+```
+
+YAML equivalent of `tapJsonRenderStream`.
+
+### scanMessageParts
+
+```ts
+function scanMessageParts(
+  parts: readonly DataPart[] | undefined,
+  events: EventStore,
+  seen: WeakSet<object>,
+): void
+```
+
+Client-side helper: scan an AI SDK message's `parts` array for spec data parts and push matching events into the store. Idempotent via `seen` — call it on every render of a chat UI.
+
+## Picker
+
+### startPicker
+
+```ts
+function startPicker(options: PickerOptions): PickerSession | null
+
+interface PickerOptions {
+  onPick: (key: string) => void;
+  onCancel?: () => void;
+}
+```
+
+Start a DOM picker session. Hovering paints an outline on any element carrying `data-jr-key`; clicking fires `onPick` with the spec key. Returns `null` in environments without a DOM.
+
+### findElementByKey / highlightElement
+
+```ts
+function findElementByKey(key: string): Element | null
+function highlightElement(key: string, durationMs?: number): void
+```
+
+Look up the live DOM node for a spec element key, or briefly paint an outline around it.
+
+## Types
+
+### DevtoolsEvent
+
+```ts
+type DevtoolsEvent =
+  | { kind: "spec-changed"; at: number; spec: Spec }
+  | { kind: "state-set"; at: number; path: string; prev: unknown; next: unknown }
+  | { kind: "action-dispatched"; at: number; id: string; name: string; params?: unknown }
+  | { kind: "action-settled"; at: number; id: string; ok: boolean; result?: unknown; error?: string; durationMs: number }
+  | { kind: "stream-patch"; at: number; patch: JsonPatch; source: "json" | "yaml" }
+  | { kind: "stream-text"; at: number; text: string }
+  | { kind: "stream-usage"; at: number; usage: TokenUsage }
+  | { kind: "stream-lifecycle"; at: number; phase: "start" | "end"; ok?: boolean };
+```
+
+### isProduction
+
+```ts
+function isProduction(): boolean
+```
+
+`true` when `process.env.NODE_ENV === "production"`. Adapters use this to short-circuit to a null render.

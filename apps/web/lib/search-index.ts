@@ -1,7 +1,5 @@
-import { readFile } from "fs/promises";
-import { join } from "path";
 import { docsNavigation } from "./docs-navigation";
-import { mdxToCleanMarkdown } from "./mdx-to-markdown";
+import { loadDocsSource } from "./docs-source";
 
 export type IndexEntry = {
   title: string;
@@ -33,15 +31,6 @@ function stripMarkdown(md: string): string {
   );
 }
 
-function mdxFileForSlug(slug: string): string {
-  const docsRoot = join(process.cwd(), "app", "(main)", "docs");
-  if (slug === "/docs") {
-    return join(docsRoot, "page.mdx");
-  }
-  const rest = slug.replace(/^\/docs\/?/, "");
-  return join(docsRoot, ...rest.split("/"), "page.mdx");
-}
-
 export async function getSearchIndex(): Promise<IndexEntry[]> {
   if (cached) return cached;
 
@@ -51,9 +40,8 @@ export async function getSearchIndex(): Promise<IndexEntry[]> {
     for (const item of section.items) {
       if (item.external) continue;
       try {
-        const raw = await readFile(mdxFileForSlug(item.href), "utf-8");
-        const md = mdxToCleanMarkdown(raw);
-        const content = stripMarkdown(md);
+        const source = await loadDocsSource(item.href);
+        const content = stripMarkdown(source?.markdown ?? "");
         entries.push({
           title: item.title,
           href: item.href,
