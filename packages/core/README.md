@@ -344,6 +344,8 @@ Available via `@json-render/core/store-utils`:
 import { createStoreAdapter, immutableSetByPath, flattenToPointers } from "@json-render/core/store-utils";
 ```
 
+`flattenToPointers` escapes `~` as `~0` and `/` as `~1` in object keys. For example, `{ "a/b": 1 }` becomes `{ "/a~1b": 1 }`, so the resulting paths can be passed to `store.get`, `store.set`, or `store.update`.
+
 `createStoreAdapter` handles `get`, `set` (with no-op detection), batched `update`, `getSnapshot`, `getServerSnapshot`, and `subscribe` -- adapter authors only need to supply the snapshot source, write API, and subscribe mechanism:
 
 ```typescript

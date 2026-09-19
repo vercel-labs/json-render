@@ -262,6 +262,8 @@ store.subscribe(() => {
 
 The `StateStore` interface: `get(path)`, `set(path, value)`, `update(updates)`, `getSnapshot()`, `subscribe(listener)`.
 
+Use `flattenToPointers` from `@json-render/core/store-utils` to flatten nested state into JSON Pointer keyed entries. It escapes `~` as `~0` and `/` as `~1` in keys: `{ "a/b": 1 }` becomes `{ "/a~1b": 1 }`.
+
 ## Key Exports
 
 | Export | Purpose |
