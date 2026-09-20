@@ -117,6 +117,32 @@ describe("$format", () => {
     );
     expect(result).toBe("just now");
   });
+
+  it("formats a date-only ISO string as that calendar day in US timezones", () => {
+    const ctx = makeCtx();
+    const result = resolvePropValue(
+      {
+        $format: "date",
+        value: "2024-01-15",
+        options: {
+          timeZone: "America/New_York",
+          year: "numeric",
+          month: "numeric",
+          day: "numeric",
+        },
+      },
+      ctx,
+    ) as string;
+    expect(result).toMatch(/15/);
+    expect(result).not.toMatch(/14/);
+  });
+
+  it("does not throw on an invalid date", () => {
+    const ctx = makeCtx();
+    expect(() =>
+      resolvePropValue({ $format: "date", value: "not-a-date" }, ctx),
+    ).not.toThrow();
+  });
 });
 
 // ============================================================================

@@ -1,6 +1,17 @@
 import { z } from "zod";
 import { defineDirective, resolvePropValue } from "@json-render/core";
 
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
+
+function coerceDate(value: unknown): Date {
+  if (value instanceof Date) return value;
+  if (typeof value === "string" && DATE_ONLY.test(value)) {
+    const [year, month, day] = value.split("-").map(Number);
+    return new Date(Date.UTC(year!, month! - 1, day!));
+  }
+  return new Date(value as string | number);
+}
+
 export const formatDirective = defineDirective({
   name: "$format",
   description:
@@ -22,8 +33,11 @@ export const formatDirective = defineDirective({
 
     switch (raw.$format) {
       case "date": {
-        const date =
-          value instanceof Date ? value : new Date(value as string | number);
+        const dateOnly = typeof value === "string" && DATE_ONLY.test(value);
+        const date = coerceDate(value);
+        if (Number.isNaN(date.getTime())) {
+          return value == null ? "" : String(value);
+        }
         if (raw.style === "relative") {
           const now = raw.now ?? Date.now();
           const diff = now - date.getTime();
@@ -39,10 +53,11 @@ export const formatDirective = defineDirective({
           if (minutes > 0) return `${minutes}m ${suffix}`;
           return `${seconds}s ${suffix}`;
         }
-        return new Intl.DateTimeFormat(
-          locale,
-          extra as Intl.DateTimeFormatOptions,
-        ).format(date);
+        const options = { ...(extra as Intl.DateTimeFormatOptions) };
+        // Date-only ISO strings are calendar dates, not UTC midnights.
+        // Format them in UTC so "2024-01-15" stays the 15th in every timezone.
+        if (dateOnly) options.timeZone = "UTC";
+        return new Intl.DateTimeFormat(locale, options).format(date);
       }
       case "currency":
         return new Intl.NumberFormat(locale, {
