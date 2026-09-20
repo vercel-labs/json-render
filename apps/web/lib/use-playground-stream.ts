@@ -17,6 +17,9 @@ import { applySpecPatch } from "./spec-patch";
 
 export type PlaygroundModel = "default" | "typesafe-ai/jev";
 
+/** Which provider serves the generation. */
+export type PlaygroundProvider = "gateway" | "orcarouter" | "orcarouter-oauth";
+
 export interface CompositionSummary {
   stopReason: "finish" | "limit" | "unavailable";
   elapsedMs: number;
@@ -40,6 +43,12 @@ export interface UsePlaygroundStreamOptions {
   model?: PlaygroundModel;
   format: StreamFormat;
   editModes?: EditMode[];
+  /** Defaults to the Vercel AI Gateway provider. */
+  provider?: PlaygroundProvider;
+  /** OrcaRouter model id, chosen from the live catalog. */
+  orcaModel?: string | null;
+  /** Non-text modalities this request uploads. Drives the model filter. */
+  attachmentModalities?: readonly string[];
   onError?: (error: Error) => void;
   onComplete?: (spec: Spec) => void;
 }
@@ -109,6 +118,9 @@ export function usePlaygroundStream({
   model = "default",
   format,
   editModes,
+  provider = "gateway",
+  orcaModel = null,
+  attachmentModalities,
   onError,
   onComplete,
 }: UsePlaygroundStreamOptions): UsePlaygroundStreamReturn {
@@ -133,6 +145,12 @@ export function usePlaygroundStream({
   formatRef.current = format;
   const editModesRef = useRef(editModes);
   editModesRef.current = editModes;
+  const providerRef = useRef(provider);
+  providerRef.current = provider;
+  const orcaModelRef = useRef(orcaModel);
+  orcaModelRef.current = orcaModel;
+  const attachmentModalitiesRef = useRef(attachmentModalities);
+  attachmentModalitiesRef.current = attachmentModalities;
 
   const stop = useCallback(() => abortControllerRef.current?.abort(), []);
   const clear = useCallback(() => {
@@ -179,6 +197,11 @@ export function usePlaygroundStream({
             model: requestModel,
             format: requestFormat,
             editModes: editModesRef.current,
+            provider: providerRef.current,
+            orcaModel: orcaModelRef.current,
+            attachments: (attachmentModalitiesRef.current ?? []).map(
+              (modality) => ({ modality }),
+            ),
           }),
           signal: controller.signal,
         });

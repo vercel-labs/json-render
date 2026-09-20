@@ -59,6 +59,17 @@ V1 supports standard flat Spec catalogs, literals, `$state`, `$bindState`, state
 
 See the [Jev guide](https://json-render.dev/docs/jev) for complete catalog/candidate examples, source-build installation, rendering, custom evaluators, limitations, and feedback. The [playground implementation](../../apps/web/lib/jev) uses these same APIs.
 
+## OrcaRouter provider
+
+[OrcaRouter](https://www.orcarouter.ai) is an OpenAI-compatible AI gateway that routes many providers behind one endpoint. `@json-render/core` exports the provider seam so an app can offer it without duplicating auth or catalog logic. The inference transport stays in the host app (`@ai-sdk/openai-compatible`), so this package keeps no gateway dependency.
+
+- **Origins** — `resolveOrcarouterOrigins` keeps authorization (`https://www.orcarouter.ai`, `/auth` and `/api/v1/auth/keys`) separate from inference and the model catalog (`https://api.orcarouter.ai/v1`). Per-role overrides win over a shared `ORCA_BASE_URL`; remote origins must be HTTPS, with plain HTTP allowed only for loopback.
+- **Credentials** — `createOrcaApiKeySource` and `createOrcaPkceSource` are two adapters over one `OrcaCredentialSource` interface, and both resolve to the same `OrcaCredentialResult`. The PKCE adapter implements Flow A (loopback redirect) and Flow B (out-of-band code) with S256, a fresh verifier and state per attempt, and a constant-time state comparison. The device grant is not implemented (`ORCAROUTER_UNSUPPORTED_FLOWS`).
+- **Store** — `OrcaCredentialStore` is generation-aware: `markNeedsReauth(accountId, generation, reason)` only affects the exact account and generation whose request was rejected, so a late 401 cannot invalidate a credential the user just reconnected.
+- **Catalog** — `fetchOrcaCatalog` requests `/v1/models` with the user's key, and `selectOrcaModels` filters per capability and per required input modality. A model without an explicit `architecture.input_modalities` entry is never treated as multimodal. `orcarouterSeedCatalog` is a five-model outage fallback, labelled as degraded and never merged into a live result.
+
+See the [OrcaRouter guide](https://json-render.dev/docs/orcarouter) for setup and the [playground implementation](../../apps/web/lib/orcarouter) for a worked example.
+
 ## Key Concepts
 
 - **Schema**: Defines the structure of specs and catalogs

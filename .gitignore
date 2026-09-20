@@ -13,6 +13,9 @@ node_modules
 # Testing
 coverage
 
+# Generated UI evidence (scripts/orca-ui-evidence.py)
+/orca-evidence/
+
 # Turbo
 .turbo
 

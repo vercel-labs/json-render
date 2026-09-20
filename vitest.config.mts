@@ -29,6 +29,7 @@ export default defineConfig({
       "react-dom": path.resolve(__dirname, "node_modules/react-dom"),
       vue: path.resolve(__dirname, "packages/vue/node_modules/vue"),
       "solid-js": path.resolve(__dirname, "node_modules/solid-js"),
+      "@": path.resolve(__dirname, "apps/web"),
     },
   },
   test: {
@@ -38,6 +39,8 @@ export default defineConfig({
       "packages/**/*.test.ts",
       "packages/**/*.test.tsx",
       "apps/web/lib/jev/**/*.test.ts",
+      "apps/web/lib/orcarouter/**/*.test.ts",
+      "apps/web/lib/orcarouter/**/*.test.tsx",
       "apps/web/lib/use-playground-stream.test.ts",
     ],
     server: {

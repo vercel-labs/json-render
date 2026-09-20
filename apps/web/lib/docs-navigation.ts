@@ -60,6 +60,7 @@ export const docsNavigation: NavSection[] = [
     title: "Integrations",
     items: [
       { title: "AI SDK", href: "/docs/ai-sdk" },
+      { title: "OrcaRouter", href: "/docs/orcarouter" },
       { title: "Jev (Experimental)", href: "/docs/jev" },
       { title: "A2UI", href: "/docs/a2ui" },
       { title: "Adaptive Cards", href: "/docs/adaptive-cards" },

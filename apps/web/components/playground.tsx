@@ -15,6 +15,11 @@ import {
   type CompositionSummary,
 } from "@/lib/use-playground-stream";
 import {
+  OrcaConnectPanel,
+  type OrcaCredentialState,
+} from "./orca-connect-panel";
+import { OrcaModelSelector } from "./orca-model-selector";
+import {
   ResizablePanelGroup,
   ResizablePanel,
   ResizableHandle,
@@ -39,6 +44,7 @@ import { buildCatalogDisplayData } from "@/lib/render/catalog-display";
 
 type Tab = "spec" | "nested" | "stream" | "catalog" | "visual";
 type RenderView = "preview" | "code";
+type Provider = "gateway" | "orcarouter" | "orcarouter-oauth";
 type MobileView =
   | "spec"
   | "nested"
@@ -54,6 +60,8 @@ interface Version {
   tree: Spec | null;
   status: "generating" | "complete" | "error" | "partial" | "unavailable";
   model: PlaygroundModel;
+  provider: Provider;
+  orcaModel: string | null;
   composition: CompositionSummary | null;
   message?: string;
   usage: TokenUsage | null;
@@ -68,15 +76,85 @@ function formatTokens(n: number): string {
 
 function ModelToggle({
   model,
+  provider,
   onChange,
+  onProviderChange,
   disabled,
+  orcaModel,
+  onOrcaModelChange,
+  requiredInputModalities,
 }: {
   model: PlaygroundModel;
+  provider: Provider;
   onChange: (model: PlaygroundModel) => void;
+  onProviderChange: (provider: Provider) => void;
   disabled: boolean;
+  orcaModel: string | null;
+  onOrcaModelChange: (modelId: string) => void;
+  requiredInputModalities: readonly string[];
 }) {
   return (
     <TooltipProvider delayDuration={200}>
+      <div
+        role="group"
+        aria-label="Provider"
+        className="flex shrink-0 items-center rounded border border-border text-[10px] font-mono overflow-hidden"
+      >
+        <button
+          type="button"
+          aria-label="Vercel AI Gateway"
+          aria-pressed={provider === "gateway"}
+          disabled={disabled}
+          onClick={() => onProviderChange("gateway")}
+          className={`px-1.5 py-0.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset disabled:opacity-50 ${
+            provider === "gateway"
+              ? "bg-muted text-foreground"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          gateway
+        </button>
+        <button
+          type="button"
+          aria-label="OrcaRouter - API key"
+          aria-pressed={provider === "orcarouter"}
+          disabled={disabled}
+          onClick={() => onProviderChange("orcarouter")}
+          data-testid="orca-provider-api"
+          className={`px-1.5 py-0.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset disabled:opacity-50 ${
+            provider === "orcarouter"
+              ? "bg-muted text-foreground"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          orca
+        </button>
+        <button
+          type="button"
+          aria-label="OrcaRouter - account login"
+          aria-pressed={provider === "orcarouter-oauth"}
+          disabled={disabled}
+          onClick={() => onProviderChange("orcarouter-oauth")}
+          data-testid="orca-provider-auth"
+          className={`px-1.5 py-0.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset disabled:opacity-50 ${
+            provider === "orcarouter-oauth"
+              ? "bg-muted text-foreground"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          orca auth
+        </button>
+      </div>
+
+      {provider !== "gateway" && (
+        <OrcaModelSelector
+          requiredInputModalities={requiredInputModalities}
+          value={orcaModel}
+          onChange={onOrcaModelChange}
+          disabled={disabled}
+        />
+      )}
+
       <div
         role="group"
         aria-label="Model"
@@ -132,13 +210,81 @@ function ModelToggle({
   );
 }
 
+/**
+ * Attachment modalities this request will upload. Changing them recomputes the
+ * OrcaRouter model selector, so an incompatible selection is cleared rather
+ * than silently kept.
+ */
+function AttachmentControl({
+  modalities,
+  onChange,
+  disabled,
+}: {
+  modalities: string[];
+  onChange: (modalities: string[]) => void;
+  disabled: boolean;
+}) {
+  const options = [
+    { modality: "image", label: "image" },
+    { modality: "audio", label: "audio" },
+    { modality: "video", label: "video" },
+  ];
+  return (
+    <div
+      role="group"
+      aria-label="Attachments"
+      className="flex items-center gap-2 border-t border-border px-3 py-1.5"
+      data-testid="orca-attachment-control"
+    >
+      <span className="text-[10px] font-mono text-muted-foreground">
+        attachments
+      </span>
+      {options.map(({ modality, label }) => {
+        const active = modalities.includes(modality);
+        return (
+          <button
+            key={modality}
+            type="button"
+            aria-pressed={active}
+            disabled={disabled}
+            data-testid={`orca-attachment-${modality}`}
+            onClick={() =>
+              onChange(
+                active
+                  ? modalities.filter((value) => value !== modality)
+                  : [...modalities, modality],
+              )
+            }
+            className={`rounded border px-1.5 py-0.5 text-[10px] font-mono transition-colors disabled:opacity-50 ${
+              active
+                ? "border-foreground/40 bg-muted text-foreground"
+                : "border-border text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {label}
+          </button>
+        );
+      })}
+      <span className="text-[10px] text-muted-foreground/70">
+        {modalities.length === 0
+          ? "text only"
+          : `only models that declare ${modalities.join(", ")} input`}
+      </span>
+    </div>
+  );
+}
+
 function VersionDetails({ version }: { version: Version }) {
   return (
     <>
       <div className="mt-1 ml-6 text-[10px] font-mono text-muted-foreground/60">
         {version.model === "typesafe-ai/jev"
           ? "Jev · Experimental"
-          : "Default model"}
+          : version.provider === "orcarouter"
+            ? `OrcaRouter - API${version.orcaModel ? ` · ${version.orcaModel}` : ""}`
+            : version.provider === "orcarouter-oauth"
+              ? `OrcaRouter - Auth${version.orcaModel ? ` · ${version.orcaModel}` : ""}`
+              : "Default model"}
         {version.composition &&
           ` · ${(version.composition.elapsedMs / 1000).toFixed(2)} s · ${version.composition.calls} calls`}
         {version.status === "partial" && " · partial"}
@@ -156,6 +302,11 @@ function VersionDetails({ version }: { version: Version }) {
 function PlaygroundControls({
   model,
   setModel,
+  provider,
+  setProvider,
+  orcaModel,
+  setOrcaModel,
+  requiredInputModalities,
   disabled,
   format,
   setFormat,
@@ -166,6 +317,11 @@ function PlaygroundControls({
 }: {
   model: PlaygroundModel;
   setModel: (model: PlaygroundModel) => void;
+  provider: Provider;
+  setProvider: (provider: Provider) => void;
+  orcaModel: string | null;
+  setOrcaModel: (modelId: string) => void;
+  requiredInputModalities: readonly string[];
   disabled: boolean;
   format: StreamFormat;
   setFormat: (f: StreamFormat) => void;
@@ -176,7 +332,16 @@ function PlaygroundControls({
 }) {
   return (
     <div className="flex min-w-0 flex-wrap items-center gap-2">
-      <ModelToggle model={model} onChange={setModel} disabled={disabled} />
+      <ModelToggle
+        model={model}
+        provider={provider}
+        onChange={setModel}
+        onProviderChange={setProvider}
+        disabled={disabled}
+        orcaModel={orcaModel}
+        onOrcaModelChange={setOrcaModel}
+        requiredInputModalities={requiredInputModalities}
+      />
       {model !== "typesafe-ai/jev" && (
         <>
           <div className="flex shrink-0 items-center rounded border border-border text-[10px] font-mono overflow-hidden">
@@ -336,7 +501,55 @@ export function Playground() {
   const [versionsSheetOpen, setVersionsSheetOpen] = useState(false);
   const [preferredFormat, setFormat] = useState<StreamFormat>("jsonl");
   const [model, setModel] = useState<PlaygroundModel>("default");
+  const [provider, setProviderState] = useState<Provider>("gateway");
+  const [orcaModel, setOrcaModel] = useState<string | null>(null);
+  const [attachmentModalities, setAttachmentModalities] = useState<string[]>(
+    [],
+  );
+  const [connectOpen, setConnectOpen] = useState(false);
+  const [credential, setCredential] = useState<OrcaCredentialState | null>(
+    null,
+  );
   const format = model === "typesafe-ai/jev" ? "jsonl" : preferredFormat;
+
+  const refreshCredential = useCallback(async () => {
+    try {
+      const response = await fetch("/api/orcarouter/credential", {
+        cache: "no-store",
+      });
+      if (!response.ok) return;
+      setCredential((await response.json()) as OrcaCredentialState);
+    } catch {
+      // The provider panel simply keeps its previous state.
+    }
+  }, []);
+
+  useEffect(() => {
+    void refreshCredential();
+  }, [refreshCredential]);
+
+  // Selecting an OrcaRouter provider opens the configuration surface, so both
+  // authentication choices are visible without hunting for them.
+  const setProvider = useCallback(
+    (next: Provider) => {
+      setProviderState(next);
+      if (next !== "gateway" && !credential?.connected) setConnectOpen(true);
+    },
+    [credential?.connected],
+  );
+
+  // Selecting the already-active OrcaRouter provider reopens the configuration
+  // surface, so the key can be replaced or cleared without a page reload.
+  const onProviderButton = useCallback(
+    (next: Provider) => {
+      if (next !== "gateway" && next === provider) {
+        setConnectOpen(true);
+        return;
+      }
+      setProvider(next);
+    },
+    [provider, setProvider],
+  );
   const examplePrompts =
     model === "typesafe-ai/jev"
       ? JEV_EXAMPLE_PROMPTS
@@ -367,6 +580,9 @@ export function Playground() {
     model,
     format,
     editModes,
+    provider,
+    orcaModel,
+    attachmentModalities,
     onError: (err: Error) => {
       console.error("Generation error:", err);
       toast.error(err.message || "Generation failed. Please try again.");
@@ -461,6 +677,8 @@ export function Playground() {
       rawLines: [],
       format,
       model,
+      provider,
+      orcaModel,
       composition: null,
     };
 
@@ -471,7 +689,7 @@ export function Playground() {
 
     // Pass the current tree as context so the API can iterate on it
     await send(inputValue.trim(), { previousSpec: currentTreeRef.current });
-  }, [inputValue, isStreaming, send, format, model]);
+  }, [inputValue, isStreaming, send, format, model, provider, orcaModel]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -699,6 +917,11 @@ ${jsx}
         )}
         <div ref={versionsEndRef} />
       </div>
+      <AttachmentControl
+        modalities={attachmentModalities}
+        onChange={setAttachmentModalities}
+        disabled={isStreaming}
+      />
       <div
         className="border-t border-border p-3 cursor-text"
         onMouseDown={(e) => {
@@ -728,6 +951,11 @@ ${jsx}
           <PlaygroundControls
             model={model}
             setModel={setModel}
+            provider={provider}
+            setProvider={onProviderButton}
+            orcaModel={orcaModel}
+            setOrcaModel={setOrcaModel}
+            requiredInputModalities={attachmentModalities}
             disabled={isStreaming}
             format={format}
             setFormat={setFormat}
@@ -1405,6 +1633,11 @@ ${jsx}
             <PlaygroundControls
               model={model}
               setModel={setModel}
+              provider={provider}
+              setProvider={onProviderButton}
+              orcaModel={orcaModel}
+              setOrcaModel={setOrcaModel}
+              requiredInputModalities={attachmentModalities}
               disabled={isStreaming}
               format={format}
               setFormat={setFormat}
@@ -1520,6 +1753,13 @@ ${jsx}
           </SheetContent>
         </Sheet>
       </div>
+
+      <OrcaConnectPanel
+        open={connectOpen}
+        onOpenChange={setConnectOpen}
+        state={credential}
+        onChanged={() => void refreshCredential()}
+      />
 
       <Toaster position="bottom-right" />
     </div>
