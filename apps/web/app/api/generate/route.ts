@@ -5,12 +5,21 @@ import {
   buildUserPrompt,
   buildEditUserPrompt,
   isNonEmptySpec,
+  selectOrcaModels,
+  type OrcaInputModality,
 } from "@json-render/core";
 import { yamlPrompt } from "@json-render/yaml";
 import { stringify as yamlStringify } from "yaml";
 import { minuteRateLimit, dailyRateLimit } from "@/lib/rate-limit";
 import { playgroundCatalog } from "@/lib/render/catalog";
 import { createCompositionResponse } from "@/lib/jev/response";
+import { discoverOrcaModels } from "@/lib/orcarouter/connect-session";
+import {
+  OrcaRouterNotConnectedError,
+  createOrcarouterTransport,
+  isOrcarouterProvider,
+  ORCAROUTER_DEFAULT_MODEL,
+} from "@/lib/orcarouter/provider";
 
 export const maxDuration = 60;
 
@@ -93,7 +102,16 @@ export async function POST(req: Request) {
     );
   }
 
-  const { prompt, context, format, editModes, model } = await req.json();
+  const {
+    prompt,
+    context,
+    format,
+    editModes,
+    model,
+    provider,
+    orcaModel,
+    attachments,
+  } = await req.json();
   if (model === "typesafe-ai/jev")
     return createCompositionResponse(req, prompt, context?.previousSpec);
   const isYaml = format === "yaml";
@@ -108,8 +126,71 @@ export async function POST(req: Request) {
         editModes,
       });
 
+  const orcarouter =
+    typeof provider === "string" && isOrcarouterProvider(provider);
+
+  // Second-layer guard. The selector is already filtered by capability, but a
+  // request must never carry an attachment to a model the catalog cannot prove
+  // accepts it.
+  const uploadedModalities = new Set<OrcaInputModality>(
+    Array.isArray(attachments)
+      ? attachments
+          .map((item: unknown) =>
+            typeof item === "object" && item !== null
+              ? (item as { modality?: unknown }).modality
+              : null,
+          )
+          .filter(
+            (value: unknown): value is OrcaInputModality =>
+              value === "image" || value === "audio" || value === "video",
+          )
+      : [],
+  );
+
+  let modelRef: Parameters<typeof streamText>[0]["model"];
+  if (orcarouter) {
+    const modelId =
+      typeof orcaModel === "string" && orcaModel.trim()
+        ? orcaModel.trim()
+        : ORCAROUTER_DEFAULT_MODEL;
+    try {
+      // Revalidate the requested model against the live catalog for the exact
+      // capability requirements of this request before sending anything.
+      const { catalog } = await discoverOrcaModels();
+      const compatible = selectOrcaModels(catalog, {
+        capability: "chat",
+        requiredInputModalities: [...uploadedModalities],
+      });
+      if (!compatible.some((entry) => entry.id === modelId)) {
+        return Response.json(
+          {
+            error: "Incompatible model",
+            message: uploadedModalities.size
+              ? `The OrcaRouter catalog does not list "${modelId}" as a chat model that accepts ${[...uploadedModalities].join(", ")} input. Pick another model.`
+              : `The OrcaRouter catalog does not list "${modelId}" as a chat model. Pick another model.`,
+          },
+          { status: 400 },
+        );
+      }
+      modelRef = createOrcarouterTransport(modelId).model;
+    } catch (error) {
+      const message =
+        error instanceof OrcaRouterNotConnectedError
+          ? error.message
+          : "The OrcaRouter model catalog is unavailable. Try again shortly.";
+      return Response.json(
+        { error: "OrcaRouter unavailable", message },
+        {
+          status: 503,
+        },
+      );
+    }
+  } else {
+    modelRef = process.env.AI_GATEWAY_MODEL || DEFAULT_MODEL;
+  }
+
   const result = streamText({
-    model: process.env.AI_GATEWAY_MODEL || DEFAULT_MODEL,
+    model: modelRef,
     abortSignal: req.signal,
     system: [
       {

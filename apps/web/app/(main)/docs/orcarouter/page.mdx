@@ -1,0 +1,258 @@
+import { pageMetadata } from "@/lib/page-metadata";
+export const metadata = pageMetadata("docs/orcarouter");
+
+# OrcaRouter
+
+[OrcaRouter](https://www.orcarouter.ai) is an OpenAI-compatible AI gateway that routes many providers behind one endpoint. The json-render web app can route playground and docs-chat generation through it, and `@json-render/core` exports the pieces you need to do the same in your own app.
+
+## Authentication
+
+Two explicit choices are offered, and neither replaces the other:
+
+<table>
+  <thead>
+    <tr>
+      <th>Choice</th>
+      <th>Label</th>
+      <th>How the credential is obtained</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <code>orcarouter</code>
+      </td>
+      <td>OrcaRouter - API</td>
+      <td>
+        Paste an existing <code>sk-orca-…</code> key from your OrcaRouter
+        console.
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <code>orcarouter-oauth</code>
+      </td>
+      <td>OrcaRouter - Auth</td>
+      <td>
+        Sign in with an OrcaRouter account over OAuth 2.0 + PKCE. No client
+        secret and no pre-registered redirect URI.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+Both paths produce the same thing — a normal OrcaRouter API key that belongs to the user, is billed to their account, and can be revoked at any time — so inference and model discovery never need to know which one was used.
+
+### Where the key is stored
+
+The web app writes it to the same place it already keeps provider secrets: `apps/web/.env.local`, which is git-ignored. Set `ORCAROUTER_ENV_FILE` to point at a writable path in a deployment where the app directory is read-only. If the write fails, the key is still used for the lifetime of the process and the panel says so.
+
+## Configuration
+
+<table>
+  <thead>
+    <tr>
+      <th>Variable</th>
+      <th>Purpose</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <code>ORCAROUTER_API_KEY</code>
+      </td>
+      <td>
+        An existing OrcaRouter key. Equivalent to pasting one in the panel.
+      </td>
+      <td>—</td>
+    </tr>
+    <tr>
+      <td>
+        <code>ORCA_AUTH_BASE_URL</code>
+      </td>
+      <td>
+        Origin for <code>/auth</code> and the code exchange.
+      </td>
+      <td>
+        <code>https://www.orcarouter.ai</code>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <code>ORCA_API_BASE_URL</code>
+      </td>
+      <td>
+        Origin for <code>/v1/models</code> and inference.
+      </td>
+      <td>
+        <code>https://api.orcarouter.ai</code>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <code>ORCA_BASE_URL</code>
+      </td>
+      <td>One origin serving both roles, for self-hosted deployments.</td>
+      <td>—</td>
+    </tr>
+  </tbody>
+</table>
+
+Authentication and inference are different origins. Do not derive one from the other by swapping a hostname or appending `/v1`: `https://api.orcarouter.ai/v1/auth/keys` is a 404. Explicit per-role overrides win over `ORCA_BASE_URL`. Remote origins must use HTTPS; plain HTTP is accepted only for loopback.
+
+## Model discovery
+
+The model control is a dropdown built from the live catalog at `GET https://api.orcarouter.ai/v1/models`, requested with the user's key so it reflects the models their workspace can actually call. The key stays on the server; the browser receives only model ids and minimal metadata.
+
+Options are filtered per capability, and a model is only offered when the catalog metadata proves it fits:
+
+<table>
+  <thead>
+    <tr>
+      <th>Entry point</th>
+      <th>Filter</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Text chat</td>
+      <td>
+        <code>?capability=chat</code>, and <code>supported_endpoint_types</code>{" "}
+        must include <code>openai</code>, <code>anthropic</code>,{" "}
+        <code>gemini</code> or <code>openai-response</code>, excluding
+        image-generation, video and rerank families.
+      </td>
+    </tr>
+    <tr>
+      <td>Image / audio / video input</td>
+      <td>
+        The chat filter, plus an explicit{" "}
+        <code>architecture.input_modalities</code> entry for each modality the
+        request uploads. A model with no <code>architecture</code> block is
+        never treated as multimodal.
+      </td>
+    </tr>
+    <tr>
+      <td>Embedding</td>
+      <td>
+        <code>?capability=embedding</code>, or an <code>embeddings</code>{" "}
+        endpoint type.
+      </td>
+    </tr>
+    <tr>
+      <td>Image generation</td>
+      <td>
+        <code>?capability=image</code>, or an <code>image-generation</code>{" "}
+        endpoint type.
+      </td>
+    </tr>
+    <tr>
+      <td>Video / rerank</td>
+      <td>
+        An <code>openai-video</code> or <code>jina-rerank</code> endpoint type.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+Changing the provider, the capability, or the attachments recomputes the options. A selection that is no longer compatible is cleared instead of being silently kept.
+
+If the catalog cannot be reached, the control falls back to a small, verified seed list and is labelled degraded. It never degrades into a free-text model field.
+
+## Using the provider in your own app
+
+```typescript
+import {
+  createOrcaApiKeySource,
+  createOrcaPkceSource,
+  OrcaCredentialStore,
+  fetchOrcaCatalog,
+  resolveOrcarouterOrigins,
+  selectOrcaModels,
+} from "@json-render/core";
+
+const origins = resolveOrcarouterOrigins();
+
+// Either entry point produces the same credential shape.
+const source = createOrcaApiKeySource(process.env.ORCAROUTER_API_KEY!);
+const credential = await source.acquire();
+
+const store = new OrcaCredentialStore();
+store.setCredential(credential);
+
+// Discovery and inference consume only the key.
+const catalog = await fetchOrcaCatalog({
+  origins,
+  apiKey: store.getUsableCredential()!.apiKey,
+  capability: "chat",
+});
+const chatModels = selectOrcaModels(catalog, { capability: "chat" });
+```
+
+### The connect flow
+
+```typescript
+const source = createOrcaPkceSource({
+  origins,
+  appName: "My Tool",
+  flow: "loopback", // or "oob" when you cannot listen on 127.0.0.1
+  createCodeReceiver: async () => startLoopbackListener(),
+  openBrowser: (url) => open(url),
+});
+const credential = await source.acquire();
+```
+
+The verifier is generated fresh from a cryptographic RNG for every attempt, never leaves the process, and never appears in a URL, log or error message. The authorize URL always carries `code_challenge_method=S256`.
+
+## Credential lifecycle
+
+A PKCE-issued key is a durable API key, not a refresh token. There is no refresh grant to call, and the key is reused until OrcaRouter revokes it — re-authorizing on every launch would hit the limit of ten PKCE-issued keys per user per day.
+
+A `401` from the relay is terminal. The exact account and credential generation that made the rejected request is marked `needsReauth` and the user is asked to connect again. The stored secret is kept until a replacement succeeds, so a transient failure cannot lose the account. A late failure from an old request never marks a newly reconnected credential as broken.
+
+Users can revoke access at any time from [the OrcaRouter console](https://www.orcarouter.ai/console/authorized-apps).
+
+## Provider evidence
+
+<table>
+  <thead>
+    <tr>
+      <th>Item</th>
+      <th>Source</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>OpenAI-compatible inference</td>
+      <td>
+        <code>https://api.orcarouter.ai/v1/chat/completions</code>
+      </td>
+    </tr>
+    <tr>
+      <td>Model catalog</td>
+      <td>
+        <code>https://api.orcarouter.ai/v1/models</code> (Bearer required)
+      </td>
+    </tr>
+    <tr>
+      <td>Authorization and exchange</td>
+      <td>
+        <code>https://www.orcarouter.ai/auth</code>,{" "}
+        <code>https://www.orcarouter.ai/api/v1/auth/keys</code>
+      </td>
+    </tr>
+    <tr>
+      <td>Discovery document</td>
+      <td>
+        <code>https://www.orcarouter.ai/.well-known/openid-configuration</code>
+      </td>
+    </tr>
+    <tr>
+      <td>Revocation and account management</td>
+      <td>
+        <code>https://www.orcarouter.ai/console/authorized-apps</code>
+      </td>
+    </tr>
+  </tbody>
+</table>

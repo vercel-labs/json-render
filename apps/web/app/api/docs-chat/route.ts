@@ -4,9 +4,17 @@ import { convertToModelMessages, stepCountIs, streamText } from "ai";
 import type { ModelMessage, UIMessage } from "ai";
 import { createBashTool } from "bash-tool";
 import { headers } from "next/headers";
+import { selectOrcaModels } from "@json-render/core";
 import { allDocsPages } from "@/lib/docs-navigation";
 import { mdxToCleanMarkdown } from "@/lib/mdx-to-markdown";
 import { minuteRateLimit, dailyRateLimit } from "@/lib/rate-limit";
+import { discoverOrcaModels } from "@/lib/orcarouter/connect-session";
+import {
+  ORCAROUTER_DEFAULT_MODEL,
+  OrcaRouterNotConnectedError,
+  createOrcarouterTransport,
+  isOrcarouterProvider,
+} from "@/lib/orcarouter/provider";
 
 export const maxDuration = 60;
 
@@ -20,6 +28,8 @@ npm packages: @json-render/core, @json-render/react, @json-render/next, @json-re
 Skills: json-render ships AI agent skills that teach coding agents how to use each package. Install with "npx skills add vercel-labs/json-render --skill <name>". Available skills: core, react, next, tanstack-start, ink, react-pdf, react-email, react-native, shadcn, shadcn-svelte, react-three-fiber, image, remotion, vue, svelte, solid, directives, codegen, devtools, devtools-react, devtools-vue, devtools-svelte, devtools-solid, mcp, redux, zustand, jotai, xstate, yaml. See /docs/skills for details.
 
 Experimental Jev composition: core exports experimental_composeSpec and experimental_createEvaluator for app-owned catalogs/candidates through Vercel AI Gateway. See /docs/jev for availability, source-build setup, and limits; do not assume the currently published npm version includes it.
+
+OrcaRouter: the playground and this docs assistant can run through OrcaRouter, an OpenAI-compatible AI gateway. Users connect either with an API key or with Connect with OrcaRouter (OAuth 2.0 + PKCE), and model choices come from the live OrcaRouter model catalog. See /docs/orcarouter for setup, credential handling, and capability filtering.
 
 You have access to the full json-render documentation via the bash and readFile tools. The docs are available as markdown files in the /workspace/docs/ directory.
 
@@ -108,15 +118,55 @@ export async function POST(req: Request) {
     );
   }
 
-  const { messages }: { messages: UIMessage[] } = await req.json();
+  const {
+    messages,
+    model,
+    provider,
+  }: { messages: UIMessage[]; model?: string; provider?: string } =
+    await req.json();
 
   const docsFiles = await loadDocsFiles();
   const {
     tools: { bash, readFile },
   } = await createBashTool({ files: docsFiles });
 
+  // The docs assistant is a text-only entry point: it never uploads an
+  // attachment, so it offers chat models without a modality requirement.
+  let modelRef: Parameters<typeof streamText>[0]["model"] = DEFAULT_MODEL;
+  if (typeof provider === "string" && isOrcarouterProvider(provider)) {
+    const modelId =
+      typeof model === "string" && model.trim()
+        ? model.trim()
+        : ORCAROUTER_DEFAULT_MODEL;
+    try {
+      const { catalog } = await discoverOrcaModels();
+      const compatible = selectOrcaModels(catalog, { capability: "chat" });
+      if (!compatible.some((entry) => entry.id === modelId)) {
+        return Response.json(
+          {
+            error: "Incompatible model",
+            message: `The OrcaRouter catalog does not list "${modelId}" as a chat model. Pick another model.`,
+          },
+          { status: 400 },
+        );
+      }
+      modelRef = createOrcarouterTransport(modelId).model;
+    } catch (error) {
+      return Response.json(
+        {
+          error: "OrcaRouter unavailable",
+          message:
+            error instanceof OrcaRouterNotConnectedError
+              ? error.message
+              : "The OrcaRouter model catalog is unavailable. Try again shortly.",
+        },
+        { status: 503 },
+      );
+    }
+  }
+
   const result = streamText({
-    model: DEFAULT_MODEL,
+    model: modelRef,
     system: SYSTEM_PROMPT,
     messages: await convertToModelMessages(messages),
     stopWhen: stepCountIs(5),

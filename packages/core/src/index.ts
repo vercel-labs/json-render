@@ -244,3 +244,6 @@ export type {
 } from "./experimental-compose";
 export { experimental_createEvaluator } from "./experimental-evaluator";
 export type { Experimental_EvaluatorOptions } from "./experimental-evaluator";
+
+// OrcaRouter — a first-class, OpenAI-compatible provider.
+export * from "./orcarouter";

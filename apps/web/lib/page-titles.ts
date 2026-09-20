@@ -33,6 +33,7 @@ export const PAGE_TITLES: Record<string, string> = {
   "docs/custom-schema": "Custom Schema & Renderer",
   "docs/devtools": "Devtools",
   "docs/ai-sdk": "AI SDK Integration",
+  "docs/orcarouter": "OrcaRouter Integration",
   "docs/jev": "Jev (Experimental)",
   "docs/adaptive-cards": "Adaptive Cards Integration",
   "docs/openapi": "OpenAPI Integration",

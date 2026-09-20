@@ -809,6 +809,7 @@ pnpm dev
 - http://remotion-demo.json-render.localhost:1355 - Remotion Video Example
 - Chat Example: run `pnpm dev` in `examples/chat`
 - [Experimental Jev composition](https://json-render.dev/docs/jev): use `experimental_composeSpec` and `experimental_createEvaluator` from core with your own catalog, or select **Jev (Experimental)** in `/playground`. Unreleased; source-build instructions are in the guide.
+- [OrcaRouter](https://json-render.dev/docs/orcarouter): select **OrcaRouter** in `/playground` to generate through [OrcaRouter](https://www.orcarouter.ai), an OpenAI-compatible AI gateway that routes many providers behind one endpoint. Connect with an API key or with **Connect with OrcaRouter** (OAuth 2.0 + PKCE); model choices come from the live OrcaRouter catalog.
 - Svelte Example: run `pnpm dev` in `examples/svelte` or `examples/svelte-chat`
 - Vue Example: run `pnpm dev` in `examples/vue`
 - Vite Renderers (React + Vue + Svelte + Solid): run `pnpm dev` in `examples/vite-renderers`
