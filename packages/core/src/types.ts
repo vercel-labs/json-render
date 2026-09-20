@@ -515,6 +515,14 @@ function deepEqual(a: unknown, b: unknown): boolean {
 }
 
 /**
+ * True for values that look like dotted state paths (`form.email`) rather
+ * than literals that happen to contain a dot (emails, URLs, versions).
+ */
+function isDotPathReference(val: string): boolean {
+  return /^[A-Za-z_][\w$]*(\.[A-Za-z_][\w$]*)+$/.test(val);
+}
+
+/**
  * Find a form value from params and/or state.
  * Useful in action handlers to locate form input values regardless of path format.
  *
@@ -523,6 +531,10 @@ function deepEqual(a: unknown, b: unknown): boolean {
  * 2. Param keys ending with the field name
  * 3. State keys ending with the field name (dot notation)
  * 4. State path using getByPath (slash notation)
+ *
+ * A string is treated as a path reference only when it looks like
+ * `form.email` (identifier.identifier). Emails, URLs, and versions are
+ * returned as literals.
  *
  * @example
  * // Find "name" from params or state
@@ -538,8 +550,7 @@ export function findFormValue(
   // Check params first (but not if it looks like a state path reference)
   if (params?.[fieldName] !== undefined) {
     const val = params[fieldName];
-    // If the value looks like a path reference (contains dots), skip it
-    if (typeof val !== "string" || !val.includes(".")) {
+    if (typeof val !== "string" || !isDotPathReference(val)) {
       return val;
     }
   }
@@ -549,7 +560,7 @@ export function findFormValue(
     for (const key of Object.keys(params)) {
       if (key.endsWith(`.${fieldName}`)) {
         const val = params[key];
-        if (typeof val !== "string" || !val.includes(".")) {
+        if (typeof val !== "string" || !isDotPathReference(val)) {
           return val;
         }
       }

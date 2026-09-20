@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   resolveDynamicValue,
   getByPath,
+  findFormValue,
   resolveRepeatStatePath,
   resolveRepeatItemStatePath,
   setByPath,
@@ -57,6 +58,38 @@ describe("getByPath", () => {
     const data = { user: null };
 
     expect(getByPath(data, "/user/name")).toBeUndefined();
+  });
+});
+
+describe("findFormValue", () => {
+  it("returns a direct param value", () => {
+    expect(findFormValue("name", { name: "Alice" })).toBe("Alice");
+  });
+
+  it("returns emails and other dotted literals from params", () => {
+    expect(findFormValue("email", { email: "john.doe@example.com" })).toBe(
+      "john.doe@example.com",
+    );
+    expect(findFormValue("site", { site: "https://example.com" })).toBe(
+      "https://example.com",
+    );
+    expect(findFormValue("version", { version: "1.2.3" })).toBe("1.2.3");
+  });
+
+  it("still resolves dotted path references against state", () => {
+    expect(
+      findFormValue(
+        "email",
+        { email: "form.email" },
+        { "form.email": "a@b.c" },
+      ),
+    ).toBe("a@b.c");
+  });
+
+  it("returns a dotted literal on a nested param key", () => {
+    expect(
+      findFormValue("email", { "form.email": "john.doe@example.com" }),
+    ).toBe("john.doe@example.com");
   });
 });
 
