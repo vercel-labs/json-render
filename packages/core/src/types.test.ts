@@ -599,6 +599,16 @@ describe("createSpecStreamCompiler", () => {
     const result = compiler.getResult();
     expect(result).toEqual({ z: 1, w: 2 });
   });
+
+  it("applies identical add-to-array lines twice", () => {
+    const compiler = createSpecStreamCompiler();
+    compiler.push('{"op":"add","path":"/items","value":[]}\n');
+    const line = '{"op":"add","path":"/items/-","value":"apple"}\n';
+    compiler.push(line);
+    compiler.push(line);
+    expect(compiler.getResult()).toEqual({ items: ["apple", "apple"] });
+    expect(compiler.getPatches()).toHaveLength(3);
+  });
 });
 
 // =============================================================================
