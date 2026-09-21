@@ -7,6 +7,7 @@ export const config = defineConfig({
   defaultLanguage: "en",
   logo: <span className="font-medium">json-render</span>,
   navbarActiveProduct: "json-render",
+  navbarBrand: "labs",
   github: {
     owner: "vercel-labs",
     repo: "json-render",
