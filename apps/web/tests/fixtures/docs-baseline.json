@@ -255,10 +255,30 @@
       "title": "@json-render/core",
       "metadataTitle": "@json-render/core API | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/core\")\n\n# @json-render/core\n",
-      "sourceSha256": "a3d4e3f174759d31873a0d1c2fdbc54913515c2418f7caf913c2cedce102becd",
-      "bodySha256": "3b8cb8d811990df34fa2fff77ffe58e03921f5b55847b13e0cd1a3b0171960a5",
-      "markdownSha256": "606d75774b33771b3e221de5671f642e62c76379955d086031388bf52f09f8d1",
+      "sourceSha256": "303559b61c0f6cc2036259295d481065815acbd06974935ceea2ae1bfd388e7d",
+      "bodySha256": "d7be0e421c97c16f9521f5f280f58ba2428b20acaefde5f6849e21af389ed80e",
+      "markdownSha256": "b48a5209f792f8b187ed5b6a6b904027586a3157313cc6a25a2b22cae1f61e46",
       "headings": [
+        {
+          "title": "experimental_composeSpec",
+          "id": "experimental_composespec"
+        },
+        {
+          "title": "Batched creation",
+          "id": "batched-creation"
+        },
+        {
+          "title": "Custom evaluators",
+          "id": "custom-evaluators"
+        },
+        {
+          "title": "Follow-up edits",
+          "id": "follow-up-edits"
+        },
+        {
+          "title": "experimental_createEvaluator",
+          "id": "experimental_createevaluator"
+        },
         {
           "title": "defineCatalog",
           "id": "definecatalog"
@@ -2119,10 +2139,30 @@
       "title": "Changelog",
       "metadataTitle": "Changelog | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/changelog\")\n\n# Changelog\n",
-      "sourceSha256": "916d551de5205da56dd4868527c02cc967e50ad97385bbf615b3564f41608064",
-      "bodySha256": "2888ce7353a709099ce9a9260935a099990804df72f25a2c0e16f53899a7506d",
-      "markdownSha256": "8fe5cb543df9b59eb70ac97dcc0617ee18cbb921c6de2b5cdbff6f8acac11e7d",
+      "sourceSha256": "645da4f33e85ac7bcb1642100bb0bde339dd2976c29f8501317f296c308e645e",
+      "bodySha256": "54a0b41153dd3afd0a0c69ef4c19575978615420eaf15075952b5c317b6a6b1c",
+      "markdownSha256": "73fa2d642e3235a7841b196625b948db486473c24c41deec1dbba07583706e2b",
       "headings": [
+        {
+          "title": "v0.21.0",
+          "id": "v0210"
+        },
+        {
+          "title": "New: TanStack Start Renderer",
+          "id": "new-tanstack-start-renderer"
+        },
+        {
+          "title": "New: Experimental Jev Composition",
+          "id": "new-experimental-jev-composition"
+        },
+        {
+          "title": "Improved: Vue Named Slots",
+          "id": "improved-vue-named-slots"
+        },
+        {
+          "title": "Fixed: React Streaming Stability",
+          "id": "fixed-react-streaming-stability"
+        },
         {
           "title": "v0.20.0",
           "id": "v0200"
@@ -2822,6 +2862,50 @@
       ]
     },
     {
+      "path": "/docs/jev",
+      "file": "content/docs/jev.mdx",
+      "title": "Jev (Experimental)",
+      "metadataTitle": "Jev (Experimental) | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/jev\")\n\n# Jev (Experimental)\n",
+      "sourceSha256": "c6314d7655a9f090ee246b661ae73f4e6017966827220f547f93fd8dc2186a98",
+      "bodySha256": "f28e9140d94b4f33e69a46a85dc2d5885b5a35cdfdf628134c07b2ee299d04de",
+      "markdownSha256": "31542130bbaf5ae5cd417b1759c86dedab2e968a7177ba6f06109b5599788f2b",
+      "headings": [
+        {
+          "title": "Why use it?",
+          "id": "why-use-it"
+        },
+        {
+          "title": "Try it in your app",
+          "id": "try-it-in-your-app"
+        },
+        {
+          "title": "Define the catalog and candidates",
+          "id": "define-the-catalog-and-candidates"
+        },
+        {
+          "title": "Compose on the server",
+          "id": "compose-on-the-server"
+        },
+        {
+          "title": "Iterate on a version",
+          "id": "iterate-on-a-version"
+        },
+        {
+          "title": "Render and handle actions",
+          "id": "render-and-handle-actions"
+        },
+        {
+          "title": "Validation and v1 limits",
+          "id": "validation-and-v1-limits"
+        },
+        {
+          "title": "Playground capabilities",
+          "id": "playground-capabilities"
+        }
+      ]
+    },
+    {
       "path": "/docs/directives",
       "file": "content/docs/directives.mdx",
       "title": "Directives",
@@ -3323,9 +3407,9 @@
       "title": "Skills",
       "metadataTitle": "Skills | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\";\n\nexport const metadata = pageMetadata(\"docs/skills\");\n\n# Skills\n",
-      "sourceSha256": "479c38abb563584a3c57ef76baa2b98b5b89943053cf497ff5c26dae012ed827",
-      "bodySha256": "37aefc3b677a21eeea290881170d5ba5fb315bf26b9475edbeed236ba6104da0",
-      "markdownSha256": "ba59607f46fe9e05cc31435192553d3b66a51aa468edddb9bf12f43b4c89b28c",
+      "sourceSha256": "e42a91ef21f7ef975c8deb847c98fd58ce254d24e87d3e9a7940ca4fb177baf1",
+      "bodySha256": "5cc03b937129b9ea9870ed88693cea3caa2e527efdea75a75e68deac72bfa6d9",
+      "markdownSha256": "2ab0dd06dea702b9e1770ec6c1791229df5c6fc4e7887498249644d762e8accd",
       "headings": [
         {
           "title": "Available Skills",
@@ -3346,6 +3430,26 @@
         {
           "title": "tanstack-start",
           "id": "tanstack-start"
+        },
+        {
+          "title": "devtools",
+          "id": "devtools"
+        },
+        {
+          "title": "devtools-react",
+          "id": "devtools-react"
+        },
+        {
+          "title": "devtools-vue",
+          "id": "devtools-vue"
+        },
+        {
+          "title": "devtools-svelte",
+          "id": "devtools-svelte"
+        },
+        {
+          "title": "devtools-solid",
+          "id": "devtools-solid"
         },
         {
           "title": "react-pdf",

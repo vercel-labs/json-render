@@ -29,6 +29,8 @@
     "custom-schema",
     "code-export",
     "devtools",
+    "---Experimental---",
+    "jev",
     "---Integrations---",
     "ai-sdk",
     "a2ui",
