@@ -1,6 +1,6 @@
 {
   "name": "@json-render/next",
-  "version": "0.20.0",
+  "version": "0.21.0",
   "license": "Apache-2.0",
   "description": "Next.js renderer for @json-render/core. JSON becomes full Next.js applications with routes, layouts, metadata, and SSR.",
   "keywords": [

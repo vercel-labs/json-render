@@ -229,3 +229,18 @@ export {
   buildEditUserPrompt,
   isNonEmptySpec,
 } from "./edit-modes";
+
+// Experimental composition — these APIs may change in any release.
+export { experimental_composeSpec } from "./experimental-compose";
+export type {
+  Experimental_CompositionCatalog,
+  Experimental_CompositionCandidate,
+  Experimental_ChoiceQuestion,
+  Experimental_CompositionEvaluation,
+  Experimental_CompositionEvaluator,
+  Experimental_CompositionStep,
+  Experimental_CompositionEvent,
+  Experimental_ComposeSpecOptions,
+} from "./experimental-compose";
+export { experimental_createEvaluator } from "./experimental-evaluator";
+export type { Experimental_EvaluatorOptions } from "./experimental-evaluator";

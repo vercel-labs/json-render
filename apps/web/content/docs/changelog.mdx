@@ -4,6 +4,32 @@ title: "Changelog"
 
 Notable changes and updates to json-render.
 
+## v0.21.0
+
+September 18, 2026
+
+### New: TanStack Start Renderer
+
+Added `@json-render/tanstack-start` for JSON-defined applications with file-based routes, reusable layouts, SSR loaders, head metadata, prerender paths, client navigation, and route fallbacks.
+
+See the [TanStack Start API reference](/docs/api/tanstack-start) for setup and route configuration.
+
+### New: Experimental Jev Composition
+
+Added `experimental_composeSpec` and `experimental_createEvaluator` to `@json-render/core`. Apps can provide their own catalogs and bounded component candidates, then stream validated compositions through an evaluation model. The playground now includes a Jev model option and supports iterative composition edits.
+
+These APIs are experimental and may change in any release. See the [Jev guide](/docs/jev) for the source-build workflow, examples, and current limitations.
+
+### Improved: Vue Named Slots
+
+Vue registries now support catalog-declared named slots alongside the default `children` slot.
+
+### Fixed: React Streaming Stability
+
+Stabilized streamed React renders and added coverage for incomplete streamed props and nested prop identities.
+
+---
+
 ## v0.20.0
 
 August 15, 2026

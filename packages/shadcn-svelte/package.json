@@ -1,6 +1,6 @@
 {
   "name": "@json-render/shadcn-svelte",
-  "version": "0.20.0",
+  "version": "0.21.0",
   "license": "Apache-2.0",
   "description": "shadcn-svelte component library for @json-render/svelte. JSON becomes beautiful Tailwind-styled Svelte components.",
   "keywords": [

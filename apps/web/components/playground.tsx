@@ -11,6 +11,8 @@ import {
   usePlaygroundStream,
   type StreamFormat,
   type TokenUsage,
+  type PlaygroundModel,
+  type CompositionSummary,
 } from "@/lib/use-playground-stream";
 import {
   ResizablePanelGroup,
@@ -20,6 +22,13 @@ import {
 import { CodeBlock } from "./code-block";
 import { CopyButton } from "./copy-button";
 import { Toaster } from "./ui/sonner";
+import { InfoIcon } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "./ui/tooltip";
 import { Sheet, SheetContent, SheetTitle } from "./ui/sheet";
 import { JsonEditor } from "@visual-json/react";
 import type { JsonValue } from "@visual-json/react";
@@ -42,7 +51,10 @@ interface Version {
   id: string;
   prompt: string;
   tree: Spec | null;
-  status: "generating" | "complete" | "error";
+  status: "generating" | "complete" | "error" | "partial" | "unavailable";
+  model: PlaygroundModel;
+  composition: CompositionSummary | null;
+  message?: string;
   usage: TokenUsage | null;
   rawLines: string[];
   format: StreamFormat;
@@ -53,7 +65,97 @@ function formatTokens(n: number): string {
   return String(n);
 }
 
+function ModelToggle({
+  model,
+  onChange,
+  disabled,
+}: {
+  model: PlaygroundModel;
+  onChange: (model: PlaygroundModel) => void;
+  disabled: boolean;
+}) {
+  return (
+    <TooltipProvider delayDuration={200}>
+      <div
+        role="group"
+        aria-label="Model"
+        className="flex shrink-0 items-center rounded border border-border text-[10px] font-mono overflow-hidden"
+      >
+        <button
+          type="button"
+          aria-label="Default model"
+          aria-pressed={model === "default"}
+          disabled={disabled}
+          onClick={() => onChange("default")}
+          className={`px-1.5 py-0.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset disabled:opacity-50 ${
+            model === "default"
+              ? "bg-muted text-foreground"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          default
+        </button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              aria-label="Jev (experimental)"
+              aria-pressed={model === "typesafe-ai/jev"}
+              disabled={disabled}
+              onClick={() => onChange("typesafe-ai/jev")}
+              className={`flex items-center gap-1 px-1.5 py-0.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset disabled:opacity-50 ${
+                model === "typesafe-ai/jev"
+                  ? "bg-muted text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              jev
+              <InfoIcon className="size-2.5" aria-hidden="true" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent
+            side="top"
+            align="start"
+            sideOffset={6}
+            className="max-w-64 space-y-1"
+          >
+            <p className="font-medium">Experimental</p>
+            <p>
+              Jev composes and edits UI from prepared fields, data, and actions.
+              Results may be incomplete.
+            </p>
+          </TooltipContent>
+        </Tooltip>
+      </div>
+    </TooltipProvider>
+  );
+}
+
+function VersionDetails({ version }: { version: Version }) {
+  return (
+    <>
+      <div className="mt-1 ml-6 text-[10px] font-mono text-muted-foreground/60">
+        {version.model === "typesafe-ai/jev"
+          ? "Jev · Experimental"
+          : "Default model"}
+        {version.composition &&
+          ` · ${(version.composition.elapsedMs / 1000).toFixed(2)} s · ${version.composition.calls} calls`}
+        {version.status === "partial" && " · partial"}
+        {version.status === "unavailable" && " · unavailable"}
+      </div>
+      {version.message && (
+        <p className="mt-1 ml-6 text-xs text-muted-foreground">
+          {version.message}
+        </p>
+      )}
+    </>
+  );
+}
+
 function PlaygroundControls({
+  model,
+  setModel,
+  disabled,
   format,
   setFormat,
   editModes,
@@ -61,6 +163,9 @@ function PlaygroundControls({
   showClear,
   onClear,
 }: {
+  model: PlaygroundModel;
+  setModel: (model: PlaygroundModel) => void;
+  disabled: boolean;
   format: StreamFormat;
   setFormat: (f: StreamFormat) => void;
   editModes: EditMode[];
@@ -69,46 +174,53 @@ function PlaygroundControls({
   onClear: () => void;
 }) {
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex items-center rounded border border-border text-[10px] font-mono overflow-hidden">
-        {(["jsonl", "yaml"] as const).map((f) => (
-          <button
-            key={f}
-            onClick={() => setFormat(f)}
-            className={`px-1.5 py-0.5 transition-colors ${
-              format === f
-                ? "bg-muted text-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {f}
-          </button>
-        ))}
-      </div>
-      <div className="flex items-center rounded border border-border text-[10px] font-mono overflow-hidden">
-        {(["patch", "merge", "diff"] as const).map((m) => (
-          <button
-            key={m}
-            onClick={() => {
-              setEditModes((prev) =>
-                prev.includes(m)
-                  ? prev.length > 1
-                    ? prev.filter((x) => x !== m)
-                    : prev
-                  : [...prev, m],
-              );
-            }}
-            className={`px-1.5 py-0.5 transition-colors ${
-              editModes.includes(m)
-                ? "bg-muted text-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {m}
-          </button>
-        ))}
-      </div>
-      {showClear && (
+    <div className="flex min-w-0 flex-wrap items-center gap-2">
+      <ModelToggle model={model} onChange={setModel} disabled={disabled} />
+      {model !== "typesafe-ai/jev" && (
+        <>
+          <div className="flex shrink-0 items-center rounded border border-border text-[10px] font-mono overflow-hidden">
+            {(["jsonl", "yaml"] as const).map((f) => (
+              <button
+                key={f}
+                disabled={disabled}
+                onClick={() => setFormat(f)}
+                className={`px-1.5 py-0.5 transition-colors ${
+                  format === f
+                    ? "bg-muted text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+          <div className="flex shrink-0 items-center rounded border border-border text-[10px] font-mono overflow-hidden">
+            {(["patch", "merge", "diff"] as const).map((m) => (
+              <button
+                key={m}
+                disabled={disabled}
+                onClick={() => {
+                  setEditModes((prev) =>
+                    prev.includes(m)
+                      ? prev.length > 1
+                        ? prev.filter((x) => x !== m)
+                        : prev
+                      : [...prev, m],
+                  );
+                }}
+                className={`px-1.5 py-0.5 transition-colors ${
+                  editModes.includes(m)
+                    ? "bg-muted text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+      {showClear && !disabled && (
         <button
           onClick={onClear}
           className="text-xs text-muted-foreground hover:text-foreground transition-colors"
@@ -181,6 +293,33 @@ const EXAMPLE_PROMPTS = [
   "Make a contact form",
 ];
 
+const JEV_EXAMPLE_PROMPTS = [
+  {
+    label: "Create a login form",
+    prompt:
+      'Create a login card titled "Sign in" with email, password, remember me, and a sign in button.',
+  },
+  {
+    label: "Create account settings",
+    prompt:
+      'Create an account settings card titled "Preferences" with full name, email, an email notifications switch, save and reset buttons side by side, and visible save status.',
+  },
+  {
+    label: "Design a user profile card",
+    prompt: "Design a user profile card",
+  },
+  {
+    label: "Build a sales dashboard",
+    prompt:
+      'Build a sales dashboard: heading "Sales overview", revenue, orders and new customers metrics in a three-column grid, then a weekly revenue chart and an order-status table.',
+  },
+  {
+    label: "Make a contact form",
+    prompt:
+      'Create a contact card titled "Contact us" with full name, email, topic, a message box, and a send message button.',
+  },
+];
+
 export function Playground() {
   const [versions, setVersions] = useState<Version[]>([]);
   const [selectedVersionId, setSelectedVersionId] = useState<string | null>(
@@ -194,7 +333,13 @@ export function Playground() {
   const [renderView, setRenderView] = useState<RenderView>("preview");
   const [mobileView, setMobileView] = useState<MobileView>("preview");
   const [versionsSheetOpen, setVersionsSheetOpen] = useState(false);
-  const [format, setFormat] = useState<StreamFormat>("jsonl");
+  const [preferredFormat, setFormat] = useState<StreamFormat>("jsonl");
+  const [model, setModel] = useState<PlaygroundModel>("default");
+  const format = model === "typesafe-ai/jev" ? "jsonl" : preferredFormat;
+  const examplePrompts =
+    model === "typesafe-ai/jev"
+      ? JEV_EXAMPLE_PROMPTS
+      : EXAMPLE_PROMPTS.map((prompt) => ({ label: prompt, prompt }));
   const [editModes, setEditModes] = useState<EditMode[]>(["patch"]);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const mobileInputRef = useRef<HTMLTextAreaElement>(null);
@@ -215,25 +360,20 @@ export function Playground() {
     spec: apiSpec,
     isStreaming,
     usage: streamUsage,
+    composition: streamComposition,
+    error: streamError,
     rawLines: streamRawLines,
     send,
     clear,
+    stop,
   } = usePlaygroundStream({
     api: "/api/generate",
+    model,
     format,
     editModes,
     onError: (err: Error) => {
       console.error("Generation error:", err);
       toast.error(err.message || "Generation failed. Please try again.");
-      if (generatingVersionIdRef.current) {
-        const erroredVersionId = generatingVersionIdRef.current;
-        setVersions((prev) =>
-          prev.map((v) =>
-            v.id === erroredVersionId ? { ...v, status: "error" as const } : v,
-          ),
-        );
-        generatingVersionIdRef.current = null;
-      }
     },
   });
 
@@ -260,13 +400,7 @@ export function Playground() {
     : (selectedVersion?.rawLines ?? []);
 
   // Keep the ref updated with the current tree for use in handleSubmit
-  if (
-    currentTree &&
-    currentTree.root &&
-    Object.keys(currentTree.elements).length > 0
-  ) {
-    currentTreeRef.current = currentTree;
-  }
+  currentTreeRef.current = currentTree?.root ? currentTree : null;
 
   // Scroll to bottom when versions change
   useEffect(() => {
@@ -276,12 +410,7 @@ export function Playground() {
 
   // Update version when streaming completes
   useEffect(() => {
-    if (
-      !isStreaming &&
-      apiSpec &&
-      apiSpec.root &&
-      generatingVersionIdRef.current
-    ) {
+    if (!isStreaming && generatingVersionIdRef.current) {
       const completedVersionId = generatingVersionIdRef.current;
       setVersions((prev) =>
         prev.map((v) =>
@@ -289,7 +418,23 @@ export function Playground() {
             ? {
                 ...v,
                 tree: apiSpec,
-                status: "complete" as const,
+                status: streamError
+                  ? apiSpec?.root
+                    ? ("partial" as const)
+                    : ("error" as const)
+                  : streamComposition?.stopReason === "limit"
+                    ? ("partial" as const)
+                    : streamComposition?.stopReason === "unavailable"
+                      ? ("unavailable" as const)
+                      : ("complete" as const),
+                message:
+                  streamError?.message ??
+                  (streamComposition?.stopReason === "limit"
+                    ? "Composition limit reached. The preview is partial."
+                    : streamComposition?.stopReason === "unavailable"
+                      ? "This request needs content or capabilities outside the prepared options."
+                      : undefined),
+                composition: streamComposition,
                 usage: streamUsage,
                 rawLines: streamRawLines,
               }
@@ -298,10 +443,18 @@ export function Playground() {
       );
       generatingVersionIdRef.current = null;
     }
-  }, [isStreaming, apiSpec, streamUsage, streamRawLines]);
+  }, [
+    isStreaming,
+    apiSpec,
+    streamUsage,
+    streamRawLines,
+    streamComposition,
+    streamError,
+  ]);
 
   const handleSubmit = useCallback(async () => {
-    if (!inputValue.trim() || isStreaming) return;
+    if (!inputValue.trim() || isStreaming || generatingVersionIdRef.current)
+      return;
 
     const newVersionId = Date.now().toString();
     const newVersion: Version = {
@@ -312,6 +465,8 @@ export function Playground() {
       usage: null,
       rawLines: [],
       format,
+      model,
+      composition: null,
     };
 
     generatingVersionIdRef.current = newVersionId;
@@ -321,7 +476,7 @@ export function Playground() {
 
     // Pass the current tree as context so the API can iterate on it
     await send(inputValue.trim(), { previousSpec: currentTreeRef.current });
-  }, [inputValue, isStreaming, send, format]);
+  }, [inputValue, isStreaming, send, format, model]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -472,10 +627,12 @@ ${jsx}
         {versions.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
             <p className="text-sm text-muted-foreground mb-4">
-              Describe what you want to build, then iterate on it.
+              {model === "typesafe-ai/jev"
+                ? "Describe a UI to compose from the prepared options."
+                : "Describe what you want to build, then iterate on it."}
             </p>
             <div className="flex flex-wrap gap-2 justify-center">
-              {EXAMPLE_PROMPTS.map((prompt) => (
+              {examplePrompts.map(({ label, prompt }) => (
                 <button
                   key={prompt}
                   onMouseDown={(e) => {
@@ -498,7 +655,7 @@ ${jsx}
                   }}
                   className="text-xs px-2 py-1 rounded border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
                 >
-                  {prompt}
+                  {label}
                 </button>
               ))}
             </div>
@@ -528,6 +685,7 @@ ${jsx}
                   <span className="text-xs text-red-500 shrink-0">failed</span>
                 )}
               </div>
+              <VersionDetails version={version} />
               {version.usage && (
                 <div className="mt-1 ml-6">
                   <span className="text-[10px] font-mono text-muted-foreground/60">
@@ -551,7 +709,10 @@ ${jsx}
         onMouseDown={(e) => {
           // Focus textarea unless clicking a button or the textarea itself
           const target = e.target as HTMLElement;
-          if (!target.closest("button") && target.tagName !== "TEXTAREA") {
+          if (
+            !target.closest("button, a, [role=combobox]") &&
+            target.tagName !== "TEXTAREA"
+          ) {
             e.preventDefault();
             inputRef.current?.focus();
           }
@@ -563,11 +724,15 @@ ${jsx}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Describe changes..."
+          maxLength={model === "typesafe-ai/jev" ? 1000 : undefined}
           className="w-full bg-background text-base sm:text-sm resize-none outline-none placeholder:text-muted-foreground/50"
           rows={2}
         />
-        <div className="flex justify-between items-center mt-2">
+        <div className="flex justify-between items-end gap-2 mt-2">
           <PlaygroundControls
+            model={model}
+            setModel={setModel}
+            disabled={isStreaming}
             format={format}
             setFormat={setFormat}
             editModes={editModes}
@@ -576,13 +741,15 @@ ${jsx}
             onClear={() => {
               setVersions([]);
               setSelectedVersionId(null);
+              generatingVersionIdRef.current = null;
+              currentTreeRef.current = null;
               clear();
             }}
           />
           {isStreaming ? (
             <button
-              onClick={() => clear()}
-              className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors"
+              onClick={stop}
+              className="w-7 h-7 shrink-0 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors"
               aria-label="Stop"
             >
               <svg
@@ -599,7 +766,7 @@ ${jsx}
             <button
               onClick={handleSubmit}
               disabled={!inputValue.trim()}
-              className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors disabled:opacity-30"
+              className="w-7 h-7 shrink-0 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors disabled:opacity-30"
               aria-label="Send"
             >
               <svg
@@ -872,8 +1039,12 @@ ${jsx}
       <div className="flex-1 overflow-auto">
         {renderView === "preview" ? (
           currentTree && currentTree.root ? (
-            <div className="w-full min-h-full flex items-center justify-center p-6">
+            <div
+              className="w-full min-h-full flex items-center justify-center p-6"
+              inert={isStreaming}
+            >
               <PlaygroundRenderer
+                key={selectedVersionId}
                 spec={currentTree}
                 data={currentTree.state}
                 loading={isStreaming}
@@ -1150,8 +1321,12 @@ ${jsx}
             />
           ) : mobileView === "preview" ? (
             currentTree && currentTree.root ? (
-              <div className="w-full min-h-full flex items-center justify-center p-6">
+              <div
+                className="w-full min-h-full flex items-center justify-center p-6"
+                inert={isStreaming}
+              >
                 <PlaygroundRenderer
+                  key={selectedVersionId}
                   spec={currentTree}
                   data={currentTree.state}
                   loading={isStreaming}
@@ -1166,10 +1341,12 @@ ${jsx}
                 ) : (
                   <>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Describe what you want to build, then iterate on it.
+                      {model === "typesafe-ai/jev"
+                        ? "Describe a UI to compose from the prepared options."
+                        : "Describe what you want to build, then iterate on it."}
                     </p>
                     <div className="flex flex-wrap gap-2 justify-center">
-                      {EXAMPLE_PROMPTS.map((prompt) => (
+                      {examplePrompts.map(({ label, prompt }) => (
                         <button
                           key={prompt}
                           onMouseDown={(e) => {
@@ -1183,7 +1360,7 @@ ${jsx}
                           }}
                           className="text-xs px-2 py-1 rounded border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
                         >
-                          {prompt}
+                          {label}
                         </button>
                       ))}
                     </div>
@@ -1204,10 +1381,13 @@ ${jsx}
 
         {/* Prompt input pinned to bottom */}
         <div
-          className="border-t border-border p-3 shrink-0 cursor-text"
+          className="border-t border-border p-3 pb-16 shrink-0 cursor-text"
           onMouseDown={(e) => {
             const target = e.target as HTMLElement;
-            if (!target.closest("button") && target.tagName !== "TEXTAREA") {
+            if (
+              !target.closest("button, a, [role=combobox]") &&
+              target.tagName !== "TEXTAREA"
+            ) {
               e.preventDefault();
               mobileInputRef.current?.focus();
             }
@@ -1219,11 +1399,15 @@ ${jsx}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Describe changes..."
+            maxLength={model === "typesafe-ai/jev" ? 1000 : undefined}
             className="w-full bg-background text-base resize-none outline-none placeholder:text-muted-foreground/50"
             rows={2}
           />
-          <div className="flex justify-between items-center mt-2">
+          <div className="flex justify-between items-end gap-2 mt-2">
             <PlaygroundControls
+              model={model}
+              setModel={setModel}
+              disabled={isStreaming}
               format={format}
               setFormat={setFormat}
               editModes={editModes}
@@ -1232,13 +1416,15 @@ ${jsx}
               onClear={() => {
                 setVersions([]);
                 setSelectedVersionId(null);
+                generatingVersionIdRef.current = null;
+                currentTreeRef.current = null;
                 clear();
               }}
             />
             {isStreaming ? (
               <button
-                onClick={() => clear()}
-                className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors"
+                onClick={stop}
+                className="w-7 h-7 shrink-0 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors"
                 aria-label="Stop"
               >
                 <svg
@@ -1255,7 +1441,7 @@ ${jsx}
               <button
                 onClick={handleSubmit}
                 disabled={!inputValue.trim()}
-                className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors disabled:opacity-30"
+                className="w-7 h-7 shrink-0 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors disabled:opacity-30"
                 aria-label="Send"
               >
                 <svg
@@ -1310,6 +1496,7 @@ ${jsx}
                       </span>
                     )}
                   </div>
+                  <VersionDetails version={version} />
                   {version.usage && (
                     <div className="mt-1 ml-6">
                       <span className="text-[10px] font-mono text-muted-foreground/60">

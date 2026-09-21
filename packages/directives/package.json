@@ -1,6 +1,6 @@
 {
   "name": "@json-render/directives",
-  "version": "0.20.0",
+  "version": "0.21.0",
   "license": "Apache-2.0",
   "description": "Pre-built directives for @json-render/core — $format, $math, $concat, $count, $truncate, $pluralize, $join, and $t (i18n).",
   "keywords": [

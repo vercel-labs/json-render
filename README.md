@@ -808,6 +808,7 @@ pnpm dev
 - http://react-email-demo.json-render.localhost:1355 - React Email Example
 - http://remotion-demo.json-render.localhost:1355 - Remotion Video Example
 - Chat Example: run `pnpm dev` in `examples/chat`
+- [Experimental Jev composition](https://json-render.dev/docs/jev): use `experimental_composeSpec` and `experimental_createEvaluator` from core with your own catalog, or select **Jev (Experimental)** in `/playground`. Unreleased; source-build instructions are in the guide.
 - Svelte Example: run `pnpm dev` in `examples/svelte` or `examples/svelte-chat`
 - Vue Example: run `pnpm dev` in `examples/vue`
 - Vite Renderers (React + Vue + Svelte + Solid): run `pnpm dev` in `examples/vite-renderers`

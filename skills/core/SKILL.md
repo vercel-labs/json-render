@@ -14,6 +14,25 @@ Core package for schema definition, catalog creation, and spec streaming.
 - **Spec**: JSON output from AI that conforms to the schema
 - **SpecStream**: JSONL streaming format for progressive spec building
 
+## Experimental Decision-Model Composition
+
+For decision-model composition, import `experimental_composeSpec` and `experimental_createEvaluator` from `@json-render/core`. These APIs are unreleased; use a source build until published, then pin exact versions. Experimental exports and `Experimental_` types can change in any release.
+
+- Run the Gateway evaluator server-side with `{ model: "typesafe-ai/jev", apiKey: process.env.AI_GATEWAY_API_KEY! }`. A plain model identifier is required; Jev is the current example; do not import a provider constructor.
+- Call `experimental_composeSpec({ catalog, candidates, prompt, evaluate, initialState, signal })`. It is an async generator; stream `step.spec` snapshots to your existing renderer and inspect `complete.stopReason` (`finish`, `limit`, `unavailable`). Errors and cancellation throw; retain the last snapshot as partial UI.
+- New trees default to `strategy: "batch"`: one evaluation selects root/membership, then a second arranges the selected elements when needed. The first snapshot contains selected content in catalog order under the root's default/first slot. Resource variants share one exclusive question; repeated counts include the root. Root selection takes precedence over conflicting speculative membership for that recipe/resource. Equal sibling positions retain catalog order. Combined layouts are validated before publication; cycles or excessive depth throw. `maxElements` caps batched creation (default 32). Limit-truncated selections or a missing required layout call return `limit`. Use `strategy: "sequential"` for legacy `next`/`parent` adapters or sequential creation. Edits stay sequential.
+- Batched trace steps use `choice: "select" | "layout"` and an `answers` record. Count each trace as one evaluation, including its tokens and latency once. Custom evaluators must answer every offered question; names/choices are opaque and include `root`/`select_*`, then `parent_*`/`order_*` for batches.
+- For follow-up edits, pass the selected version as `initialSpec`. It is cloned and validated; the evaluator may add, replace, remove non-root subtrees, or move/reorder them. Unchanged IDs, bindings, and state are preserved. Optional `elementDescriptions` shares identifying descriptions without exposing raw props/state. `initialState` overrides the seed state. Seeds must be valid trees within the catalog, expression subset, and depth limit. Matching recipes consume usage/resource limits; removals/replacements release them. Replacements/moves use two evaluations (select target, then recipe/destination), each counted against the budget. Treat operation and position keys as opaque.
+- Supply atomic candidates with `{ id, description, element: { type, props, on?, visible? }, root?, maxUses?, resource? }`. Catalog alone is insufficient: the app must supply values and binding recipes. Jev chooses elements and parent slots, never free-form text or code. It never executes actions.
+- Candidates are configured component instances, not page templates. Build them from current app records/operations or bind props to `initialState`; offer explicit alternatives for chart types, field configurations, and layout variants. The model chooses grouping and order within those options. Name required sections in prompts; structural validity does not imply semantic completeness.
+- V1 supports flat Spec catalogs, named slots, literals, `$state`, `$bindState`, and state visibility. No prebuilt children, repeat/watch, computed/template/conditional props, or custom directives. Success/error callbacks must reference allowed actions. Events must be declared in the component catalog.
+- Props and action params are validated against initial state without applying schema transforms/defaults. Supply valid initial values and validate/authorize action calls at runtime. Built-ins without parameter schemas get name validation only.
+- `root` defaults true, `maxUses` defaults one, shared `resource` values make alternatives mutually exclusive. Defaults: 32 evaluations (terminal calls included; no extra finish call for batches), depth eight, 10-second Gateway timeout per call. Supply an overall abort signal.
+- Candidate descriptions, prompt, instructions, topology, and explicit `context` are sent to the evaluator. Initial state and raw props/binding values are not sent automatically.
+- For custom providers implement `Experimental_CompositionEvaluator`: accept `{ state, questions, signal }`, return `{ answers: { [question]: { choice, confidence? } }, usage?: { inputTokens? } }`. Only return offered criteria keys.
+
+See `packages/core/README.md` and `/docs/jev` for app integration and source-build instructions. The web playground is an example consumer, not a dependency of the API.
+
 ## Defining a Schema
 
 ```typescript

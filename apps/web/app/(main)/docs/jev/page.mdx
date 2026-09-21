@@ -1,0 +1,183 @@
+import { pageMetadata } from "@/lib/page-metadata"
+export const metadata = pageMetadata("docs/jev")
+
+# Jev (Experimental)
+
+**Experimental:** `experimental_composeSpec` and `experimental_createEvaluator` are reusable APIs in `@json-render/core`. Like AI SDK's experimental APIs, names prefixed with `experimental_` or `Experimental_` may change in any release. Pin exact package versions (no `^` or `~`) and review release notes before upgrading.
+
+**Availability:** these APIs are unreleased. You can try the source build below before they appear in a published npm version.
+
+Open the [playground](/playground), select **jev** in the **default / jev** toggle, and send a request. Hover or focus the Jev option with its info icon for details about the experiment. Or use your own catalog in your app. [Share feedback](https://github.com/vercel-labs/json-render/issues/new) with your catalog, candidates, request, resulting spec, and expected behavior. Remove private data from reproductions.
+
+## Why use it?
+
+The public API is model-neutral: `experimental_createEvaluator` takes an explicit Gateway evaluation model ID. Jev is the current tested example.
+
+Jev is a decision model from TypeSafe AI. It chooses among discrete options instead of writing free-form text. json-render turns those choices into a normal flat `Spec`, which your existing renderer, component registry, and action handlers can use.
+
+Your app supplies atomic element candidates: component names, concrete props, state bindings, and allowed action bindings. Jev selects which to include, their order, and their placement. The platform controls the available capabilities and design system. The composer never executes actions.
+
+New trees use batched composition by default. One evaluation selects the root and required components together, and immediately emits a validated preview containing content. A second evaluation arranges the selected elements when needed. This avoids one network round trip per component. The first preview uses catalog order and the root's default (or first declared) slot; the final layout can move elements. Root selection takes precedence over speculative membership for the same recipe/resource, and equal sibling positions retain catalog order. Inconsistent combined layouts throw, retaining the first preview as partial output. Set `strategy: "sequential"` for one-operation-at-a-time creation; follow-up edits remain sequential.
+
+A catalog alone is not enough for Jev: open-ended string props and data still need values. Build candidates from your records, localized copy, form definitions, or prepared content. Jev cannot invent missing prose or data.
+
+UI composition and data can stay separate: bind candidate props to `initialState` with `$state`, or construct candidates from the current records for each request. Jev chooses the component tree, grouping, and order; no complete page template is required. Each candidate is a configured component instance, so the model can only select the chart types, field configurations, and layout variants you offer. For example, supplying a revenue BarGraph alone does not let it choose a LineGraph; supply both candidates with a shared `resource` to offer that choice.
+
+## Try it in your app
+
+From a checkout containing this feature, build and pack core:
+
+```sh
+pnpm install --frozen-lockfile
+pnpm --filter @json-render/core build
+pnpm --filter @json-render/core pack --pack-destination /tmp/json-render-preview
+```
+
+Install the resulting `.tgz` file in your app with `pnpm add /absolute/path/to/the-file.tgz`. Keep your renderer and other json-render packages on the same version as the checkout. Source builds are for evaluation; the package version alone does not identify the experimental revision, so record the checkout commit in feedback.
+
+### Define the catalog and candidates
+
+This example uses the React schema. The composer supports catalogs using the standard flat `Spec` format, including named slots. It does not support arbitrary custom spec formats.
+
+```typescript
+// catalog.ts
+import { defineCatalog } from "@json-render/core";
+import { schema } from "@json-render/react/schema";
+import { z } from "zod";
+
+export const catalog = defineCatalog(schema, {
+  components: {
+    Panel: { props: z.object({ title: z.string() }), slots: ["default"] },
+    Input: { props: z.object({ label: z.string(), value: z.string() }) },
+    Button: { props: z.object({ label: z.string() }), events: ["press"] },
+  },
+  actions: {
+    savePreferences: { params: z.object({ name: z.string() }) },
+  },
+});
+```
+
+```typescript
+// candidates.ts
+import type { Experimental_CompositionCandidate } from "@json-render/core";
+
+export const candidates = [
+  {
+    id: "preferences",
+    description: "Account preferences panel",
+    element: { type: "Panel", props: { title: "Account preferences" } },
+  },
+  {
+    id: "name",
+    description: "Editable name field",
+    root: false,
+    element: {
+      type: "Input",
+      props: { label: "Name", value: { $bindState: "/name" } },
+    },
+  },
+  {
+    id: "save",
+    description: "Save preferences using the current name",
+    root: false,
+    element: {
+      type: "Button",
+      props: { label: "Save" },
+      on: { press: { action: "savePreferences", params: { name: { $state: "/name" } } } },
+    },
+  },
+] satisfies Experimental_CompositionCandidate[];
+```
+
+### Compose on the server
+
+Set `AI_GATEWAY_API_KEY` in your server environment. Your Gateway team must allow the `typesafe-ai` provider. A separate TypeSafe key is not required. Keep the evaluator and credentials on the server.
+
+```typescript
+// Server only
+import { experimental_composeSpec, experimental_createEvaluator } from "@json-render/core";
+import { catalog } from "./catalog";
+import { candidates } from "./candidates";
+
+const evaluate = experimental_createEvaluator({
+  model: "typesafe-ai/jev",
+  apiKey: process.env.AI_GATEWAY_API_KEY!,
+});
+
+for await (const event of experimental_composeSpec({
+  catalog,
+  candidates,
+  prompt: "Create account preferences with a name field and Save button",
+  initialState: { name: "" },
+  evaluate,
+  maxSteps: 12,
+  maxElements: 24,
+  signal: AbortSignal.timeout(30_000),
+})) {
+  // Send snapshots to your client and render using your existing registry.
+  if (event.type === "step") console.log(event.spec);
+  else console.log(event.stopReason, event.spec);
+}
+```
+
+The adapter uses the plain model ID `typesafe-ai/jev` and Gateway's experimental v4 evaluation endpoint. It has no AI SDK dependency. The default timeout is 10 seconds per evaluation; use `signal` for an overall deadline. See the [core API reference](/docs/api/core#experimental_composespec) for all options.
+
+### Iterate on a version
+
+Pass the selected version as `initialSpec` with the next request:
+
+```typescript
+for await (const event of experimental_composeSpec({
+  catalog,
+  candidates,
+  initialSpec: selectedSpec,
+  prompt: "Remove the Save button",
+  evaluate,
+  signal: AbortSignal.timeout(30_000),
+})) {
+  if (event.spec) updatePreview(event.spec);
+}
+```
+
+Edits can add candidates, replace element recipes, remove non-root subtrees, and move/reorder subtrees. Replacements keep the element's ID, position, and compatible children. Unchanged content, bindings, and state are preserved; the input spec is never mutated. Omit `initialSpec` to start a new composition.
+
+Existing elements use matching candidate descriptions; you can supply `elementDescriptions` keyed by element ID to identify other content. Raw props and state are not shared automatically. Seed specs must be valid trees within the supported catalog and expression subset. Replacement and move operations take two evaluations: select the element, then the recipe or destination. Both count toward the request budget.
+
+### Render and handle actions
+
+Send `step` events over your app's streaming transport and update the preview with `event.spec`. These are full snapshots, not SpecStream patches. Register `Panel`, `Input`, and `Button` in your existing registry, implement `Input` with `useBoundProp`, and bind the `savePreferences` action to your app's handler. See [the React quickstart](/docs/quick-start) and [state binding](/docs/data-binding).
+
+Initialize your renderer's state from `spec.state`. Keep user interaction disabled while composing so incoming snapshots do not compete with edits. Registering an action does not make it safe to execute with arbitrary values: authorize and validate requests in your handler as usual.
+
+On `complete`, inspect `stopReason`: `finish` means composition finished; `unavailable` means the evaluator could not fulfill the request; `limit` means a call, element, or depth budget prevented completion. A complete event can contain a partial spec, or `null` when no root was added. Completion is not a correctness guarantee. Errors and cancellation throw; retain the last snapshot and label it incomplete. Each batched trace is one evaluation (`select` or `layout`), with the individual choices in `step.answers` and usage/timing counted once.
+
+The playground is a reference implementation: [candidates and server wrapper](https://github.com/vercel-labs/json-render/tree/main/apps/web/lib/jev), [streaming route](https://github.com/vercel-labs/json-render/blob/main/apps/web/app/api/generate/route.ts), and [client](https://github.com/vercel-labs/json-render/blob/main/apps/web/components/playground.tsx).
+
+## Validation and v1 limits
+
+- Candidate props and action parameters are validated against their catalog schemas using `initialState`, or `initialSpec.state` when editing without an explicit override. Expressions remain intact in the returned spec. Supply valid initial values; schema defaults and transforms are not applied to recipes.
+- V1 supports literal values, `$state`, `$bindState`, and state-based visibility. Repeats, watches, computed expressions, templates, conditional props, and custom directives are not supported. Candidate recipes remain atomic; use `initialSpec` for an existing tree.
+- Events must be declared by the component. Actions must be in the catalog or the schema's built-in action list. Built-ins without a parameter schema receive name validation only. Success/error callbacks must reference catalog actions.
+- Runtime state can change after composition. The composer cannot validate future values or authorize a later action invocation.
+- The default budget is 32 evaluations, with at most 32 elements in batched creation; default maximum depth is eight. Batching needs at most two evaluations and no separate finish decision. Each candidate is used at most once unless `maxUses` is set. `root: false` excludes it from root selection. A shared `resource` makes candidate variants mutually exclusive.
+- Named slots come from the catalog. Jev selects an existing parent/slot; the composer creates the edge and validates structural integrity before yielding. It does not guarantee an ideal layout or semantic completeness.
+- The evaluator receives the prompt, candidate descriptions, construction instructions, tree topology, and explicit `context`. Initial state, raw props, and binding values are not sent automatically. Put the information needed to choose candidates in their descriptions.
+- Confidence and input usage may be unknown. Confidence is not a calibrated quality threshold. The reusable API does not assume model prices.
+
+## Playground capabilities
+
+To self-host the playground, set `JEV_AI_GATEWAY_API_KEY` on the server for Jev. The default model uses `AI_GATEWAY_API_KEY`; Jev requires its own key and does not fall back to that variable. This is a playground convention: the reusable evaluator accepts whichever server-side key your app passes as `apiKey`.
+
+The playground offers 17 component types with prepared account/contact fields, validation rules, synthetic profile and commerce data, and local Save/Reset/Submit actions. Profile choices include an avatar, display name, role, bio, email, location, and membership badge, bound to the supplied record. A title in double quotes becomes an extra Heading candidate. Values entered in the rendered preview stay in the browser.
+
+Select **jev**, choose **Create account settings**, and send the request. Edit the fields and press **Save changes**. The status changes locally; **Reset** restores the form. Login/contact submission validates inputs and shows a demo toast. The demo does not authenticate users, send messages, or save business records.
+
+Both model options edit the selected version. Try `Design a user profile card`, then `Remove the bio` or `Make the avatar smaller`. After generating settings with Jev, try `Remove the email notifications switch`, `Change the heading to "Account settings"`, or `Move the email field above the name field`. Select any earlier version to branch from it; Clear starts fresh. New text still needs a prepared candidate or a quoted heading. The playground shares existing display labels and matching candidate descriptions to identify edit targets, but does not send entered form values or raw state to Jev. Specs using unsupported expressions cannot be edited by Jev.
+
+For a dashboard, try `Generate a sales dashboard with an orders table at the top, then revenue, orders and new customers metrics in a row, then a weekly revenue chart.` Section order is a model decision, and follow-ups can move the table or chart. Name the sections you need: a vague request such as `Generate a dashboard with the table at the top` can produce only a table. A valid finished spec does not guarantee that the model inferred all the intended content.
+
+The stream tab shows spec patches and decision metadata, and version history labels partial or unavailable results. Requests retain the selected version until edits arrive, including when an edit is unavailable or interrupted.
+
+The playground limits batched creation to 14 elements and runs to 14 evaluations, depth four, and 55 seconds overall, and accepts selected specs with up to 100 elements. Its endpoint uses the web app's minute and daily rate limiters. Self-hosted deployments need `KV_REST_API_URL` and `KV_REST_API_TOKEN` to enable those rate limits.
+
+References: [Jev on Gateway](https://vercel.com/ai-gateway/models/jev), [AI SDK experimental versioning](https://ai-sdk.dev/docs/migration-guides/versioning), [Jev's documented limits](https://docs.typesafe.ai/model-jaggedness/jev-1.13).

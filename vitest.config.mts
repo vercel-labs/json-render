@@ -34,7 +34,12 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "jsdom",
-    include: ["packages/**/*.test.ts", "packages/**/*.test.tsx"],
+    include: [
+      "packages/**/*.test.ts",
+      "packages/**/*.test.tsx",
+      "apps/web/lib/jev/**/*.test.ts",
+      "apps/web/lib/use-playground-stream.test.ts",
+    ],
     server: {
       deps: {
         inline: [/bits-ui/, /runed/, /vaul-svelte/, /@lucide\/svelte/],

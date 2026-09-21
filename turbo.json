@@ -3,6 +3,7 @@
   "ui": "tui",
   "globalEnv": [
     "AI_GATEWAY_API_KEY",
+    "JEV_AI_GATEWAY_API_KEY",
     "ANTHROPIC_API_KEY",
     "CLAUDE_CODE_MODEL",
     "OPENAI_API_KEY",

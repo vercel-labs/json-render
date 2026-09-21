@@ -9,6 +9,11 @@ json-render ships with skills that teach AI coding agents how to use each packag
 - **core** — Core schemas, catalogs, and AI prompt generation.
 - **react** — React renderer that turns JSON specs into React component trees.
 - **tanstack-start** — Full TanStack Start applications with routes, layouts, SSR loaders, and head metadata.
+- **devtools** — Framework-agnostic inspector panel for specs, state, actions, streams, catalogs, and DOM picking.
+- **devtools-react** — React adapter for the json-render devtools panel.
+- **devtools-vue** — Vue adapter for the json-render devtools panel.
+- **devtools-svelte** — Svelte adapter for the json-render devtools panel.
+- **devtools-solid** — SolidJS adapter for the json-render devtools panel.
 - **react-pdf** — PDF renderer using `@react-pdf/renderer`.
 - **react-email** — Email renderer that produces HTML or plain-text emails.
 - **react-native** — React Native renderer for native mobile UIs.
@@ -31,6 +36,11 @@ json-render ships with skills that teach AI coding agents how to use each packag
 npx skills add vercel-labs/json-render --skill core
 npx skills add vercel-labs/json-render --skill react
 npx skills add vercel-labs/json-render --skill tanstack-start
+npx skills add vercel-labs/json-render --skill devtools
+npx skills add vercel-labs/json-render --skill devtools-react
+npx skills add vercel-labs/json-render --skill devtools-vue
+npx skills add vercel-labs/json-render --skill devtools-svelte
+npx skills add vercel-labs/json-render --skill devtools-solid
 npx skills add vercel-labs/json-render --skill react-pdf
 npx skills add vercel-labs/json-render --skill react-email
 npx skills add vercel-labs/json-render --skill react-native
@@ -61,6 +71,26 @@ Teaches agents how to render JSON specs as React component trees using `JsonRend
 ## tanstack-start
 
 Teaches agents how to build JSON-defined TanStack Start applications with splat routes, reusable layouts, SSR-safe loaders, head metadata, prerender paths, and client navigation.
+
+## devtools
+
+Teaches agents how to add and configure the framework-agnostic json-render devtools panel, including spec inspection, state editing, action and stream timelines, catalog browsing, and DOM picking.
+
+## devtools-react
+
+Teaches agents how to mount and control `@json-render/devtools-react` inside a React json-render provider, including the imperative devtools hook.
+
+## devtools-vue
+
+Teaches agents how to mount and configure `@json-render/devtools-vue` inside a Vue json-render provider.
+
+## devtools-svelte
+
+Teaches agents how to mount and configure `@json-render/devtools-svelte` inside a Svelte 5 json-render provider.
+
+## devtools-solid
+
+Teaches agents how to mount and configure `@json-render/devtools-solid` inside a SolidJS json-render provider.
 
 ## react-pdf
 

@@ -10,8 +10,9 @@ import { yamlPrompt } from "@json-render/yaml";
 import { stringify as yamlStringify } from "yaml";
 import { minuteRateLimit, dailyRateLimit } from "@/lib/rate-limit";
 import { playgroundCatalog } from "@/lib/render/catalog";
+import { createCompositionResponse } from "@/lib/jev/response";
 
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 const PLAYGROUND_RULES = [
   "NEVER use viewport height classes (min-h-screen, h-screen) - the UI renders inside a fixed-size container.",
@@ -92,7 +93,9 @@ export async function POST(req: Request) {
     );
   }
 
-  const { prompt, context, format, editModes } = await req.json();
+  const { prompt, context, format, editModes, model } = await req.json();
+  if (model === "typesafe-ai/jev")
+    return createCompositionResponse(req, prompt, context?.previousSpec);
   const isYaml = format === "yaml";
 
   const systemPrompt = getSystemPrompt(isYaml, editModes);
@@ -107,6 +110,7 @@ export async function POST(req: Request) {
 
   const result = streamText({
     model: process.env.AI_GATEWAY_MODEL || DEFAULT_MODEL,
+    abortSignal: req.signal,
     system: [
       {
         role: "system",

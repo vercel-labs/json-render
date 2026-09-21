@@ -15,6 +15,16 @@ import {
 } from "@json-render/yaml";
 import { applySpecPatch } from "./spec-patch";
 
+export type PlaygroundModel = "default" | "typesafe-ai/jev";
+
+export interface CompositionSummary {
+  stopReason: "finish" | "limit" | "unavailable";
+  elapsedMs: number;
+  inputTokens: number | null;
+  calls: number;
+  estimatedCostUsd: number | null;
+}
+
 export type StreamFormat = "jsonl" | "yaml";
 
 export interface TokenUsage {
@@ -27,6 +37,7 @@ export interface TokenUsage {
 
 export interface UsePlaygroundStreamOptions {
   api: string;
+  model?: PlaygroundModel;
   format: StreamFormat;
   editModes?: EditMode[];
   onError?: (error: Error) => void;
@@ -38,9 +49,11 @@ export interface UsePlaygroundStreamReturn {
   isStreaming: boolean;
   error: Error | null;
   usage: TokenUsage | null;
+  composition: CompositionSummary | null;
   rawLines: string[];
   send: (prompt: string, context?: Record<string, unknown>) => Promise<void>;
   clear: () => void;
+  stop: () => void;
 }
 
 // ── JSONL helpers ──
@@ -48,6 +61,9 @@ export interface UsePlaygroundStreamReturn {
 type ParsedLine =
   | { type: "patch"; patch: JsonPatch }
   | { type: "usage"; usage: TokenUsage }
+  | { type: "composition"; summary: CompositionSummary }
+  | { type: "decision" }
+  | { type: "error"; message: string }
   | { type: "json-edit"; mergeObj: Record<string, unknown> }
   | null;
 
@@ -56,6 +72,11 @@ function parseLine(line: string): ParsedLine {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith("//")) return null;
     const parsed = JSON.parse(trimmed);
+    if (parsed.__meta === "composition")
+      return { type: "composition", summary: parsed as CompositionSummary };
+    if (parsed.__meta === "decision") return { type: "decision" };
+    if (parsed.__meta === "error")
+      return { type: "error", message: parsed.message };
     if (parsed.__meta === "usage") {
       return {
         type: "usage",
@@ -85,6 +106,7 @@ type FenceState = "outside" | "yaml-spec" | "yaml-edit" | "yaml-patch" | "diff";
 
 export function usePlaygroundStream({
   api,
+  model = "default",
   format,
   editModes,
   onError,
@@ -94,6 +116,9 @@ export function usePlaygroundStream({
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [usage, setUsage] = useState<TokenUsage | null>(null);
+  const [composition, setComposition] = useState<CompositionSummary | null>(
+    null,
+  );
   const [rawLines, setRawLines] = useState<string[]>([]);
   const rawLinesRef = useRef<string[]>([]);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -102,30 +127,45 @@ export function usePlaygroundStream({
   onCompleteRef.current = onComplete;
   const onErrorRef = useRef(onError);
   onErrorRef.current = onError;
+  const modelRef = useRef(model);
+  modelRef.current = model;
   const formatRef = useRef(format);
   formatRef.current = format;
   const editModesRef = useRef(editModes);
   editModesRef.current = editModes;
 
+  const stop = useCallback(() => abortControllerRef.current?.abort(), []);
   const clear = useCallback(() => {
+    abortControllerRef.current?.abort();
     setSpec(null);
     setError(null);
+    setUsage(null);
+    setComposition(null);
+    rawLinesRef.current = [];
+    setRawLines([]);
   }, []);
 
   const send = useCallback(
     async (prompt: string, context?: Record<string, unknown>) => {
-      abortControllerRef.current = new AbortController();
+      if (abortControllerRef.current) return;
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+      const requestModel = modelRef.current;
+      const requestFormat =
+        requestModel === "typesafe-ai/jev" ? "jsonl" : formatRef.current;
+      let compositionComplete = false;
 
       setIsStreaming(true);
       setError(null);
       setUsage(null);
+      setComposition(null);
       rawLinesRef.current = [];
       setRawLines([]);
 
       const previousSpec = context?.previousSpec as Spec | undefined;
       let currentSpec: Spec =
         previousSpec && previousSpec.root
-          ? { ...previousSpec, elements: { ...previousSpec.elements } }
+          ? structuredClone(previousSpec)
           : { root: "", elements: {} };
       setSpec(currentSpec);
 
@@ -136,10 +176,11 @@ export function usePlaygroundStream({
           body: JSON.stringify({
             prompt,
             context,
-            format: formatRef.current,
+            model: requestModel,
+            format: requestFormat,
             editModes: editModesRef.current,
           }),
-          signal: abortControllerRef.current.signal,
+          signal: controller.signal,
         });
 
         if (!response.ok) {
@@ -160,7 +201,7 @@ export function usePlaygroundStream({
         const decoder = new TextDecoder();
         let buffer = "";
 
-        if (formatRef.current === "yaml") {
+        if (requestFormat === "yaml") {
           // ── YAML streaming ──
           let fenceState: FenceState = "outside";
           const compiler = createYamlStreamCompiler<Record<string, unknown>>();
@@ -407,6 +448,14 @@ export function usePlaygroundStream({
               if (!result) continue;
               if (result.type === "usage") {
                 setUsage(result.usage);
+              } else if (result.type === "error") {
+                throw new Error(result.message);
+              } else if (result.type === "composition") {
+                compositionComplete = true;
+                setComposition(result.summary);
+                rawLinesRef.current.push(trimmed);
+              } else if (result.type === "decision") {
+                rawLinesRef.current.push(trimmed);
               } else if (result.type === "json-edit") {
                 const merged = deepMergeSpec(
                   currentSpec as unknown as Record<string, unknown>,
@@ -436,6 +485,14 @@ export function usePlaygroundStream({
             if (result) {
               if (result.type === "usage") {
                 setUsage(result.usage);
+              } else if (result.type === "error") {
+                throw new Error(result.message);
+              } else if (result.type === "composition") {
+                compositionComplete = true;
+                setComposition(result.summary);
+                rawLinesRef.current.push(trimmed);
+              } else if (result.type === "decision") {
+                rawLinesRef.current.push(trimmed);
               } else if (result.type === "json-edit") {
                 const merged = deepMergeSpec(
                   currentSpec as unknown as Record<string, unknown>,
@@ -459,13 +516,22 @@ export function usePlaygroundStream({
           }
         }
 
+        setRawLines([...rawLinesRef.current]);
+        if (requestModel === "typesafe-ai/jev" && !compositionComplete)
+          throw new Error("Composition ended early. The preview is partial.");
         onCompleteRef.current?.(currentSpec);
       } catch (err) {
-        if ((err as Error).name === "AbortError") return;
+        setRawLines([...rawLinesRef.current]);
+        if ((err as Error).name === "AbortError") {
+          setError(new Error("Stopped. The preview is partial."));
+          return;
+        }
+        controller.abort();
         const error = err instanceof Error ? err : new Error(String(err));
         setError(error);
         onErrorRef.current?.(error);
       } finally {
+        abortControllerRef.current = null;
         setIsStreaming(false);
       }
     },
@@ -478,5 +544,15 @@ export function usePlaygroundStream({
     };
   }, []);
 
-  return { spec, isStreaming, error, usage, rawLines, send, clear };
+  return {
+    spec,
+    isStreaming,
+    error,
+    usage,
+    composition,
+    rawLines,
+    send,
+    clear,
+    stop,
+  };
 }

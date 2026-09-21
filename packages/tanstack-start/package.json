@@ -1,6 +1,6 @@
 {
   "name": "@json-render/tanstack-start",
-  "version": "0.20.0",
+  "version": "0.21.0",
   "license": "Apache-2.0",
   "description": "TanStack Start renderer for @json-render/core. JSON becomes full TanStack Start applications with routes, layouts, head metadata, and SSR.",
   "keywords": [

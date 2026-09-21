@@ -1,8 +1,27 @@
 # Changelog
 
-## 0.20.0
+## 0.21.0
 
 <!-- release:start -->
+
+### New Features
+
+- **TanStack Start renderer:** Added `@json-render/tanstack-start` for JSON-defined applications with file-based routes, reusable layouts, SSR loaders, head metadata, prerender paths, client navigation, and route fallbacks (#334)
+- **Experimental Jev composition:** Added `experimental_composeSpec` and `experimental_createEvaluator` to compose validated specs from app-owned candidates, plus a Jev model option and iterative composition editing in the playground
+
+### Improvements
+
+- **Vue named slots:** Vue registries now support catalog-declared named slots alongside the default `children` slot (#323)
+- **React streaming stability:** Stabilized streamed React renders and added coverage for incomplete streamed props and nested prop identities (#325)
+- **Documentation and project status:** Expanded renderer, Jev, and package documentation and added Labs status badges to the project README
+
+### Contributors
+
+- @ctate
+- @Railly
+<!-- release:end -->
+
+## 0.20.0
 
 ### New Features
 
@@ -30,7 +49,6 @@
 - @Railly
 - @tmchow
 - @wotnak
-<!-- release:end -->
 
 ## 0.19.0
 

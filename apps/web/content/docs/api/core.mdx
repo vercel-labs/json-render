@@ -4,6 +4,94 @@ title: "@json-render/core"
 
 Core types, schemas, and utilities.
 
+## experimental_composeSpec
+
+**Experimental, unreleased:** may change in any release. Pin exact versions when published; see [source-build setup and the full Jev guide](/docs/jev).
+
+```typescript
+import {
+  experimental_composeSpec,
+  type Experimental_CompositionCandidate,
+  type Experimental_CompositionEvaluator,
+  type Experimental_CompositionEvent,
+} from "@json-render/core";
+
+const events = experimental_composeSpec({
+  catalog,             // Standard flat Spec catalog
+  candidates,          // App-owned atomic elements
+  prompt,              // User request
+  evaluate,            // Experimental_CompositionEvaluator
+  initialState: {},    // Included in spec; not sent to evaluator
+  initialSpec,         // Optional selected version to edit; never mutated
+  elementDescriptions: {}, // Optional descriptions of existing element IDs
+  context: {},         // Explicitly shared evaluator context
+  strategy: "batch",  // Default for new trees; edits are sequential
+  maxElements: 32,     // Batched creation only, includes the root
+  maxSteps: 32,        // Evaluation calls, including terminal decisions
+  maxDepth: 8,         // Root depth is one
+  signal,              // AbortSignal, optional
+  instructions: { root: "", next: "", parent: "" }, // Appended guidance
+});
+```
+
+A candidate has `id`, `description`, `element`, optional `root` (default true), `maxUses` (default one), and `resource` (mutually exclusive variants). IDs start with a letter and contain only letters, digits, underscores, and hyphens. IDs must be unique; `finish` and `unavailable` are reserved. Elements accept `type`, `props`, optional `on`, and `visible`. The composer supplies children and named slots.
+
+Events are full detached snapshots. A `step` contains `spec` and `step`; `complete` contains nullable `spec`, `steps`, `elapsedMs`, nullable `inputTokens`, and `stopReason` (`finish`, `limit`, or `unavailable`). Each trace step contains `index`, `choice`, `description`, nullable `parent`/`slot`, nullable `confidence`/`parentConfidence`, `elapsedMs`, and nullable `inputTokens`. Batched steps also contain `answers`, keyed by question name, with each selected `choice` and optional confidence. Each trace represents one evaluation: batched timing and usage are counted once, not once per answer. Indexes start at zero. Completion is not a guarantee of semantic correctness.
+
+### Batched creation
+
+With no `initialSpec`, `strategy: "batch"` is the default. The first evaluation selects the root and required components together. Shared `resource` variants use one exclusive choice; reusable recipes use bounded counts that include the root when applicable. Root selection takes precedence over speculative membership for the same recipe/resource. The first snapshot includes all selected elements in catalog order under the root's default slot, or its first declared slot when there is no default.
+
+A second evaluation selects parents and sibling positions from the actual selected set. Equal positions retain catalog order. The combined tree must pass catalog, slot, depth, and tree validation before publication; a cycle or invalid layout throws and preserves the first snapshot as partial output. A single root or one child in a single slot needs no layout call. No separate finish call is made.
+
+`maxElements` limits batched creation, including the root. A truncated selection, insufficient depth for selected content, or a call budget that prevents required layout returns `limit`. Use `strategy: "sequential"` for one-operation-at-a-time creation. Edits always use the sequential protocol.
+
+Invalid configuration, out-of-set decisions, provider failures, and aborts throw. Previous snapshots remain usable as partial UI. Stopping iteration prevents further evaluation calls. A supplied signal also stops waiting for an evaluator that ignores cancellation; that evaluator must honor the signal to stop its underlying work.
+
+### Custom evaluators
+
+The composer is provider independent. An evaluator receives `state`, `questions`, and `signal`, then returns a selected criteria key for each question:
+
+```typescript
+const evaluate: Experimental_CompositionEvaluator = async ({ state, questions, signal }) => {
+  // Your adapter calls a decision model with this request.
+  const result = await yourEvaluator({ state, questions, signal });
+  return {
+    answers: result.answers, // { [questionName]: { choice: "offered_key", confidence: 0.9 } }
+    usage: { inputTokens: result.inputTokens }, // Optional
+  };
+};
+```
+
+Questions are records of `type: "choice"`, `instructions`, and `criteria` (choice key to description). Return an answer for every question and treat question/choice keys as opaque. Batched creation sends `root` and `select_*` questions, then `parent_*` and `order_*` questions. Sequential creation and edits use `next` to select an operation, `finish`, or `unavailable`, with `parent` when several attachment points exist. Existing adapters that only implement `next`/`parent` must opt into `strategy: "sequential"`. Confidence must be in [0, 1] when provided; input tokens must be a nonnegative integer.
+
+State contains `user_request` and explicit app `context`, plus capabilities/guidance during batched selection, `selected_elements` during layout, or `already_built` during sequential composition. Candidate descriptions and instructions are shared; raw state/props/binding values are not automatically included. See [validation and v1 limits](/docs/jev#validation-and-v1-limits).
+
+### Follow-up edits
+
+Pass `initialSpec` to edit an existing version. The composer validates and clones it, preserving unchanged elements, IDs, action bindings, and state. `initialState` explicitly overrides `initialSpec.state` when provided. Optional `elementDescriptions` maps existing IDs to descriptions shared with the evaluator; matching candidates supply the default description, otherwise only the component type is shared.
+
+Editing adds bounded operations: replace an element with an offered recipe, remove a non-root subtree, and move/reorder a subtree to an allowed slot/position. Replacements preserve children and are offered only when the new component can contain them. Moves cannot create cycles or exceed the depth limit. Seed specs with cycles, shared children, missing references, unreachable nodes, or unsupported expressions are rejected before evaluation.
+
+The `next` question offers opaque operation keys as well as candidate IDs. For replacement or movement, the following evaluation selects a recipe or destination, also through `next`. Both calls count toward `maxSteps`; the first emits an unchanged snapshot with its decision trace. `changes_made` supplies the edit trace alongside `already_built`. A budget limit, unavailable result, or cancellation may leave a selected edit unapplied. Existing elements exactly matching a recipe count toward `maxUses` and `resource`; removing/replacing them releases those limits.
+
+## experimental_createEvaluator
+
+**Experimental:** creates a server-side evaluator using Vercel AI Gateway's experimental v4 evaluation transport. No AI SDK dependency or provider constructor is required.
+
+```typescript
+import { experimental_createEvaluator } from "@json-render/core";
+
+const evaluate = experimental_createEvaluator({
+  apiKey: process.env.AI_GATEWAY_API_KEY!, // Required; keep server-side
+  model: "typesafe-ai/jev",               // Required, plain Gateway evaluation model ID
+  timeoutMs: 10_000,                      // Default, per evaluation
+  fetch: globalThis.fetch,               // Optional transport override
+});
+```
+
+The factory uses model-neutral naming and requires an explicit model. Jev is the current tested example; other models must support the Gateway choice-evaluation protocol. When using Jev, the Gateway team must permit TypeSafe AI. The adapter reports HTTP status on failure and rejects malformed/unoffered decisions. For Jev, it normalizes TypeSafe's native confidence rather than treating option probability as confidence. Confidence from other provider metadata is not yet normalized. Missing confidence and usage remain unknown. It does not retry automatically or estimate cost.
+
 ## defineCatalog
 
 Creates a type-safe catalog definition with schema validation.
