@@ -168,6 +168,8 @@ const MAX_FLATTEN_DEPTH = 20;
 /**
  * Recursively flatten a plain object into a `Record<string, unknown>` keyed by
  * JSON Pointer paths. Only leaf values (non-plain-object) appear in the output.
+ * Each object key is escaped as a JSON Pointer token (`~` → `~0`, `/` → `~1`).
+ * A supplied prefix is treated as an already formed pointer and left unchanged.
  *
  * Includes circular reference protection and a depth cap to prevent stack
  * overflow on pathological inputs.
@@ -188,7 +190,7 @@ export function flattenToPointers(
   const warned = _warned ?? { current: false };
   const result: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(obj)) {
-    const pointer = `${prefix}/${key}`;
+    const pointer = `${prefix}/${key.replace(/~/g, "~0").replace(/\//g, "~1")}`;
     if (
       _depth < MAX_FLATTEN_DEPTH &&
       value !== null &&

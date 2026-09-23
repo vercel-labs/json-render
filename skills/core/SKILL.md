@@ -262,6 +262,8 @@ store.subscribe(() => {
 
 The `StateStore` interface: `get(path)`, `set(path, value)`, `update(updates)`, `getSnapshot()`, `subscribe(listener)`.
 
+To list editable leaf paths, import `flattenToPointers` from `@json-render/core/store-utils`. It escapes each object key as a JSON Pointer token (`~` → `~0`, `/` → `~1`); a supplied prefix is treated as an already-encoded pointer. For example, `flattenToPointers({ "a/b": 1, a: { b: 2 } })` returns distinct `/a~1b` and `/a/b` entries that can be read or written through the store.
+
 ## Key Exports
 
 | Export | Purpose |

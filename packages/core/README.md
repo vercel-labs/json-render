@@ -337,11 +337,21 @@ Available via `@json-render/core/store-utils`:
 |--------|---------|
 | `createStoreAdapter(config)` | Build a full `StateStore` from a minimal `{ getSnapshot, setSnapshot, subscribe }` config |
 | `immutableSetByPath(root, path, value)` | Immutably set a value at a JSON Pointer path with structural sharing |
-| `flattenToPointers(obj)` | Flatten a nested object into JSON Pointer keyed entries |
+| `flattenToPointers(obj, prefix?)` | Flatten a nested object into JSON Pointer keyed entries |
 | `StoreAdapterConfig` | Config type for `createStoreAdapter` |
 
 ```typescript
 import { createStoreAdapter, immutableSetByPath, flattenToPointers } from "@json-render/core/store-utils";
+```
+
+`flattenToPointers` escapes each object key as a JSON Pointer token (`~` becomes `~0`, `/` becomes `~1`), keeping literal keys distinct from nested paths. An optional `prefix` is an already-encoded pointer and is preserved:
+
+```typescript
+flattenToPointers({ "a/b": 1, a: { b: 2 } });
+// { "/a~1b": 1, "/a/b": 2 }
+
+flattenToPointers({ "a/b": { "c~d": 3 } }, "/root");
+// { "/root/a~1b/c~0d": 3 }
 ```
 
 `createStoreAdapter` handles `get`, `set` (with no-op detection), batched `update`, `getSnapshot`, `getServerSnapshot`, and `subscribe` -- adapter authors only need to supply the snapshot source, write API, and subscribe mechanism:

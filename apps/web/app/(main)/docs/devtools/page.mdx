@@ -76,7 +76,7 @@ When you're using `@ai-sdk/react`'s `useChat`, pass the `messages` prop so the S
     </tr>
     <tr>
       <td><strong>State</strong></td>
-      <td>Every leaf path in the state model listed via <code>flattenToPointers</code>. Click a value to edit inline — writes go through <code>store.set</code>, so conditional elements and computed props re-evaluate immediately.</td>
+      <td>Every leaf path in the state model listed via <code>flattenToPointers</code>. Paths escape each key as a JSON Pointer token: a literal <code>a/b</code> key appears as <code>/a~1b</code>, distinct from nested <code>/a/b</code>. Click a value to edit inline — writes go through <code>store.set</code>, so conditional elements and computed props re-evaluate immediately.</td>
     </tr>
     <tr>
       <td><strong>Actions</strong></td>
