@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   resolveDynamicValue,
   getByPath,
+  findFormValue,
   resolveRepeatStatePath,
   resolveRepeatItemStatePath,
   setByPath,
@@ -17,6 +18,109 @@ import {
   SPEC_DATA_PART_TYPE,
 } from "./types";
 import type { Spec, SpecStreamLine, StreamChunk } from "./types";
+
+describe("findFormValue", () => {
+  const dottedValues = [
+    ["email", "john.doe@example.com"],
+    ["url", "https://example.com"],
+    ["version", "1.2.3"],
+  ];
+
+  it.each(dottedValues)("keeps a direct %s literal", (field, value) => {
+    expect(findFormValue(field, { [field]: value }, { [field]: "state" })).toBe(
+      value,
+    );
+  });
+
+  it.each(dottedValues)("keeps a dotted-key %s literal", (field, value) => {
+    expect(
+      findFormValue(
+        field,
+        { [`form.${field}`]: value },
+        { [`form.${field}`]: "state" },
+      ),
+    ).toBe(value);
+  });
+
+  it("treats a raw dotted parameter value as literal, even with matching state", () => {
+    expect(findFormValue("email", { email: "form.email" })).toBe("form.email");
+    expect(
+      findFormValue(
+        "email",
+        { email: "form.email" },
+        { "form.email": "state email" },
+      ),
+    ).toBe("form.email");
+  });
+
+  it("prefers a direct parameter over dotted parameters and state", () => {
+    expect(
+      findFormValue(
+        "email",
+        { email: "direct", "form.email": "dotted" },
+        { email: "state", "form.email": "dotted state" },
+      ),
+    ).toBe("direct");
+  });
+
+  it("prefers a dotted parameter over state and skips undefined direct params", () => {
+    expect(
+      findFormValue(
+        "email",
+        { email: undefined, "form.email": "dotted" },
+        { "form.email": "state" },
+      ),
+    ).toBe("dotted");
+  });
+
+  it("keeps the first matching dotted parameter key, even if undefined", () => {
+    expect(
+      findFormValue(
+        "email",
+        { "form.email": undefined, "other.email": "later" },
+        { email: "state" },
+      ),
+    ).toBeUndefined();
+  });
+
+  it("finds exact and dotted flat state keys", () => {
+    expect(findFormValue("email", undefined, { email: "exact" })).toBe("exact");
+    expect(
+      findFormValue("email", undefined, { "form.email": "dotted state" }),
+    ).toBe("dotted state");
+    expect(
+      findFormValue("email", undefined, {
+        email: "first",
+        "form.email": "second",
+      }),
+    ).toBe("first");
+  });
+
+  it("finds nested state with slash paths but not bare field names", () => {
+    const state = { form: { email: "nested@example.com" } };
+
+    expect(findFormValue("/form/email", undefined, state)).toBe(
+      "nested@example.com",
+    );
+    expect(findFormValue("form/email", undefined, state)).toBe(
+      "nested@example.com",
+    );
+    expect(findFormValue("email", undefined, state)).toBeUndefined();
+  });
+
+  it("ignores nonmatching keys and returns undefined for omitted inputs", () => {
+    expect(
+      findFormValue("email", { emailAddress: "other" }, {}),
+    ).toBeUndefined();
+    expect(findFormValue("email")).toBeUndefined();
+  });
+
+  it.each(["", 0, false, null])("preserves a direct %s value", (value) => {
+    expect(findFormValue("email", { email: value }, { email: "state" })).toBe(
+      value,
+    );
+  });
+});
 
 describe("getByPath", () => {
   it("gets nested values with JSON pointer paths", () => {
