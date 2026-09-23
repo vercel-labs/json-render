@@ -7,6 +7,7 @@ import {
   ActionOnSuccessSchema,
   ActionOnErrorSchema,
 } from "./actions";
+import { findFormValue } from "./types";
 
 describe("onSuccess/onError schemas", () => {
   it("keeps params on the onSuccess action form", () => {
@@ -84,6 +85,21 @@ describe("resolveAction", () => {
 
     expect(resolved.params.id).toBe(123);
     expect(resolved.params.theme).toBe("dark");
+  });
+
+  it("passes a resolved dotted email to a form action handler", () => {
+    const state = { form: { email: "john.doe@example.com" } };
+    const resolved = resolveAction(
+      {
+        action: "createCustomer",
+        params: { email: { $state: "/form/email" } },
+      },
+      state,
+    );
+
+    expect(findFormValue("email", resolved.params, state)).toBe(
+      "john.doe@example.com",
+    );
   });
 
   it("interpolates confirmation messages", () => {

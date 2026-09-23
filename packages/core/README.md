@@ -291,6 +291,8 @@ Schema options:
 | `ActionBinding` | Action binding with `action`, `params`, `confirm`, `preventDefault`, etc. |
 | `BuiltInAction` | Built-in action definition with `name` and `description` |
 
+Use `findFormValue("email", params, state)` in action handlers to look up a defined direct param, a dotted param key (such as `"form.email"`), a matching flat state key, or a slash path (such as `"/form/email"`) in nested state. Parameter values like `"john.doe@example.com"` are literal, even if they contain dots. To bind an action parameter to nested state, use `{ $state: "/form/email" }`; the action resolver supplies its value before the handler runs. A bare `"email"` field name does not recursively search nested state.
+
 ### Inline Mode (Mixed Streams)
 
 | Export | Purpose |

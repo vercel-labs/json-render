@@ -551,13 +551,18 @@ const name2 = resolveDynamicValue({ $state: "/user/name" }, state);  // "Alice"
 
 ### findFormValue
 
+Read a value from resolved action parameters or state. A parameter value is literal, including strings with dots such as emails, URLs, and versions. Lookup order: a defined direct parameter, a parameter key ending in `.<fieldName>`, a matching flat state key, then a slash-delimited path in nested state.
+
 ```typescript
 import { findFormValue } from '@json-render/core';
 
-// Find form values regardless of path format
-// Checks: params.name, params["form.name"], state["form.name"], state.form.name
-const value = findFormValue("name", params, state);
+findFormValue("email", { email: "john.doe@example.com" }, {});
+findFormValue("email", { "form.email": "john.doe@example.com" }, {});
+findFormValue("email", {}, { "form.email": "john.doe@example.com" });
+findFormValue("/form/email", {}, { form: { email: "john.doe@example.com" } });
 ```
+
+For action bindings, use `{ $state: "/form/email" }` to read nested state: the action resolver passes the resulting value to the handler. A raw string like `"form.email"` in parameters is not a state reference. A bare `"email"` field name does not search `state.form.email`.
 
 ## buildUserPrompt
 

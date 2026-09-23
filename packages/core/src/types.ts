@@ -517,41 +517,35 @@ function deepEqual(a: unknown, b: unknown): boolean {
 /**
  * Find a form value from params and/or state.
  * Useful in action handlers to locate form input values regardless of path format.
+ * Params are literal values (including dynamic bindings resolved before the
+ * handler runs); a dot in a parameter value does not make it a state path.
  *
  * Checks in order:
- * 1. Direct param key (if not a path reference)
+ * 1. Defined direct param key
  * 2. Param keys ending with the field name
- * 3. State keys ending with the field name (dot notation)
- * 4. State path using getByPath (slash notation)
+ * 3. Matching flat state keys (direct or dot notation)
+ * 4. Nested state path using getByPath (slash notation)
  *
  * @example
  * // Find "name" from params or state
  * const name = findFormValue("name", params, state);
  *
- * // Will find from: params.name, params["form.name"], state["form.name"], or getByPath(state, "name")
+ * // Will find from: params.name, params["form.name"], or state["form.name"]
+ * // Use "/form/name" for nested state, or { $state: "/form/name" } in an action binding.
  */
 export function findFormValue(
   fieldName: string,
   params?: Record<string, unknown>,
   state?: Record<string, unknown>,
 ): unknown {
-  // Check params first (but not if it looks like a state path reference)
   if (params?.[fieldName] !== undefined) {
-    const val = params[fieldName];
-    // If the value looks like a path reference (contains dots), skip it
-    if (typeof val !== "string" || !val.includes(".")) {
-      return val;
-    }
+    return params[fieldName];
   }
 
-  // Check param keys that end with the field name
   if (params) {
     for (const key of Object.keys(params)) {
       if (key.endsWith(`.${fieldName}`)) {
-        const val = params[key];
-        if (typeof val !== "string" || !val.includes(".")) {
-          return val;
-        }
+        return params[key];
       }
     }
   }
