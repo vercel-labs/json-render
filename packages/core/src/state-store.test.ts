@@ -152,6 +152,74 @@ describe("flattenToPointers", () => {
     });
   });
 
+  it.each([
+    ["a/b", "/a~1b"],
+    ["a~b", "/a~0b"],
+    ["a~0b", "/a~00b"],
+    ["a~1b", "/a~01b"],
+    ["a~/b", "/a~0~1b"],
+    ["a//b", "/a~1~1b"],
+    ["a~~b", "/a~0~0b"],
+  ])("escapes key %s as %s", (key, pointer) => {
+    expect(flattenToPointers({ [key]: 1 })).toEqual({ [pointer]: 1 });
+  });
+
+  it("keeps a slash in a key distinct from a nested path", () => {
+    expect(flattenToPointers({ "a/b": 1, a: { b: 2 } })).toEqual({
+      "/a~1b": 1,
+      "/a/b": 2,
+    });
+  });
+
+  it("escapes keys at every level without re-encoding the prefix", () => {
+    expect(flattenToPointers({ child: { "x/y": 3 } }, "/root")).toEqual({
+      "/root/child/x~1y": 3,
+    });
+    expect(
+      flattenToPointers({ "a/b": { "c~d": 3 } }, "/root~1branch~0name"),
+    ).toEqual({ "/root~1branch~0name/a~1b/c~0d": 3 });
+  });
+
+  it("round-trips flattened paths through store reads and writes", () => {
+    const initial = {
+      "a/b": 1,
+      a: { b: 2, untouched: ["kept"] },
+      "a~0b": 3,
+      "a~1b": 4,
+      "a~b": 5,
+      "a~/b": { "c~d": 6 },
+    };
+    const store = createStateStore(initial);
+    const previousSnapshot = store.getSnapshot();
+    const originalSnapshot = structuredClone(previousSnapshot);
+    const flattened = flattenToPointers(previousSnapshot);
+
+    expect(flattened).toEqual({
+      "/a~1b": 1,
+      "/a/b": 2,
+      "/a/untouched": ["kept"],
+      "/a~00b": 3,
+      "/a~01b": 4,
+      "/a~0b": 5,
+      "/a~0~1b/c~0d": 6,
+    });
+
+    for (const [path, value] of Object.entries(flattened)) {
+      expect(store.get(path)).toEqual(value);
+      if (typeof value === "number") store.set(path, value + 10);
+    }
+
+    expect(store.getSnapshot()).toEqual({
+      "a/b": 11,
+      a: { b: 12, untouched: ["kept"] },
+      "a~0b": 13,
+      "a~1b": 14,
+      "a~b": 15,
+      "a~/b": { "c~d": 16 },
+    });
+    expect(previousSnapshot).toEqual(originalSnapshot);
+  });
+
   it("preserves arrays as leaf values", () => {
     expect(flattenToPointers({ items: [1, 2, 3] })).toEqual({
       "/items": [1, 2, 3],
