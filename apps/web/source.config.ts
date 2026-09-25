@@ -3,10 +3,17 @@ import {
   geistdocsFrontmatterSchema,
   geistdocsMetaSchema,
 } from "@vercel/geistdocs/source-config";
-import { defineConfig, defineDocs } from "fumadocs-mdx/config";
+import {
+  defineConfig,
+  defineDocs,
+  type DocsCollection,
+} from "fumadocs-mdx/config";
 import { remarkLegacyHeadings } from "./lib/remark-legacy-headings";
 
-export const docs = defineDocs({
+export const docs: DocsCollection<
+  typeof geistdocsFrontmatterSchema,
+  typeof geistdocsMetaSchema
+> = defineDocs({
   dir: "content/docs",
   docs: {
     schema: geistdocsFrontmatterSchema,
