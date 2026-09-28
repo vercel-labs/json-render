@@ -21,6 +21,7 @@ import {
   resolveRepeatStatePath,
   evaluateVisibility,
   getByPath,
+  splitRepeatVisibility,
   type PropResolutionContext,
   type VisibilityContext as CoreVisibilityContext,
 } from "@json-render/core";
@@ -140,10 +141,16 @@ const ElementRenderer = React.memo(function ElementRenderer({
     [ctx, repeatScope],
   );
 
+  const repeatVisibility =
+    element.repeat !== undefined && repeatScope == null
+      ? splitRepeatVisibility(element.visible)
+      : { container: element.visible, itemFilter: undefined };
+  const repeatItemFilter = repeatVisibility.itemFilter;
+
   const isVisible =
-    element.visible === undefined
+    repeatVisibility.container === undefined
       ? true
-      : evaluateVisibility(element.visible, fullCtx);
+      : evaluateVisibility(repeatVisibility.container, fullCtx);
 
   const onBindings = element.on;
   const emit = useCallback(
@@ -201,6 +208,7 @@ const ElementRenderer = React.memo(function ElementRenderer({
       registry={registry}
       loading={loading}
       fallback={fallback}
+      itemFilter={repeatItemFilter}
     />
   ) : (
     resolvedElement.children?.map((childKey) => {
@@ -250,14 +258,17 @@ function RepeatChildren({
   registry,
   loading,
   fallback,
+  itemFilter,
 }: {
   element: UIElement;
   spec: Spec;
   registry: ComponentRegistry;
   loading?: boolean;
   fallback?: ComponentRenderer;
+  itemFilter?: UIElement["visible"];
 }) {
   const { state } = useStateStore();
+  const { ctx } = useVisibility();
   const parentScope = useRepeatScope();
   const repeat = element.repeat!;
   const statePath = resolveRepeatStatePath(
@@ -273,9 +284,21 @@ function RepeatChildren({
 
   const items = (getByPath(state, statePath) as unknown[] | undefined) ?? [];
 
+  const entries = items
+    .map((itemValue, index) => ({ itemValue, index }))
+    .filter(
+      ({ itemValue, index }) =>
+        itemFilter === undefined ||
+        evaluateVisibility(itemFilter, {
+          ...ctx,
+          repeatItem: itemValue,
+          repeatIndex: index,
+        }),
+    );
+
   return (
     <>
-      {items.map((itemValue, index) => {
+      {entries.map(({ itemValue, index }) => {
         const key =
           repeat.key && typeof itemValue === "object" && itemValue !== null
             ? String(
