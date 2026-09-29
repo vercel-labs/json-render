@@ -229,7 +229,7 @@ export const shadcnComponents = {
     return (
       <div
         className={cn(
-          "flex",
+          "flex min-w-0 *:min-w-0",
           isHorizontal ? "flex-row flex-wrap" : "flex-col",
           gapClass,
           alignClass,
@@ -245,11 +245,11 @@ export const shadcnComponents = {
   Grid: ({ props, children }: BaseComponentProps<ShadcnProps<"Grid">>) => {
     const colsMap: Record<number, string> = {
       1: "grid-cols-1",
-      2: "grid-cols-2",
-      3: "grid-cols-3",
-      4: "grid-cols-4",
-      5: "grid-cols-5",
-      6: "grid-cols-6",
+      2: "grid-cols-1 sm:grid-cols-2",
+      3: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+      4: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4",
+      5: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-5",
+      6: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-6",
     };
     const gridGapMap: Record<string, string> = {
       sm: "gap-2",
@@ -263,7 +263,9 @@ export const shadcnComponents = {
     const gridGap = gridGapMap[props.gap ?? "md"] ?? "gap-3";
 
     return (
-      <div className={cn("grid", cols, gridGap, props.className)}>
+      <div
+        className={cn("grid min-w-0 *:min-w-0", cols, gridGap, props.className)}
+      >
         {children}
       </div>
     );
