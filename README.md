@@ -158,6 +158,14 @@ function Dashboard({ spec }) {
 | `@json-render/mcp`          | MCP Apps integration for Claude, ChatGPT, Cursor, VS Code              |
 | `@json-render/yaml`         | YAML wire format with streaming parser, edit modes, AI SDK transform   |
 
+### Community Renderers
+
+Maintained outside this repo; not official `@json-render/*` packages.
+
+| Package                                                          | Description                                                                 |
+| ---------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| [`ngx-json-render`](https://github.com/shteynu/ngx-json-render) | Angular renderer (signals, zoneless) plus an Angular Material catalog       |
+
 ## Renderers
 
 ### React (UI)
