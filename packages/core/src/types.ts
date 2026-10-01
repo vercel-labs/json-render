@@ -26,13 +26,21 @@ export type DynamicBoolean = DynamicValue<boolean>;
 
 /**
  * Zod schema for dynamic values
+ *
+ * Mirrors what `resolveActionParam` (and `resolvePropValue` underneath it)
+ * accepts at runtime: literals, `$state` / `$item` / `$index` expressions,
+ * arrays, and plain objects whose values are themselves dynamic values.
  */
-export const DynamicValueSchema = z.union([
+export const DynamicValueSchema: z.ZodType<DynamicValue> = z.union([
   z.string(),
   z.number(),
   z.boolean(),
   z.null(),
   z.object({ $state: z.string() }),
+  z.object({ $item: z.string() }),
+  z.object({ $index: z.literal(true) }),
+  z.lazy(() => z.array(DynamicValueSchema)),
+  z.lazy(() => z.record(z.string(), DynamicValueSchema)),
 ]);
 
 export const DynamicStringSchema = z.union([
