@@ -55,6 +55,13 @@ export const schema = defineSchema((s) => ({
 
 ## Creating a Catalog
 
+Use `{ ...s.eventsOf("catalog.components"), ...s.optional() }` for an optional
+element-level `on` field in custom schemas. It collects declared component
+events across the catalog and accepts one action binding or an array per event.
+Action names are limited to `catalog.actions` and schema `builtInActions`;
+the remaining binding fields use `ActionBindingSchema`. Events are not narrowed
+by an individual element's component type.
+
 ```typescript
 import { defineCatalog } from "@json-render/core";
 import { schema } from "./schema";

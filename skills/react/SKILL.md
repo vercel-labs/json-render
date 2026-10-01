@@ -179,6 +179,13 @@ Register `$computed` functions via the `functions` prop on `JSONUIProvider` or `
 
 Components use `emit` to fire named events, or `on()` to get an event handle with metadata. The element's `on` field maps events to action bindings:
 
+Declare event names in the component catalog's `events` array. The React
+catalog's JSON Schema includes an optional element-level `on` map with those
+events and catalog or built-in actions; `catalog.validate()` preserves the
+bindings. Each event accepts one binding or an array. Undeclared event names
+and unknown action names fail validation. Event names are collected across the
+catalog, not narrowed by the element's component type.
+
 ```tsx
 // Simple event firing
 Button: ({ props, emit }) => (

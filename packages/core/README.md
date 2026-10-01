@@ -208,6 +208,16 @@ const spec = compileSpecStream<MySpec>(jsonlString);
 | `defineSchema(builder, options?)` | Create a schema with spec/catalog structure |
 | `SchemaBuilder` | Builder with `s.object()`, `s.array()`, `s.map()`, etc. |
 
+`s.eventsOf("catalog.components")` defines a map from the union of declared
+component `events` to one action binding or an array of bindings. Each event key
+is optional. Bindings use the existing `ActionBindingSchema`, with action names
+limited to catalog actions and the schema's `builtInActions`, including action
+callbacks. Parameters preserve nested JSON and dynamic expressions for runtime
+resolution. Use
+`{ ...s.eventsOf("catalog.components"), ...s.optional() }` for an optional `on`
+field. Event names are collected across the catalog, not narrowed by an
+individual element's component type.
+
 Schema options:
 
 | Option | Purpose |

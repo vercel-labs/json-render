@@ -295,6 +295,7 @@ s.record(value)      // Record/map with value type
 // Catalog references (for type safety)
 s.ref("catalog.components")      // Reference to catalog key (becomes enum)
 s.propsOf("catalog.components")  // Props schema from catalog entry
+s.eventsOf("catalog.components") // Declared event names mapped to action bindings
 
 // Catalog definitions
 s.map({ props: s.zod(), ... })   // Map of named entries with shared shape
@@ -303,6 +304,16 @@ s.zod()                          // Placeholder for user-provided Zod schema
 // Modifiers
 s.optional()         // Mark field as optional
 ```
+
+`s.eventsOf(path)` collects the union of `events` declared by the referenced
+catalog entries. Each event accepts one action binding or an array, and its key
+is optional. Action names come from `catalog.actions` and the schema's
+`builtInActions`, including action callbacks. Binding metadata uses
+`ActionBindingSchema`; parameters preserve nested JSON and dynamic expressions
+for runtime resolution. It does not narrow events by an individual
+element's component type. The React schema uses an optional `eventsOf` field
+for element-level `on`, so schema export describes bindings and catalog
+validation preserves them.
 
 ## Zod Schemas
 

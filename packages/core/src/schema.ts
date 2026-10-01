@@ -1,4 +1,10 @@
 import { z } from "zod";
+import {
+  ActionBindingSchema,
+  ActionOnErrorSchema,
+  ActionOnSuccessSchema,
+  type ActionBinding,
+} from "./actions";
 import type { EditMode } from "./edit-modes";
 import { buildEditInstructions } from "./edit-modes";
 import type { DirectiveDefinition } from "./directives";
@@ -29,6 +35,8 @@ export interface SchemaBuilder {
   ref(path: string): SchemaType<"ref", string>;
   /** Props from referenced catalog entry */
   propsOf(path: string): SchemaType<"propsOf", string>;
+  /** Event bindings for the declared events in referenced catalog entries */
+  eventsOf(path: string): SchemaType<"eventsOf", string>;
   /** Map of named entries with shared shape */
   map<T extends Record<string, SchemaType>>(
     entryShape: T,
@@ -354,9 +362,11 @@ type InferSpecField<T, TCatalog> =
                 ? InferRefType<Path, TCatalog>
                 : T extends SchemaType<"propsOf", infer Path>
                   ? InferPropsOfType<Path, TCatalog>
-                  : T extends SchemaType<"any">
-                    ? unknown
-                    : unknown;
+                  : T extends SchemaType<"eventsOf">
+                    ? Record<string, ActionBinding | ActionBinding[]>
+                    : T extends SchemaType<"any">
+                      ? unknown
+                      : unknown;
 
 type InferRefType<Path, TCatalog> = Path extends "catalog.components"
   ? TCatalog extends { components: infer C }
@@ -391,6 +401,7 @@ function createBuilder(): SchemaBuilder {
     zod: () => ({ kind: "zod" }),
     ref: (path) => ({ kind: "ref", inner: path }),
     propsOf: (path) => ({ kind: "propsOf", inner: path }),
+    eventsOf: (path) => ({ kind: "eventsOf", inner: path }),
     map: (entryShape) => ({ kind: "map", inner: entryShape }),
     optional: () => ({ optional: true }),
   };
@@ -441,6 +452,7 @@ function createCatalogFromSchema<TDef extends SchemaDefinition, TCatalog>(
   const zodSchema = buildZodSchemaFromDefinition(
     schema.definition,
     catalogData,
+    schema.builtInActions ?? [],
   );
 
   return {
@@ -484,11 +496,16 @@ function createCatalogFromSchema<TDef extends SchemaDefinition, TCatalog>(
 function buildZodSchemaFromDefinition(
   definition: SchemaDefinition,
   catalogData: unknown,
+  builtInActions: BuiltInAction[],
 ): z.ZodType {
-  return buildZodType(definition.spec, catalogData);
+  return buildZodType(definition.spec, catalogData, builtInActions);
 }
 
-function buildZodType(schemaType: SchemaType, catalogData: unknown): z.ZodType {
+function buildZodType(
+  schemaType: SchemaType,
+  catalogData: unknown,
+  builtInActions: BuiltInAction[],
+): z.ZodType {
   switch (schemaType.kind) {
     case "string":
       return z.string();
@@ -499,14 +516,18 @@ function buildZodType(schemaType: SchemaType, catalogData: unknown): z.ZodType {
     case "any":
       return z.any();
     case "array": {
-      const inner = buildZodType(schemaType.inner as SchemaType, catalogData);
+      const inner = buildZodType(
+        schemaType.inner as SchemaType,
+        catalogData,
+        builtInActions,
+      );
       return z.array(inner);
     }
     case "object": {
       const shape = schemaType.inner as Record<string, SchemaType>;
       const zodShape: Record<string, z.ZodType> = {};
       for (const [key, value] of Object.entries(shape)) {
-        let zodType = buildZodType(value, catalogData);
+        let zodType = buildZodType(value, catalogData, builtInActions);
         if (value.optional) {
           zodType = zodType.optional();
         }
@@ -515,7 +536,11 @@ function buildZodType(schemaType: SchemaType, catalogData: unknown): z.ZodType {
       return z.object(zodShape);
     }
     case "record": {
-      const inner = buildZodType(schemaType.inner as SchemaType, catalogData);
+      const inner = buildZodType(
+        schemaType.inner as SchemaType,
+        catalogData,
+        builtInActions,
+      );
       return z.record(z.string(), inner);
     }
     case "ref": {
@@ -543,9 +568,56 @@ function buildZodType(schemaType: SchemaType, catalogData: unknown): z.ZodType {
       // For propsOf, we need to be lenient since type determines which props apply
       return z.record(z.string(), z.unknown());
     }
+    case "eventsOf": {
+      const events = getEventsFromPath(schemaType.inner as string, catalogData);
+      const actionNames = [
+        ...new Set([
+          ...getKeysFromPath("catalog.actions", catalogData),
+          ...builtInActions.map((action) => action.name),
+        ]),
+      ];
+      const invocation = {
+        action: z.enum(actionNames),
+        // Runtime params can contain nested JSON and expressions resolved later.
+        params: z.record(z.string(), z.unknown()).optional(),
+      };
+      const binding = ActionBindingSchema.extend({
+        ...invocation,
+        onSuccess: z
+          .union([
+            ActionOnSuccessSchema.options[0],
+            ActionOnSuccessSchema.options[1],
+            ActionOnSuccessSchema.options[2].extend(invocation),
+          ])
+          .optional(),
+        onError: z
+          .union([
+            ActionOnErrorSchema.options[0],
+            ActionOnErrorSchema.options[1].extend(invocation),
+          ])
+          .optional(),
+      });
+      const eventBinding = z.union([binding, z.array(binding)]).optional();
+      return z.strictObject(
+        Object.fromEntries(events.map((event) => [event, eventBinding])),
+      );
+    }
     default:
       return z.unknown();
   }
+}
+
+function getEventsFromPath(path: string, catalogData: unknown): string[] {
+  let current: unknown = { catalog: catalogData };
+  for (const part of path.split(".")) {
+    if (!current || typeof current !== "object") return [];
+    current = (current as Record<string, unknown>)[part];
+  }
+  if (!current || typeof current !== "object") return [];
+  const events = Object.values(
+    current as Record<string, { events?: string[] }>,
+  ).flatMap((entry) => entry.events ?? []);
+  return [...new Set(events)];
 }
 
 function getKeysFromPath(path: string, catalogData: unknown): string[] {

@@ -124,10 +124,20 @@ interface UIElement {
   children?: string[]; // Keys of child elements
   slots?: Record<string, string[]>; // Named slots mapped to child keys
   visible?: VisibilityCondition; // Visibility condition
+  on?: Record<string, ActionBinding | ActionBinding[]>; // Event bindings
 }
 ```
 
 The `slots` element field is a React renderer feature. Other renderer packages may only use catalog slot declarations for default children.
+
+Declare emitted event names in each component's catalog `events` array. The
+React catalog's `jsonSchema()` includes an optional element-level `on` map
+using those names and the available catalog and built-in actions. Each event
+accepts a single action binding or an array. `catalog.validate()` and
+`catalog.zodSchema()` preserve these bindings and reject undeclared event names
+and unknown action names. Event names are collected across the catalog;
+validation does not narrow them by the element's component type. Place `on`
+beside `props`, not inside it.
 
 Example spec:
 
