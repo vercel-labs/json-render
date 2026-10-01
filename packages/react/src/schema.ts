@@ -23,6 +23,8 @@ export const schema = defineSchema(
           /** Child element keys (flat reference) */
           children: s.array(s.string()),
           slots: { ...s.record(s.array(s.string())), ...s.optional() },
+          /** Bind declared component events to catalog or built-in actions */
+          on: { ...s.eventsOf("catalog.components"), ...s.optional() },
           /** Visibility condition */
           visible: { ...s.any(), ...s.optional() },
           /** Repeat children from a state array */
@@ -39,6 +41,8 @@ export const schema = defineSchema(
         props: s.zod(),
         /** Slots for this component. Use ['default'] for children, or named slots like ['header', 'footer'] */
         slots: s.array(s.string()),
+        /** Named events emitted by this component */
+        events: s.array(s.string()),
         /** Description for AI generation hints */
         description: s.string(),
         /** Example prop values used in prompt examples (auto-generated from Zod schema if omitted) */
