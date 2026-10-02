@@ -35,6 +35,23 @@ See `packages/core/README.md` and `/docs/jev` for app integration and source-bui
 
 ## Defining a Schema
 
+### Python backend authoring (experimental)
+
+The source-only package in `packages/python` supplies `Spec`, `Element`, and
+`ActionBinding` dataclasses for the flat UI wire format. Install from a checkout
+with `python -m pip install ./packages/python`; do not suggest a PyPI installation.
+The API is proposed and may change. Render the original JSON in the frontend.
+
+`Catalog` consumes `catalog.jsonSchema()` exported from TypeScript and validates
+that exact schema with `jsonschema`. It does not reimplement Zod or native Python
+catalog definitions. The current React export omits `on`, `watch`, and `state` and
+is lenient about props with multiple components. Keep frontend prop/action checks,
+and do not silently drop fields to pass schema validation. Python does not render,
+resolve expressions, execute actions, or generate prompts. See
+`packages/python/README.md` for the narrow supported API and interop checks.
+
+### TypeScript schema definition
+
 ```typescript
 import { defineSchema } from "@json-render/core";
 

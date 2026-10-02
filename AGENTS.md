@@ -66,6 +66,7 @@ Do **not** add `--port` flags -- portless handles port assignment automatically.
 ## Workflow
 
 - Run `pnpm type-check` after each turn to ensure type safety
+- For changes to the experimental Python package, install it with `python -m pip install ./packages/python`, run `python -m unittest discover -s packages/python/tests -v`, `pnpm exec tsc -p packages/python/tsconfig.json`, and `pnpm exec vitest run --config packages/python/vitest.config.ts`. Set `JSON_RENDER_PYTHON` if the installed package uses a different Python executable. Python publishing is separate from the npm release workflow.
 - Documentation lives in `apps/web/content/docs/` and uses Geistdocs frontmatter. Keep public `/docs` URLs, heading IDs, `lib/page-titles.ts`, `lib/docs-navigation.ts`, and the content `meta.json` files in sync.
 - For docs routing or infrastructure changes, run `pnpm turbo run build --filter='web^...'`, `pnpm --filter web build`, and `pnpm --filter web test:routes`. Existing-page source and Markdown parity are covered by `apps/web/tests/fixtures/docs-baseline.json`; update fixtures only when intentionally changing the documented content.
 - When making user-facing changes (new packages, API changes, new features, renamed exports, changed behavior), update the relevant documentation:

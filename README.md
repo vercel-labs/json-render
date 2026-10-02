@@ -157,6 +157,7 @@ function Dashboard({ spec }) {
 | `@json-render/xstate`       | XState Store (atom) adapter for `StateStore`                           |
 | `@json-render/mcp`          | MCP Apps integration for Claude, ChatGPT, Cursor, VS Code              |
 | `@json-render/yaml`         | YAML wire format with streaming parser, edit modes, AI SDK transform   |
+| [Python (experimental)](packages/python/README.md) | Flat UI spec authoring and validation against exported catalog JSON Schema; source install only |
 
 ## Renderers
 
