@@ -92,8 +92,15 @@ export function serializePropValue(
       .filter(([, v]) => v !== undefined)
       .map(([k, v]) => {
         const serialized = serializePropValue(v, opts).value;
-        // Use shorthand if key matches value for simple identifiers
-        return `${k}: ${serialized}`;
+        const quotedKey = JSON.stringify(k) ?? '""';
+        // A quoted __proto__ key still has special object-literal semantics.
+        const propertyKey =
+          k === "__proto__"
+            ? `[${quotedKey}]`
+            : /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(k)
+              ? k
+              : quotedKey;
+        return `${propertyKey}: ${serialized}`;
       });
 
     return { value: `{ ${entries.join(", ")} }`, needsBraces: true };
