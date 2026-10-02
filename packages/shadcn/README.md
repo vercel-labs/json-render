@@ -118,7 +118,7 @@ const { registry } = defineRegistry(catalog, {
 |-----------|-------------|
 | `Card` | Container card with optional title and description |
 | `Stack` | Flex container (horizontal/vertical) with gap, alignment, justify |
-| `Grid` | Grid layout (1-6 columns) |
+| `Grid` | Grid layout (1-6 columns, collapses to fewer on small screens) |
 | `Separator` | Visual separator line |
 
 ### Navigation
