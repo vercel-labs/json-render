@@ -96,6 +96,8 @@ const { result, newPatches } = compiler.push(chunk);
 const finalSpec = compiler.getResult();
 ```
 
+JSON Pointer helpers and immutable state updates reject decoded segments named `__proto__`, `constructor`, or `prototype` and traverse only own properties. Direct calls throw before changing data. `applySpecStreamPatch` and `applySpecPatch` validate both `path` and `from` before mutation; `parseSpecStreamLine` returns `null` for unsafe or non-string paths, and SpecStream compilers skip those lines. Escaping (`~0`, `~1`) and array operations retain their existing behavior.
+
 ## Form Values in Action Handlers
 
 Use `findFormValue("email", params, state)` to read a direct parameter, a dotted parameter key (such as `"form.email"`), a matching flat state key, or a slash-delimited path (such as `"/form/email"`) in nested state. Parameter values are literal, so emails and URLs containing dots are preserved. For action bindings that read nested state, use `{ $state: "/form/email" }`; the resolver passes that value to the handler. A bare `"email"` field name does not search nested `state.form.email`.

@@ -410,6 +410,8 @@ const obj = {};
 applySpecStreamPatch(obj, patch);
 ```
 
+`parseSpecStreamLine` returns `null` for unsafe or non-string `path` or `from` values, and SpecStream compilers skip those lines. Direct calls to `applySpecStreamPatch` and `applySpecPatch` validate both paths before applying an operation and throw for unsafe segments, including before a move removes its source.
+
 ### applySpecPatch
 
 Apply a single SpecStream patch to a Spec object (mutates in place, returns the spec):
@@ -537,6 +539,8 @@ const value = getByPath(state, '/user/name');  // "Alice"
 // Set value by path (mutates object)
 setByPath(state, '/user/email', 'alice@example.com');
 ```
+
+Path helpers (`getByPath`, `setByPath`, `addByPath`, `removeByPath`, and `immutableSetByPath` from `@json-render/core/store-utils`) reject decoded segments named `__proto__`, `constructor`, or `prototype` before changing data. Traversal uses only own properties: reads return `undefined` for inherited members, writes create own containers, and removal ignores inherited containers. Pointer escaping (`~0`, `~1`) and array operations keep their existing behavior.
 
 ### resolveDynamicValue
 

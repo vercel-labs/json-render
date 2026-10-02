@@ -1,5 +1,11 @@
 import { describe, it, expect, vi } from "vitest";
-import { createStateStore, flattenToPointers } from "./state-store";
+import {
+  createStateStore,
+  createStoreAdapter,
+  immutableSetByPath,
+  flattenToPointers,
+} from "./state-store";
+import type { StateModel } from "./types";
 
 describe("createStateStore", () => {
   it("creates a store with initial state", () => {
@@ -135,6 +141,61 @@ describe("createStateStore", () => {
     store.set("/x", 2);
     expect(store.getServerSnapshot!()).toBe(store.getSnapshot());
   });
+});
+
+describe("state path safety", () => {
+  it("rejects unsafe immutable writes before changing the input", () => {
+    const state = { user: { name: "Alice" } };
+    expect(() => immutableSetByPath(state, "/user/prototype", 1)).toThrow();
+    expect(state).toEqual({ user: { name: "Alice" } });
+  });
+
+  it("shadows inherited data while preserving snapshots and untouched branches", () => {
+    const inherited = { name: "inherited" };
+    const user = Object.create({ details: inherited });
+    const state = { user, untouched: { value: 1 } };
+    const next = immutableSetByPath(state, "/user/details/name", "own");
+
+    expect(next.user).toEqual({ details: { name: "own" } });
+    expect(next.untouched).toBe(state.untouched);
+    expect(Object.hasOwn(user, "details")).toBe(false);
+    expect(inherited).toEqual({ name: "inherited" });
+  });
+
+  it.each(["store", "adapter"] as const)(
+    "%s rejects unsafe reads and writes without committing or notifying",
+    (kind) => {
+      let snapshot: StateModel = { user: { name: "Alice" } };
+      const setSnapshot = vi.fn((next: StateModel) => {
+        snapshot = next;
+      });
+      const store =
+        kind === "store"
+          ? createStateStore(snapshot)
+          : createStoreAdapter({
+              getSnapshot: () => snapshot,
+              setSnapshot,
+              subscribe: () => () => {},
+            });
+      const listener = vi.fn();
+      store.subscribe(listener);
+      const before = store.getSnapshot();
+
+      expect(() => store.get("/missing/prototype")).toThrow();
+      expect(() => store.set("/created/prototype", undefined)).toThrow();
+      expect(() =>
+        store.update({
+          "/user/name": "Bob",
+          "/created/prototype": 1,
+        }),
+      ).toThrow();
+
+      expect(store.getSnapshot()).toBe(before);
+      expect(before).toEqual({ user: { name: "Alice" } });
+      expect(listener).not.toHaveBeenCalled();
+      expect(setSnapshot).not.toHaveBeenCalled();
+    },
+  );
 });
 
 describe("flattenToPointers", () => {
