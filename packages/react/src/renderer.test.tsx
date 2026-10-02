@@ -10,6 +10,7 @@ import {
   type ComponentRenderProps,
 } from "./renderer";
 import { schema } from "./schema";
+import type { SetState } from "./catalog-types";
 
 describe("Renderer", () => {
   it("renders null for null spec", () => {
@@ -196,5 +197,39 @@ describe("Renderer", () => {
       "[json-render] $item in repeat.statePath used outside of a repeat scope",
     );
     warn.mockRestore();
+  });
+});
+
+describe("defineRegistry", () => {
+  it("executes actions when no state setter is available", async () => {
+    const catalog = defineCatalog(schema, {
+      components: {},
+      actions: {
+        run: { description: "Run an action" },
+      },
+    });
+    const action = vi.fn(
+      async (
+        _params: Record<string, unknown> | undefined,
+        setState: SetState,
+      ) => {
+        setState((prev) => prev);
+      },
+    );
+    const { handlers } = defineRegistry(catalog, {
+      actions: { run: action },
+    });
+
+    const actionHandlers = handlers(
+      () => undefined,
+      () => ({}),
+    );
+    const run = actionHandlers.run;
+    if (!run) {
+      throw new Error("Expected run action handler");
+    }
+    await run({ value: 1 });
+
+    expect(action).toHaveBeenCalledWith({ value: 1 }, expect.any(Function), {});
   });
 });
