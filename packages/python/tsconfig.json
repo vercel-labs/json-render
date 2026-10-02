@@ -8,9 +8,9 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "zod": ["../../packages/core/node_modules/zod"],
-      "@json-render/core": ["../../packages/core/src/index.ts"]
+      "zod": ["../core/node_modules/zod"],
+      "@json-render/core": ["../core/src/index.ts"]
     }
   },
-  "include": ["*.ts"]
+  "include": ["tests/interop.ts", "vitest.config.ts"]
 }

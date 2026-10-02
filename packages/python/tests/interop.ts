@@ -1,19 +1,19 @@
 import { execFileSync } from "node:child_process";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { defineCatalog } from "../../packages/core/src/schema";
-import {
-  ActionBindingSchema,
-  resolveAction,
-} from "../../packages/core/src/actions";
-import { schema } from "../../packages/react/src/schema";
-import type { Spec } from "../../packages/core/src/types";
+import { defineCatalog } from "../../core/src/schema";
+import { ActionBindingSchema, resolveAction } from "../../core/src/actions";
+import { schema } from "../../react/src/schema";
+import type { Spec } from "../../core/src/types";
 
 const wire: Spec = JSON.parse(
   execFileSync(
     process.env.JSON_RENDER_PYTHON ?? "python",
-    [fileURLToPath(new URL("./example.py", import.meta.url))],
+    [fileURLToPath(new URL("../examples/events.py", import.meta.url))],
     {
       encoding: "utf8",
       env: { ...process.env, PYTHONIOENCODING: "utf-8" },
@@ -78,5 +78,37 @@ describe("Python authoring wire compatibility", () => {
         .params.count,
     ).toBe(2);
     expect(wire.elements.note?.children).toEqual([]);
+  });
+
+  it("validates an actual TypeScript JSON Schema export in Python", () => {
+    const textCatalog = defineCatalog(schema, {
+      components: { Text: { props: z.object({ text: z.string() }) } },
+      actions: {},
+    });
+    const directory = mkdtempSync(join(tmpdir(), "json-render-python-"));
+    try {
+      const path = join(directory, "catalog.json");
+      writeFileSync(path, JSON.stringify(textCatalog.jsonSchema()));
+      const result = JSON.parse(
+        execFileSync(
+          process.env.JSON_RENDER_PYTHON ?? "python",
+          [
+            fileURLToPath(new URL("./validate_export.py", import.meta.url)),
+            path,
+          ],
+          {
+            encoding: "utf8",
+            env: { ...process.env, PYTHONIOENCODING: "utf-8" },
+          },
+        ),
+      );
+      expect(textCatalog.validate(result.valid).success).toBe(true);
+      expect(result.valid.elements.text.props.text).toBe("Café");
+      // The supplied export rejects wrong/missing props, unknown components,
+      // and fields it doesn't declare. Python must not strip these silently.
+      expect(result.rejected).toEqual([true, true, true, true]);
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
   });
 });
