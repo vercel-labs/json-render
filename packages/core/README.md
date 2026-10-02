@@ -179,6 +179,10 @@ All six RFC 6902 operations are supported: `add`, `remove`, `replace`, `move`, `
 
 ### Low-Level Utilities
 
+JSON Pointer helpers (`getByPath`, `setByPath`, `addByPath`, `removeByPath`, and `immutableSetByPath`) reject decoded segments named `__proto__`, `constructor`, or `prototype`. They throw before changing data and traverse only own properties. Reads return `undefined` for inherited members; writes create own containers instead of traversing inherited ones. Pointer escaping (`~0`, `~1`) and array operations are unchanged.
+
+`applySpecStreamPatch` and `applySpecPatch` validate both `path` and `from` before applying an operation. `parseSpecStreamLine` returns `null` for unsafe or non-string paths, so SpecStream compilers skip those lines.
+
 ```typescript
 import {
   parseSpecStreamLine,
