@@ -869,7 +869,6 @@ export function createSpecStreamCompiler<T = Record<string, unknown>>(
   let result = { ...initial } as T;
   let buffer = "";
   const appliedPatches: SpecStreamLine[] = [];
-  const processedLines = new Set<string>();
 
   return {
     push(chunk: string): { result: T; newPatches: SpecStreamLine[] } {
@@ -882,8 +881,7 @@ export function createSpecStreamCompiler<T = Record<string, unknown>>(
 
       for (const line of lines) {
         const trimmed = line.trim();
-        if (!trimmed || processedLines.has(trimmed)) continue;
-        processedLines.add(trimmed);
+        if (!trimmed) continue;
 
         const patch = parseSpecStreamLine(trimmed);
         if (patch) {
@@ -905,8 +903,7 @@ export function createSpecStreamCompiler<T = Record<string, unknown>>(
       // Process any remaining buffer
       if (buffer.trim()) {
         const patch = parseSpecStreamLine(buffer);
-        if (patch && !processedLines.has(buffer.trim())) {
-          processedLines.add(buffer.trim());
+        if (patch) {
           applySpecStreamPatch(result as Record<string, unknown>, patch);
           appliedPatches.push(patch);
           result = { ...result };
@@ -924,7 +921,6 @@ export function createSpecStreamCompiler<T = Record<string, unknown>>(
       result = { ...newInitial } as T;
       buffer = "";
       appliedPatches.length = 0;
-      processedLines.clear();
     },
   };
 }
