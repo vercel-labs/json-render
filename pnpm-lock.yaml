@@ -2168,7 +2168,7 @@ importers:
         specifier: workspace:*
         version: link:../core
       react:
-        specifier: ^19.2.3
+        specifier: ^18.0.0 || ^19.0.0
         version: 19.2.4
     devDependencies:
       '@internal/react-state':
