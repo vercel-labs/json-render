@@ -44,7 +44,7 @@ import { serializePropValue, serializeProps, escapeString } from '@json-render/c
 
 // Serialize a single value
 serializePropValue("hello");
-// { value: '"hello"', needsBraces: false }
+// { value: '"hello"', needsBraces: true }
 
 serializePropValue(42);
 // { value: '42', needsBraces: true }
@@ -54,7 +54,7 @@ serializePropValue({ $state: '/user/name' });
 
 // Serialize props for JSX
 serializeProps({ title: "Dashboard", columns: 3, disabled: true });
-// 'title="Dashboard" columns={3} disabled'
+// 'title={"Dashboard"} columns={3} disabled'
 ```
 
 ### Types
