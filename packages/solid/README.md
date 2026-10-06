@@ -37,7 +37,7 @@ export const catalog = defineCatalog(schema, {
     },
     Input: {
       props: z.object({
-        value: z.union([z.string(), z.record(z.unknown())]).nullable(),
+        value: z.union([z.string(), z.record(z.string(), z.unknown())]).nullable(),
         label: z.string(),
         placeholder: z.string().nullable(),
       }),
@@ -54,6 +54,7 @@ export const catalog = defineCatalog(schema, {
 ### 2. Define Component Implementations
 
 `defineRegistry` conditionally requires the `actions` field only when the catalog declares actions.
+Its component callbacks receive resolved values in `renderProps.props`. Keep prop reads inside JSX expressions so Solid can track updates; `useBoundProp` returns a scalar snapshot plus a write-back setter, rather than an accessor.
 
 ```tsx
 import { defineRegistry, useBoundProp } from "@json-render/solid";
@@ -63,26 +64,26 @@ export const { registry } = defineRegistry(catalog, {
   components: {
     Card: (renderProps) => (
       <div class="card">
-        <h3>{renderProps.element.props.title as string}</h3>
+        <h3>{renderProps.props.title}</h3>
         {renderProps.children}
       </div>
     ),
     Button: (renderProps) => (
       <button onClick={() => renderProps.emit("press")}>
-        {renderProps.element.props.label as string}
+        {renderProps.props.label}
       </button>
     ),
     Input: (renderProps) => {
-      const [value, setValue] = useBoundProp(
-        renderProps.element.props.value,
+      const [, setValue] = useBoundProp(
+        renderProps.props.value,
         renderProps.bindings?.value,
       );
       return (
         <label>
-          {renderProps.element.props.label as string}
+          {renderProps.props.label}
           <input
-            value={String(value() ?? "")}
-            placeholder={String(renderProps.element.props.placeholder ?? "")}
+            value={String(renderProps.props.value ?? "")}
+            placeholder={String(renderProps.props.placeholder ?? "")}
             onInput={(e) => setValue(e.currentTarget.value)}
           />
         </label>
