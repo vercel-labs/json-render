@@ -13,9 +13,10 @@ npm install @json-render/core @json-render/react @json-render/next
 ### 1. Define your application spec
 
 ```typescript
+// lib/spec.ts
 import type { NextAppSpec } from "@json-render/next";
 
-const spec: NextAppSpec = {
+export const spec: NextAppSpec = {
   metadata: {
     title: { default: "My App", template: "%s | My App" },
   },
@@ -49,15 +50,42 @@ const spec: NextAppSpec = {
 ```typescript
 // lib/app.ts
 import { createNextApp } from "@json-render/next/server";
+import { spec } from "./spec";
 
-export const { Page, generateMetadata, generateStaticParams } = createNextApp({ spec });
+export const { getPageData, generateMetadata, generateStaticParams } = createNextApp({ spec });
 ```
 
 ### 3. Wire up Next.js routes
 
 ```tsx
 // app/[[...slug]]/page.tsx
-export { Page as default, generateMetadata, generateStaticParams } from "@/lib/app";
+import { notFound } from "next/navigation";
+import { getPageData } from "@/lib/app";
+import { SiteRenderer } from "./renderer";
+
+export { generateMetadata, generateStaticParams } from "@/lib/app";
+
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ slug?: string[] }>;
+}) {
+  const data = await getPageData({ params });
+  if (!data) notFound();
+  return <SiteRenderer {...data} />;
+}
+```
+
+```tsx
+// app/[[...slug]]/renderer.tsx
+"use client";
+
+import { PageRenderer } from "@json-render/next";
+import type { PageRendererProps } from "@json-render/next";
+
+export function SiteRenderer(props: PageRendererProps) {
+  return <PageRenderer {...props} />;
+}
 ```
 
 ```tsx
