@@ -90,6 +90,8 @@ export function SiteRenderer(props: PageRendererProps) {
 
 ```tsx
 // app/[[...slug]]/layout.tsx
+"use client";
+
 import { NextAppProvider } from "@json-render/next";
 import { registry, handlers } from "@/lib/registry";
 
