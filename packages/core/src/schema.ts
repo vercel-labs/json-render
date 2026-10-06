@@ -512,7 +512,44 @@ function buildZodType(schemaType: SchemaType, catalogData: unknown): z.ZodType {
         }
         zodShape[key] = zodType;
       }
-      return z.object(zodShape);
+
+      // A ref and propsOf for the same catalog must select the same entry.
+      // A union of props alone would accept another component's valid props.
+      let variants = [zodShape];
+      const paths = new Set(
+        Object.values(shape)
+          .filter((value) => value.kind === "propsOf")
+          .map((value) => value.inner as string),
+      );
+      for (const path of paths) {
+        const refs = Object.entries(shape).filter(
+          ([, value]) => value.kind === "ref" && value.inner === path,
+        );
+        const entries = getEntriesFromPath(path, catalogData);
+        if (refs.length === 0 || entries.length === 0) continue;
+
+        variants = variants.flatMap((variant) =>
+          entries.map(([name, entry]) => {
+            const linkedShape = { ...variant };
+            for (const [key, value] of Object.entries(shape)) {
+              let linkedType: z.ZodType | undefined;
+              if (value.kind === "ref" && value.inner === path) {
+                linkedType = z.literal(name);
+              } else if (value.kind === "propsOf" && value.inner === path) {
+                linkedType = entry.props;
+              }
+              if (linkedType) {
+                linkedShape[key] = value.optional
+                  ? linkedType.optional()
+                  : linkedType;
+              }
+            }
+            return linkedShape;
+          }),
+        );
+      }
+      const objects = variants.map((variant) => z.object(variant));
+      return objects.length === 1 ? objects[0]! : z.union(objects);
     }
     case "record": {
       const inner = buildZodType(schemaType.inner as SchemaType, catalogData);
@@ -565,6 +602,15 @@ function getKeysFromPath(path: string, catalogData: unknown): string[] {
 }
 
 function getPropsFromPath(path: string, catalogData: unknown): z.ZodType[] {
+  return getEntriesFromPath(path, catalogData)
+    .map(([, entry]) => entry.props)
+    .filter((props): props is z.ZodType => props !== undefined);
+}
+
+function getEntriesFromPath(
+  path: string,
+  catalogData: unknown,
+): [string, { props?: z.ZodType }][] {
   const parts = path.split(".");
   let current: unknown = { catalog: catalogData };
   for (const part of parts) {
@@ -575,9 +621,7 @@ function getPropsFromPath(path: string, catalogData: unknown): z.ZodType[] {
     }
   }
   if (current && typeof current === "object") {
-    return Object.values(current as Record<string, { props?: z.ZodType }>)
-      .map((entry) => entry.props)
-      .filter((props): props is z.ZodType => props !== undefined);
+    return Object.entries(current as Record<string, { props?: z.ZodType }>);
   }
   return [];
 }

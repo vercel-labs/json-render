@@ -73,6 +73,8 @@ export const catalog = defineCatalog(schema, {
 });
 ```
 
+Objects pairing `s.ref("catalog.components")` and `s.propsOf("catalog.components")` validate props against the selected component's Zod schema in both `catalog.validate()` and `catalog.zodSchema()`, even when the catalog has multiple components.
+
 ## Generating AI Prompts
 
 ```typescript

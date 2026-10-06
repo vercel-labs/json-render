@@ -628,6 +628,63 @@ describe("catalog.validate", () => {
     expect(result.success).toBe(false);
   });
 
+  it("validates props against the selected component in a multi-component catalog", () => {
+    const components = {
+      Number: {
+        props: z.object({ value: z.number() }),
+        description: "",
+        slots: [],
+      },
+      Text: {
+        props: z.object({ text: z.string() }),
+        description: "",
+        slots: [],
+      },
+    };
+    const multiple = defineCatalog(testSchema, { components, actions: {} });
+    const single = defineCatalog(testSchema, {
+      components: { Number: components.Number },
+      actions: {},
+    });
+    const spec = (props: Record<string, unknown>) => ({
+      root: "n",
+      elements: { n: { type: "Number", props, children: [] } },
+    });
+
+    for (const props of [{ value: "wrong" }, { text: "valid for Text" }, {}]) {
+      expect(single.validate(spec(props)).success).toBe(false);
+      expect(multiple.validate(spec(props)).success).toBe(false);
+      expect(multiple.zodSchema().safeParse(spec(props)).success).toBe(false);
+    }
+    expect(multiple.validate(spec({ value: 42 })).success).toBe(true);
+  });
+
+  it("applies the selected component's prop defaults and transforms", () => {
+    const withDefaults = defineCatalog(testSchema, {
+      components: {
+        Text: {
+          props: z.object({ content: z.string().trim().default("Hello") }),
+          description: "",
+          slots: [],
+        },
+        Number: {
+          props: z.object({ value: z.number() }),
+          description: "",
+          slots: [],
+        },
+      },
+      actions: {},
+    });
+    for (const props of [{}, { content: " Hello " }]) {
+      const result = withDefaults.validate({
+        root: "t",
+        elements: { t: { type: "Text", props, children: [] } },
+      });
+      expect(result.success).toBe(true);
+      expect(result.data?.elements.t?.props).toEqual({ content: "Hello" });
+    }
+  });
+
   it("returns data on success", () => {
     const spec = {
       root: "t",

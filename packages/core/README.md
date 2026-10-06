@@ -126,6 +126,8 @@ export const catalog = defineCatalog(schema, {
 });
 ```
 
+When an object pairs `s.ref("catalog.components")` with `s.propsOf("catalog.components")`, `catalog.validate()` and `catalog.zodSchema()` validate props against the selected component's schema, including its defaults and transforms. Adding another component does not change that validation.
+
 ### Generate AI Prompts
 
 ```typescript
