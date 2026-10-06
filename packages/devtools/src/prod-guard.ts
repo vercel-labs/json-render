@@ -4,12 +4,13 @@
  * nothing in production builds.
  *
  * Tree-shaken bundlers will fold constant `process.env.NODE_ENV` checks.
- * Consumers that run in browsers without `process` also work because the
- * typeof check guards the access.
+ * Check the expression directly so bundler replacement still works when
+ * browsers have no `process` global. Unbundled browsers fall back to false.
  */
 export function isProduction(): boolean {
-  if (typeof process !== "undefined" && process.env) {
+  try {
     return process.env.NODE_ENV === "production";
+  } catch {
+    return false;
   }
-  return false;
 }

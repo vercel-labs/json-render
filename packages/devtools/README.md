@@ -19,6 +19,8 @@ npm install @json-render/devtools
 
 This package is pulled in automatically by every framework adapter. Install it directly only if you're building your own adapter or using the stream tap utilities on the server.
 
+Adapters detect production through the bundler's `process.env.NODE_ENV` replacement, including in browsers without a `process` global.
+
 ## What you get
 
 - **Event store** — capped ring buffer with `push`, `subscribe`, `snapshot`, `clear`.
