@@ -153,7 +153,7 @@ export const builtInValidationFunctions: Record<string, ValidationFunction> = {
    */
   numeric: (value: unknown) => {
     if (typeof value === "number") return !isNaN(value);
-    if (typeof value === "string") return !isNaN(parseFloat(value));
+    if (typeof value === "string") return !isNaN(Number(value)) && isFinite(Number(value));
     return false;
   },
 
