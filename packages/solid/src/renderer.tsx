@@ -386,7 +386,7 @@ function ElementRendererContent(props: ElementRendererContentProps) {
             </For>
           );
 
-        const rendered = (
+        const renderContent = () => (
           <Component
             element={props.resolvedElement}
             emit={props.emit}
@@ -399,12 +399,15 @@ function ElementRendererContent(props: ElementRendererContentProps) {
         );
 
         return (
-          <Show when={devtoolsActive() && props.elementKey} fallback={rendered}>
+          <Show
+            when={devtoolsActive() && props.elementKey}
+            fallback={renderContent()}
+          >
             <span
               data-jr-key={props.elementKey}
               style={{ display: "contents" }}
             >
-              {rendered}
+              {renderContent()}
             </span>
           </Show>
         );

@@ -29,6 +29,8 @@ import { JsonRenderDevtools } from "@json-render/devtools-solid";
 - Hotkey: `Ctrl`/`Cmd` + `Shift` + `J`.
 - Tree-shakes to `null` in production builds.
 
+The adapter can activate alongside an already mounted renderer. Inspection wrappers preserve the rendered content and continue to reflect state updates.
+
 See the [devtools docs](https://json-render.dev/docs/devtools) for the full prop reference and panel tour.
 
 ## License
