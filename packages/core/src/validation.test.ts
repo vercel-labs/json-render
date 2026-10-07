@@ -152,6 +152,16 @@ describe("builtInValidationFunctions", () => {
       expect(builtInValidationFunctions.numeric(NaN)).toBe(false);
       expect(builtInValidationFunctions.numeric(null)).toBe(false);
     });
+
+    it("fails for strings with trailing non-numeric characters", () => {
+      expect(builtInValidationFunctions.numeric("123abc")).toBe(false);
+      expect(builtInValidationFunctions.numeric("99bottles")).toBe(false);
+    });
+
+    it("fails for empty and whitespace-only strings", () => {
+      expect(builtInValidationFunctions.numeric("")).toBe(false);
+      expect(builtInValidationFunctions.numeric("   ")).toBe(false);
+    });
   });
 
   describe("url", () => {
