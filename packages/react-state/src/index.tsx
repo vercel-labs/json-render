@@ -37,6 +37,19 @@ export interface StateContextValue {
 const StateContext = createContext<StateContextValue | null>(null);
 
 /**
+ * Stable access to the underlying store. Unlike {@link StateContextValue},
+ * this value only changes when the store itself is swapped, so consumers can
+ * subscribe to the paths they read instead of re-rendering on every update.
+ */
+export interface StateSubscription {
+  subscribe: (listener: () => void) => () => void;
+  getSnapshot: () => StateModel;
+  getServerSnapshot: () => StateModel;
+}
+
+const StateSubscriptionContext = createContext<StateSubscription | null>(null);
+
+/**
  * Props for StateProvider
  */
 export interface StateProviderProps {
@@ -179,9 +192,31 @@ export function StateProvider({
     [state, get, set, update, getSnapshot],
   );
 
-  return (
-    <StateContext.Provider value={value}>{children}</StateContext.Provider>
+  const subscription = useMemo<StateSubscription>(
+    () => ({
+      subscribe: store.subscribe,
+      getSnapshot: store.getSnapshot,
+      getServerSnapshot: store.getServerSnapshot ?? store.getSnapshot,
+    }),
+    [store],
   );
+
+  return (
+    <StateSubscriptionContext.Provider value={subscription}>
+      <StateContext.Provider value={value}>{children}</StateContext.Provider>
+    </StateSubscriptionContext.Provider>
+  );
+}
+
+/**
+ * Hook to access the stable store subscription
+ */
+export function useStateSubscription(): StateSubscription {
+  const ctx = useContext(StateSubscriptionContext);
+  if (!ctx) {
+    throw new Error("useStateSubscription must be used within a StateProvider");
+  }
+  return ctx;
 }
 
 /**
