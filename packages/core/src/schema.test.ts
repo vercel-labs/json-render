@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { z } from "zod";
 import { defineSchema, defineCatalog } from "./schema";
+import type { Spec } from "./types";
 
 // =============================================================================
 // Shared test schema (mirrors the React schema shape)
@@ -563,6 +564,21 @@ describe("catalog.validate", () => {
       },
     },
     actions: {},
+  });
+
+  it("returns data assignable to Spec", () => {
+    const result = catalog.validate({
+      root: "card-1",
+      elements: {
+        "card-1": { type: "Card", props: { title: "Hello" }, children: [] },
+      },
+    });
+    expect(result.success).toBe(true);
+    if (result.success && result.data) {
+      // s.any() fields such as `visible` must not infer as unknown.
+      const spec: Spec = result.data;
+      expect(spec.root).toBe("card-1");
+    }
   });
 
   it("validates a valid spec", () => {
