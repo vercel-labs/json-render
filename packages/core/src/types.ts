@@ -274,10 +274,21 @@ function unescapeJsonPointer(token: string): string {
 
 /**
  * Parse a JSON Pointer path into unescaped segments.
+ * Reject prototype-related segments before traversing or changing any data.
  */
 export function parseJsonPointer(path: string): string[] {
   const raw = path.startsWith("/") ? path.slice(1).split("/") : path.split("/");
-  return raw.map(unescapeJsonPointer);
+  const segments = raw.map(unescapeJsonPointer);
+  for (const segment of segments) {
+    if (
+      segment === "__proto__" ||
+      segment === "constructor" ||
+      segment === "prototype"
+    ) {
+      throw new Error(`Unsafe JSON Pointer segment: ${segment}`);
+    }
+  }
+  return segments;
 }
 
 /**
@@ -299,8 +310,10 @@ export function getByPath(obj: unknown, path: string): unknown {
 
     if (Array.isArray(current)) {
       const index = parseInt(segment, 10);
+      if (!Object.hasOwn(current, index)) return undefined;
       current = current[index];
     } else if (typeof current === "object") {
+      if (!Object.hasOwn(current, segment)) return undefined;
       current = (current as Record<string, unknown>)[segment];
     } else {
       return undefined;
@@ -375,12 +388,20 @@ export function setByPath(
 
     if (Array.isArray(current)) {
       const index = parseInt(segment, 10);
-      if (current[index] === undefined || typeof current[index] !== "object") {
+      if (
+        !Object.hasOwn(current, index) ||
+        current[index] === null ||
+        typeof current[index] !== "object"
+      ) {
         current[index] = nextIsNumeric ? [] : {};
       }
       current = current[index] as Record<string, unknown> | unknown[];
     } else {
-      if (!(segment in current) || typeof current[segment] !== "object") {
+      if (
+        !Object.hasOwn(current, segment) ||
+        current[segment] === null ||
+        typeof current[segment] !== "object"
+      ) {
         current[segment] = nextIsNumeric ? [] : {};
       }
       current = current[segment] as Record<string, unknown> | unknown[];
@@ -425,12 +446,20 @@ export function addByPath(
 
     if (Array.isArray(current)) {
       const index = parseInt(segment, 10);
-      if (current[index] === undefined || typeof current[index] !== "object") {
+      if (
+        !Object.hasOwn(current, index) ||
+        current[index] === null ||
+        typeof current[index] !== "object"
+      ) {
         current[index] = nextIsNumeric ? [] : {};
       }
       current = current[index] as Record<string, unknown> | unknown[];
     } else {
-      if (!(segment in current) || typeof current[segment] !== "object") {
+      if (
+        !Object.hasOwn(current, segment) ||
+        current[segment] === null ||
+        typeof current[segment] !== "object"
+      ) {
         current[segment] = nextIsNumeric ? [] : {};
       }
       current = current[segment] as Record<string, unknown> | unknown[];
@@ -467,12 +496,20 @@ export function removeByPath(obj: Record<string, unknown>, path: string): void {
 
     if (Array.isArray(current)) {
       const index = parseInt(segment, 10);
-      if (current[index] === undefined || typeof current[index] !== "object") {
+      if (
+        !Object.hasOwn(current, index) ||
+        current[index] === null ||
+        typeof current[index] !== "object"
+      ) {
         return; // path does not exist
       }
       current = current[index] as Record<string, unknown> | unknown[];
     } else {
-      if (!(segment in current) || typeof current[segment] !== "object") {
+      if (
+        !Object.hasOwn(current, segment) ||
+        current[segment] === null ||
+        typeof current[segment] !== "object"
+      ) {
         return; // path does not exist
       }
       current = current[segment] as Record<string, unknown> | unknown[];
@@ -590,7 +627,9 @@ export function parseSpecStreamLine(line: string): SpecStreamLine | null {
 
   try {
     const patch = JSON.parse(trimmed) as SpecStreamLine;
-    if (patch.op && patch.path !== undefined) {
+    if (patch.op && typeof patch.path === "string") {
+      parseJsonPointer(patch.path);
+      if (patch.from !== undefined) parseJsonPointer(patch.from);
       return patch;
     }
     return null;
@@ -605,12 +644,17 @@ export function parseSpecStreamLine(line: string): SpecStreamLine | null {
  *
  * Supports all six RFC 6902 operations: add, remove, replace, move, copy, test.
  *
- * @throws {Error} If a "test" operation fails (value mismatch).
+ * @throws {Error} If either path contains an unsafe segment, before mutation,
+ * or if a "test" operation fails (value mismatch).
  */
 export function applySpecStreamPatch<T extends Record<string, unknown>>(
   obj: T,
   patch: SpecStreamLine,
 ): T {
+  // Validate both paths before a move can remove its source.
+  parseJsonPointer(patch.path);
+  if (patch.from !== undefined) parseJsonPointer(patch.from);
+
   switch (patch.op) {
     case "add":
       addByPath(obj, patch.path, patch.value);

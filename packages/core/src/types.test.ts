@@ -8,6 +8,8 @@ import {
   setByPath,
   addByPath,
   removeByPath,
+  parseJsonPointer,
+  parseSpecStreamLine,
   applySpecStreamPatch,
   applySpecPatch,
   nestedToFlat,
@@ -161,6 +163,114 @@ describe("getByPath", () => {
     const data = { user: null };
 
     expect(getByPath(data, "/user/name")).toBeUndefined();
+  });
+});
+
+describe("JSON Pointer safety", () => {
+  it.each(["__proto__", "constructor", "prototype"])(
+    "rejects the reserved segment %s anywhere in a pointer",
+    (segment) => {
+      for (const path of [segment, `/${segment}`, `/data/${segment}/value`]) {
+        expect(() => parseJsonPointer(path)).toThrow(
+          `Unsafe JSON Pointer segment: ${segment}`,
+        );
+      }
+    },
+  );
+
+  it("preserves escaping and allows names containing reserved words", () => {
+    expect(parseJsonPointer("/prototype~1label/__proto__~0label/~01")).toEqual([
+      "prototype/label",
+      "__proto__~label",
+      "~1",
+    ]);
+  });
+
+  it("validates the entire path before reading or changing data", () => {
+    const data = { existing: { value: 1 } };
+
+    expect(() => getByPath(data, "/missing/prototype")).toThrow();
+    expect(() => setByPath(data, "/created/prototype", 2)).toThrow();
+    expect(() => addByPath(data, "/created/prototype", 2)).toThrow();
+    expect(() => removeByPath(data, "/existing/prototype")).toThrow();
+    expect(data).toEqual({ existing: { value: 1 } });
+  });
+
+  it("ignores inherited object members when reading", () => {
+    const inherited = { name: "inherited" };
+    const user = Object.create({ details: inherited });
+    user.own = { name: "own" };
+
+    expect(getByPath({ user }, "/user/details")).toBeUndefined();
+    expect(getByPath({ user }, "/user/details/name")).toBeUndefined();
+    expect(getByPath({ user }, "/user/own/name")).toBe("own");
+  });
+
+  it.each([setByPath, addByPath])(
+    "%s creates own containers instead of traversing inherited objects",
+    (write) => {
+      const inherited = { name: "inherited" };
+      const user = Object.create({ details: inherited });
+
+      write({ user }, "/user/details/name", "own");
+
+      expect(Object.hasOwn(user, "details")).toBe(true);
+      expect(user.details).toEqual({ name: "own" });
+      expect(inherited).toEqual({ name: "inherited" });
+    },
+  );
+
+  it("does not remove data from inherited objects", () => {
+    const inherited = { name: "inherited" };
+    const user = Object.create({ details: inherited });
+
+    removeByPath({ user }, "/user/details/name");
+
+    expect(Object.hasOwn(user, "details")).toBe(false);
+    expect(inherited).toEqual({ name: "inherited" });
+  });
+
+  it("ignores inherited array indices when traversing", () => {
+    const inherited = { name: "inherited" };
+    const makeArray = () => {
+      const items = new Array(1);
+      const prototype = Object.create(Array.prototype);
+      prototype[0] = inherited;
+      Object.setPrototypeOf(items, prototype);
+      return items;
+    };
+
+    expect(getByPath({ items: makeArray() }, "/items/0")).toBeUndefined();
+    for (const write of [setByPath, addByPath]) {
+      const items = makeArray();
+      write({ items }, "/items/0/name", "own");
+      expect(Object.hasOwn(items, 0)).toBe(true);
+      expect(items[0]).toEqual({ name: "own" });
+    }
+    const items = makeArray();
+    removeByPath({ items }, "/items/0/name");
+    expect(Object.hasOwn(items, 0)).toBe(false);
+    expect(inherited).toEqual({ name: "inherited" });
+  });
+
+  it.each([setByPath, addByPath])(
+    "%s replaces null intermediate objects and array entries",
+    (write) => {
+      const data = { user: null, items: [null] };
+      write(data, "/user/name", "Alice");
+      write(data, "/items/0/name", "Bob");
+      expect(data).toEqual({
+        user: { name: "Alice" },
+        items: [{ name: "Bob" }],
+      });
+    },
+  );
+
+  it("treats null intermediates as missing during removal", () => {
+    const data = { user: null, items: [null] };
+    removeByPath(data, "/user/name");
+    removeByPath(data, "/items/0/name");
+    expect(data).toEqual({ user: null, items: [null] });
   });
 });
 
@@ -399,6 +509,34 @@ describe("removeByPath", () => {
 // =============================================================================
 
 describe("applySpecStreamPatch", () => {
+  it.each(["path", "from"] as const)(
+    "validates move %s before removing the source",
+    (field) => {
+      const obj = { source: { value: 1 } };
+      const patch: SpecStreamLine = {
+        op: "move",
+        from: "/source",
+        path: "/destination",
+        [field]: "/created/prototype",
+      };
+
+      expect(() => applySpecStreamPatch(obj, patch)).toThrow();
+      expect(obj).toEqual({ source: { value: 1 } });
+    },
+  );
+
+  it("validates copy sources before creating a destination", () => {
+    const obj = {};
+    expect(() =>
+      applySpecStreamPatch(obj, {
+        op: "copy",
+        from: "/missing/prototype",
+        path: "/destination",
+      }),
+    ).toThrow();
+    expect(obj).toEqual({});
+  });
+
   describe("add operation", () => {
     it("adds a new object property", () => {
       const obj: Record<string, unknown> = {};
@@ -586,6 +724,36 @@ describe("applySpecStreamPatch", () => {
 // =============================================================================
 // compileSpecStream
 // =============================================================================
+
+describe("parseSpecStreamLine", () => {
+  it.each(["__proto__", "constructor", "prototype"])(
+    "ignores lines with the reserved segment %s in either path",
+    (segment) => {
+      expect(
+        parseSpecStreamLine(JSON.stringify({ op: "add", path: `/${segment}` })),
+      ).toBeNull();
+      expect(
+        parseSpecStreamLine(
+          JSON.stringify({ op: "copy", path: "/safe", from: `/${segment}` }),
+        ),
+      ).toBeNull();
+    },
+  );
+
+  it.each([null, 1, {}, []])("ignores non-string paths: %j", (path) => {
+    expect(parseSpecStreamLine(JSON.stringify({ op: "add", path }))).toBeNull();
+    expect(
+      parseSpecStreamLine(
+        JSON.stringify({ op: "copy", path: "/safe", from: path }),
+      ),
+    ).toBeNull();
+  });
+
+  it("keeps valid escaped paths", () => {
+    const patch = { op: "copy", path: "/a~1b", from: "/c~0d" };
+    expect(parseSpecStreamLine(JSON.stringify(patch))).toEqual(patch);
+  });
+});
 
 describe("compileSpecStream", () => {
   it("compiles a series of add patches", () => {

@@ -23,7 +23,7 @@ export function immutableSetByPath(
 
   for (let i = 0; i < segments.length - 1; i++) {
     const seg = segments[i]!;
-    const child = current[seg];
+    const child = Object.hasOwn(current, seg) ? current[seg] : undefined;
     if (Array.isArray(child)) {
       current[seg] = [...child];
     } else if (child !== null && typeof child === "object") {
