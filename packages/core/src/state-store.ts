@@ -188,7 +188,8 @@ export function flattenToPointers(
   const warned = _warned ?? { current: false };
   const result: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(obj)) {
-    const pointer = `${prefix}/${key}`;
+    const token = key.replace(/~/g, "~0").replace(/\//g, "~1");
+    const pointer = `${prefix}/${token}`;
     if (
       _depth < MAX_FLATTEN_DEPTH &&
       value !== null &&

@@ -138,6 +138,31 @@ describe("createStateStore", () => {
 });
 
 describe("flattenToPointers", () => {
+  it("keeps slash-containing keys distinct from nested paths", () => {
+    expect(flattenToPointers({ "a/b": 1, a: { b: 2 } })).toEqual({
+      "/a~1b": 1,
+      "/a/b": 2,
+    });
+  });
+
+  it("escapes each key while preserving an already escaped prefix", () => {
+    expect(flattenToPointers({ "~/": { "~1": 3 } }, "/root~1key")).toEqual({
+      "/root~1key/~0~1/~01": 3,
+    });
+  });
+
+  it("produces paths that read and update the original state keys", () => {
+    const store = createStateStore({ "a/b": 1, a: { b: 2 }, "~1": 3 });
+    const entries = Object.entries(flattenToPointers(store.getSnapshot()));
+
+    for (const [path, value] of entries) {
+      expect(store.get(path)).toBe(value);
+      store.set(path, Number(value) + 10);
+    }
+
+    expect(store.getSnapshot()).toEqual({ "a/b": 11, a: { b: 12 }, "~1": 13 });
+  });
+
   it("flattens top-level keys", () => {
     expect(flattenToPointers({ a: 1, b: "hello" })).toEqual({
       "/a": 1,
