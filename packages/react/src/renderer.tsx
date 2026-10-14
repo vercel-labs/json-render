@@ -1142,11 +1142,9 @@ export function defineRegistry<C extends Catalog>(
     > = {};
     for (const [name, actionFn] of actionMap) {
       result[name] = async (params) => {
-        const setState = getSetState();
+        const setState = getSetState() ?? (() => undefined);
         const state = getState();
-        if (setState) {
-          await actionFn(params, setState, state);
-        }
+        await actionFn(params, setState, state);
       };
     }
     return result;
