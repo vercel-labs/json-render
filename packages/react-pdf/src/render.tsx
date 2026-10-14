@@ -11,6 +11,7 @@ import {
   resolveRepeatStatePath,
   evaluateVisibility,
   getByPath,
+  splitRepeatVisibility,
   type PropResolutionContext,
 } from "@json-render/core";
 import { standardComponents } from "./components/standard";
@@ -47,8 +48,14 @@ function renderElement(
     repeatBasePath,
   };
 
-  if (element.visible !== undefined) {
-    if (!evaluateVisibility(element.visible, ctx)) {
+  const repeatVisibility =
+    element.repeat !== undefined && repeatBasePath === undefined
+      ? splitRepeatVisibility(element.visible)
+      : { container: element.visible, itemFilter: undefined };
+  const repeatItemFilter = repeatVisibility.itemFilter;
+
+  if (repeatVisibility.container !== undefined) {
+    if (!evaluateVisibility(repeatVisibility.container, ctx)) {
       return null;
     }
   }
@@ -75,7 +82,19 @@ function renderElement(
     const items =
       (getByPath(stateModel, statePath) as unknown[] | undefined) ?? [];
 
-    const fragments = items.map((item, index) => {
+    const entries = items
+      .map((item, index) => ({ item, index }))
+      .filter(
+        ({ item, index }) =>
+          repeatItemFilter === undefined ||
+          evaluateVisibility(repeatItemFilter, {
+            ...ctx,
+            repeatItem: item,
+            repeatIndex: index,
+          }),
+      );
+
+    const fragments = entries.map(({ item, index }) => {
       const key =
         repeat.key && typeof item === "object" && item !== null
           ? String((item as Record<string, unknown>)[repeat.key!] ?? index)
