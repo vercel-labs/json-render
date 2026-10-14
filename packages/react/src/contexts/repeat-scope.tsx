@@ -1,6 +1,11 @@
 "use client";
 
-import React, { createContext, useContext, type ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useMemo,
+  type ReactNode,
+} from "react";
 
 /**
  * Repeat scope value provided to child elements inside a repeated element.
@@ -25,8 +30,13 @@ export function RepeatScopeProvider({
   basePath,
   children,
 }: RepeatScopeValue & { children: ReactNode }) {
+  // Keep the value stable so unchanged items skip re-rendering their elements.
+  const value = useMemo(
+    () => ({ item, index, basePath }),
+    [item, index, basePath],
+  );
   return (
-    <RepeatScopeContext.Provider value={{ item, index, basePath }}>
+    <RepeatScopeContext.Provider value={value}>
       {children}
     </RepeatScopeContext.Provider>
   );

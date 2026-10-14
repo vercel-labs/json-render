@@ -8,6 +8,7 @@ import React, {
   useEffect,
   useMemo,
   useRef,
+  useSyncExternalStore,
 } from "react";
 import type {
   UIElement,
@@ -44,9 +45,8 @@ import type {
   CatalogHasActions,
   EventHandle,
 } from "./catalog-types";
-import { useIsVisible, useVisibility } from "./contexts/visibility";
 import { useActions } from "./contexts/actions";
-import { useStateStore } from "./contexts/state";
+import { useStateSubscription } from "./contexts/state";
 import { StateProvider } from "./contexts/state";
 import { VisibilityProvider } from "./contexts/visibility";
 import { ActionProvider } from "./contexts/actions";
@@ -303,6 +303,100 @@ function shareResolvedValue(previous: unknown, next: unknown): unknown {
   return unchanged ? previous : shared;
 }
 
+// ---------------------------------------------------------------------------
+// State dependencies – each element subscribes to the state paths its
+// expressions read, so a state change only re-runs the elements reading it.
+// ---------------------------------------------------------------------------
+
+const TEMPLATE_REFERENCE = /\$\{([^}]+)\}/g;
+
+/** State paths an element reads; `null` means it may read any of them. */
+type StateDeps = readonly string[] | null;
+
+function collectStateDeps(
+  sources: unknown[],
+  repeatBasePath: string | undefined,
+  directives: DirectiveRegistry | undefined,
+  paths: string[] = [],
+): StateDeps {
+  const found = new Set(paths);
+  const stack = [...sources];
+  while (stack.length > 0) {
+    const value = stack.pop();
+    if (value === null || typeof value !== "object") continue;
+    if (Array.isArray(value)) {
+      stack.push(...value);
+      continue;
+    }
+    for (const [key, nested] of Object.entries(value)) {
+      if (key === "$state" || key === "$bindState") {
+        if (typeof nested === "string") found.add(nested);
+      } else if (key === "$bindItem") {
+        if (typeof nested === "string" && repeatBasePath != null) {
+          found.add(
+            nested === "" ? repeatBasePath : `${repeatBasePath}/${nested}`,
+          );
+        }
+      } else if (key === "$template") {
+        if (typeof nested !== "string") continue;
+        // Bare names fall back to "/<name>" when the repeat item lacks them.
+        for (const [, reference] of nested.matchAll(TEMPLATE_REFERENCE)) {
+          found.add(reference!.startsWith("/") ? reference! : `/${reference}`);
+        }
+      } else if (directives?.has(key)) {
+        // Custom directives resolve against the whole state model.
+        return null;
+      } else {
+        stack.push(nested);
+      }
+    }
+  }
+  return [...found];
+}
+
+interface StateSelection {
+  deps: StateDeps;
+  snapshot: StateModel;
+  values: unknown[];
+}
+
+/**
+ * Subscribe to the store, re-rendering only when a value at one of `deps`
+ * changes. Returns a snapshot that agrees with the live store at every path
+ * in `deps`.
+ */
+function useStateModel(deps: StateDeps): StateModel {
+  const { subscribe, getSnapshot, getServerSnapshot } = useStateSubscription();
+  const selectionRef = useRef<StateSelection | null>(null);
+
+  const select = (snapshot: StateModel): StateModel => {
+    if (deps === null) return snapshot;
+    const previous = selectionRef.current;
+    if (previous && previous.deps === deps) {
+      if (previous.snapshot === snapshot) return snapshot;
+      if (
+        deps.every((path, index) =>
+          Object.is(getByPath(snapshot, path), previous.values[index]),
+        )
+      ) {
+        return previous.snapshot;
+      }
+    }
+    selectionRef.current = {
+      deps,
+      snapshot,
+      values: deps.map((path) => getByPath(snapshot, path)),
+    };
+    return snapshot;
+  };
+
+  return useSyncExternalStore(
+    subscribe,
+    () => select(getSnapshot()),
+    () => select(getServerSnapshot()),
+  );
+}
+
 interface ElementSignatureEntry {
   own: UIElement;
   children: Array<[string, number]>;
@@ -477,11 +571,27 @@ function ReactiveElementRenderer({
 }: ElementRendererProps) {
   const devtoolsActive = useDevtoolsActive();
   const repeatScope = useRepeatScope();
-  const { ctx } = useVisibility();
   const { execute } = useActions();
-  const { getSnapshot, state: watchState } = useStateStore();
+  const { getSnapshot } = useStateSubscription();
   const functions = useFunctions();
   const directives = useDirectives();
+
+  const repeatBasePath = repeatScope?.basePath;
+  const stateDeps = useMemo(
+    () =>
+      collectStateDeps(
+        [element.props, element.visible],
+        repeatBasePath,
+        directives,
+        element.watch ? Object.keys(element.watch) : [],
+      ),
+    [element.props, element.visible, element.watch, repeatBasePath, directives],
+  );
+  const stateModel = useStateModel(stateDeps);
+  const ctx: CoreVisibilityContext = useMemo(
+    () => ({ stateModel }),
+    [stateModel],
+  );
 
   // Build context with repeat scope, $computed functions, and custom directives
   const fullCtx: PropResolutionContext = useMemo(() => {
@@ -583,7 +693,7 @@ function ReactiveElementRenderer({
     if (!watchConfig) return undefined;
     const values: Record<string, unknown> = {};
     for (const path of Object.keys(watchConfig)) {
-      values[path] = getByPath(watchState, path);
+      values[path] = getByPath(stateModel, path);
     }
     const prev = stableWatchRef.current;
     if (prev) {
@@ -597,7 +707,7 @@ function ReactiveElementRenderer({
     }
     stableWatchRef.current = values;
     return values;
-  }, [watchConfig, watchState]);
+  }, [watchConfig, stateModel]);
 
   useEffect(() => {
     if (!watchConfig || !watchedValues) return;
@@ -822,14 +932,23 @@ function RepeatChildren({
   signatures: Record<string, number>;
   itemFilter?: UIElement["visible"];
 }) {
-  const { state } = useStateStore();
-  const { ctx } = useVisibility();
   const parentScope = useRepeatScope();
+  const directives = useDirectives();
   const repeat = element.repeat!;
   const statePath = resolveRepeatStatePath(
     repeat.statePath,
     parentScope?.basePath,
   );
+  const stateDeps = useMemo(
+    () =>
+      statePath === undefined
+        ? []
+        : collectStateDeps([itemFilter], parentScope?.basePath, directives, [
+            statePath,
+          ]),
+    [statePath, itemFilter, parentScope?.basePath, directives],
+  );
+  const stateModel = useStateModel(stateDeps);
   if (statePath === undefined) {
     console.warn(
       "[json-render] $item in repeat.statePath used outside of a repeat scope",
@@ -837,7 +956,8 @@ function RepeatChildren({
     return null;
   }
 
-  const items = (getByPath(state, statePath) as unknown[] | undefined) ?? [];
+  const items =
+    (getByPath(stateModel, statePath) as unknown[] | undefined) ?? [];
 
   // Per-item filter from the container's own $item/$index visible condition.
   // Original indices are preserved so item state paths still point at the
@@ -848,7 +968,7 @@ function RepeatChildren({
       ({ itemValue, index }) =>
         itemFilter === undefined ||
         evaluateVisibility(itemFilter, {
-          ...ctx,
+          stateModel,
           repeatItem: itemValue,
           repeatIndex: index,
         }),
