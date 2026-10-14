@@ -1,6 +1,7 @@
 import { parse, stringify } from "yaml";
 import { applyPatch as applyUnifiedDiff } from "diff";
 import {
+  applySpecStreamPatch,
   SPEC_DATA_PART_TYPE,
   deepMergeSpec,
   diffToPatches,
@@ -190,32 +191,8 @@ export function createYamlTransform(
       try {
         const patch = JSON.parse(trimmed) as JsonPatch;
         if (patch.op) {
+          applySpecStreamPatch(currentSpec, patch);
           emitPatch(patch, controller);
-          // Update currentSpec for subsequent edits
-          if (patch.op === "add" || patch.op === "replace") {
-            const parts = patch.path.split("/").filter(Boolean);
-            let target: Record<string, unknown> = currentSpec;
-            for (let i = 0; i < parts.length - 1; i++) {
-              const key = parts[i]!;
-              if (typeof target[key] !== "object" || target[key] === null) {
-                target[key] = {};
-              }
-              target = target[key] as Record<string, unknown>;
-            }
-            const lastKey = parts[parts.length - 1];
-            if (lastKey) target[lastKey] = patch.value;
-          } else if (patch.op === "remove") {
-            const parts = patch.path.split("/").filter(Boolean);
-            let target: Record<string, unknown> = currentSpec;
-            for (let i = 0; i < parts.length - 1; i++) {
-              const key = parts[i]!;
-              if (typeof target[key] !== "object" || target[key] === null)
-                break;
-              target = target[key] as Record<string, unknown>;
-            }
-            const lastKey = parts[parts.length - 1];
-            if (lastKey) delete target[lastKey];
-          }
         }
       } catch {
         // Skip invalid JSON lines

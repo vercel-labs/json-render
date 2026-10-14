@@ -85,6 +85,9 @@ Recognized fence types:
 - <code>{'```yaml-patch'}</code> -- RFC 6902 JSON Patch lines
 - <code>{'```diff'}</code> -- Unified diff against serialized spec
 
+Operations in a `yaml-patch` fence update the transform's working spec, which
+is used as the base for any later `yaml-edit` fences.
+
 ### pipeYamlRender
 
 Convenience wrapper that pipes an AI SDK stream through the YAML transform. Drop-in replacement for `pipeJsonRender` from `@json-render/core`.

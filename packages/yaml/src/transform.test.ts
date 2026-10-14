@@ -129,6 +129,46 @@ describe("createYamlTransform", () => {
     expect(hasTitleUpdate).toBe(true);
   });
 
+  it("applies yaml-patch moves before later yaml-edit fences", async () => {
+    const output = await runTransform([
+      "```yaml-patch\n",
+      '{"op":"add","path":"/a","value":1}\n',
+      "```\n",
+      "```yaml-patch\n",
+      '{"op":"move","from":"/a","path":"/b"}\n',
+      "```\n",
+      "```yaml-edit\n",
+      "b: null\n",
+      "```\n",
+    ]);
+
+    expect(extractPatches(output)).toEqual([
+      { op: "add", path: "/a", value: 1 },
+      { op: "move", from: "/a", path: "/b" },
+      { op: "remove", path: "/b" },
+    ]);
+  });
+
+  it("applies yaml-patch copies before later yaml-edit fences", async () => {
+    const output = await runTransform([
+      "```yaml-patch\n",
+      '{"op":"add","path":"/a","value":1}\n',
+      "```\n",
+      "```yaml-patch\n",
+      '{"op":"copy","from":"/a","path":"/b"}\n',
+      "```\n",
+      "```yaml-edit\n",
+      "b: null\n",
+      "```\n",
+    ]);
+
+    expect(extractPatches(output)).toEqual([
+      { op: "add", path: "/a", value: 1 },
+      { op: "copy", from: "/a", path: "/b" },
+      { op: "remove", path: "/b" },
+    ]);
+  });
+
   it("swallows fence delimiters (not emitted as text)", async () => {
     const output = await runTransform([
       "```yaml-spec\n",
