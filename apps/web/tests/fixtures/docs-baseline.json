@@ -3523,9 +3523,9 @@
       "title": "Specs",
       "metadataTitle": "Specs | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\";\nexport const metadata = pageMetadata(\"docs/specs\");\n\n# Specs\n",
-      "sourceSha256": "14a29e881fe4c1380a261b49534b1728a1d32e35d69ab5da86b1e40485554b65",
-      "bodySha256": "c579395d773559efa78988e73544dea206b07f926557d187569d77133be1dc75",
-      "markdownSha256": "8a353073eb8d8dc10e0d37f11a7293314fd4a8bb4db893ac74651bd7bdef5433",
+      "sourceSha256": "54e89b12de79b5f315f52711ec8c2c9f06655b3d24dea871c615e9082c0b5b5a",
+      "bodySha256": "61089f55311696cb15350e427e9470480afc31dc0daabcf07429053d407c0ae4",
+      "markdownSha256": "12038b11176670a75fae397dd6f6decf64c5951a6adf91575077e6a4737983c5",
       "headings": [
         {
           "title": "What is a Spec?",
@@ -3586,6 +3586,10 @@
         {
           "title": "Spec Sources",
           "id": "spec-sources"
+        },
+        {
+          "title": "Python Authoring (Experimental)",
+          "id": "python-authoring-experimental"
         },
         {
           "title": "Next",
