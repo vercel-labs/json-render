@@ -191,9 +191,9 @@
       "title": "@json-render/codegen",
       "metadataTitle": "@json-render/codegen API | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/codegen\")\n\n# @json-render/codegen\n",
-      "sourceSha256": "ffe7c5b39084d393a6706d18cf40c8b5b0fa654d46bc89771f6e6a3a79102be5",
-      "bodySha256": "89f627bc21e5fafae1e498d9e9369a93b30f9b24eb4539dac5d69ac03e61b180",
-      "markdownSha256": "3ecfc1393d0538ac49c34e0daf5c95aa716238f0dad4b711871d6f82fefe66eb",
+      "sourceSha256": "93f839b115c34b5579839fa41ddf213e4686d67e24848f441b3f207e5d06aa2e",
+      "bodySha256": "2cf9c68336610d0172ba0861d4a1be2c4135eafb2eaa443c95145a7641d4d6de",
+      "markdownSha256": "0339143131892d7312249f256afc6f4b3a290ec7e0e6a209438d90d6b9d351ad",
       "headings": [
         {
           "title": "Tree Traversal",
