@@ -766,3 +766,65 @@ describe("autoFixSpec", () => {
     expect(fixes).toHaveLength(0);
   });
 });
+
+describe("optional template state references", () => {
+  it("reports an unresolved conditional expression with its exact path", () => {
+    const spec: Spec = {
+      root: "selection",
+      state: { ui: { plan: "basic" } },
+      elements: {
+        selection: {
+          type: "Text",
+          props: {
+            text: {
+              $cond: { $state: "/ui/plan" },
+              $then: {
+                $template:
+                  'Selected: ${/ui/plan === "basic" ? "Basic" : "Pro"}',
+              },
+              $else: "None",
+            },
+          },
+        },
+      },
+    };
+    expect(validateSpec(spec).valid).toBe(true);
+    expect(validateSpec(spec, { checkTemplateStateRefs: true })).toMatchObject({
+      valid: false,
+      issues: [
+        {
+          code: "unresolved_template_state_ref",
+          path: "/elements/selection/props/text/$then/$template",
+        },
+      ],
+    });
+  });
+
+  it("preserves literal state keys, future writes, bindings and bare item names", () => {
+    const spec: Spec = {
+      root: "text",
+      state: { ui: { 'plan === "basic" ? "Basic" : "Pro"': "literal" } },
+      elements: {
+        text: {
+          type: "Text",
+          props: {
+            text: {
+              $template:
+                '${/ui/plan === "basic" ? "Basic" : "Pro"} ${/ui/later} ${/form/name} ${item}',
+            },
+            value: { $bindState: "/form/name" },
+          },
+          on: {
+            press: {
+              action: "setState",
+              params: { statePath: "/ui/later", value: "later" },
+            },
+          },
+        },
+      },
+    };
+    expect(validateSpec(spec, { checkTemplateStateRefs: true }).valid).toBe(
+      true,
+    );
+  });
+});

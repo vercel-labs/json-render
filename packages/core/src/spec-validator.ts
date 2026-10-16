@@ -25,12 +25,15 @@ export interface SpecIssue {
   message: string;
   /** The element key where the issue was found (if applicable) */
   elementKey?: string;
+  /** JSON Pointer to the offending value, when available. */
+  path?: string;
   /** Machine-readable issue code for programmatic handling */
   code:
     | "missing_root"
     | "root_not_found"
     | "missing_child"
     | "invalid_visible"
+    | "unresolved_template_state_ref"
     | "repeat_without_children"
     | "repeat_item_outside_scope"
     | "repeat_state_mismatch"
@@ -61,6 +64,13 @@ export interface ValidateSpecOptions {
    * Defaults to false since orphans are harmless (just unused).
    */
   checkOrphans?: boolean;
+  /**
+   * Check absolute $template references against initial state and statically
+   * declared binding/action write paths. Defaults to false: unresolved template
+   * references normally render as empty strings. Bare repeat-item names are
+   * not checked.
+   */
+  checkTemplateStateRefs?: boolean;
 }
 
 /**
@@ -85,7 +95,7 @@ export function validateSpec(
   spec: Spec,
   options: ValidateSpecOptions = {},
 ): SpecValidationIssues {
-  const { checkOrphans = false } = options;
+  const { checkOrphans = false, checkTemplateStateRefs = false } = options;
   const issues: SpecIssue[] = [];
 
   // 1. Check root
@@ -304,6 +314,66 @@ export function validateSpec(
   for (const key of Object.keys(spec.elements)) {
     if (!repeatValidatedKeys.has(key)) {
       validateRepeatPaths(key, undefined, true, new Set());
+    }
+  }
+
+  if (checkTemplateStateRefs) {
+    const writablePaths = new Set<string>();
+    const collectWrites = (value: unknown): void => {
+      if (!value || typeof value !== "object") return;
+      const record = value as Record<string, unknown>;
+      if (typeof record.$bindState === "string")
+        writablePaths.add(record.$bindState);
+      if (
+        typeof record.action === "string" &&
+        record.params &&
+        typeof record.params === "object"
+      ) {
+        const statePath = (record.params as Record<string, unknown>).statePath;
+        if (typeof statePath === "string") writablePaths.add(statePath);
+      }
+      for (const child of Object.values(record)) collectWrites(child);
+    };
+    for (const element of Object.values(spec.elements)) collectWrites(element);
+    const escapePointer = (key: string) =>
+      key.replaceAll("~", "~0").replaceAll("/", "~1");
+    const checkTemplates = (
+      value: unknown,
+      path: string,
+      elementKey: string,
+    ): void => {
+      if (!value || typeof value !== "object") return;
+      const record = value as Record<string, unknown>;
+      if (typeof record.$template === "string") {
+        for (const match of record.$template.matchAll(/\$\{([^}]+)\}/g)) {
+          const reference = match[1]!;
+          if (!reference.startsWith("/")) continue;
+          if (getByPath(spec.state ?? {}, reference) !== undefined) continue;
+          if (
+            [...writablePaths].some(
+              (target) =>
+                reference === target || reference.startsWith(`${target}/`),
+            )
+          )
+            continue;
+          issues.push({
+            severity: "error",
+            code: "unresolved_template_state_ref",
+            elementKey,
+            path: `${path}/$template`,
+            message: `Template reference ${JSON.stringify(reference)} has no initial state or declared write path. $template interpolates state paths, not JavaScript expressions. Initialize the referenced field; use $cond for a conditional value.`,
+          });
+        }
+      }
+      for (const [key, child] of Object.entries(record)) {
+        checkTemplates(child, `${path}/${escapePointer(key)}`, elementKey);
+      }
+    };
+    for (const [key, element] of Object.entries(spec.elements)) {
+      const base = `/elements/${escapePointer(key)}`;
+      checkTemplates(element.props, `${base}/props`, key);
+      checkTemplates(element.on, `${base}/on`, key);
+      checkTemplates(element.watch, `${base}/watch`, key);
     }
   }
 

@@ -209,6 +209,19 @@ const { spec: fixed, fixDetails } = autoFixSpec(spec);
 const attempt = autoFixSpec(spec, { lossy: retriesExhausted });
 ```
 
+
+For hosts that require seeded or explicitly writable template state, opt in to
+`validateSpec(spec, { checkTemplateStateRefs: true })`. Absolute interpolations
+such as `${/ui/name}` must resolve in initial `state` or be covered by a declared
+`$bindState` or literal action `statePath`. Otherwise validation returns
+`unresolved_template_state_ref` with the offending expression's JSON Pointer in
+`issue.path`, including references in inactive conditional branches and action
+parameters. This can detect accidental JavaScript expressions inside `$template`;
+it never evaluates or rewrites them. Literal state keys containing operator
+characters remain valid when present. Bare repeat-item references are not checked.
+The option defaults to false, preserving unresolved references' empty-string
+rendering. Validation cannot detect content a model omitted from its response.
+
 ## Visibility Conditions
 
 Control element visibility with state-based conditions. `VisibilityContext` is `{ stateModel: StateModel }`.

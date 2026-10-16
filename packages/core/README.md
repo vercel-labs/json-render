@@ -611,6 +611,19 @@ const { spec: fixed, fixes, fixDetails } = autoFixSpec(spec);
 
 `validateSpec` checks structure beyond the catalog schema: missing or dangling `children` and named `slots` references, malformed `visible` conditions (anything outside the documented forms evaluates to hidden at runtime, so it is rejected with code `invalid_visible`), `repeat` containers with no children (`repeat_without_children`), relative repeat paths outside an enclosing repeat (`repeat_item_outside_scope`), and `repeat.statePath` values that do not reference an array in the spec's own `state` (`repeat_state_mismatch`).
 
+
+For hosts that require seeded or explicitly writable template state, opt in to
+`validateSpec(spec, { checkTemplateStateRefs: true })`. Absolute interpolations
+such as `${/ui/name}` must resolve in initial `state` or be covered by a declared
+`$bindState` or literal action `statePath`. Otherwise validation returns
+`unresolved_template_state_ref` with the offending expression's JSON Pointer in
+`issue.path`, including references in inactive conditional branches and action
+parameters. This can detect accidental JavaScript expressions inside `$template`;
+it never evaluates or rewrites them. Literal state keys containing operator
+characters remain valid when present. Bare repeat-item references are not checked.
+The option defaults to false, preserving unresolved references' empty-string
+rendering. Validation cannot detect content a model omitted from its response.
+
 `autoFixSpec` distinguishes lossless fixes (relocating `visible`/`on`/`repeat`/`watch` out of `props`) from lossy ones (pruning `children` or named `slots` references to elements that were never defined). Each entry in `fixDetails` carries `{ message, lossy }`. Callers with a repair loop should apply lossless fixes immediately and prefer re-prompting over lossy fixes, passing `{ lossy: false }` to withhold pruning until retries are exhausted:
 
 ```typescript
