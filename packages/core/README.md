@@ -12,7 +12,7 @@ npm install @json-render/core zod
 
 `experimental_composeSpec` builds a flat `Spec` by choosing among your app's atomic element candidates. `experimental_createEvaluator` connects a choice evaluation model through Vercel AI Gateway. Jev (`typesafe-ai/jev`) is the current example; the API names and explicit `model` option are model-neutral. Use your own catalog, props, state bindings, action bindings, and renderer; no playground components are required.
 
-**Unreleased:** try a source build before the next package release. APIs prefixed with `experimental_` or `Experimental_` may change in any release. Pin exact versions and review release notes before upgrading.
+**Available since v0.21.0.** APIs prefixed with `experimental_` or `Experimental_` may change in any release. Pin exact versions and review release notes before upgrading.
 
 ```typescript
 // Server only
@@ -57,7 +57,7 @@ The async generator emits detached `step` snapshots and a `complete` event with 
 
 V1 supports standard flat Spec catalogs, literals, `$state`, `$bindState`, state-based visibility, and named slots. It excludes repeat/watch, computed/custom expressions, and subtrees within candidate recipes. Bindings must resolve to valid values in the seed state or explicit `initialState`; handlers must still validate later user input. Candidate descriptions, element descriptions, and explicit `context` are sent to the evaluator; state values and raw props/bindings are not sent automatically.
 
-See the [Jev guide](https://json-render.dev/docs/jev) for complete catalog/candidate examples, source-build installation, rendering, custom evaluators, limitations, and feedback. The [playground implementation](../../apps/web/lib/jev) uses these same APIs.
+See the [Jev guide](https://json-render.dev/docs/jev) for complete catalog/candidate examples, installation, rendering, custom evaluators, limitations, and feedback. The [playground implementation](../../apps/web/lib/jev) uses these same APIs.
 
 ## Key Concepts
 

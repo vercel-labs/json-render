@@ -16,7 +16,7 @@ Core package for schema definition, catalog creation, and spec streaming.
 
 ## Experimental Decision-Model Composition
 
-For decision-model composition, import `experimental_composeSpec` and `experimental_createEvaluator` from `@json-render/core`. These APIs are unreleased; use a source build until published, then pin exact versions. Experimental exports and `Experimental_` types can change in any release.
+For decision-model composition, import `experimental_composeSpec` and `experimental_createEvaluator` from `@json-render/core`. These APIs are available since v0.21.0; pin exact versions and keep json-render packages on the same version. Experimental exports and `Experimental_` types can change in any release.
 
 - Run the Gateway evaluator server-side with `{ model: "typesafe-ai/jev", apiKey: process.env.AI_GATEWAY_API_KEY! }`. A plain model identifier is required; Jev is the current example; do not import a provider constructor.
 - Call `experimental_composeSpec({ catalog, candidates, prompt, evaluate, initialState, signal })`. It is an async generator; stream `step.spec` snapshots to your existing renderer and inspect `complete.stopReason` (`finish`, `limit`, `unavailable`). Errors and cancellation throw; retain the last snapshot as partial UI.
@@ -31,7 +31,7 @@ For decision-model composition, import `experimental_composeSpec` and `experimen
 - Candidate descriptions, prompt, instructions, topology, and explicit `context` are sent to the evaluator. Initial state and raw props/binding values are not sent automatically.
 - For custom providers implement `Experimental_CompositionEvaluator`: accept `{ state, questions, signal }`, return `{ answers: { [question]: { choice, confidence? } }, usage?: { inputTokens? } }`. Only return offered criteria keys.
 
-See `packages/core/README.md` and `/docs/jev` for app integration and source-build instructions. The web playground is an example consumer, not a dependency of the API.
+See `packages/core/README.md` and `/docs/jev` for app integration and installation instructions. The web playground is an example consumer, not a dependency of the API.
 
 ## Defining a Schema
 

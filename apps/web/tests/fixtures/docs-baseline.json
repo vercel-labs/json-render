@@ -255,9 +255,9 @@
       "title": "@json-render/core",
       "metadataTitle": "@json-render/core API | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/core\")\n\n# @json-render/core\n",
-      "sourceSha256": "8e60fe155ab5560268825b97943a60552501e91254ce5e759f73298ef7ee60b5",
-      "bodySha256": "b9d697444597ada2ce4651b972783e44991025c420c5d4aebdf8038153ba4039",
-      "markdownSha256": "603ac2e07ab869faa46f71cc13ba05992055316492f2f99849c8bd16637752f3",
+      "sourceSha256": "526eb0ca589bb317b2924f3145e0161d4e14ad4183a2a8145a26b300335e6d5e",
+      "bodySha256": "101701e7ee8f7ffe95367f04dbabb981c24b8be89501a71ea227f11f0a44163b",
+      "markdownSha256": "e3f637b4e7d8f8f27d686f9ea5e0a9feda1b719aaefdea4cfff6f892a4386ac9",
       "headings": [
         {
           "title": "experimental_composeSpec",
@@ -2867,9 +2867,9 @@
       "title": "Jev (Experimental)",
       "metadataTitle": "Jev (Experimental) | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/jev\")\n\n# Jev (Experimental)\n",
-      "sourceSha256": "c6314d7655a9f090ee246b661ae73f4e6017966827220f547f93fd8dc2186a98",
-      "bodySha256": "f28e9140d94b4f33e69a46a85dc2d5885b5a35cdfdf628134c07b2ee299d04de",
-      "markdownSha256": "31542130bbaf5ae5cd417b1759c86dedab2e968a7177ba6f06109b5599788f2b",
+      "sourceSha256": "d3edbf07c488dd5b57b5f6d58db15b5de0cc71b70c511bf802dee5e825af7006",
+      "bodySha256": "6ea6471dc05d51306ac6bb5161cebcb1b539183c68dce5016279ed5f38d77b72",
+      "markdownSha256": "d5581af3ef7809dd759f6873bd4d0b4177b199ee8ac5b79322d410de5b9be3b3",
       "headings": [
         {
           "title": "Why use it?",

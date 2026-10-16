@@ -75,4 +75,4 @@ pnpm type-check
 
 References: [Jev on Gateway](https://vercel.com/ai-gateway/models/jev), [AI SDK evaluation](https://ai-sdk.dev/docs/ai-sdk-core/evaluation), [Jev's documented limits](https://docs.typesafe.ai/model-jaggedness/jev-1.13).
 
-For app integration and source-build installation, see the [Jev guide](https://json-render.dev/docs/jev). The `experimental_` APIs may change in any release; pin exact versions.
+For app integration and installation, see the [Jev guide](https://json-render.dev/docs/jev). The APIs are available since v0.21.0. The `experimental_` APIs may change in any release; pin exact versions.
