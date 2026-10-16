@@ -69,7 +69,9 @@ stream.pipe(res);
 await renderToFile(spec, "./output.pdf");
 ```
 
-All render functions accept an optional second argument: `{ registry?, state?, handlers? }`.
+All render functions accept an optional second argument: `{ registry?, state?, handlers?, functions?, directives? }`.
+
+`JSONUIProvider` and `createRenderer` output also accept `functions` (for `$computed`) and `directives` (custom `$`-prefixed values).
 
 ## Standard Components
 
