@@ -1220,10 +1220,19 @@ export function createJsonRenderTransform(): TransformStream<
     }
   }
 
+  function endTextBlock(
+    controller: TransformStreamDefaultController<StreamChunk>,
+  ) {
+    flushBuffer(controller);
+    closeTextBlock(controller);
+    inSpecFence = false;
+  }
+
   return new TransformStream<StreamChunk, StreamChunk>({
     transform(chunk, controller) {
       switch (chunk.type) {
         case "text-start": {
+          endTextBlock(controller);
           const id = (chunk as { id: string }).id;
           const idNum = parseInt(id, 10);
           if (!isNaN(idNum) && idNum >= textIdCounter) {
@@ -1273,11 +1282,15 @@ export function createJsonRenderTransform(): TransformStream<
         }
 
         case "text-end": {
-          flushBuffer(controller);
-          if (inTextBlock) {
-            controller.enqueue({ type: "text-end", id: currentTextId });
-            inTextBlock = false;
-          }
+          endTextBlock(controller);
+          break;
+        }
+
+        case "start-step":
+        case "error":
+        case "abort": {
+          endTextBlock(controller);
+          controller.enqueue(chunk);
           break;
         }
 
