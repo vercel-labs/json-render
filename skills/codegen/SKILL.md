@@ -53,14 +53,14 @@ import {
 
 // Serialize a single value
 serializePropValue("hello");
-// { value: '"hello"', needsBraces: false }
+// { value: '"hello"', needsBraces: true }
 
 serializePropValue({ $state: "/user/name" });
 // { value: '{ $state: "/user/name" }', needsBraces: true }
 
 // Serialize props for JSX
 serializeProps({ title: "Dashboard", columns: 3, disabled: true });
-// 'title="Dashboard" columns={3} disabled'
+// 'title={"Dashboard"} columns={3} disabled'
 
 // Escape strings for code
 escapeString('hello "world"');
