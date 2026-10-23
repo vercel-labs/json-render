@@ -191,9 +191,9 @@
       "title": "@json-render/codegen",
       "metadataTitle": "@json-render/codegen API | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/codegen\")\n\n# @json-render/codegen\n",
-      "sourceSha256": "ffe7c5b39084d393a6706d18cf40c8b5b0fa654d46bc89771f6e6a3a79102be5",
-      "bodySha256": "89f627bc21e5fafae1e498d9e9369a93b30f9b24eb4539dac5d69ac03e61b180",
-      "markdownSha256": "3ecfc1393d0538ac49c34e0daf5c95aa716238f0dad4b711871d6f82fefe66eb",
+      "sourceSha256": "93f839b115c34b5579839fa41ddf213e4686d67e24848f441b3f207e5d06aa2e",
+      "bodySha256": "2cf9c68336610d0172ba0861d4a1be2c4135eafb2eaa443c95145a7641d4d6de",
+      "markdownSha256": "0339143131892d7312249f256afc6f4b3a290ec7e0e6a209438d90d6b9d351ad",
       "headings": [
         {
           "title": "Tree Traversal",
@@ -2583,9 +2583,9 @@
       "title": "Code Export",
       "metadataTitle": "Code Export | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/code-export\")\n\n# Code Export\n",
-      "sourceSha256": "c88b4f674179a1b726453b2769d309cdf55d567e9821d9c542737cbbb8320da7",
-      "bodySha256": "deff258ad189742aa53a43477c719dff4e5128735ae015d382c3fd77abff2f82",
-      "markdownSha256": "8cd8e759040c6bc140f18192a2dfb0a98f50050eb0ac6dc816c1f5efb348997c",
+      "sourceSha256": "5c74a30a9ab260c0f3c775bef4654ce7138ee66ef03c6e9bf40266dab69d3f8a",
+      "bodySha256": "6934c117bb7cd5d40689df9aa82525761ed2f9b99c5956dbbe97341047b2f074",
+      "markdownSha256": "c9ece58d351eb98b6ef9b83adda0c65f229f8a9f34d0d591990d1c79713da4fe",
       "headings": [
         {
           "title": "Overview",
