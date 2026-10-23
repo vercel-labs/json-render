@@ -338,12 +338,30 @@ export function createYamlTransform(
     buffering = false;
   }
 
+  function endTextBlock(
+    controller: TransformStreamDefaultController<StreamChunk>,
+  ) {
+    flushBuffer(controller);
+    if (fenceMode === "yaml-spec") {
+      finaliseYamlSpec(controller);
+    } else if (fenceMode === "yaml-edit") {
+      finaliseYamlEdit(controller);
+    } else if (fenceMode === "yaml-patch") {
+      finaliseYamlPatch(controller);
+    } else if (fenceMode === "diff") {
+      finaliseDiff(controller);
+    }
+    fenceMode = null;
+    closeTextBlock(controller);
+  }
+
   // ── TransformStream ──
 
   return new TransformStream<StreamChunk, StreamChunk>({
     transform(chunk, controller) {
       switch (chunk.type) {
         case "text-start": {
+          endTextBlock(controller);
           const id = (chunk as { id: string }).id;
           const idNum = parseInt(id, 10);
           if (!isNaN(idNum) && idNum >= textIdCounter) {
@@ -389,11 +407,15 @@ export function createYamlTransform(
         }
 
         case "text-end": {
-          flushBuffer(controller);
-          if (inTextBlock) {
-            controller.enqueue({ type: "text-end", id: currentTextId });
-            inTextBlock = false;
-          }
+          endTextBlock(controller);
+          break;
+        }
+
+        case "start-step":
+        case "error":
+        case "abort": {
+          endTextBlock(controller);
+          controller.enqueue(chunk);
           break;
         }
 
@@ -405,17 +427,7 @@ export function createYamlTransform(
     },
 
     flush(controller) {
-      flushBuffer(controller);
-      if (fenceMode === "yaml-spec") {
-        finaliseYamlSpec(controller);
-      } else if (fenceMode === "yaml-edit") {
-        finaliseYamlEdit(controller);
-      } else if (fenceMode === "yaml-patch") {
-        finaliseYamlPatch(controller);
-      } else if (fenceMode === "diff") {
-        finaliseDiff(controller);
-      }
-      closeTextBlock(controller);
+      endTextBlock(controller);
     },
   });
 }
