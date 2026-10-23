@@ -226,6 +226,33 @@ function resolveConditionValue(
 }
 
 /**
+ * Coerce a comparison operand to a finite number.
+ * Accepts numbers and numeric strings (`"10"`) so LLM/YAML quoted counts
+ * still work with gt/gte/lt/lte. Empty strings, booleans, and `"10px"`
+ * are not numbers.
+ */
+function toComparableNumber(value: unknown): number | undefined {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : undefined;
+  }
+  if (typeof value === "string" && value.trim() !== "") {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : undefined;
+  }
+  return undefined;
+}
+
+function compareNumbers(
+  value: unknown,
+  rhs: unknown,
+  op: (a: number, b: number) => boolean,
+): boolean {
+  const left = toComparableNumber(value);
+  const right = toComparableNumber(rhs);
+  return left !== undefined && right !== undefined ? op(left, right) : false;
+}
+
+/**
  * Evaluate a single condition against the context.
  *
  * When `not` is `true`, the final result is inverted — this applies to
@@ -254,34 +281,22 @@ function evaluateCondition(
   // Greater than
   else if (cond.gt !== undefined) {
     const rhs = resolveComparisonValue(cond.gt, ctx);
-    result =
-      typeof value === "number" && typeof rhs === "number"
-        ? value > rhs
-        : false;
+    result = compareNumbers(value, rhs, (a, b) => a > b);
   }
   // Greater than or equal
   else if (cond.gte !== undefined) {
     const rhs = resolveComparisonValue(cond.gte, ctx);
-    result =
-      typeof value === "number" && typeof rhs === "number"
-        ? value >= rhs
-        : false;
+    result = compareNumbers(value, rhs, (a, b) => a >= b);
   }
   // Less than
   else if (cond.lt !== undefined) {
     const rhs = resolveComparisonValue(cond.lt, ctx);
-    result =
-      typeof value === "number" && typeof rhs === "number"
-        ? value < rhs
-        : false;
+    result = compareNumbers(value, rhs, (a, b) => a < b);
   }
   // Less than or equal
   else if (cond.lte !== undefined) {
     const rhs = resolveComparisonValue(cond.lte, ctx);
-    result =
-      typeof value === "number" && typeof rhs === "number"
-        ? value <= rhs
-        : false;
+    result = compareNumbers(value, rhs, (a, b) => a <= b);
   }
   // Truthiness (no operator)
   else {

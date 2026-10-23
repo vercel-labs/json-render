@@ -316,6 +316,57 @@ describe("evaluateVisibility", () => {
         ),
       ).toBe(false);
     });
+
+    it("compares numeric strings with numbers", () => {
+      expect(
+        evaluateVisibility(
+          { $state: "/count", gt: 3 },
+          { stateModel: { count: "5" } },
+        ),
+      ).toBe(true);
+      expect(
+        evaluateVisibility(
+          { $state: "/count", gte: 5 },
+          { stateModel: { count: "5" } },
+        ),
+      ).toBe(true);
+      expect(
+        evaluateVisibility(
+          { $state: "/count", lt: 5 },
+          { stateModel: { count: "3" } },
+        ),
+      ).toBe(true);
+      expect(
+        evaluateVisibility(
+          { $state: "/count", lte: 5 },
+          { stateModel: { count: "5" } },
+        ),
+      ).toBe(true);
+    });
+
+    it("compares two numeric strings", () => {
+      expect(
+        evaluateVisibility(
+          { $state: "/count", gt: { $state: "/limit" } },
+          { stateModel: { count: "10", limit: "3" } },
+        ),
+      ).toBe(true);
+    });
+
+    it("still returns false for empty and non-numeric strings", () => {
+      expect(
+        evaluateVisibility(
+          { $state: "/count", gt: 0 },
+          { stateModel: { count: "" } },
+        ),
+      ).toBe(false);
+      expect(
+        evaluateVisibility(
+          { $state: "/count", gt: 0 },
+          { stateModel: { count: "10px" } },
+        ),
+      ).toBe(false);
+    });
   });
 
   describe("dynamic path references in comparison", () => {
