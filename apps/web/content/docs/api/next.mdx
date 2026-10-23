@@ -36,12 +36,12 @@ const catalog = defineCatalog(schema, {
 
 ## createNextApp
 
-Create all exports needed for a Next.js `[[...slug]]` catch-all route.
+Create the helpers for a Next.js `[[...slug]]` catch-all route.
 
 ```typescript
 import { createNextApp } from '@json-render/next/server';
 
-const { Page, generateMetadata, generateStaticParams } = createNextApp({
+const { getPageData, generateMetadata, generateStaticParams } = createNextApp({
   spec: myAppSpec,
   loaders: {
     loadPost: async ({ slug }) => {
@@ -87,8 +87,8 @@ const { Page, generateMetadata, generateStaticParams } = createNextApp({
   </thead>
   <tbody>
     <tr>
-      <td><code>Page</code></td>
-      <td>Async Server Component for <code>page.tsx</code></td>
+      <td><code>getPageData</code></td>
+      <td>Resolves page data for route params; returns <code>null</code> when no route matches</td>
     </tr>
     <tr>
       <td><code>generateMetadata</code></td>
@@ -100,6 +100,25 @@ const { Page, generateMetadata, generateStaticParams } = createNextApp({
     </tr>
   </tbody>
 </table>
+
+```tsx
+// app/[[...slug]]/page.tsx
+import { notFound } from "next/navigation";
+import { PageRenderer } from "@json-render/next";
+import { getPageData, generateMetadata, generateStaticParams } from "@/lib/app";
+
+export { generateMetadata, generateStaticParams };
+
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ slug?: string[] }>;
+}) {
+  const data = await getPageData({ params });
+  if (!data) notFound();
+  return <PageRenderer {...data} />;
+}
+```
 
 ## NextAppSpec
 
@@ -160,6 +179,8 @@ Routes use Next.js URL conventions:
 Client component that provides the component registry and action handlers to all pages.
 
 ```tsx
+"use client";
+
 import { NextAppProvider } from '@json-render/next';
 
 export default function Layout({ children }) {
