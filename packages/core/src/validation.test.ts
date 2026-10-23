@@ -41,6 +41,13 @@ describe("builtInValidationFunctions", () => {
       expect(builtInValidationFunctions.email("user@")).toBe(false);
       expect(builtInValidationFunctions.email(123)).toBe(false);
     });
+
+    it("ignores surrounding whitespace", () => {
+      expect(builtInValidationFunctions.email(" test@example.com\n")).toBe(
+        true,
+      );
+      expect(builtInValidationFunctions.email("te st@example.com")).toBe(false);
+    });
   });
 
   describe("minLength", () => {
