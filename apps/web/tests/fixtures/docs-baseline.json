@@ -1323,9 +1323,9 @@
       "title": "@json-render/react-pdf",
       "metadataTitle": "@json-render/react-pdf API | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/react-pdf\")\n\n# @json-render/react-pdf\n",
-      "sourceSha256": "cc7edb8944a9c66c8412be14859cd0c075b5bdf258b15a1b1812386d75596a0b",
-      "bodySha256": "173076c150cfad920e819c0bebd7acd550e5751971f4c25a2bfbd568fa55f334",
-      "markdownSha256": "7cb3704f2e24941dbfd2b9e615bc21d458ccaee35b5b798eaf5bbde2ae10581a",
+      "sourceSha256": "6a0ae505f7bbd4bea5b36abc945362478784aee97ea1931aeb5b96f86eb8adf1",
+      "bodySha256": "5f5a3a26d0715856348d1abae0b5489c5755cb5cb46ebfd3f4e30058a275ffad",
+      "markdownSha256": "e0f069628fe686a69fa6c495975dd1d3ac6b54aae7fd95a34fb44b9a04d45040",
       "headings": [
         {
           "title": "Install",
@@ -2911,9 +2911,9 @@
       "title": "Directives",
       "metadataTitle": "Directives | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/directives\")\n\n# Directives\n",
-      "sourceSha256": "6beb76c381be7e23eea91a11e2346a4ac6d606f6b84d3a0a0678f085696ce515",
-      "bodySha256": "5a1f3e0c4b28316865839d63cd9a9b78a98762085ead5910ec80e9aa4e1de15e",
-      "markdownSha256": "564746bc6c0855ae79cfa063d80ea2c381af63c4e58f0ab616810b3411b65432",
+      "sourceSha256": "5f08056fbefd77cc75049377de4244ce409e63e287642473b837808834183e1f",
+      "bodySha256": "abdc7805950e4ed17f5040e7a1ca51624927f1d29efc0fa6ade47bfe063eee0c",
+      "markdownSha256": "d31641d30494db737e454e730e6a6453122e2e52cf31da280a9127048bd0198e",
       "headings": [
         {
           "title": "Overview",

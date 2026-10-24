@@ -12,6 +12,8 @@ import type {
   Catalog,
   SchemaDefinition,
   StateStore,
+  ComputedFunction,
+  DirectiveDefinition,
 } from "@json-render/core";
 import {
   resolveElementProps,
@@ -375,6 +377,10 @@ export interface JSONUIProviderProps {
     (value: unknown, args?: Record<string, unknown>) => boolean
   >;
   onStateChange?: (changes: Array<{ path: string; value: unknown }>) => void;
+  /** Named functions for `$computed` expressions in props */
+  functions?: Record<string, ComputedFunction>;
+  /** Custom directives for user-defined `$`-prefixed dynamic values */
+  directives?: DirectiveDefinition[];
   children: ReactNode;
 }
 
@@ -385,6 +391,8 @@ export function JSONUIProvider({
   navigate,
   validationFunctions,
   onStateChange,
+  functions,
+  directives,
   children,
 }: JSONUIProviderProps) {
   return (
@@ -393,7 +401,7 @@ export function JSONUIProvider({
       initialState={initialState}
       onStateChange={onStateChange}
     >
-      <VisibilityProvider>
+      <VisibilityProvider functions={functions} directives={directives}>
         <ActionProvider handlers={handlers} navigate={navigate}>
           <ValidationProvider customFunctions={validationFunctions}>
             {children}
@@ -462,6 +470,10 @@ export interface CreateRendererProps {
   onStateChange?: (changes: Array<{ path: string; value: unknown }>) => void;
   loading?: boolean;
   fallback?: ComponentRenderer;
+  /** Named functions for `$computed` expressions in props */
+  functions?: Record<string, ComputedFunction>;
+  /** Custom directives for user-defined `$`-prefixed dynamic values */
+  directives?: DirectiveDefinition[];
 }
 
 export type ComponentMap<
@@ -494,6 +506,8 @@ export function createRenderer<
     onStateChange,
     loading,
     fallback,
+    functions,
+    directives,
   }: CreateRendererProps) {
     const actionHandlers = onAction
       ? new Proxy(
@@ -517,7 +531,7 @@ export function createRenderer<
         initialState={state}
         onStateChange={onStateChange}
       >
-        <VisibilityProvider>
+        <VisibilityProvider functions={functions} directives={directives}>
           <ActionProvider handlers={actionHandlers}>
             <ValidationProvider>
               <Renderer
