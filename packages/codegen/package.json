@@ -1,6 +1,6 @@
 {
   "name": "@json-render/codegen",
-  "version": "0.21.2",
+  "version": "0.21.3",
   "license": "Apache-2.0",
   "description": "Utilities for generating code from json-render UI trees",
   "keywords": [

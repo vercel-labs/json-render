@@ -1,8 +1,37 @@
 # Changelog
 
-## 0.21.2
+## 0.21.3
 
 <!-- release:start -->
+
+### Bug Fixes
+
+- **YAML patch state:** Keep move and copy operations in sync with later YAML edits, isolate copied and emitted values, and bound copy growth (#411)
+- **JSON Pointer paths:** Keep path helpers on own properties and dense arrays, ignoring inherited paths and out-of-range array indexes (#411)
+- **Repeated stream operations:** Apply every SpecStream JSONL line, including repeated append operations (#414)
+- **Chat example styling:** Correct Tailwind source paths so chat examples include Streamdown and shadcn styles (#415)
+- **shadcn skill installation:** Rename the skill to `json-render-shadcn` to avoid replacing the official shadcn skill (#417)
+
+### Documentation
+
+- Correct **Solid registry and reactive input examples** across guides, API references, and package documentation (#413)
+- Document **mixed message part ordering** and the aggregation behavior of `useJsonRenderMessage` (#416)
+- Document **published Jev composition APIs** with exact-version npm installation instructions (#418)
+
+### Contributors
+
+- @lahfir
+- @dajiaohuang
+- @Jassi2004
+- @xiehuanyi
+- @kevin9327
+- @adhamali450
+- @monsterlag
+- @Bortlesboat
+
+<!-- release:end -->
+
+## 0.21.2
 
 ### Bug Fixes
 
@@ -19,8 +48,6 @@
 - @xiehuanyi
 - @peter-cynomi
 - @Yi-111-a
-
-<!-- release:end -->
 
 ## 0.21.1
 
