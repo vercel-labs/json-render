@@ -1148,6 +1148,21 @@ export function createJsonRenderTransform(): TransformStream<
     controller.enqueue({ type: "text-delta", id: currentTextId, delta });
   }
 
+  /**
+   * Prose that is safe to stream: it was already classified as text, so it
+   * cannot become a spec line retroactively. Held until the end of the incoming
+   * delta so a plain reply is one text-delta instead of one per character.
+   */
+  let proseBuffer = "";
+
+  function flushProse(
+    controller: TransformStreamDefaultController<StreamChunk>,
+  ) {
+    if (!proseBuffer) return;
+    emitTextDelta(proseBuffer, controller);
+    proseBuffer = "";
+  }
+
   function emitPatch(
     patch: SpecStreamLine,
     controller: TransformStreamDefaultController<StreamChunk>,
@@ -1162,6 +1177,8 @@ export function createJsonRenderTransform(): TransformStream<
   function flushBuffer(
     controller: TransformStreamDefaultController<StreamChunk>,
   ) {
+    // Any prose still held belongs before the line that is being classified.
+    flushProse(controller);
     if (!lineBuffer) return;
 
     const trimmed = lineBuffer.trim();
@@ -1257,16 +1274,17 @@ export function createJsonRenderTransform(): TransformStream<
             const ch = text.charAt(i);
 
             if (ch === "\n") {
-              // Line complete — classify and emit
               if (buffering) {
+                // The classified line goes out after the prose that preceded it.
+                flushProse(controller);
                 processCompleteLine(lineBuffer, controller);
                 lineBuffer = "";
                 buffering = false;
-              } else {
-                // Outside fence, emit newline; inside fence, swallow it
-                if (!inSpecFence) {
-                  emitTextDelta("\n", controller);
-                }
+              } else if (!inSpecFence) {
+                // Outside fence the newline belongs to the prose line; inside a
+                // fence it is swallowed with the spec line.
+                proseBuffer += "\n";
+                flushProse(controller);
               }
             } else if (lineBuffer.length === 0 && !buffering) {
               // Start of a new line — decide whether to buffer or stream
@@ -1275,14 +1293,16 @@ export function createJsonRenderTransform(): TransformStream<
                 buffering = true;
                 lineBuffer += ch;
               } else {
-                emitTextDelta(ch, controller);
+                proseBuffer += ch;
               }
             } else if (buffering) {
               lineBuffer += ch;
             } else {
-              emitTextDelta(ch, controller);
+              proseBuffer += ch;
             }
           }
+          // One delta in, at most one text-delta out.
+          flushProse(controller);
           break;
         }
 
