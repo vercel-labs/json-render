@@ -26,6 +26,49 @@ const document = {
   },
 };
 describe("schema-enforced compact generation", () => {
+  it.each([
+    ["nullable then optional", z.string().nullable().optional()],
+    ["optional then nullable", z.string().optional().nullable()],
+  ])("preserves omission and null through JSONL for %s", async (_, value) => {
+    const gen = createCompactGeneration(
+      { components: { Label: { props: z.object({ value }) } } },
+      { strict: true },
+    );
+    for (const [encoded, expected] of [
+      [null, {}],
+      [{ value: null }, { value: null }],
+      [{ value: "hello" }, { value: "hello" }],
+    ]) {
+      const source = JSON.stringify({
+        state: null,
+        root: {
+          type: "Label",
+          props: { value: encoded },
+          children: [],
+          slots: {},
+          visible: null,
+          on: null,
+          watch: null,
+          repeat: null,
+        },
+      });
+      const input = new ReadableStream<string>({
+        start(controller) {
+          for (const character of source) controller.enqueue(character);
+          controller.close();
+        },
+      });
+      const reader = input.pipeThrough(gen.createTransform()).getReader();
+      const replay = createSpecStreamCompiler<Spec>();
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        replay.push(value);
+      }
+      expect(replay.getResult().elements.e0?.props).toStrictEqual(expected);
+    }
+  });
+
   it("decodes strict wire values while publishing parents before their children finish", () => {
     const gen = createCompactGeneration(
       {

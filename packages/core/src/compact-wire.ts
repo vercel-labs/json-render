@@ -36,7 +36,16 @@ function domain(schema: Schema): Domain {
       return [`object:${JSON.stringify(Object.keys(def.shape).sort())}`];
     case "nullable": {
       const inner = domain(def.innerType);
-      return inner && [...inner, "null"];
+      return (
+        inner && [
+          ...new Set([
+            ...inner,
+            def.innerType._zod.optin === "optional"
+              ? 'object:["value"]'
+              : "null",
+          ]),
+        ]
+      );
     }
     case "union": {
       const options = def.options.map(domain);
@@ -150,12 +159,19 @@ export function createCompactWireCodec(): (schema: z.ZodType) => z.ZodType {
             schema,
           );
           break;
-        case "nullable":
+        case "nullable": {
+          const inner = convert(def.innerType, `${path}.nullable`);
           wire = validate(
-            convert(def.innerType, `${path}.nullable`).nullable(),
+            def.innerType._zod.optin === "optional"
+              ? z.union([
+                  z.strictObject({ value: z.null() }).transform(() => null),
+                  inner,
+                ])
+              : inner.nullable(),
             schema,
           );
           break;
+        }
         case "object":
           if (def.catchall && def.catchall._zod.def.type !== "never")
             unsupported("object catchall");
