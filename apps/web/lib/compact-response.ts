@@ -31,7 +31,9 @@ export function createCompactResponse(
       try {
         const result = streamText({
           model,
-          providerOptions: { openai: { reasoningEffort: "none" } },
+          providerOptions: {
+            openai: { reasoningEffort: "none", strictJsonSchema: true },
+          },
           abortSignal: AbortSignal.any([request.signal, abort.signal]),
           system: [compactGeneration.prompt, ...rules].join("\n"),
           prompt: previousSpec

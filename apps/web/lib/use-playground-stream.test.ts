@@ -223,8 +223,10 @@ describe("playground model streaming", () => {
 });
 
 const compactPrefix =
-  '{\n  "root": {"type":"Text","props":{"text":"雪 café","variant":null}';
-const compactText = compactPrefix + " }\n}\n";
+  '{\n  "state":null,"root": {"type":"Text","props":{"text":"雪 café","variant":{"value":null}}';
+const compactText =
+  compactPrefix +
+  ',"children":[],"slots":{},"visible":null,"on":null,"watch":null,"repeat":null }\n}\n';
 
 describe("compact playground streaming", () => {
   it("keeps YAML streaming and usage working", async () => {

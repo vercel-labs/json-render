@@ -26,6 +26,188 @@ const document = {
   },
 };
 describe("schema-enforced compact generation", () => {
+  it("decodes strict wire values while publishing parents before their children finish", () => {
+    const gen = createCompactGeneration(
+      {
+        components: {
+          Panel: {
+            props: z.object({
+              title: z.string(),
+              note: z.string().nullable().optional(),
+              extra: z.string().optional(),
+            }),
+            slots: ["default", "header"],
+          },
+          Reading: { props: z.object({ value: z.number().positive() }) },
+        },
+      },
+      { strict: true },
+    );
+    const fields = {
+      children: [],
+      slots: {},
+      visible: null,
+      on: null,
+      watch: null,
+      repeat: null,
+    };
+    const root = {
+      ...fields,
+      type: "Panel",
+      props: { title: "Overview", note: { value: null }, extra: null },
+      children: [
+        { ...fields, type: "Reading", props: { value: { $state: "/count" } } },
+      ],
+      slots: {
+        header: [{ ...fields, type: "Reading", props: { value: 2 } }],
+      },
+    };
+    const compiler = gen.createCompiler();
+    const prefix =
+      '{"state":{"value":{"entries":[{"key":"count","value":3}]}},"root":' +
+      '{"type":"Panel","props":{"title":"Overview","note":{"value":null},"extra":null}';
+    for (const character of prefix) compiler.push(character);
+    expect(compiler.push("").result.elements.e0?.props).toEqual({
+      title: "Overview",
+      note: null,
+    });
+    const suffix =
+      `,"children":${JSON.stringify(root.children)},"slots":${JSON.stringify(root.slots)},` +
+      '"visible":null,"on":null,"watch":null,"repeat":null}}';
+    for (const character of suffix) compiler.push(character);
+    const result = compiler.getResult();
+    expect(result.state).toEqual({ count: 3 });
+    expect(result.elements.e0?.children).toEqual(["e1"]);
+    expect(result.elements.e0?.slots).toEqual({ header: ["e2"] });
+    expect(
+      resolveElementProps(result.elements.e1!.props, {
+        stateModel: result.state!,
+      }),
+    ).toEqual({ value: 3 });
+    expect(() =>
+      gen.createCompiler().push(
+        JSON.stringify({
+          state: null,
+          root: { ...fields, type: "Reading", props: { value: -1 } },
+        }),
+      ),
+    ).toThrow();
+    const missing = gen.createCompiler();
+    missing.push(JSON.stringify({ root }));
+    expect(() => missing.getResult()).toThrow();
+    function check(schema: Record<string, unknown>) {
+      if (schema.type === "object") {
+        expect(schema.additionalProperties).toBe(false);
+        expect(new Set(schema.required as string[])).toEqual(
+          new Set(Object.keys(schema.properties as object)),
+        );
+      }
+      for (const [key, value] of Object.entries(schema)) {
+        if (["const", "enum", "default", "examples"].includes(key)) continue;
+        if (Array.isArray(value))
+          value.forEach(
+            (child) => child && typeof child === "object" && check(child),
+          );
+        else if (value && typeof value === "object")
+          check(value as Record<string, unknown>);
+      }
+    }
+    check(gen.jsonSchema);
+  });
+  it("preserves strict record keys in state and nested props without skipping value validation", () => {
+    const records = (value: z.ZodType) =>
+      createCompactGeneration(
+        {
+          components: {
+            Records: {
+              props: z.object({
+                data: z.object({
+                  records: z.array(z.record(z.string(), value)),
+                }),
+              }),
+            },
+          },
+        },
+        { strict: true },
+      );
+    const gen = records(z.number().positive());
+    const record = {
+      entries: [
+        { key: "__proto__", value: 1 },
+        { key: "constructor", value: 2 },
+        { key: "a/b~c", value: 3 },
+      ],
+    };
+    const root = {
+      type: "Records",
+      props: { data: { records: [record] } },
+      children: [],
+      slots: {},
+      visible: null,
+      on: null,
+      watch: null,
+      repeat: null,
+    };
+    const source = JSON.stringify({
+      state: {
+        value: {
+          entries: [...record.entries, { key: "nested", value: record }],
+        },
+      },
+      root,
+    });
+    const expected = JSON.parse('{"__proto__":1,"constructor":2,"a/b~c":3}');
+    for (const chunks of [[source], [...source]]) {
+      const compiler = gen.createCompiler();
+      const replay = createSpecStreamCompiler();
+      for (const chunk of chunks) {
+        for (const patch of compiler.push(chunk).newPatches)
+          replay.push(JSON.stringify(patch) + "\n");
+      }
+      const result = compiler.getResult();
+      expect(result.state).toEqual({ ...expected, nested: expected });
+      expect(result.elements.e0?.props).toEqual({
+        data: { records: [expected] },
+      });
+      expect(Object.getPrototypeOf(result.state)).toBe(Object.prototype);
+      expect(replay.getResult()).toEqual(result);
+    }
+    const withValue = (value: unknown) => ({
+      ...root,
+      props: {
+        data: { records: [{ entries: [{ key: "__proto__", value }] }] },
+      },
+    });
+    for (const [value, issue] of [
+      [-1, "too_small"],
+      ["wrong", "invalid_type"],
+    ]) {
+      expect(() =>
+        gen
+          .createCompiler()
+          .push(JSON.stringify({ state: null, root: withValue(value) })),
+      ).toThrow(new RegExp(String(issue)));
+    }
+    const nested = records(z.object({ count: z.number() }));
+    for (const key of ["extra", "__proto__"]) {
+      expect(() =>
+        nested.createCompiler().push(
+          JSON.stringify({
+            state: null,
+            root: withValue(
+              Object.fromEntries([
+                ["count", 1],
+                [key, 2],
+              ]),
+            ),
+          }),
+        ),
+      ).toThrow(/unrecognized_keys/);
+    }
+    expect(() =>
+      records(z.object({ count: z.number().transform((value) => value + 1) })),
+    ).toThrow(/Unsupported compact wire schema type: pipe/);
+  });
   it("does not evaluate refinements from unrelated component types", () => {
     let unrelatedValidations = 0;
     const compiler = createCompactGeneration({

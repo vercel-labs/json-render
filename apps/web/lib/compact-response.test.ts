@@ -50,24 +50,47 @@ function useModel(text: string, failure?: Error) {
 }
 
 describe("compact generation response", () => {
+  const fields = {
+    children: [],
+    slots: {},
+    visible: null,
+    on: null,
+    watch: null,
+    repeat: null,
+  };
   it.each([undefined, null])(
     "accepts %s for defaulted props while streaming a nested layout",
     (empty) => {
       const document = {
+        state: null,
         root: {
+          ...fields,
           type: "Stack",
           props: {
-            direction: "vertical",
-            gap: "md",
-            align: empty,
-            justify: empty,
+            direction: { value: "vertical" },
+            gap: { value: "md" },
+            align: empty === undefined ? null : { value: null },
+            justify: empty === undefined ? null : { value: null },
           },
           children: [
             {
+              ...fields,
               type: "Card",
-              props: { title: "Welcome" },
+              props: {
+                title: { value: "Welcome" },
+                description: null,
+                maxWidth: null,
+                centered: null,
+              },
               children: [
-                { type: "Text", props: { text: "Hello", variant: empty } },
+                {
+                  ...fields,
+                  type: "Text",
+                  props: {
+                    text: "Hello",
+                    variant: empty === undefined ? null : { value: null },
+                  },
+                },
               ],
             },
           ],
@@ -80,27 +103,53 @@ describe("compact generation response", () => {
       const compiler = compactGeneration.createCompiler();
       for (const character of JSON.stringify(document))
         compiler.push(character);
-      expect(compiler.getResult().elements.e2?.props.text).toBe("Hello");
+      expect(compiler.getResult().elements.e2?.props).toEqual({
+        text: "Hello",
+        ...(empty === undefined ? {} : { variant: null }),
+      });
     },
   );
 
   it.each([
     { type: "Text", props: {} },
-    { type: "Stack", props: { align: "sideways" } },
-    { type: "Stack", props: { invented: true } },
+    {
+      type: "Stack",
+      props: {
+        direction: null,
+        gap: null,
+        align: { value: "sideways" },
+        justify: null,
+      },
+    },
+    {
+      type: "Stack",
+      props: {
+        direction: null,
+        gap: null,
+        align: null,
+        justify: null,
+        invented: true,
+      },
+    },
   ])("still rejects invalid component props: %j", (root) => {
+    const document = { state: null, root: { ...fields, ...root } };
     expect(
-      z.fromJSONSchema(compactGeneration.jsonSchema).safeParse({ root })
+      z.fromJSONSchema(compactGeneration.jsonSchema).safeParse(document)
         .success,
     ).toBe(false);
     expect(() =>
-      compactGeneration.createCompiler().push(JSON.stringify({ root })),
+      compactGeneration.createCompiler().push(JSON.stringify(document)),
     ).toThrow();
   });
 
   it("streams exact model JSON into the real compiler and retains usage and follow-up context", async () => {
     const source = JSON.stringify({
-      root: { type: "Text", props: { text: "Updated\n雪", variant: null } },
+      state: null,
+      root: {
+        ...fields,
+        type: "Text",
+        props: { text: "Updated\n雪", variant: { value: null } },
+      },
     });
     const model = useModel(source);
     const previousSpec = {
@@ -132,7 +181,12 @@ describe("compact generation response", () => {
     expect(compiler.getResult()).toEqual({
       root: "e0",
       elements: {
-        e0: { type: "Text", props: { text: "Updated\n雪", variant: null } },
+        e0: {
+          type: "Text",
+          props: { text: "Updated\n雪", variant: null },
+          children: [],
+          slots: {},
+        },
       },
     });
     expect(events.at(-1)).toMatchObject({
@@ -143,7 +197,7 @@ describe("compact generation response", () => {
     });
     const request = model.doStreamCalls[0]!;
     expect(request.providerOptions).toMatchObject({
-      openai: { reasoningEffort: "none" },
+      openai: { reasoningEffort: "none", strictJsonSchema: true },
     });
     expect(request.responseFormat?.type).toBe("json");
     expect(request.responseFormat).toHaveProperty("schema");

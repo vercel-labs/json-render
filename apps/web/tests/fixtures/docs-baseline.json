@@ -3599,9 +3599,9 @@
       "title": "Streaming",
       "metadataTitle": "Streaming | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/streaming\")\n\n# Streaming\n",
-      "sourceSha256": "84967e71875aa1fd61e8df72868c34daa9c25ea07104ecd59b240963c7420960",
-      "bodySha256": "19a539b38b47efe348c8cc1f9a10850265e3c85ed8323979d9882e83cd9fa0c4",
-      "markdownSha256": "ec08196b4df2ac0ce47185ec7b547645ebf29af1fd9f340043b61ef727207ed7",
+      "sourceSha256": "b9f9fdae51617780976f357f02079697a6e1cd328a250c28b38715b665a8f03a",
+      "bodySha256": "f486f59964618035c0499c2ee6a312f14ff5b92ce1aef90d01445e4488be7245",
+      "markdownSha256": "abd77147f1b541862383db29f709e660b8326948c1cbf7b635be7cc11387170c",
       "headings": [
         {
           "title": "SpecStream Format",

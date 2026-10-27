@@ -5,8 +5,14 @@ import { applySpecPatch } from "./types";
 import type { SpecStreamLine, Spec } from "./types";
 import { createJSONStream } from "./json-stream";
 import { validateSpec, formatSpecIssues } from "./spec-validator";
+import { createCompactWireCodec } from "./compact-wire";
 
-function unchanged(input: unknown, parsed: unknown): boolean {
+/** Allows Zod's omitted __proto__ keys only after strict wire validation. */
+function unchanged(
+  input: unknown,
+  parsed: unknown,
+  allowDroppedProto = false,
+): boolean {
   if (input === parsed) return true;
   if (
     !input ||
@@ -17,28 +23,35 @@ function unchanged(input: unknown, parsed: unknown): boolean {
     return false;
   const a = input as Record<string, unknown>,
     b = parsed as Record<string, unknown>;
+  const keys = Object.keys(a).filter(
+    (key) => !allowDroppedProto || key !== "__proto__" || Object.hasOwn(b, key),
+  );
   return (
     Array.isArray(a) === Array.isArray(b) &&
-    Object.keys(a).length === Object.keys(b).length &&
-    Object.keys(a).every(
-      (key) => Object.hasOwn(b, key) && unchanged(a[key], b[key]),
+    keys.length === Object.keys(b).length &&
+    keys.every(
+      (key) =>
+        Object.hasOwn(b, key) && unchanged(a[key], b[key], allowDroppedProto),
     )
   );
 }
 
 /** Accepts a catalog's data directly; schemas are shared by generation and decoding. */
-export function createCompactGeneration(catalog: {
-  components: Record<
-    string,
-    {
-      props: z.ZodObject;
-      slots?: string[];
-      events?: string[];
-      description?: string;
-    }
-  >;
-  actions?: Record<string, { params: z.ZodType; description?: string }>;
-}) {
+export function createCompactGeneration(
+  catalog: {
+    components: Record<
+      string,
+      {
+        props: z.ZodObject;
+        slots?: string[];
+        events?: string[];
+        description?: string;
+      }
+    >;
+    actions?: Record<string, { params: z.ZodType; description?: string }>;
+  },
+  options: { strict?: boolean } = {},
+) {
   const jsonValue = z.json();
   const expression = z.union([
     ...["$state", "$item", "$bindState", "$bindItem", "$template"].map((key) =>
@@ -133,6 +146,10 @@ export function createCompactGeneration(catalog: {
   const bindings = z.record(z.string(), z.union([action, z.array(action)]));
 
   const flatSchemas = new Map<string, z.ZodType>();
+  const wireFields = new Map<string, Record<string, z.ZodType>>();
+  const wireCodec = createCompactWireCodec();
+  const wireElements: z.ZodObject[] = [];
+  const wireNode: z.ZodType = z.lazy(() => wireElementSchema);
   const node: z.ZodType = z.lazy(() => elementSchema);
   const children = z.array(node).optional();
   const leafChildren = z.array(z.string()).max(0).optional();
@@ -172,6 +189,38 @@ export function createCompactGeneration(catalog: {
         })
         .describe(component.description ?? type);
       flatSchemas.set(type, flat);
+      if (options.strict) {
+        const fields = Object.fromEntries(
+          Object.entries(flat.shape)
+            .filter(([key]) => key !== "children" && key !== "slots")
+            .map(([key, value]) => {
+              try {
+                return [key, wireCodec(value)];
+              } catch (error) {
+                throw new Error(
+                  `Strict compact schema for ${type}.${key}: ${error instanceof Error ? error.message : String(error)}`,
+                );
+              }
+            }),
+        );
+        wireFields.set(type, fields);
+        wireElements.push(
+          z.strictObject({
+            ...fields,
+            type: z.literal(type),
+            children: hasChildren
+              ? z.array(wireNode)
+              : z.array(z.string()).max(0),
+            slots: z.strictObject(
+              Object.fromEntries(
+                (component.slots ?? [])
+                  .filter((slot) => slot !== "default")
+                  .map((slot) => [slot, z.array(wireNode)]),
+              ),
+            ),
+          }),
+        );
+      }
       return flat.extend({
         children: hasChildren ? children : leafChildren,
         slots: !Object.keys(slots).length
@@ -198,11 +247,35 @@ export function createCompactGeneration(catalog: {
     state: z.record(z.string(), jsonValue).optional(),
     root: node,
   });
-  const jsonSchema = z.toJSONSchema(schema, {
+  const wireElementUnion = options.strict
+    ? z.discriminatedUnion("type", [wireElements[0]!, ...wireElements.slice(1)])
+    : undefined;
+  const wireElementSchema =
+    wireElementUnion?.transform((value) =>
+      Object.fromEntries(
+        Object.entries(value).filter(([, child]) => child !== undefined),
+      ),
+    ) ?? node;
+  const wireState = options.strict
+    ? wireCodec(schema.shape.state)
+    : schema.shape.state;
+  const wireSchema = options.strict
+    ? z
+        .strictObject({ state: wireState, root: wireNode })
+        .transform(({ state, root }) => ({
+          ...(state === undefined ? {} : { state }),
+          root,
+        }))
+    : schema;
+  const jsonSchema = z.toJSONSchema(wireSchema, {
+    io: options.strict ? "input" : "output",
     reused: "ref",
     override({ zodSchema, jsonSchema }) {
       // Unique type literals make anyOf equivalent; preserve the provider schema.
-      if (zodSchema === elementSchema && jsonSchema.oneOf) {
+      if (
+        (zodSchema === elementSchema || zodSchema === wireElementUnion) &&
+        jsonSchema.oneOf
+      ) {
         jsonSchema.anyOf = jsonSchema.oneOf;
         delete jsonSchema.oneOf;
       }
@@ -211,6 +284,7 @@ export function createCompactGeneration(catalog: {
         delete jsonSchema.propertyNames;
       // A closed object with no properties has exactly one possible value.
       if (
+        !options.strict &&
         jsonSchema.type === "object" &&
         jsonSchema.additionalProperties === false &&
         jsonSchema.properties &&
@@ -281,22 +355,33 @@ export function createCompactGeneration(catalog: {
             },
           ]),
         ),
-      ).concat(
-        catalog.actions && Object.keys(catalog.actions).length
-          ? "\nActions: " +
-              JSON.stringify(
-                Object.fromEntries(
-                  Object.entries(catalog.actions).map(([name, action]) => [
-                    name,
-                    {
-                      params: z.toJSONSchema(action.params),
-                      description: action.description,
-                    },
-                  ]),
-                ),
-              )
-          : "",
-      ),
+      )
+        .concat(
+          catalog.actions && Object.keys(catalog.actions).length
+            ? "\nActions: " +
+                JSON.stringify(
+                  Object.fromEntries(
+                    Object.entries(catalog.actions).map(([name, action]) => [
+                      name,
+                      {
+                        params: z.toJSONSchema(action.params),
+                        description: action.description,
+                      },
+                    ]),
+                  ),
+                )
+            : "",
+        )
+        .concat(
+          options.strict
+            ? "\nStrict wire format: include every field required by the response schema. " +
+                "Nodes always include children and slots; use empty arrays for unused children and named slots. " +
+                'Optional values use null for absence or {"value":...} for presence; {"value":null} preserves an explicit null. ' +
+                'Records use {"entries":[{"key":"name","value":...}]}, including state, event maps and action params. ' +
+                "For unions with case/value fields, choose the case specified in the schema and encode that branch in value. " +
+                "Encode props and expressions using these rules recursively; type, children and slots retain their node structure."
+            : "",
+        ),
     createCompiler() {
       type Node = {
         id: string;
@@ -326,7 +411,16 @@ export function createCompactGeneration(catalog: {
         const element = Object.fromEntries(
           [...entry.fields]
             .filter((key) => key !== "children" && key !== "slots")
-            .map((key) => [key, entry.raw[key]]),
+            .map((key) => {
+              const field = wireFields.get(type)?.[key];
+              if (options.strict && !field)
+                throw new Error(`Unknown component field: ${key}`);
+              return [
+                key,
+                field ? field.parse(entry.raw[key]) : entry.raw[key],
+              ];
+            })
+            .filter(([, value]) => value !== undefined),
         );
         if (
           catalog.components[type]!.slots?.includes("default") ||
@@ -344,12 +438,12 @@ export function createCompactGeneration(catalog: {
         const values = element.props as Record<string, unknown>;
         if (!hasExpression(values)) {
           const literal = catalog.components[type]!.props.parse(values);
-          if (!unchanged(values, literal))
+          if (!unchanged(values, literal, options.strict))
             throw new Error(
               "Schema validation must not strip or transform generated values",
             );
         }
-        if (!unchanged(element, parsed))
+        if (!unchanged(element, parsed, options.strict))
           throw new Error(
             "Schema validation must not strip or transform generated values",
           );
@@ -359,7 +453,7 @@ export function createCompactGeneration(catalog: {
           op: "add",
           path:
             "/elements/" + entry.id.replace(/~/g, "~0").replace(/\//g, "~1"),
-          value: parsed,
+          value: options.strict ? element : parsed,
         });
         if (!entry.published && entry.parent) {
           const list =
@@ -404,12 +498,11 @@ export function createCompactGeneration(catalog: {
           }
         }
         if (!complete) return;
-        if (path.length === 1 && path[0] === "state")
-          apply({
-            op: "add",
-            path: "/state",
-            value: z.record(z.string(), jsonValue).parse(value),
-          });
+        if (path.length === 1 && path[0] === "state") {
+          const state = wireState.parse(value);
+          if (state !== undefined)
+            apply({ op: "add", path: "/state", value: state });
+        }
         const owner = nodes.get(pathKey(path.slice(0, -1)));
         if (owner && typeof path.at(-1) === "string") {
           owner.fields.add(path.at(-1) as string);
@@ -432,9 +525,11 @@ export function createCompactGeneration(catalog: {
         },
         getResult() {
           if (failed) throw new Error("Invalid compact generation");
-          const raw = parser.getResult(),
+          const raw = options.strict
+              ? wireSchema.parse(parser.getResult())
+              : parser.getResult(),
             parsed = schema.parse(raw);
-          if (!unchanged(raw, parsed))
+          if (!unchanged(raw, parsed, options.strict))
             throw new Error(
               "Schema validation must not strip or transform generated values",
             );
