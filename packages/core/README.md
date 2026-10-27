@@ -693,3 +693,19 @@ json-render supports completely different spec formats for different renderers:
 ```
 
 Each renderer defines its own schema with `defineSchema()` and its own prompt template.
+
+## Compact streaming
+
+The optional schema-enforced format emits ordinary JSONL through a server-side transform. Existing adapters and JSONL editing remain unchanged. See the [streaming guide](https://json-render.dev/docs/streaming#compact-streaming).
+
+### Schema-enforced generation
+
+`createCompactGeneration(catalog.data)` derives a JSON Schema and a streaming decoder from the component Zod schemas. Send its `jsonSchema` through the provider's strict structured-output API and its `prompt` as the system instructions. Use the user's plain request: `buildUserPrompt()` adds JSONL instructions intended for the stock path.
+
+The model emits `{ "state": { ... }, "root": { "type": ..., "props": ..., "children": [...] } }`. State is optional; children and named slots contain nested components. Code assigns element IDs and references, so generation cannot create duplicate IDs, missing child references or cycles. `createTransform()` expands validated components into standard JSONL patches as their props arrive. All existing JSONL adapters can consume that transformed stream without new options. `createCompiler()` exposes immutable partial specs and patches directly.
+
+Props support standard expressions inside objects, arrays, records and tuples, as well as whole-prop bindings. Literal values retain the catalog's constraints; custom refinements involving unresolved expressions must be checked by the application after resolution. The schema constrains the component contract, not the agent's choice of content or visual design.
+
+Provider enforcement must be explicitly enabled on a compatible endpoint. The decoder independently rejects invalid values, unknown fields and truncated documents. It does not repair output. Schema validity does not establish factual or visual quality. This API generates a complete flat UI spec; use the existing JSONL editing path for subsequent changes. IDs follow tree positions and are not stable across newly generated layouts.
+
+Partial snapshots are provisional. `getResult()` and transform completion also run the shared structural validator, including repeat-state checks. Propagate completion errors instead of treating a partial preview as a successful generation.

@@ -376,15 +376,18 @@ function useElementSignatures(spec: Spec | null): Record<string, number> {
       }
 
       const prior = previous[frame.key];
+      const ownUnchanged = prior && structurallyEqual(prior.own, frame.element);
       const version =
         prior &&
-        structurallyEqual(prior.own, frame.element) &&
+        ownUnchanged &&
         structurallyEqual(prior.children, frame.childVersions)
           ? prior.version
           : ++versionRef.current;
       visiting.delete(frame.key);
       next[frame.key] = {
-        own: snapshotStructuralValue(frame.element) as UIElement,
+        own: ownUnchanged
+          ? prior.own
+          : (snapshotStructuralValue(frame.element) as UIElement),
         children: frame.childVersions,
         version,
       };

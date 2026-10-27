@@ -293,3 +293,9 @@ The `StateStore` interface: `get(path)`, `set(path, value)`, `update(updates)`, 
 | `check` | TypeScript helpers for creating validation checks |
 | `BuiltInAction` | Type for built-in action definitions (`name` + `description`) |
 | `ActionBinding` | Action binding type (includes `preventDefault` field) |
+
+## Compact streams
+
+For provider-enforced generation, use `createCompactGeneration(catalog.data)`. Send its `jsonSchema` through strict structured outputs, use its `prompt` and the plain user request, and pipe generated text through `createTransform()` to feed ordinary JSONL consumers. The model emits nested components; code assigns IDs and references. Do not use `buildUserPrompt()` on this path: its JSONL instructions conflict with the nested document. Always propagate decoder/provider failures; never fall back silently to unenforced generation. Keep model/provider configuration and retry budgets in the application.
+
+Partial snapshots are provisional. Always call `getResult()` or await transform completion to run structural validation, including repeat-state checks; propagate completion errors.

@@ -273,3 +273,7 @@ render(
 - Use Heading for section titles, Divider to separate sections, Badge for status, KeyValue for labeled data, Card for bordered groups.
 - Use Tabs for multi-view UIs with visible conditions on child content.
 - Use Sparkline for inline trends and BarChart for comparing values.
+
+## Compact streaming
+
+Use `createCompactGeneration(catalog.data)` from `@json-render/core` with a compatible structured-output provider. Pipe the decoded model text through `generation.createTransform()` on the server; the existing streaming hooks consume its standard JSONL output without new options. See the [streaming guide](https://json-render.dev/docs/streaming#compact-streaming).

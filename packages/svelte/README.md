@@ -155,3 +155,7 @@ Full API reference: [json-render.dev/docs/api/svelte](https://json-render.dev/do
 ## License
 
 Apache-2.0
+
+## Compact streaming
+
+Use `createCompactGeneration(catalog.data)` from `@json-render/core` with a compatible structured-output provider. Pipe the decoded model text through `generation.createTransform()` on the server; the existing streaming hooks consume its standard JSONL output without new options. See the [streaming guide](https://json-render.dev/docs/streaming#compact-streaming).
