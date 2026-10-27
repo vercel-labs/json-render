@@ -236,6 +236,9 @@ describe("compact strict wire codec", () => {
     );
     expect(wire.parse(["x"])).toEqual(["x"]);
     expect(wire.parse(["x", 2])).toEqual(["x", 2]);
+    expect(() => wire.parse(["x", null])).toThrow(
+      "Tuple entries must not be absent",
+    );
     expect(() => wire.parse([])).toThrow();
     expect(() => wire.parse(["x", -1])).toThrow();
     expect(() => wire.parse(["x", 1, 2])).toThrow();
@@ -244,6 +247,13 @@ describe("compact strict wire codec", () => {
     );
     expect(rest.parse(["x", 1, 2])).toEqual(["x", 1, 2]);
     expect(() => rest.parse(["x", "wrong"])).toThrow();
+    const optionalRest = createCompactWireCodec()(
+      z.tuple([z.string()]).rest(z.number().optional()),
+    );
+    expect(optionalRest.parse(["x", 1])).toEqual(["x", 1]);
+    expect(() => optionalRest.parse(["x", null])).toThrow(
+      "Tuple entries must not be absent",
+    );
   });
 
   it.each([

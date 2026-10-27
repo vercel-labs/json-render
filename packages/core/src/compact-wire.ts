@@ -239,7 +239,10 @@ export function createCompactWireCodec(): (schema: z.ZodType) => z.ZodType {
               checks: def.checks?.filter(
                 (check) => check._zod.def.check !== "custom",
               ),
-            }),
+            }).refine(
+              (values) => values.every((value) => value !== undefined),
+              "Tuple entries must not be absent",
+            ),
             schema,
           );
           break;

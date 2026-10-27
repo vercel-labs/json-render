@@ -364,6 +364,46 @@ describe("positional compact generation", () => {
       ).toThrow();
   });
 
+  it("preserves optional tuple props through JSONL and rejects absent entries", async () => {
+    const props = z.object({
+      pair: z.tuple([z.string(), z.number().optional(), z.boolean().nullish()]),
+    });
+    const gen = createCompactGeneration({ components: { Pair: { props } } });
+    async function replay(pair: unknown[]) {
+      const source = JSON.stringify({ state: null, root: ["Pair", [pair]] });
+      const stream = new ReadableStream<string>({
+        start(controller) {
+          for (const character of source) controller.enqueue(character);
+          controller.close();
+        },
+      });
+      const reader = stream.pipeThrough(gen.createTransform()).getReader();
+      const compiler = createSpecStreamCompiler<Spec>();
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        compiler.push(value);
+        for (const element of Object.values(
+          compiler.getResult().elements ?? {},
+        ))
+          expect(props.safeParse(element.props).success).toBe(true);
+      }
+      return compiler.getResult().elements.e0?.props;
+    }
+    await expect(replay(["x"])).resolves.toEqual({ pair: ["x"] });
+    await expect(replay(["x", 2, { value: null }])).resolves.toEqual({
+      pair: ["x", 2, null],
+    });
+    for (const pair of [
+      ["x", null],
+      ["x", null, { value: true }],
+      ["x", 2, null],
+    ])
+      await expect(replay(pair)).rejects.toThrow(
+        "Tuple entries must not be absent",
+      );
+  });
+
   it("retains recursive, union, tuple, record and nested refinement contracts", () => {
     const recursive: z.ZodType = z.lazy(() =>
       z.object({ name: z.string(), next: recursive.optional() }),
