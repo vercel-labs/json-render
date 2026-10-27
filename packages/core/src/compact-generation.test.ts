@@ -32,6 +32,46 @@ const document = {
 };
 
 describe("positional compact generation", () => {
+  it.each([
+    [
+      "nullable then optional",
+      z.string().nullable().optional(),
+      { value: "hello" },
+    ],
+    ["optional then nullable", z.string().optional().nullable(), "hello"],
+  ])(
+    "preserves omission and null through JSONL for %s",
+    async (_, value, present) => {
+      const gen = createCompactGeneration({
+        components: { Label: { props: z.object({ value }) } },
+      });
+      for (const [encoded, expected] of [
+        [null, {}],
+        [{ value: null }, { value: null }],
+        [present, { value: "hello" }],
+      ]) {
+        const source = JSON.stringify({
+          state: null,
+          root: ["Label", [encoded]],
+        });
+        const input = new ReadableStream<string>({
+          start(controller) {
+            for (const character of source) controller.enqueue(character);
+            controller.close();
+          },
+        });
+        const reader = input.pipeThrough(gen.createTransform()).getReader();
+        const replay = createSpecStreamCompiler<Spec>();
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          replay.push(value);
+        }
+        expect(replay.getResult().elements.e0?.props).toStrictEqual(expected);
+      }
+    },
+  );
+
   it("publishes props before descendants and preserves omitted versus null props", () => {
     const gen = createCompactGeneration({
       components: {

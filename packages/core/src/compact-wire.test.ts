@@ -67,6 +67,85 @@ describe("compact strict wire codec", () => {
     expect(() => constrained.parse({ entries: [["other", 1]] })).toThrow();
   });
 
+  it("preserves omission and explicit null when nullable wraps optional", () => {
+    const wire = createCompactWireCodec()(
+      z.object({
+        nested: z.object({ label: z.string().optional().nullable() }),
+      }),
+    );
+    expect(wire.parse({ nested: { label: null } })).toEqual({ nested: {} });
+    expect(wire.parse({ nested: { label: { value: null } } })).toEqual({
+      nested: { label: null },
+    });
+    expect(wire.parse({ nested: { label: "ok" } })).toEqual({
+      nested: { label: "ok" },
+    });
+    expect(() => wire.parse({ nested: {} })).toThrow();
+    expect(() => wire.parse({ nested: { label: 1 } })).toThrow();
+    const input = z.fromJSONSchema(z.toJSONSchema(wire, { io: "input" }));
+    expect(input.safeParse({ nested: { label: null } }).success).toBe(true);
+    expect(
+      input.safeParse({ nested: { label: { value: null } } }).success,
+    ).toBe(true);
+  });
+
+  it("retains nullable and optional refinements without evaluating them during preparation", () => {
+    const innerValues: unknown[] = [];
+    const outerValues: unknown[] = [];
+    const inner = z
+      .string()
+      .optional()
+      .refine((value) => {
+        innerValues.push(value);
+        return value !== "inner-blocked";
+      }, "Inner blocked");
+    const wire = createCompactWireCodec()(
+      inner.nullable().refine((value) => {
+        outerValues.push(value);
+        return value !== "outer-blocked";
+      }, "Outer blocked"),
+    );
+    z.toJSONSchema(wire, { io: "input" });
+    expect(innerValues).toEqual([]);
+    expect(outerValues).toEqual([]);
+    expect(wire.parse({ value: null })).toBeNull();
+    expect(innerValues).toEqual([]);
+    expect(outerValues).toEqual([null]);
+    expect(wire.parse(null)).toBeUndefined();
+    expect(innerValues).toContain(undefined);
+    expect(outerValues).toContain(undefined);
+    expect(() => wire.parse("inner-blocked")).toThrow("Inner blocked");
+    expect(() => wire.parse("outer-blocked")).toThrow("Outer blocked");
+    const outerNullable = createCompactWireCodec()(
+      inner
+        .nullable()
+        .refine((value) => {
+          if (value === null) throw new Error("Inner nullable must be skipped");
+          return true;
+        })
+        .nullable(),
+    );
+    expect(outerNullable.parse({ value: null })).toBeNull();
+  });
+
+  it("tags nullable optional unions that collide with explicit null wrappers", () => {
+    const choice = z
+      .union([z.string().optional(), z.number().optional()])
+      .nullable();
+    const wire = createCompactWireCodec()(
+      z.union([choice, z.object({ value: z.null() })]),
+    );
+    expect(wire.parse({ case: 0, value: { value: null } })).toBeNull();
+    expect(wire.parse({ case: 1, value: { value: null } })).toEqual({
+      value: null,
+    });
+    expect(
+      wire.parse({ case: 0, value: { case: 0, value: null } }),
+    ).toBeUndefined();
+    expect(wire.parse({ case: 0, value: { case: 1, value: 2 } })).toBe(2);
+    expect(() => wire.parse({ value: null })).toThrow();
+  });
+
   it("tags colliding union encodings and leaves disjoint alternatives untagged", () => {
     const wire = createCompactWireCodec()(
       z.union([
