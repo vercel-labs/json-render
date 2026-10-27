@@ -1374,3 +1374,39 @@ describe("createMixedStreamParser - fence mode", () => {
     expect(texts.length).toBe(0);
   });
 });
+describe("path helpers when a parent on the path is null", () => {
+  it("add creates the container the next segment needs", () => {
+    const data: Record<string, unknown> = {
+      elements: { main: { children: null } },
+    };
+    addByPath(data, "/elements/main/children/0", "a");
+    expect(data).toEqual({
+      elements: { main: { children: ["a"] } },
+    });
+  });
+
+  it("replace writes through a null parent", () => {
+    const data: Record<string, unknown> = { state: { form: null } };
+    setByPath(data, "/state/form/name", "x");
+    expect(data).toEqual({ state: { form: { name: "x" } } });
+  });
+
+  it("remove leaves a null parent alone instead of throwing", () => {
+    const data: Record<string, unknown> = { state: { form: null } };
+    expect(() => removeByPath(data, "/state/form/name")).not.toThrow();
+    expect(data).toEqual({ state: { form: null } });
+  });
+
+  it("compileSpecStream applies a patch through a null parent", () => {
+    const result = compileSpecStream(
+      [
+        '{"op":"add","path":"/elements/main","value":{"type":"Section","props":{},"children":null}}',
+        '{"op":"add","path":"/elements/main/children/0","value":"a"}',
+      ].join("\n"),
+    );
+
+    expect(result).toEqual({
+      elements: { main: { type: "Section", props: {}, children: ["a"] } },
+    });
+  });
+});
