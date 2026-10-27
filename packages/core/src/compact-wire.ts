@@ -21,15 +21,20 @@ function domain(schema: Schema): Domain {
     case "boolean":
     case "null":
     case "array":
-      return [def.type];
+    case "tuple":
+      return [def.type === "tuple" ? "array" : def.type];
     case "literal":
       return def.values.map((value) =>
         value === null ? "null" : typeof value,
       );
     case "enum":
       return Object.values(def.entries).map((value) => typeof value);
-    case "optional":
-      return ["null", 'object:["value"]'];
+    case "optional": {
+      const inner = domain(def.innerType);
+      return acceptsNull(def.innerType)
+        ? ["null", 'object:["value"]']
+        : inner && ["null", ...inner];
+    }
     case "record":
       return ['object:["entries"]'];
     case "object":
@@ -59,19 +64,39 @@ function domain(schema: Schema): Domain {
   }
 }
 
+function acceptsNull(schema: Schema): boolean {
+  const def = schema._zod.def as Definition;
+  switch (def.type) {
+    case "optional":
+      return acceptsNull(def.innerType);
+    case "union":
+      return def.options.some(acceptsNull);
+    case "literal":
+      return def.values.includes(null);
+    case "nullable":
+    case "null":
+    case "any":
+    case "unknown":
+    case "lazy":
+      return true;
+    default:
+      return false;
+  }
+}
+
 function entries(key: Schema, value: z.ZodType): z.ZodType {
   return z
     .strictObject({
-      entries: z.array(z.strictObject({ key, value })),
+      entries: z.array(z.tuple([key as z.ZodType, value])),
     })
     .transform(({ entries }, ctx) => {
-      const keys = entries.map((entry) => String(entry.key));
+      const keys = entries.map((entry) => String(entry[0]));
       if (new Set(keys).size !== keys.length) {
         ctx.addIssue({ code: "custom", message: "Duplicate record key" });
         return z.NEVER;
       }
       return Object.fromEntries(
-        entries.map((entry, index) => [keys[index]!, entry.value]),
+        entries.map((entry, index) => [keys[index]!, entry[1]]),
       );
     });
 }
@@ -141,11 +166,13 @@ export function createCompactWireCodec(): (schema: z.ZodType) => z.ZodType {
           wire = validate(
             z.union([
               z.null().transform(() => undefined),
-              z
-                .strictObject({
-                  value: convert(def.innerType, `${path}.optional`),
-                })
-                .transform((value) => value.value),
+              acceptsNull(def.innerType)
+                ? z
+                    .strictObject({
+                      value: convert(def.innerType, `${path}.optional`),
+                    })
+                    .transform((value) => value.value)
+                : convert(def.innerType, `${path}.optional`),
             ]),
             schema,
           );
@@ -191,6 +218,24 @@ export function createCompactWireCodec(): (schema: z.ZodType) => z.ZodType {
             new z.ZodArray({
               ...def,
               element: convert(def.element, `${path}[]`),
+              checks: def.checks?.filter(
+                (check) => check._zod.def.check !== "custom",
+              ),
+            }),
+            schema,
+          );
+          break;
+        case "tuple":
+          wire = validate(
+            new z.ZodTuple({
+              ...def,
+              items: def.items.map((item, index) => {
+                const converted = convert(item, `${path}[${index}]`);
+                return item._zod.optin === "optional"
+                  ? converted.optional()
+                  : converted;
+              }),
+              rest: def.rest ? convert(def.rest, `${path}.rest`) : null,
               checks: def.checks?.filter(
                 (check) => check._zod.def.check !== "custom",
               ),

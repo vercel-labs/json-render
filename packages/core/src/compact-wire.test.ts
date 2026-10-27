@@ -36,9 +36,9 @@ describe("compact strict wire codec", () => {
     const decoded = wire.parse({
       values: {
         entries: [
-          { key: "__proto__", value: 1 },
-          { key: "constructor", value: 2 },
-          { key: "a/b~c", value: 3 },
+          ["__proto__", 1],
+          ["constructor", 2],
+          ["a/b~c", 3],
         ],
       },
     }) as { values: Record<string, number> };
@@ -51,24 +51,20 @@ describe("compact strict wire codec", () => {
       wire.parse({
         values: {
           entries: [
-            { key: "same", value: 1 },
-            { key: "same", value: 2 },
+            ["same", 1],
+            ["same", 2],
           ],
         },
       }),
     ).toThrow(/duplicate/i);
     expect(() =>
-      wire.parse({ values: { entries: [{ key: "__proto__", value: -1 }] } }),
+      wire.parse({ values: { entries: [["__proto__", -1]] } }),
     ).toThrow();
     const constrained = createCompactWireCodec()(
       z.record(z.enum(["a", "b"]), z.number()),
     );
-    expect(() =>
-      constrained.parse({ entries: [{ key: "a", value: 1 }] }),
-    ).toThrow();
-    expect(() =>
-      constrained.parse({ entries: [{ key: "other", value: 1 }] }),
-    ).toThrow();
+    expect(() => constrained.parse({ entries: [["a", 1]] })).toThrow();
+    expect(() => constrained.parse({ entries: [["other", 1]] })).toThrow();
   });
 
   it("tags colliding union encodings and leaves disjoint alternatives untagged", () => {
@@ -80,9 +76,10 @@ describe("compact strict wire codec", () => {
         }),
       ]),
     );
-    const value = { entries: [{ key: "x", value: 2 }] };
+    const value = { entries: [["x", 2]] };
+    const objectValue = { entries: [{ key: "x", value: 2 }] };
     expect(wire.parse({ case: 0, value })).toEqual({ x: 2 });
-    expect(wire.parse({ case: 1, value })).toEqual(value);
+    expect(wire.parse({ case: 1, value: objectValue })).toEqual(objectValue);
     expect(() => wire.parse(value)).toThrow();
     expect(() => wire.parse({ case: 2, value })).toThrow();
     const disjoint = createCompactWireCodec()(
@@ -93,8 +90,8 @@ describe("compact strict wire codec", () => {
     const optional = createCompactWireCodec()(
       z.union([z.string().optional(), z.object({ value: z.number() })]),
     );
-    expect(optional.parse({ case: 0, value: null })).toBeUndefined();
-    expect(optional.parse({ case: 1, value: { value: 2 } })).toEqual({
+    expect(optional.parse(null)).toBeUndefined();
+    expect(optional.parse({ value: 2 })).toEqual({
       value: 2,
     });
   });
@@ -111,16 +108,11 @@ describe("compact strict wire codec", () => {
     expect(
       wire.parse({
         text: "root",
-        children: {
-          value: [{ text: "child", children: null, data: null }],
-        },
+        children: [{ text: "child", children: null, data: null }],
         data: {
           entries: [
-            {
-              key: "__proto__",
-              value: { entries: [{ key: "safe", value: true }] },
-            },
-            { key: "items", value: [1, "two", false, null] },
+            ["__proto__", { entries: [["safe", true]] }],
+            ["items", [1, "two", false, null]],
           ],
         },
       }),
@@ -146,14 +138,14 @@ describe("compact strict wire codec", () => {
       .max(2)
       .refine((items) => items.some((item) => item.value === 3), "Needs three");
     const wire = createCompactWireCodec()(original);
-    expect(wire.parse([{ value: null }, { value: { value: 3 } }])).toEqual([
+    expect(wire.parse([{ value: null }, { value: 3 }])).toEqual([
       {},
       { value: 3 },
     ]);
     expect(() => wire.parse([])).toThrow();
     expect(() => wire.parse([{ value: null }])).toThrow("Needs three");
     expect(() =>
-      wire.parse(Array.from({ length: 3 }, () => ({ value: { value: 3 } }))),
+      wire.parse(Array.from({ length: 3 }, () => ({ value: 3 }))),
     ).toThrow();
     const json = z.toJSONSchema(wire, { io: "input" });
     expect(json.minItems).toBe(1);
@@ -238,8 +230,23 @@ describe("compact strict wire codec", () => {
     expect(JSON.stringify(json)).toContain("$ref");
   });
 
+  it("preserves tuple lengths, optional tails, rest types and decoded refinements", () => {
+    const wire = createCompactWireCodec()(
+      z.tuple([z.string(), z.number().positive().optional()]),
+    );
+    expect(wire.parse(["x"])).toEqual(["x"]);
+    expect(wire.parse(["x", 2])).toEqual(["x", 2]);
+    expect(() => wire.parse([])).toThrow();
+    expect(() => wire.parse(["x", -1])).toThrow();
+    expect(() => wire.parse(["x", 1, 2])).toThrow();
+    const rest = createCompactWireCodec()(
+      z.tuple([z.string()]).rest(z.number().positive()),
+    );
+    expect(rest.parse(["x", 1, 2])).toEqual(["x", 1, 2]);
+    expect(() => rest.parse(["x", "wrong"])).toThrow();
+  });
+
   it.each([
-    ["tuple", z.tuple([z.string(), z.number()])],
     [
       "intersection",
       z.intersection(z.object({ a: z.string() }), z.object({ b: z.string() })),
@@ -262,13 +269,13 @@ describe("compact strict wire codec", () => {
       z.object({
         props: z.lazy(() =>
           z.object({
-            items: z.array(z.object({ pair: z.tuple([z.string()]) })),
+            items: z.array(z.object({ pair: z.string().default("x") })),
           }),
         ),
       }),
     );
     expect(() => z.toJSONSchema(wire, { io: "input" })).toThrow(
-      'Unsupported compact wire schema type: tuple at $["props"].lazy["items"][]["pair"]',
+      'Unsupported compact wire schema type: default at $["props"].lazy["items"][]["pair"]',
     );
   });
 });
