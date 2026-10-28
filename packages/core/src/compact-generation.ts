@@ -121,7 +121,6 @@ export function createCompactGeneration(catalog: {
       : value;
     literal = literal.clone(def);
     if (value.description) literal = literal.describe(value.description);
-    // These wrappers already accept expressions through their transformed inner schemas.
     result = ["optional", "nullable", "lazy", "union", "intersection"].includes(
       def.type,
     )
@@ -277,7 +276,6 @@ export function createCompactGeneration(catalog: {
       },
     },
   );
-  // Short local references reduce request size without changing constraints.
   const names = new Map(
     Object.keys(jsonSchema.$defs ?? {}).map((name, i) => [name, `s${i}`]),
   );
@@ -435,38 +433,39 @@ export function createCompactGeneration(catalog: {
       }
       const parser = createJSONStream((path, value, complete) => {
         const key = pathKey(path);
-        if (!complete && Array.isArray(value)) {
+        if (!complete) {
+          if (!Array.isArray(value)) return;
+          const isRoot = path.length === 1 && path[0] === "root";
+          if (!isRoot && typeof path.at(-1) !== "number") return;
           let parent: Node | undefined, slot: string | undefined;
-          if (typeof path.at(-1) === "number") {
-            const childOwner = nodes.get(pathKey(path.slice(0, -2)));
-            const slotOwner = nodes.get(pathKey(path.slice(0, -3)));
-            if (
-              childOwner?.layout?.childrenIndex !== undefined &&
-              path.at(-2) === childOwner.layout.childrenIndex
-            )
-              parent = childOwner;
-            else if (
-              slotOwner?.layout?.slotsIndex !== undefined &&
-              path.at(-3) === slotOwner.layout.slotsIndex &&
-              slotOwner.layout.slots.includes(path.at(-2) as string)
-            ) {
-              parent = slotOwner;
-              slot = path.at(-2) as string;
-            }
+          const childOwner = nodes.get(pathKey(path.slice(0, -2)));
+          const slotOwner = nodes.get(pathKey(path.slice(0, -3)));
+          if (
+            childOwner?.layout?.childrenIndex !== undefined &&
+            path.at(-2) === childOwner.layout.childrenIndex
+          )
+            parent = childOwner;
+          else if (
+            slotOwner?.layout?.slotsIndex !== undefined &&
+            path.at(-3) === slotOwner.layout.slotsIndex &&
+            slotOwner.layout.slots.includes(path.at(-2) as string)
+          ) {
+            parent = slotOwner;
+            slot = path.at(-2) as string;
           }
-          if ((path.length === 1 && path[0] === "root") || parent)
-            nodes.set(key, {
-              id: `e${nodes.size}`,
-              raw: value,
-              published: false,
-              children: [],
-              slots: Object.create(null),
-              parent,
-              slot,
-              index: path.at(-1) as number,
-            });
+          if (!isRoot && !parent) return;
+          nodes.set(key, {
+            id: `e${nodes.size}`,
+            raw: value,
+            published: false,
+            children: [],
+            slots: Object.create(null),
+            parent,
+            slot,
+            index: path.at(-1) as number,
+          });
+          return;
         }
-        if (!complete) return;
         if (path.length === 1 && path[0] === "state") {
           const state = wireState.parse(value);
           if (state !== undefined)

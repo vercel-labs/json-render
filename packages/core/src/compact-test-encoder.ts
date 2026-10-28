@@ -13,7 +13,6 @@ type Node = {
 };
 type JSONSchema = Record<string, any>;
 
-/** Encodes readable fixtures into the generated positional schema for compiler tests. */
 export function encodeCompactFixture(
   generation: ReturnType<typeof createCompactGeneration>,
   document: { state?: unknown; root: Node },

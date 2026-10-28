@@ -696,22 +696,8 @@ Each renderer defines its own schema with `defineSchema()` and its own prompt te
 
 ## Compact streaming
 
-The optional schema-enforced format emits ordinary JSONL through a server-side transform. Existing adapters and JSONL editing remain unchanged. See the [streaming guide](https://json-render.dev/docs/streaming#compact-streaming).
+`createCompactGeneration(catalog.data)` derives a positional JSON response schema, prompt, and streaming decoder from the component catalog. Send `jsonSchema` through a compatible provider's enforced structured-output API and `prompt` as system instructions. Use the plain user request; `buildUserPrompt()` adds incompatible JSONL instructions.
 
-### Schema-enforced generation
+Pipe decoded model text through `createTransform()` to emit standard JSONL patches as each node's props complete. Existing streaming adapters consume those patches. For direct spec access, use `createCompiler().push(text)` and call `getResult()` at completion. Partial snapshots are provisional; propagate provider and completion errors, including structural validation failures. Generated IDs are not stable across new layouts.
 
-`createCompactGeneration(catalog.data)` derives one positional JSON wire schema and streaming decoder from the component Zod schemas. Send its `jsonSchema` through a compatible provider's enforced structured-output API and its `prompt` as system instructions. Use the user's plain request: `buildUserPrompt()` adds instructions for the stock JSONL path.
-
-The wire document is `{ "state": null, "root": ["Text", ["Hello"]] }` for a catalog whose `Text` component requires a text prop. Nodes contain `[type, propsTuple, children-if-supported, slots-if-supported, metadata-if-needed]`. The prompt lists each component's stable prop order: required props first, then optional props. Trim trailing absent optional props; interior absence uses `null`. Nonnullable optional values are direct; nullable or unknown optionals retain `{ "value": ... }`, preserving explicit nulls. Nested data objects retain their named fields. Within tuple-valued props, omit absent trailing items; absence markers in occupied positions are rejected because JSON cannot preserve undefined array entries.
-
-Records use `{ "entries": [["key", "value"]] }`, including state and event maps; duplicate keys fail decoding. Overlapping union alternatives use `case` and `value`. Child arrays appear only on components supporting the default slot. Named slots contain arrays of nodes. An optional metadata object holds `visible`, `on`, `watch`, and `repeat`, each required within that object and nullable for absence. State is `null` when absent.
-
-Code assigns element IDs and references. `createTransform()` emits standard JSONL patches as each node's props tuple completes, before its descendants finish. Existing JSONL adapters consume that stream without new options. `createCompiler()` exposes immutable partial specs and patches directly.
-
-The provider must support `prefixItems`, `minItems`, `maxItems`, closed objects, recursive references, and nested unions. Minimal tuple probes on three selected model endpoints do not establish support for full recursive catalogs or other providers. Unsupported schemas must fail without an unenforced fallback. Intersections, defaults, transforms, and open/catchall objects are rejected during schema preparation; supported tuples and scalar bounds retain their constraints. Custom refinements remain decoder checks.
-
-Props support standard expressions inside objects, arrays, records and tuples, as well as whole-prop bindings. Literal values retain the catalog's constraints; custom refinements involving unresolved expressions must be checked by the application after resolution. The schema constrains the component contract, not the agent's choice of content or visual design.
-
-Provider enforcement must be explicitly enabled on a compatible endpoint. The decoder independently rejects invalid values, unknown fields and truncated documents. It does not repair output. Schema validity does not establish factual or visual quality. This API generates a complete flat UI spec; use the existing JSONL editing path for subsequent changes. IDs follow tree positions and are not stable across newly generated layouts.
-
-Partial snapshots are provisional. `getResult()` and transform completion also run the shared structural validator, including repeat-state checks. Propagate completion errors instead of treating a partial preview as a successful generation.
+The provider must support bounded tuples, recursive references, closed objects, and nested unions. Unsupported schemas must fail without an unenforced fallback. Literal props retain catalog constraints; validate custom refinements involving expressions in the application after resolution. See the [streaming guide](https://json-render.dev/docs/streaming#compact-streaming) for wire encodings and supported schemas.

@@ -121,7 +121,6 @@ function validate(wire: z.ZodType, original: Schema): z.ZodType {
   });
 }
 
-/** Builds strict wire inputs that decode to values validated by the original schemas. */
 export function createCompactWireCodec(): (schema: z.ZodType) => z.ZodType {
   const cache = new Map<Schema, z.ZodType>();
   const json: z.ZodType = z.lazy(() =>
