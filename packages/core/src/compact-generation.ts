@@ -131,7 +131,6 @@ export function createCompactGeneration(
       : value;
     literal = literal.clone(def);
     if (value.description) literal = literal.describe(value.description);
-    // These wrappers already accept expressions through their transformed inner schemas.
     result = ["optional", "nullable", "lazy", "union", "intersection"].includes(
       def.type,
     )
@@ -279,10 +278,8 @@ export function createCompactGeneration(
         jsonSchema.anyOf = jsonSchema.oneOf;
         delete jsonSchema.oneOf;
       }
-      // JSON object keys are already strings; this clause adds no constraint.
       if (JSON.stringify(jsonSchema.propertyNames) === '{"type":"string"}')
         delete jsonSchema.propertyNames;
-      // A closed object with no properties has exactly one possible value.
       if (
         !options.strict &&
         jsonSchema.type === "object" &&
@@ -293,7 +290,6 @@ export function createCompactGeneration(
         Object.assign(jsonSchema, { const: {} });
     },
   });
-  // Short local references reduce request size without changing constraints.
   const names = new Map(
     Object.keys(jsonSchema.$defs ?? {}).map((name, i) => [name, `s${i}`]),
   );

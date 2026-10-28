@@ -696,20 +696,8 @@ Each renderer defines its own schema with `defineSchema()` and its own prompt te
 
 ## Compact streaming
 
-The optional schema-enforced format emits ordinary JSONL through a server-side transform. Existing adapters and JSONL editing remain unchanged. See the [streaming guide](https://json-render.dev/docs/streaming#compact-streaming).
+`createCompactGeneration(catalog.data, { strict: true })` derives a response schema, prompt, and streaming decoder for OpenAI strict structured outputs. Send `jsonSchema` through the provider's enforced structured-output API and `prompt` as the system instructions. Use the plain user request; `buildUserPrompt()` adds incompatible JSONL instructions.
 
-### Schema-enforced generation
+Pipe decoded model text through `createTransform()` to emit standard JSONL patches for existing streaming adapters. For direct spec access, use `createCompiler().push(text)` and call `getResult()` at completion. Partial snapshots are provisional; propagate provider and completion errors, including structural validation failures. Generated IDs are not stable across new layouts.
 
-`createCompactGeneration(catalog.data, { strict: true })` derives an OpenAI-compatible strict wire schema and a streaming decoder from the component Zod schemas. Send its `jsonSchema` through the provider's strict structured-output API and its `prompt` as the system instructions. Use the user's plain request: `buildUserPrompt()` adds JSONL instructions intended for the stock path.
-
-The decoded document is `{ "state": { ... }, "root": { "type": ..., "props": ..., "children": [...] } }`. State is optional; children and named slots contain nested components. Code assigns element IDs and references, so generation cannot create duplicate IDs, missing child references or cycles. `createTransform()` expands validated components into standard JSONL patches as their props arrive. All existing JSONL adapters can consume that transformed stream without new options. `createCompiler()` exposes immutable partial specs and patches directly.
-
-The strict profile requires every wire field. Optional fields use `null` for absence or `{ "value": ... }` for presence, preserving explicit nulls. Records use `{ "entries": [{ "key": ..., "value": ... }] }`; duplicate keys fail decoding. Overlapping union alternatives use `case` and `value`. Nodes always include child lists, named slots, and metadata. The compiler decodes these values before validation and publication.
-
-The default `createCompactGeneration(catalog.data)` keeps the native nested JSON format for providers supporting its full schema. Its omitted fields and open records are not compatible with OpenAI strict mode. The strict profile rejects unsupported catalog types, including tuples, intersections, defaults, and transforms, instead of discarding constraints. Custom refinements remain decoder checks.
-
-Props support standard expressions inside objects, arrays, records and tuples, as well as whole-prop bindings. Literal values retain the catalog's constraints; custom refinements involving unresolved expressions must be checked by the application after resolution. The schema constrains the component contract, not the agent's choice of content or visual design.
-
-Provider enforcement must be explicitly enabled on a compatible endpoint. The decoder independently rejects invalid values, unknown fields and truncated documents. It does not repair output. Schema validity does not establish factual or visual quality. This API generates a complete flat UI spec; use the existing JSONL editing path for subsequent changes. IDs follow tree positions and are not stable across newly generated layouts.
-
-Partial snapshots are provisional. `getResult()` and transform completion also run the shared structural validator, including repeat-state checks. Propagate completion errors instead of treating a partial preview as a successful generation.
+The default `createCompactGeneration(catalog.data)` uses native nested JSON and is not compatible with OpenAI strict mode. Unsupported strict catalog schemas fail preparation. Literal props retain catalog constraints; validate custom refinements involving expressions in the application after resolution. See the [streaming guide](https://json-render.dev/docs/streaming#compact-streaming) for wire encodings, supported schemas, expressions, and provider requirements.

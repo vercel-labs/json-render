@@ -6,7 +6,6 @@ type Container = {
   key?: string;
 };
 
-/** Strict incremental JSON parsing; callbacks never invent incomplete values. */
 export function createJSONStream(
   onValue: (path: Path, value: unknown, complete: boolean) => void,
 ) {
