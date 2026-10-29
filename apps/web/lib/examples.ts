@@ -3,8 +3,10 @@ export type Example = {
   title: string;
   description: string;
   tags: string[];
-  githubPath: string;
+  githubPath?: string;
   demoUrl?: string;
+  sourceUrl?: string;
+  templateUrl?: string;
 };
 
 const GITHUB_BASE =
@@ -19,6 +21,15 @@ export const examples: Example[] = [
     tags: ["React", "Next.js", "AI"],
     githubPath: "examples/chat",
     demoUrl: "https://chat-demo.json-render.dev",
+  },
+  {
+    slug: "eve-tanstack-agent",
+    title: "eve TanStack Agent",
+    description:
+      "Web chat built on eve and TanStack Start, where the agent replies with result cards, metrics, and tables.",
+    tags: ["React", "TanStack Start", "AI"],
+    sourceUrl: "https://github.com/vercel-labs/eve-tanstack-start-template",
+    templateUrl: "https://vercel.com/templates/eve/eve-tanstack-agent",
   },
   {
     slug: "dashboard",
@@ -172,5 +183,5 @@ export const allTags = Array.from(
 ).sort();
 
 export function getGitHubUrl(example: Example): string {
-  return `${GITHUB_BASE}/${example.slug}`;
+  return example.sourceUrl ?? `${GITHUB_BASE}/${example.slug}`;
 }
