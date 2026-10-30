@@ -1,6 +1,6 @@
 {
   "name": "@json-render/solid",
-  "version": "0.21.3",
+  "version": "0.21.4",
   "license": "Apache-2.0",
   "description": "SolidJS renderer for @json-render/core. JSON becomes Solid components.",
   "keywords": [

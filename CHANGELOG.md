@@ -1,8 +1,21 @@
 # Changelog
 
-## 0.21.3
+## 0.21.4
 
 <!-- release:start -->
+
+### Documentation
+
+- Added the **eve TanStack Agent template** to the examples page, with links to its source repository and Vercel template (#442)
+- Added shared **technical writing guidance** for documentation changes (#441)
+
+### Contributors
+
+- @bensabic
+
+<!-- release:end -->
+
+## 0.21.3
 
 ### Bug Fixes
 
@@ -28,8 +41,6 @@
 - @adhamali450
 - @monsterlag
 - @Bortlesboat
-
-<!-- release:end -->
 
 ## 0.21.2
 
