@@ -2532,6 +2532,9 @@ importers:
       '@internal/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
+      '@types/node':
+        specifier: ^22.15.3
+        version: 22.19.6
       esbuild-plugin-solid:
         specifier: ^0.6.0
         version: 0.6.0(esbuild@0.27.2)(solid-js@1.9.11)
