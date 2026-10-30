@@ -298,7 +298,8 @@ export function getByPath(obj: unknown, path: string): unknown {
     }
 
     if (Array.isArray(current)) {
-      const index = parseInt(segment, 10);
+      const index = parseArrayIndex(segment);
+      if (index === undefined) return undefined;
       current = current[index];
     } else if (typeof current === "object" && Object.hasOwn(current, segment)) {
       current = (current as Record<string, unknown>)[segment];
@@ -348,7 +349,14 @@ function joinStatePath(basePath: string, childPath: string): string {
  * Check if a string is a numeric index
  */
 function isNumericIndex(str: string): boolean {
-  return /^\d+$/.test(str);
+  return /^(0|[1-9]\d*)$/.test(str);
+}
+
+function parseArrayIndex(str: string): number | undefined {
+  if (!isNumericIndex(str)) return undefined;
+
+  const index = Number(str);
+  return Number.isSafeInteger(index) ? index : undefined;
 }
 
 /** Returns the index a segment names in `arr`, or undefined unless it is a number no larger than the length, so writes never leave holes. */
@@ -481,7 +489,8 @@ export function removeByPath(obj: Record<string, unknown>, path: string): void {
     const segment = segments[i]!;
 
     if (Array.isArray(current)) {
-      const index = parseInt(segment, 10);
+      const index = parseArrayIndex(segment);
+      if (index === undefined) return;
       if (current[index] === undefined || typeof current[index] !== "object") {
         return; // path does not exist
       }
@@ -499,7 +508,8 @@ export function removeByPath(obj: Record<string, unknown>, path: string): void {
 
   const lastSegment = segments[segments.length - 1]!;
   if (Array.isArray(current)) {
-    const index = parseInt(lastSegment, 10);
+    const index = parseArrayIndex(lastSegment);
+    if (index === undefined) return;
     if (index >= 0 && index < current.length) {
       current.splice(index, 1);
     }
