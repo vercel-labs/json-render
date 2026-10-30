@@ -17,7 +17,12 @@ import {
   createJsonRenderTransform,
   SPEC_DATA_PART_TYPE,
 } from "./types";
-import type { Spec, SpecStreamLine, StreamChunk } from "./types";
+import type {
+  JsonRenderTransformOptions,
+  Spec,
+  SpecStreamLine,
+  StreamChunk,
+} from "./types";
 
 describe("findFormValue", () => {
   const dottedValues = [
@@ -937,6 +942,71 @@ describe("createMixedStreamParser", () => {
     expect(patches).toHaveLength(0);
     expect(texts).toHaveLength(0);
   });
+
+  it("reports a patch-shaped line inside a fence that does not parse", () => {
+    const patches: SpecStreamLine[] = [];
+    const texts: string[] = [];
+    const invalid: string[] = [];
+    const parser = createMixedStreamParser({
+      onPatch: (p) => patches.push(p),
+      onText: (t) => texts.push(t),
+      onInvalid: (line) => invalid.push(line),
+    });
+
+    parser.push('```spec\n{"op":"add","path":"/elements/x","value":{\n```\n');
+    expect(patches).toHaveLength(0);
+    expect(texts).toHaveLength(0);
+    expect(invalid).toEqual(['{"op":"add","path":"/elements/x","value":{']);
+  });
+
+  it("reports an unparsable patch outside a fence and keeps it as prose", () => {
+    const texts: string[] = [];
+    const invalid: string[] = [];
+    const parser = createMixedStreamParser({
+      onPatch: () => {},
+      onText: (t) => texts.push(t),
+      onInvalid: (line) => invalid.push(line),
+    });
+
+    parser.push('Intro\n{"op":"add","path":"/elements/x","value":{\nDone.\n');
+    expect(invalid).toEqual(['{"op":"add","path":"/elements/x","value":{']);
+    expect(texts).toEqual([
+      "Intro",
+      '{"op":"add","path":"/elements/x","value":{',
+      "Done.",
+    ]);
+  });
+
+  it("drops an unparsable patch outside a fence when asked to", () => {
+    const texts: string[] = [];
+    const invalid: string[] = [];
+    const parser = createMixedStreamParser(
+      {
+        onPatch: () => {},
+        onText: (t) => texts.push(t),
+        onInvalid: (line) => invalid.push(line),
+      },
+      { dropInvalidPatches: true },
+    );
+
+    parser.push('Intro\n{"op":"add","path":"/elements/x","value":{\nDone.\n');
+    expect(invalid).toHaveLength(1);
+    expect(texts).toEqual(["Intro", "Done."]);
+  });
+
+  it("keeps ordinary braces text out of the invalid path", () => {
+    const texts: string[] = [];
+    const invalid: string[] = [];
+    const parser = createMixedStreamParser({
+      onPatch: () => {},
+      onText: (t) => texts.push(t),
+      onInvalid: (line) => invalid.push(line),
+    });
+
+    parser.push("{not a patch}\n");
+    expect(invalid).toHaveLength(0);
+    expect(texts).toEqual(["{not a patch}"]);
+  });
 });
 
 // =============================================================================
@@ -1090,8 +1160,11 @@ describe("nestedToFlat", () => {
 
 describe("createJsonRenderTransform", () => {
   /** Helper: push text-delta chunks through the transform and collect output */
-  async function transformText(text: string): Promise<StreamChunk[]> {
-    const transform = createJsonRenderTransform();
+  async function transformText(
+    text: string,
+    options: JsonRenderTransformOptions = {},
+  ): Promise<StreamChunk[]> {
+    const transform = createJsonRenderTransform(options);
     const writer = transform.writable.getWriter();
     const reader = transform.readable.getReader();
 
@@ -1120,6 +1193,48 @@ describe("createJsonRenderTransform", () => {
     const textChunks = chunks.filter((c) => c.type === "text-delta");
     const text = textChunks.map((c) => (c as { delta: string }).delta).join("");
     expect(text).toContain("Hello world");
+  });
+
+  it("reports a patch-shaped line inside a fence that does not parse", async () => {
+    const invalid: string[] = [];
+    const chunks = await transformText(
+      '```spec\n{"op":"add","path":"/elements/x","value":{\n```\n',
+      { onInvalid: (line) => invalid.push(line) },
+    );
+    expect(invalid).toEqual(['{"op":"add","path":"/elements/x","value":{']);
+    expect(chunks.filter((c) => c.type === SPEC_DATA_PART_TYPE)).toHaveLength(
+      0,
+    );
+  });
+
+  it("reports an unparsable patch outside a fence and keeps it as text", async () => {
+    const invalid: string[] = [];
+    const chunks = await transformText(
+      'Intro\n{"op":"add","path":"/elements/x","value":{\nDone.\n',
+      { onInvalid: (line) => invalid.push(line) },
+    );
+    expect(invalid).toEqual(['{"op":"add","path":"/elements/x","value":{']);
+    const text = chunks
+      .filter((c) => c.type === "text-delta")
+      .map((c) => (c as { delta: string }).delta)
+      .join("");
+    expect(text).toBe(
+      'Intro\n{"op":"add","path":"/elements/x","value":{\nDone.\n',
+    );
+  });
+
+  it("drops an unparsable patch outside a fence when asked to", async () => {
+    const invalid: string[] = [];
+    const chunks = await transformText(
+      'Intro\n{"op":"add","path":"/elements/x","value":{\nDone.\n',
+      { onInvalid: (line) => invalid.push(line), dropInvalidPatches: true },
+    );
+    expect(invalid).toHaveLength(1);
+    const text = chunks
+      .filter((c) => c.type === "text-delta")
+      .map((c) => (c as { delta: string }).delta)
+      .join("");
+    expect(text).toBe("Intro\nDone.\n");
   });
 
   it("classifies valid JSONL patches as data-spec (heuristic mode)", async () => {
