@@ -27,6 +27,11 @@ export type {
   // Mixed stream types (chat + GenUI)
   MixedStreamCallbacks,
   MixedStreamParser,
+  // Splitting a complete text into the segments the transform streams
+  SpecTextSegment,
+  SpecPatchSegment,
+  SpecSegment,
+  SplitSpecTextResult,
   // AI SDK stream transform
   StreamChunk,
   SpecDataPart,
@@ -54,6 +59,8 @@ export {
   createSpecStreamCompiler,
   // Mixed stream parser (chat + GenUI)
   createMixedStreamParser,
+  // Whole-text split matching what the transform streams
+  splitSpecText,
   // AI SDK stream transform
   createJsonRenderTransform,
   pipeJsonRender,
