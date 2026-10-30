@@ -1122,6 +1122,25 @@ describe("createJsonRenderTransform", () => {
     expect(text).toContain("Hello world");
   });
 
+  it("batches the prose of one delta into a single text-delta", async () => {
+    const chunks = await transformText("Hello world.\n");
+    const deltas = chunks
+      .filter((c) => c.type === "text-delta")
+      .map((c) => (c as { delta: string }).delta);
+    expect(deltas).toEqual(["Hello world.\n"]);
+  });
+
+  it("emits held prose before the patch that ended the same delta", async () => {
+    const chunks = await transformText(
+      'Intro\n{"op":"add","path":"/root","value":"x"}\n',
+    );
+    const deltaIndex = chunks.findIndex((c) => c.type === "text-delta");
+    const patchIndex = chunks.findIndex((c) => c.type === SPEC_DATA_PART_TYPE);
+    expect(deltaIndex).toBeGreaterThanOrEqual(0);
+    expect(patchIndex).toBeGreaterThan(deltaIndex);
+    expect((chunks[deltaIndex] as { delta: string }).delta).toBe("Intro\n");
+  });
+
   it("classifies valid JSONL patches as data-spec (heuristic mode)", async () => {
     const patch = '{"op":"add","path":"/root","value":"main"}\n';
     const chunks = await transformText(patch);
