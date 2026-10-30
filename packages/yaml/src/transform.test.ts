@@ -289,6 +289,35 @@ describe("createYamlTransform", () => {
     expect(text).not.toContain("```");
   });
 
+  it("resets an open yaml-spec fence at the end of a text block", async () => {
+    const transform = createYamlTransform();
+    const inputChunks: StreamChunk[] = [
+      { type: "text-start", id: "1" },
+      { type: "text-delta", id: "1", delta: "```yaml-spec\nroot: main\n" },
+      { type: "text-end", id: "1" },
+      { type: "text-start", id: "2" },
+      { type: "text-delta", id: "2", delta: "Plain prose.\n" },
+      { type: "text-end", id: "2" },
+    ];
+    const input = new ReadableStream<StreamChunk>({
+      start(controller) {
+        for (const chunk of inputChunks) controller.enqueue(chunk);
+        controller.close();
+      },
+    });
+    const reader = input.pipeThrough(transform).getReader();
+    const output: StreamChunk[] = [];
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      output.push(value);
+    }
+
+    expect(extractText(output)).toBe("Plain prose.\n");
+    expect(extractPatches(output).length).toBeGreaterThan(0);
+  });
+
   it("handles non-text chunks by passing them through", async () => {
     const transform = createYamlTransform();
     const input = new ReadableStream<StreamChunk>({
