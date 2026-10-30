@@ -296,6 +296,6 @@ The `StateStore` interface: `get(path)`, `set(path, value)`, `update(updates)`, 
 
 ## Compact streams
 
-Use `createCompactGeneration(catalog.data, { strict: true })` for OpenAI strict structured outputs. Send its `jsonSchema`, `prompt`, and the plain user request; do not use `buildUserPrompt()`. The default native profile is not OpenAI-strict compatible. Unsupported schemas must fail without an unenforced fallback.
+Use `createCompactGeneration(catalog.data)` for positional Compact JSON. Send its `jsonSchema`, `prompt`, and the plain user request; do not use `buildUserPrompt()`. Providers must support bounded tuples, recursive references, closed objects, and nested unions. Unsupported schemas must fail without an unenforced fallback.
 
 Pipe generated text through `createTransform()` for existing JSONL consumers. With a direct compiler, call `getResult()` at completion. Partial snapshots are provisional; propagate provider and decoder errors, including repeat-state validation failures. Keep model/provider configuration and retries in the application. See the [streaming guide](https://json-render.dev/docs/streaming#compact-streaming) for encoding and schema constraints.

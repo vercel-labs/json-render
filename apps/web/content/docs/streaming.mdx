@@ -173,12 +173,12 @@ See the [@json-render/react API reference](/docs/api/react) for full `useUIStrea
 
 ### Schema-enforced generation
 
-`createCompactGeneration(catalog.data, { strict: true })` derives a strict wire schema and matching decoder from the component Zod schemas. Use this profile with OpenAI strict structured outputs: every object is closed and every field is required.
+`createCompactGeneration(catalog.data)` derives one positional JSON wire schema and matching decoder from the component Zod schemas. Objects are closed and all declared object fields are required. Tuples permit only the optional trailing positions described by their bounds.
 
 ```ts
 import { createCompactGeneration } from "@json-render/core";
 
-const generation = createCompactGeneration(catalog.data, { strict: true });
+const generation = createCompactGeneration(catalog.data);
 const request = {
   messages: [
     { role: "system", content: generation.prompt },
@@ -201,18 +201,23 @@ const jsonl = textStream.pipeThrough(generation.createTransform());
 
 Use the plain user request here. `buildUserPrompt()` appends instructions for stock JSONL output and must not be combined with this format. Configure the model and provider in the application. On OpenRouter, require parameter support in routing so an endpoint cannot silently ignore structured outputs. Unsupported schema features must fail; do not remove constraints to make a provider accept a request.
 
-The decoded document contains a nested `root` component and optional `state`. Components contain `type`, `props`, and applicable `children`, `slots`, `visible`, `repeat`, `on`, and `watch` fields. Children and named slots contain component objects, never IDs or references. Code assigns IDs and connects children, preventing duplicate IDs, missing references and cycles. Validated components become ordinary JSONL patches as their props arrive, before the entire document finishes. Existing streaming adapters consume this JSONL without additional options.
+The wire document has `state` and `root`. State is a record, or `null` when absent. Each node is `[type, propsTuple, children-if-supported, slots-if-supported, metadata-if-needed]`. For a `Text` component with a single required text prop:
 
-The strict profile changes only the model's wire format:
+```json
+{ "state": null, "root": ["Text", ["Hello"]] }
+```
 
-- Optional fields use `null` for absence and `{ "value": ... }` for presence. `{ "value": null }` preserves an explicit null.
-- Records use `{ "entries": [{ "key": "name", "value": ... }] }`. Duplicate keys are rejected.
+The prompt lists the prop positions for each component. Required props come first, followed by optional props in catalog order. The wire rules are:
+
+- Trim trailing absent optional props. Use `null` for interior absence. Nonnullable optional values are direct; nullable or unknown optionals use `{ "value": ... }` for presence, so `{ "value": null }` preserves an explicit null.
+- Records use `{ "entries": [["name", "value"]] }`. Duplicate keys are rejected. Nested data and expressions keep their named object fields.
 - Unions whose encoded alternatives overlap use a `case` discriminator and a `value`.
-- Nodes include all metadata fields, `children`, and `slots`. Unused child lists and named slots are empty arrays.
+- Only components supporting the default slot have a children position. Only components supporting named slots have a slots object; include each named slot as an array, even when empty.
+- Metadata is an optional final object with `visible`, `on`, `watch`, and `repeat`. When supplied, all four fields are required and use `null` for absence.
 
-Use the returned prompt and schema together; the compiler reverses this encoding before validating or publishing a component. The strict profile rejects unsupported catalog schema types rather than dropping constraints. Tuples, intersections, defaults, and transforms require the native profile or a different catalog schema. Custom refinements still run in the decoder; providers cannot enforce JavaScript callbacks.
+Code assigns IDs and connects child nodes. Validated components become ordinary JSONL patches when their props tuple completes, before their descendants finish. Existing streaming adapters consume this JSONL without additional options. Use the returned prompt and schema together; the compiler decodes wire values before validation and publication.
 
-Without `{ strict: true }`, `createCompactGeneration(catalog.data)` retains the native nested JSON format, including omitted fields and ordinary record objects. That schema is for providers supporting its full JSON Schema contract; it is not compatible with OpenAI strict mode. Do not send the native schema with `strict: true` or disable strictness as an automatic fallback.
+Provider support for `prefixItems`, `minItems`, `maxItems`, recursive references, closed objects, and nested unions is required. Unsupported schema requests must fail; never disable enforcement or switch formats silently. Intersections, defaults, transforms, and open/catchall objects fail schema preparation instead of losing constraints. Supported tuples and scalar bounds retain their validation. Within tuple-valued props, omit absent trailing items; absence markers in occupied positions are rejected because JSON cannot preserve undefined array entries. JavaScript refinements run in the decoder, not the provider.
 
 For direct spec consumption, `createCompiler()` provides `push(text)` and `getResult()`. Call `getResult()` at completion to reject truncated or invalid documents. The decoder validates values independently of provider enforcement and rejects transformations or stripped fields. It preserves state expressions and interactions, but cannot guarantee factual accuracy, valid application actions, or visual design quality. This API generates complete flat UI specs; subsequent edits can use the existing JSONL protocol. Generated IDs follow tree positions and are not stable across newly generated layouts.
 
