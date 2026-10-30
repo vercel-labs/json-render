@@ -118,17 +118,17 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
     Card: ({ props, children }) => {
       const maxWidthClass =
         props.maxWidth === "sm"
-          ? "max-w-xs sm:min-w-[280px]"
+          ? "max-w-xs"
           : props.maxWidth === "md"
-            ? "max-w-sm sm:min-w-[320px]"
+            ? "max-w-sm"
             : props.maxWidth === "lg"
-              ? "max-w-md sm:min-w-[360px]"
-              : "w-full";
+              ? "max-w-md"
+              : "max-w-full";
       const centeredClass = props.centered ? "mx-auto" : "";
 
       return (
         <div
-          className={`border border-border rounded-xl p-5 bg-card text-card-foreground shadow-sm overflow-hidden h-full flex flex-col ${maxWidthClass} ${centeredClass}`}
+          className={`border border-border rounded-xl p-5 bg-card text-card-foreground shadow-sm overflow-hidden min-w-0 w-full h-full flex flex-col ${maxWidthClass} ${centeredClass}`}
         >
           {(props.title || props.description) && (
             <div className="mb-4">
@@ -215,22 +215,24 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
           ? 1
           : 0;
       const n = Math.min(props.columns ?? 1, childCount || 1);
-      const cols =
-        n >= 6
-          ? "grid-cols-6"
-          : n >= 5
-            ? "grid-cols-5"
-            : n >= 4
-              ? "grid-cols-4"
-              : n >= 3
-                ? "grid-cols-3"
-                : n >= 2
-                  ? "grid-cols-2"
-                  : "grid-cols-1";
+      const cols = [
+        "grid-cols-1",
+        "@min-[32rem]:grid-cols-2",
+        "@min-[48rem]:grid-cols-3",
+        "@min-[64rem]:grid-cols-4",
+        "@min-[80rem]:grid-cols-5",
+        "@min-[96rem]:grid-cols-6",
+      ]
+        .slice(0, Math.max(1, n))
+        .join(" ");
       const gridGap =
         props.gap === "lg" ? "gap-4" : props.gap === "sm" ? "gap-2" : "gap-3";
 
-      return <div className={`grid w-full ${cols} ${gridGap}`}>{children}</div>;
+      return (
+        <div className="@container min-w-0 w-full">
+          <div className={`grid ${cols} ${gridGap}`}>{children}</div>
+        </div>
+      );
     },
 
     Separator: ({ props }) => (

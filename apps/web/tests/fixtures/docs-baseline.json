@@ -3599,9 +3599,9 @@
       "title": "Streaming",
       "metadataTitle": "Streaming | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/streaming\")\n\n# Streaming\n",
-      "sourceSha256": "16a120c7ba25b4407b8df35999667b1bf29a4604a8e696f51d13bcaef84dfe0e",
-      "bodySha256": "98d032cbeed5dae0502abd7669f77ae1dac182dab3a4166da3cf8a7c6bff6172",
-      "markdownSha256": "dbcd985a40aa790017707efa3de647c4f462a65d5f851ba82b9c91f40e801666",
+      "sourceSha256": "b9f9fdae51617780976f357f02079697a6e1cd328a250c28b38715b665a8f03a",
+      "bodySha256": "f486f59964618035c0499c2ee6a312f14ff5b92ce1aef90d01445e4488be7245",
+      "markdownSha256": "abd77147f1b541862383db29f709e660b8326948c1cbf7b635be7cc11387170c",
       "headings": [
         {
           "title": "SpecStream Format",
@@ -3642,6 +3642,14 @@
         {
           "title": "Aborting Streams",
           "id": "aborting-streams"
+        },
+        {
+          "title": "Compact streaming",
+          "id": "compact-streaming"
+        },
+        {
+          "title": "Schema-enforced generation",
+          "id": "schema-enforced-generation"
         }
       ]
     },

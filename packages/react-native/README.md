@@ -250,3 +250,7 @@ Nested lists can set `repeat.statePath` to `{ "$item": "field" }` to iterate an 
 | `useUIStream(options)` | Stream specs from an API endpoint |
 | `createStandardActionHandlers(options)` | Create handlers for standard actions |
 | `createStateStore(initialState)` | Create a framework-agnostic in-memory `StateStore` |
+
+## Compact streaming
+
+Use `createCompactGeneration(catalog.data)` from `@json-render/core` with a compatible structured-output provider. Pipe the decoded model text through `generation.createTransform()` on the server; the existing streaming hooks consume its standard JSONL output without new options. See the [streaming guide](https://json-render.dev/docs/streaming#compact-streaming).

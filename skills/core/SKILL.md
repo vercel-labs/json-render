@@ -293,3 +293,9 @@ The `StateStore` interface: `get(path)`, `set(path, value)`, `update(updates)`, 
 | `check` | TypeScript helpers for creating validation checks |
 | `BuiltInAction` | Type for built-in action definitions (`name` + `description`) |
 | `ActionBinding` | Action binding type (includes `preventDefault` field) |
+
+## Compact streams
+
+Use `createCompactGeneration(catalog.data, { strict: true })` for OpenAI strict structured outputs. Send its `jsonSchema`, `prompt`, and the plain user request; do not use `buildUserPrompt()`. The default native profile is not OpenAI-strict compatible. Unsupported schemas must fail without an unenforced fallback.
+
+Pipe generated text through `createTransform()` for existing JSONL consumers. With a direct compiler, call `getResult()` at completion. Partial snapshots are provisional; propagate provider and decoder errors, including repeat-state validation failures. Keep model/provider configuration and retries in the application. See the [streaming guide](https://json-render.dev/docs/streaming#compact-streaming) for encoding and schema constraints.

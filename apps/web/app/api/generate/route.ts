@@ -28,7 +28,7 @@ const PLAYGROUND_RULES = [
 ];
 
 const MAX_PROMPT_LENGTH = 500;
-const DEFAULT_MODEL = "anthropic/claude-haiku-4.5";
+const DEFAULT_MODEL = "openai/gpt-6-luna-fast";
 
 function getSystemPrompt(isYaml: boolean, editModes?: EditMode[]): string {
   if (isYaml) {
@@ -96,6 +96,16 @@ export async function POST(req: Request) {
   const { prompt, context, format, editModes, model } = await req.json();
   if (model === "typesafe-ai/jev")
     return createCompositionResponse(req, prompt, context?.previousSpec);
+  if (format === "compact") {
+    const { createCompactResponse } = await import("@/lib/compact-response");
+    return createCompactResponse(
+      req,
+      prompt,
+      context?.previousSpec,
+      process.env.AI_GATEWAY_MODEL || DEFAULT_MODEL,
+      PLAYGROUND_RULES,
+    );
+  }
   const isYaml = format === "yaml";
 
   const systemPrompt = getSystemPrompt(isYaml, editModes);
@@ -110,6 +120,7 @@ export async function POST(req: Request) {
 
   const result = streamText({
     model: process.env.AI_GATEWAY_MODEL || DEFAULT_MODEL,
+    providerOptions: { openai: { reasoningEffort: "none" } },
     abortSignal: req.signal,
     system: [
       {

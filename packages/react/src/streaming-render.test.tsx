@@ -246,6 +246,30 @@ describe("streaming render stability", () => {
     expect(view.container.textContent?.startsWith("9")).toBe(true);
   });
 
+  it("detects nested mutations after reusing an unchanged snapshot", () => {
+    const registry: ComponentRegistry = {
+      Value: ({ element }) => <span>{JSON.stringify(element.props)}</span>,
+    };
+    const nested = { text: "before" };
+    const spec: Spec = {
+      root: "value",
+      elements: { value: { type: "Value", props: { nested } } },
+    };
+    const ui = () => (
+      <JSONUIProvider registry={registry}>
+        <Renderer spec={spec} registry={registry} />
+      </JSONUIProvider>
+    );
+    const view = render(ui());
+    view.rerender(ui());
+    nested.text = "after";
+    view.rerender(ui());
+    expect(view.container.textContent).toBe('{"nested":{"text":"after"}}');
+    delete spec.elements.value!.props.nested;
+    view.rerender(ui());
+    expect(view.container.textContent).toBe("{}");
+  });
+
   it("does not preserve stale prop keys with undefined values", () => {
     const registry: ComponentRegistry = {
       Value: ({ element }) => (

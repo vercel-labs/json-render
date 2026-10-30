@@ -1,4 +1,5 @@
 // Types
+export { createCompactGeneration } from "./compact-generation";
 export type {
   DynamicValue,
   DynamicString,

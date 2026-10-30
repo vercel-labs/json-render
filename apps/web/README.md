@@ -16,6 +16,14 @@ bun dev
 
 Open [http://json-render.localhost:1355](http://json-render.localhost:1355) with your browser to see the result.
 
+The playground's default model is `openai/gpt-6-luna-fast` through AI Gateway, with OpenAI reasoning effort set to `none`. Set `AI_GATEWAY_API_KEY` to enable generation, and use `AI_GATEWAY_MODEL` to override the model.
+
+Choose **compact** to generate a complete nested JSON document with the catalog's response schema. The browser compiles that JSON as it arrives: JSON, visual, nested, code, and preview use the compiled spec, while stream shows the original model output. Follow-ups receive the selected version as context and generate a fresh complete spec; patch, merge, and diff controls apply only to JSONL and YAML. Invalid or interrupted compact output is marked partial or failed rather than complete.
+
+In every mode, grids reduce their column count to fit their available width, and cards shrink within their columns. The requested grid column count is the maximum.
+
+Component props with renderer defaults may be omitted or set to `null`. Required content props, allowed values, and unknown-property checks still apply to compact generation.
+
 ## Jev composition experiment
 
 The **default / jev** toggle in `/playground` includes an experimental Jev option; hover or focus its info icon segment for details. It is a reference consumer of core's reusable `experimental_composeSpec` and `experimental_createEvaluator` APIs. It lets Jev compose and edit UI trees from the playground's component catalog and allowed action bindings through Vercel AI Gateway. Set `JEV_AI_GATEWAY_API_KEY` on the server for Jev; the default model uses `AI_GATEWAY_API_KEY`. Follow-ups use the selected version as `initialSpec` and can add, replace, remove, or move elements; earlier versions remain unchanged. It uses the same prompt input, version history, spec/stream inspectors, and functional preview as the default model. The shared `/api/generate` endpoint streams spec patches and decision metadata. See [setup, architecture, and limits](lib/jev/README.md).

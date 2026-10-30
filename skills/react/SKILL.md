@@ -296,3 +296,7 @@ const Card = ({ props, children }: BaseComponentProps<{ title?: string }>) => (
 | `BaseComponentProps`    | Catalog-agnostic base type for reusable component libraries                                           |
 | `EventHandle`           | Event handle type (`emit`, `shouldPreventDefault`, `bound`)                                           |
 | `ComponentContext`      | Typed component context (catalog-aware)                                                               |
+
+## Compact streaming
+
+Use `createCompactGeneration(catalog.data)` from `@json-render/core` with a compatible structured-output provider. Pipe the decoded model text through `generation.createTransform()` on the server; the existing streaming hooks consume its standard JSONL output without new options. See the [streaming guide](https://json-render.dev/docs/streaming#compact-streaming).
