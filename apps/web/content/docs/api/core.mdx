@@ -446,6 +446,8 @@ const flat = nestedToFlat({
 
 Low-level `TransformStream` that separates text from JSONL patches in a mixed AI stream. Lines that parse as JSONL patches are emitted as `data-spec` parts; everything else passes through as text.
 
+Leading whitespace on JSONL patch lines and `spec` fence delimiters is removed with those lines. Indentation and blank lines in ordinary text are preserved, including when input arrives across multiple chunks.
+
 The transform properly splits text blocks around spec data by emitting `text-end`/`text-start` pairs, ensuring the AI SDK creates separate text parts and preserving correct interleaving of prose and UI in `message.parts`.
 
 ```typescript

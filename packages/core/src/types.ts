@@ -1084,6 +1084,10 @@ const SPEC_FENCE_CLOSE = "```";
  *    are emitted as {@link SPEC_DATA_PART_TYPE} parts; everything else is
  *    flushed as text.
  *
+ * Leading whitespace is held until the line can be classified, so indentation
+ * on patch lines and spec fences is not emitted as prose. Whitespace on other
+ * lines is preserved.
+ *
  * Non-text chunks (tool events, step markers, etc.) are passed through unchanged.
  *
  * @example
@@ -1109,6 +1113,8 @@ export function createJsonRenderTransform(): TransformStream<
   let currentTextId = "";
   // Whether the current incomplete line might be JSONL (starts with '{')
   let buffering = false;
+  // Hold indentation until the first non-whitespace character classifies a line.
+  let atLineStart = true;
   // Whether we are inside a ```spec fence
   let inSpecFence = false;
   // Whether we are currently inside a text block (between text-start/text-end).
@@ -1222,7 +1228,7 @@ export function createJsonRenderTransform(): TransformStream<
     // --- Outside fence: heuristic mode ---
     if (!trimmed) {
       // Empty line — forward for markdown paragraph breaks
-      emitTextDelta("\n", controller);
+      emitTextDelta(line + "\n", controller);
       return;
     }
 
@@ -1245,6 +1251,7 @@ export function createJsonRenderTransform(): TransformStream<
           }
           currentTextId = id;
           inTextBlock = true;
+          atLineStart = true;
           controller.enqueue(chunk);
           break;
         }
@@ -1258,7 +1265,7 @@ export function createJsonRenderTransform(): TransformStream<
 
             if (ch === "\n") {
               // Line complete — classify and emit
-              if (buffering) {
+              if (buffering || lineBuffer.length > 0) {
                 processCompleteLine(lineBuffer, controller);
                 lineBuffer = "";
                 buffering = false;
@@ -1268,19 +1275,23 @@ export function createJsonRenderTransform(): TransformStream<
                   emitTextDelta("\n", controller);
                 }
               }
-            } else if (lineBuffer.length === 0 && !buffering) {
-              // Start of a new line — decide whether to buffer or stream
+              atLineStart = true;
+            } else if (!buffering) {
               if (inSpecFence || ch === "{" || ch === "`") {
                 // Buffer: inside fence (everything), or heuristic mode ({), or potential fence (`)
                 buffering = true;
                 lineBuffer += ch;
+                atLineStart = false;
+              } else if (atLineStart && ch.trim() === "") {
+                // This whitespace may belong to a patch or a fence.
+                lineBuffer += ch;
               } else {
-                emitTextDelta(ch, controller);
+                emitTextDelta(lineBuffer + ch, controller);
+                lineBuffer = "";
+                atLineStart = false;
               }
-            } else if (buffering) {
-              lineBuffer += ch;
             } else {
-              emitTextDelta(ch, controller);
+              lineBuffer += ch;
             }
           }
           break;

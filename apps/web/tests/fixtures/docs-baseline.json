@@ -255,9 +255,9 @@
       "title": "@json-render/core",
       "metadataTitle": "@json-render/core API | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/core\")\n\n# @json-render/core\n",
-      "sourceSha256": "526eb0ca589bb317b2924f3145e0161d4e14ad4183a2a8145a26b300335e6d5e",
+      "sourceSha256": "917ba7b98a522276acca061ac0bf5f71d1a0b95c7d41998ae7bca2850fda01a1",
       "bodySha256": "101701e7ee8f7ffe95367f04dbabb981c24b8be89501a71ea227f11f0a44163b",
-      "markdownSha256": "e3f637b4e7d8f8f27d686f9ea5e0a9feda1b719aaefdea4cfff6f892a4386ac9",
+      "markdownSha256": "7e5e1fe9cba0b76913c2ac41247bcf5b0d88483732acfda5040799ff10de5cb5",
       "headings": [
         {
           "title": "experimental_composeSpec",
