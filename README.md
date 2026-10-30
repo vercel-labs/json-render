@@ -89,7 +89,7 @@ const catalog = defineCatalog(schema, {
 ### 2. Define Your Components
 
 ```tsx
-import { defineRegistry, Renderer } from "@json-render/react";
+import { defineRegistry, JSONUIProvider, Renderer } from "@json-render/react";
 
 const { registry } = defineRegistry(catalog, {
   components: {
@@ -116,9 +116,15 @@ const { registry } = defineRegistry(catalog, {
 
 ```tsx
 function Dashboard({ spec }) {
-  return <Renderer spec={spec} registry={registry} />;
+  return (
+    <JSONUIProvider registry={registry} initialState={spec.state ?? {}}>
+      <Renderer spec={spec} registry={registry} />
+    </JSONUIProvider>
+  );
 }
 ```
+
+`JSONUIProvider` supplies the state, visibility, validation, and action contexts that `Renderer` reads from. Rendering `Renderer` on its own throws `useVisibility must be used within a VisibilityProvider`.
 
 **That's it.** AI generates JSON, you render it safely.
 
@@ -163,7 +169,7 @@ function Dashboard({ spec }) {
 ### React (UI)
 
 ```tsx
-import { defineRegistry, Renderer } from "@json-render/react";
+import { defineRegistry, JSONUIProvider, Renderer } from "@json-render/react";
 import { schema } from "@json-render/react/schema";
 
 // Flat spec format (root key + elements map)
@@ -185,7 +191,10 @@ const spec = {
 
 // defineRegistry creates a type-safe component registry
 const { registry } = defineRegistry(catalog, { components });
-<Renderer spec={spec} registry={registry} />;
+
+<JSONUIProvider registry={registry} initialState={spec.state ?? {}}>
+  <Renderer spec={spec} registry={registry} />
+</JSONUIProvider>;
 ```
 
 ### Vue (UI)
@@ -252,7 +261,7 @@ const { registry } = defineRegistry(catalog, {
 ```tsx
 import { defineCatalog } from "@json-render/core";
 import { schema } from "@json-render/react/schema";
-import { defineRegistry, Renderer } from "@json-render/react";
+import { defineRegistry, JSONUIProvider, Renderer } from "@json-render/react";
 import { shadcnComponentDefinitions } from "@json-render/shadcn/catalog";
 import { shadcnComponents } from "@json-render/shadcn";
 
@@ -277,7 +286,9 @@ const { registry } = defineRegistry(catalog, {
   },
 });
 
-<Renderer spec={spec} registry={registry} />;
+<JSONUIProvider registry={registry} initialState={spec.state ?? {}}>
+  <Renderer spec={spec} registry={registry} />
+</JSONUIProvider>;
 ```
 
 ### React Native (Mobile)
@@ -289,7 +300,7 @@ import {
   standardComponentDefinitions,
   standardActionDefinitions,
 } from "@json-render/react-native/catalog";
-import { defineRegistry, Renderer } from "@json-render/react-native";
+import { defineRegistry, JSONUIProvider, Renderer } from "@json-render/react-native";
 
 // 25+ standard components included
 const catalog = defineCatalog(schema, {
@@ -298,7 +309,9 @@ const catalog = defineCatalog(schema, {
 });
 
 const { registry } = defineRegistry(catalog, { components: {} });
-<Renderer spec={spec} registry={registry} />;
+<JSONUIProvider registry={registry} initialState={spec.state ?? {}}>
+  <Renderer spec={spec} registry={registry} />
+</JSONUIProvider>;
 ```
 
 ### Remotion (Video)
