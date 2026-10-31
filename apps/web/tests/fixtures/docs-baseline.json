@@ -3011,9 +3011,9 @@
       "title": "Installation",
       "metadataTitle": "Installation | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/installation\")\n\n# Installation\n",
-      "sourceSha256": "937bfb315b619c999082fac5253c2609db1e68d736ca0bf011c7eded9ec93593",
-      "bodySha256": "13b1b9d4c4f7de99ed2493358608eabb4565a956db8750f458efd437ffc6c8d1",
-      "markdownSha256": "08bbe2a46b41b4354feeb3538416a85f6d5cf9b5343d4dbf524e21ae8d56b46f",
+      "sourceSha256": "11a2c0f2d5bd6230d93bd2885bf96014fb9ee413a08020a4c07712cd48aad989",
+      "bodySha256": "40e3d4a57fb3a312b4eb8de430431ba20db6a66f7db13a26cde86f5f692dd540",
+      "markdownSha256": "35645fa10c555ad42d5c13b0d30b1f969fa3e807b131c1c88512837d34dc508e",
       "headings": [
         {
           "title": "For React UI",
