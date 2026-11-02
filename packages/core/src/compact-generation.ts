@@ -29,7 +29,10 @@ function unchanged(input: unknown, parsed: unknown): boolean {
   );
 }
 
-/** Accepts a catalog's data directly; schemas are shared by generation and decoding. */
+/**
+ * Accepts a catalog's data directly; schemas are shared by generation and decoding.
+ * Prop order and component descriptions live in the schema, so the prompt carries only the wire rules and actions.
+ */
 export function createCompactGeneration(catalog: {
   components: Record<
     string,
@@ -169,6 +172,9 @@ export function createCompactGeneration(catalog: {
           propEntries.map(({ key, value }) => [key, dynamic(value)]),
         ),
       );
+      const notes = ordered.flatMap(({ key, value }) =>
+        value.description ? [`${key}: ${value.description}`] : [],
+      );
       const wireProps = new z.ZodTuple({
         type: "tuple",
         rest: null,
@@ -176,13 +182,18 @@ export function createCompactGeneration(catalog: {
           const field = wireCodec(props.shape[key]!);
           return optional ? field.optional() : field;
         }),
-      }).transform((values) =>
-        Object.fromEntries(
-          ordered
-            .map(({ key }, index) => [key, values[index]])
-            .filter(([, value]) => value !== undefined),
-        ),
-      );
+      })
+        .describe(
+          `Props in order: ${ordered.map(({ key, optional }) => `${key}${optional ? "?" : ""}`).join(", ")}.` +
+            (notes.length ? ` ${notes.join("; ")}` : ""),
+        )
+        .transform((values) =>
+          Object.fromEntries(
+            ordered
+              .map(({ key }, index) => [key, values[index]])
+              .filter(([, value]) => value !== undefined),
+          ),
+        );
       const slots = (component.slots ?? []).filter(
         (slot) => slot !== "default",
       );
@@ -223,8 +234,16 @@ export function createCompactGeneration(catalog: {
           childrenIndex,
           slotsIndex,
           slots,
-          order: ordered.map(({ key }) => key),
-          wire: tuple(wireNode).describe(component.description ?? type),
+          wire: tuple(wireNode).describe(
+            [
+              component.description ?? type,
+              component.events?.length
+                ? `Events: ${component.events.join(", ")}.`
+                : "",
+            ]
+              .filter(Boolean)
+              .join(" "),
+          ),
           complete: tuple(nodeShape),
           flat: z.strictObject({
             type: z.literal(type),
@@ -321,7 +340,7 @@ export function createCompactGeneration(catalog: {
       "Design the requested UI using the supplied response schema. Return compact JSON without unnecessary whitespace. " +
       "The document is {state,root}; state is null when absent. Nodes are positional arrays: " +
       "[type,props,children if supported,slots if supported,metadata if needed]. " +
-      "Props are tuples in the catalog order below (required first). Trim trailing absent optional props; use null for interior absence. " +
+      "Props are tuples; each props schema description lists the positions in order (required first). Trim trailing absent optional props; use null for interior absence. " +
       "Nonnullable optional values are direct; nullable or unknown optionals use {value:...} for presence, including {value:null}. " +
       "Children is an array of nodes; slots is an object of named node arrays, including empty arrays. " +
       "Metadata contains visible,on,watch,repeat; when present include all four fields, using null for absence. " +
@@ -329,22 +348,7 @@ export function createCompactGeneration(catalog: {
       "For tagged unions use the schema's case/value branch. Nested data and expressions follow their schema recursively. " +
       "Props may use {$state:'/path'}, {$bindState:'/path'}, {$item:'field'}, or other schema expressions. " +
       "A repeat renders its children per item; statePath must reference an array in state. " +
-      "Layout containers need children to display content. Do not output element IDs or JSONL patches. Component catalog:\n" +
-      JSON.stringify(
-        Object.fromEntries(
-          Object.entries(catalog.components).map(([type, component]) => [
-            type,
-            {
-              props: layouts.get(type)!.order,
-              slots: component.slots ?? [],
-              ...(component.events ? { events: component.events } : {}),
-              ...(component.description
-                ? { description: component.description }
-                : {}),
-            },
-          ]),
-        ),
-      ) +
+      "Layout containers need children to display content. Do not output element IDs or JSONL patches." +
       (catalog.actions && Object.keys(catalog.actions).length
         ? "\nActions: " +
           JSON.stringify(

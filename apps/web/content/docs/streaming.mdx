@@ -207,7 +207,7 @@ The wire document has `state` and `root`. State is a record, or `null` when abse
 { "state": null, "root": ["Text", ["Hello"]] }
 ```
 
-The prompt lists the prop positions for each component. Required props come first, followed by optional props in catalog order. The wire rules are:
+Each component's props schema describes its positions, so the prompt carries only the wire rules and actions. Required props come first, followed by optional props in catalog order. The wire rules are:
 
 - Trim trailing absent optional props. Use `null` for interior absence. Nonnullable optional values are direct; nullable or unknown optionals use `{ "value": ... }` for presence, so `{ "value": null }` preserves an explicit null.
 - Records use `{ "entries": [["name", "value"]] }`. Duplicate keys are rejected. Nested data and expressions keep their named object fields.

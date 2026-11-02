@@ -18,9 +18,31 @@ export function encodeCompactFixture(
   document: { state?: unknown; root: Node },
 ): string {
   const schema = generation.jsonSchema as JSONSchema;
-  const catalog = JSON.parse(
-    generation.prompt.split("Component catalog:\n")[1]!.split("\nActions:")[0]!,
-  );
+  const catalog: Record<string, { props: string[]; slots: string[] }> = {};
+  const seen = new Set<JSONSchema>();
+  (function collect(value: unknown) {
+    if (!value || typeof value !== "object" || seen.has(value)) return;
+    seen.add(value);
+    const items = (value as JSONSchema).prefixItems as JSONSchema[] | undefined;
+    const type = items?.[0] && resolve(items[0]).const;
+    const description = items?.[1] && resolve(items[1]).description;
+    if (typeof type === "string" && typeof description === "string") {
+      const order = /^Props in order: ([^.]*)\./.exec(description)?.[1] ?? "";
+      catalog[type] = {
+        props: order
+          .split(", ")
+          .filter(Boolean)
+          .map((key) => key.replace(/\?$/, "")),
+        slots: items!.slice(2).flatMap((item) => {
+          const slot = resolve(item);
+          if (slot.type === "array") return ["default"];
+          const keys = Object.keys(slot.properties ?? {});
+          return keys.includes("visible") ? [] : keys;
+        }),
+      };
+    }
+    Object.values(value).forEach(collect);
+  })(schema);
   function resolve(value: JSONSchema): JSONSchema {
     return value.$ref
       ? resolve(
