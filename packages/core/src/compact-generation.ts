@@ -7,6 +7,18 @@ import { createJSONStream } from "./json-stream";
 import { validateSpec, formatSpecIssues } from "./spec-validator";
 import { createCompactWireCodec } from "./compact-wire";
 
+export interface CompactCompiler {
+  push(chunk: string): { result: Spec; newPatches: SpecStreamLine[] };
+  getResult(): Spec;
+}
+
+export interface CompactGeneration {
+  jsonSchema: Record<string, unknown>;
+  prompt: string;
+  createCompiler(): CompactCompiler;
+  createTransform(): TransformStream<string, string>;
+}
+
 /** Allows Zod's omitted __proto__ keys only after strict wire validation. */
 function unchanged(input: unknown, parsed: unknown): boolean {
   if (input === parsed) return true;
@@ -48,7 +60,7 @@ export function createCompactGeneration(
     actions?: Record<string, { params: z.ZodType; description?: string }>;
   },
   options: { strict?: boolean } = {},
-) {
+): CompactGeneration {
   const jsonValue = z.json();
   const expression = z.union([
     ...["$state", "$item", "$bindState", "$bindItem", "$template"].map((key) =>
@@ -409,7 +421,7 @@ export function createCompactGeneration(
       },
     };
   }
-  function toTransform(compiler: ReturnType<typeof streamCompiler>) {
+  function toTransform(compiler: CompactCompiler) {
     return new TransformStream<string, string>({
       transform(chunk, controller) {
         for (const patch of compiler.push(chunk).newPatches)
@@ -486,8 +498,14 @@ export function createCompactGeneration(
         }
         if (path.length !== 2 || path[0] !== "elements") return;
         const id = `e${count++}`;
-        if (!Array.isArray(value) || !Number.isInteger(value[0]))
-          throw new Error(`${id} must be [depth,type,props,meta?]`);
+        if (
+          !Array.isArray(value) ||
+          !Number.isInteger(value[0]) ||
+          (value.length !== 3 && value.length !== 4)
+        )
+          throw new Error(
+            `${id} must be [depth,type,props] or [depth,type,props,meta]`,
+          );
         const [depth, type, tuple, meta] = value as [
           number,
           string,
@@ -503,12 +521,18 @@ export function createCompactGeneration(
               ? `${id} at depth ${depth} has no parent that accepts children`
               : `${id} is a second root`,
           );
-        const fields = Object.entries(meta ?? {}).filter(
-          ([, field]) => field !== null,
-        );
-        const isProp = ([key]: [string, unknown]) =>
+        const entries = Object.entries(meta ?? {});
+        const fields = entries.filter(([, field]) => field !== null);
+        const isProp = (key: string) =>
           !(key in metadata.shape) &&
           layout.ordered.some((field) => field.key === key);
+        const unsupported = entries.find(
+          ([key]) => !isProp(key) && !Object.keys(metadata.shape).includes(key),
+        );
+        if (unsupported)
+          throw new Error(
+            `${id} (${type}) has unsupported metadata "${unsupported[0]}"`,
+          );
         const named: Record<string, unknown> = {
           ...(Array.isArray(tuple)
             ? Object.fromEntries(
@@ -518,7 +542,7 @@ export function createCompactGeneration(
                 ]),
               )
             : Object(tuple ?? {})),
-          ...Object.fromEntries(fields.filter(isProp)),
+          ...Object.fromEntries(fields.filter(([key]) => isProp(key))),
         };
         const props: Record<string, unknown> = {};
         layout.ordered.forEach(({ key, value, optional }) => {
@@ -531,10 +555,10 @@ export function createCompactGeneration(
             props[key] = null;
         });
         const element = {
+          ...Object.fromEntries(fields.filter(([key]) => !isProp(key))),
           type,
           props,
           ...(layout.childrenIndex === undefined ? {} : { children: [] }),
-          ...Object.fromEntries(fields.filter((field) => !isProp(field))),
         };
         try {
           if (
@@ -575,7 +599,7 @@ export function createCompactGeneration(
           elements: { type: "array", items: { type: "array" } },
         },
         required: ["state", "elements"],
-      } as z.core.JSONSchema.BaseSchema,
+      },
       prompt:
         [
           "Design the requested UI as compact JSON without unnecessary whitespace.",

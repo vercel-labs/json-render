@@ -685,6 +685,13 @@ describe("positional compact generation", () => {
         ],
         "second root",
       ],
+      [[[0, "Reading", [1], {}, ["extra"]]], "must be [depth,type,props] or"],
+      [
+        [[0, "Panel", ["a"], { children: ["e0"] }]],
+        'unsupported metadata "children"',
+      ],
+      [[[0, "Panel", ["a"], { slots: {} }]], 'unsupported metadata "slots"'],
+      [[[0, "Panel", ["a"], { foo: 1 }]], 'unsupported metadata "foo"'],
     ] as const) {
       expect(() =>
         gen.createCompiler().push(JSON.stringify({ state: null, elements })),
