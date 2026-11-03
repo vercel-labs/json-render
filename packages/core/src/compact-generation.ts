@@ -31,20 +31,24 @@ function unchanged(input: unknown, parsed: unknown): boolean {
 
 /**
  * Accepts a catalog's data directly; schemas are shared by generation and decoding.
- * Prop order and component descriptions live in the schema, so the prompt carries only the wire rules and actions.
+ * The default strict mode needs a provider that enforces the schema; pass `strict: false` for providers that do not, which
+ * uses a flat format, lists the catalog in the prompt and validates every element while decoding.
  */
-export function createCompactGeneration(catalog: {
-  components: Record<
-    string,
-    {
-      props: z.ZodObject;
-      slots?: string[];
-      events?: string[];
-      description?: string;
-    }
-  >;
-  actions?: Record<string, { params: z.ZodType; description?: string }>;
-}) {
+export function createCompactGeneration(
+  catalog: {
+    components: Record<
+      string,
+      {
+        props: z.ZodObject;
+        slots?: string[];
+        events?: string[];
+        description?: string;
+      }
+    >;
+    actions?: Record<string, { params: z.ZodType; description?: string }>;
+  },
+  options: { strict?: boolean } = {},
+) {
   const jsonValue = z.json();
   const expression = z.union([
     ...["$state", "$item", "$bindState", "$bindItem", "$template"].map((key) =>
@@ -175,6 +179,7 @@ export function createCompactGeneration(catalog: {
       const notes = ordered.flatMap(({ key, value }) =>
         value.description ? [`${key}: ${value.description}`] : [],
       );
+      const order = `Props in order: ${ordered.map(({ key, optional }) => `${key}${optional ? "?" : ""}`).join(", ")}.`;
       const wireProps = new z.ZodTuple({
         type: "tuple",
         rest: null,
@@ -183,10 +188,7 @@ export function createCompactGeneration(catalog: {
           return optional ? field.optional() : field;
         }),
       })
-        .describe(
-          `Props in order: ${ordered.map(({ key, optional }) => `${key}${optional ? "?" : ""}`).join(", ")}.` +
-            (notes.length ? ` ${notes.join("; ")}` : ""),
-        )
+        .describe(order + (notes.length ? ` ${notes.join("; ")}` : ""))
         .transform((values) =>
           Object.fromEntries(
             ordered
@@ -230,6 +232,9 @@ export function createCompactGeneration(catalog: {
         type,
         {
           props: wireProps,
+          ordered,
+          order,
+          notes,
           metadataIndex,
           childrenIndex,
           slotsIndex,
@@ -334,6 +339,265 @@ export function createCompactGeneration(catalog: {
       ]),
     );
 
+  type Layout = NonNullable<ReturnType<typeof layouts.get>>;
+  function checkElement(
+    type: string,
+    layout: Layout,
+    element: { props: Record<string, unknown> },
+  ) {
+    const parsed = layout.flat.parse(element);
+    if (!hasExpression(element.props)) {
+      const literal = catalog.components[type]!.props.parse(element.props);
+      if (!unchanged(element.props, literal))
+        throw new Error(
+          "Schema validation must not strip or transform generated values",
+        );
+    }
+    if (!unchanged(element, parsed))
+      throw new Error(
+        "Schema validation must not strip or transform generated values",
+      );
+  }
+  const actionsPrompt =
+    catalog.actions && Object.keys(catalog.actions).length
+      ? "\nActions: " +
+        JSON.stringify(
+          Object.fromEntries(
+            Object.entries(catalog.actions).map(([name, action]) => [
+              name,
+              {
+                params: z.toJSONSchema(action.params),
+                description: action.description,
+              },
+            ]),
+          ),
+        )
+      : "";
+  /** Parses streamed JSON through onValue and collects the patches it applies; getResult checks framing and the finished spec. */
+  function streamCompiler(
+    framing: z.ZodType,
+    onValue: Parameters<typeof createJSONStream>[0],
+  ) {
+    let result: Spec = { root: "", elements: {} },
+      patches: SpecStreamLine[] = [],
+      failed = false;
+    const parser = createJSONStream(onValue);
+    return {
+      apply(patch: SpecStreamLine) {
+        applySpecPatch(result, patch);
+        patches.push(patch);
+      },
+      push(chunk: string) {
+        if (failed) throw new Error("Compact generation stream already failed");
+        patches = [];
+        result = { ...result, elements: { ...result.elements } };
+        try {
+          parser.push(chunk);
+          return { result, newPatches: patches };
+        } catch (error) {
+          failed = true;
+          throw error;
+        }
+      },
+      getResult() {
+        if (failed) throw new Error("Invalid compact generation");
+        framing.parse(parser.getResult());
+        const validation = validateSpec(result);
+        if (!validation.valid)
+          throw new Error(formatSpecIssues(validation.issues));
+        return result;
+      },
+    };
+  }
+  function toTransform(compiler: ReturnType<typeof streamCompiler>) {
+    return new TransformStream<string, string>({
+      transform(chunk, controller) {
+        for (const patch of compiler.push(chunk).newPatches)
+          controller.enqueue(JSON.stringify(patch) + "\n");
+      },
+      flush() {
+        compiler.getResult();
+      },
+    });
+  }
+
+  /** Flat [depth,type,props,meta?] elements with plain JSON, for providers that do not enforce schemas. Named slots are not supported. */
+  function relaxed() {
+    const state = z.record(z.string(), jsonValue).nullable();
+    const framing = z.strictObject({ state, elements: z.array(z.unknown()) });
+    type Schema = {
+      enum?: unknown[];
+      anyOf?: Schema[];
+      type?: string;
+      items?: Schema;
+      properties?: Record<string, Schema>;
+      required?: string[];
+    };
+    const typeText = (schema: Schema): string =>
+      schema.enum
+        ? schema.enum.map((value) => JSON.stringify(value)).join("|")
+        : schema.anyOf
+          ? schema.anyOf
+              .filter((option) => option.type !== "null")
+              .map(typeText)
+              .join("|")
+          : schema.type === "array"
+            ? `${typeText(schema.items ?? {})}[]`
+            : schema.type === "object" && schema.properties
+              ? `{${Object.entries(schema.properties)
+                  .map(
+                    ([key, child]) =>
+                      `${key}${schema.required?.includes(key) ? "" : "?"}:${typeText(child)}`,
+                  )
+                  .join(",")}}`
+              : (schema.type ?? "any");
+    const listing = [...layouts]
+      .map(([type, layout]) => {
+        const { description, events } = catalog.components[type]!;
+        const props = layout.ordered.map(
+          ({ key, value, optional }) =>
+            `${key}${optional || value.safeParse(null).success ? "?" : ""}:${typeText(z.toJSONSchema(value, { io: "input", unrepresentable: "any" }) as Schema)}`,
+        );
+        return [
+          `${type}${layout.childrenIndex === undefined ? "" : " (children)"}: [${props.join(", ")}]`,
+          description,
+          events?.length && `Events: ${events.join(", ")}.`,
+          ...layout.notes,
+        ]
+          .filter(Boolean)
+          .join(" - ");
+      })
+      .join("\n");
+
+    function createCompiler() {
+      const stack: {
+        id: string;
+        layout: Layout;
+        element: Record<string, unknown>;
+      }[] = [];
+      let count = 0;
+      const compiler = streamCompiler(framing, (path, value, complete) => {
+        if (!complete) return;
+        if (path.length === 1 && path[0] === "state") {
+          const initial = state.parse(value);
+          if (initial)
+            compiler.apply({ op: "add", path: "/state", value: initial });
+          return;
+        }
+        if (path.length !== 2 || path[0] !== "elements") return;
+        const id = `e${count++}`;
+        if (!Array.isArray(value) || !Number.isInteger(value[0]))
+          throw new Error(`${id} must be [depth,type,props,meta?]`);
+        const [depth, type, tuple, meta] = value as [
+          number,
+          string,
+          unknown,
+          unknown,
+        ];
+        const layout = layouts.get(type);
+        if (!layout) throw new Error(`${id} uses unknown component "${type}"`);
+        const parent = depth ? stack[depth - 1] : undefined;
+        if (depth ? parent?.layout.childrenIndex === undefined : count > 1)
+          throw new Error(
+            depth
+              ? `${id} at depth ${depth} has no parent that accepts children`
+              : `${id} is a second root`,
+          );
+        const fields = Object.entries(meta ?? {}).filter(
+          ([, field]) => field !== null,
+        );
+        const isProp = ([key]: [string, unknown]) =>
+          !(key in metadata.shape) &&
+          layout.ordered.some((field) => field.key === key);
+        const named: Record<string, unknown> = {
+          ...(Array.isArray(tuple)
+            ? Object.fromEntries(
+                tuple.map((prop, index) => [
+                  layout.ordered[index]?.key ?? index,
+                  prop,
+                ]),
+              )
+            : Object(tuple ?? {})),
+          ...Object.fromEntries(fields.filter(isProp)),
+        };
+        const props: Record<string, unknown> = {};
+        layout.ordered.forEach(({ key, value, optional }) => {
+          const prop = named[key];
+          if (prop !== undefined && prop !== null) props[key] = prop;
+          else if (
+            !optional ||
+            (prop === null && value.safeParse(null).success)
+          )
+            props[key] = null;
+        });
+        const element = {
+          type,
+          props,
+          ...(layout.childrenIndex === undefined ? {} : { children: [] }),
+          ...Object.fromEntries(fields.filter((field) => !isProp(field))),
+        };
+        try {
+          if (
+            Object.keys(named).some(
+              (key) => !layout.ordered.some((field) => field.key === key),
+            )
+          )
+            throw new Error("unknown or extra props");
+          checkElement(type, layout, element);
+        } catch (error) {
+          throw new Error(
+            `${id} (${type}) is invalid: ${error instanceof z.ZodError ? z.prettifyError(error) : (error as Error).message}. ${layout.order}`,
+          );
+        }
+        compiler.apply({ op: "add", path: `/elements/${id}`, value: element });
+        if (parent) {
+          parent.element = {
+            ...parent.element,
+            children: [...(parent.element.children as string[]), id],
+          };
+          compiler.apply({
+            op: "add",
+            path: `/elements/${parent.id}`,
+            value: parent.element,
+          });
+        } else compiler.apply({ op: "add", path: "/root", value: id });
+        stack.length = depth;
+        stack[depth] = { id, layout, element };
+      });
+      return compiler;
+    }
+
+    return {
+      jsonSchema: {
+        type: "object",
+        properties: {
+          state: { anyOf: [{ type: "null" }, { type: "object" }] },
+          elements: { type: "array", items: { type: "array" } },
+        },
+        required: ["state", "elements"],
+      } as z.core.JSONSchema.BaseSchema,
+      prompt:
+        [
+          "Design the requested UI as compact JSON without unnecessary whitespace.",
+          "The document is {state,elements}. state is a plain JSON object of initial values, or null.",
+          "elements is a flat array in outline order, each parent before its children. Each element is [depth,type,props] or [depth,type,props,meta].",
+          "depth is 0 for the single root and parent depth + 1 for a child; the parent is the closest earlier element one level up. Only components marked (children) can be parents.",
+          "props is a tuple in the order listed below. Use null for an absent prop and drop trailing absent props. Write values directly; never wrap them in {value:...}.",
+          "Props may use {$state:'/path'}, {$bindState:'/path'}, {$item:'field'}, or other expressions.",
+          "meta is an object with any of: visible (a condition such as {$state:'/path',eq:'x'}), on (event name to an action binding {action,params}), watch (state path to an action binding), repeat ({statePath,key}). Omit meta and its fields when not needed.",
+          "A repeat renders its single child element once per item; statePath must reference an array in state. Layout containers need children to display content. Do not output element IDs or JSONL patches.",
+          "Components (props in tuple order; ? marks optional):",
+          listing,
+        ].join("\n") + actionsPrompt,
+      createCompiler,
+      createTransform() {
+        return toTransform(createCompiler());
+      },
+    };
+  }
+
+  if (options.strict === false) return relaxed();
+
   return {
     jsonSchema,
     prompt:
@@ -349,22 +613,8 @@ export function createCompactGeneration(catalog: {
       "Props may use {$state:'/path'}, {$bindState:'/path'}, {$item:'field'}, or other schema expressions. " +
       "A repeat renders its children per item; statePath must reference an array in state. " +
       "Layout containers need children to display content. Do not output element IDs or JSONL patches." +
-      (catalog.actions && Object.keys(catalog.actions).length
-        ? "\nActions: " +
-          JSON.stringify(
-            Object.fromEntries(
-              Object.entries(catalog.actions).map(([name, action]) => [
-                name,
-                {
-                  params: z.toJSONSchema(action.params),
-                  description: action.description,
-                },
-              ]),
-            ),
-          )
-        : ""),
+      actionsPrompt,
     createCompiler() {
-      type Layout = NonNullable<ReturnType<typeof layouts.get>>;
       type Node = {
         id: string;
         raw: unknown[];
@@ -379,14 +629,8 @@ export function createCompactGeneration(catalog: {
         index: number;
       };
       const nodes = new Map<string, Node>();
-      let result: Spec = { root: "", elements: {} },
-        patches: SpecStreamLine[] = [],
-        failed = false;
       const pathKey = (path: (string | number)[]) => JSON.stringify(path);
-      function apply(patch: SpecStreamLine) {
-        applySpecPatch(result, patch);
-        patches.push(patch);
-      }
+      const apply = (patch: SpecStreamLine) => compiler.apply(patch);
       function publish(entry: Node) {
         if (!entry.props || !entry.layout) return;
         const type = entry.raw[0] as string,
@@ -409,18 +653,7 @@ export function createCompactGeneration(catalog: {
               }),
           ...entry.metadata,
         };
-        const parsed = layout.flat.parse(element);
-        if (!hasExpression(element.props)) {
-          const literal = catalog.components[type]!.props.parse(element.props);
-          if (!unchanged(element.props, literal))
-            throw new Error(
-              "Schema validation must not strip or transform generated values",
-            );
-        }
-        if (!unchanged(element, parsed))
-          throw new Error(
-            "Schema validation must not strip or transform generated values",
-          );
+        checkElement(type, layout, element);
         if (!entry.parent && !entry.published)
           apply({ op: "add", path: "/root", value: entry.id });
         apply({ op: "add", path: "/elements/" + entry.id, value: element });
@@ -435,7 +668,7 @@ export function createCompactGeneration(catalog: {
         }
         entry.published = true;
       }
-      const parser = createJSONStream((path, value, complete) => {
+      const compiler = streamCompiler(framing, (path, value, complete) => {
         const key = pathKey(path);
         if (!complete) {
           if (!Array.isArray(value)) return;
@@ -495,42 +728,10 @@ export function createCompactGeneration(catalog: {
           publish(owner);
         }
       });
-      return {
-        push(chunk: string) {
-          if (failed)
-            throw new Error("Compact generation stream already failed");
-          patches = [];
-          result = { ...result, elements: { ...result.elements } };
-          try {
-            parser.push(chunk);
-            return { result, newPatches: patches };
-          } catch (error) {
-            failed = true;
-            throw error;
-          }
-        },
-        getResult() {
-          if (failed) throw new Error("Invalid compact generation");
-          framing.parse(parser.getResult());
-          const validation = validateSpec(result);
-          if (!validation.valid)
-            throw new Error(formatSpecIssues(validation.issues));
-          return result;
-        },
-      };
+      return compiler;
     },
     createTransform() {
-      const compiler = this.createCompiler();
-      return new TransformStream<string, string>({
-        transform(chunk, controller) {
-          const { newPatches } = compiler.push(chunk);
-          for (const patch of newPatches)
-            controller.enqueue(JSON.stringify(patch) + "\n");
-        },
-        flush() {
-          compiler.getResult();
-        },
-      });
+      return toTransform(this.createCompiler());
     },
   };
 }

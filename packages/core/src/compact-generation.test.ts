@@ -607,6 +607,91 @@ describe("positional compact generation", () => {
     },
   );
 
+  it("decodes the relaxed flat format into stock JSONL and names invalid elements", async () => {
+    const gen = createCompactGeneration(
+      {
+        components: {
+          Panel: {
+            props: z.object({ title: z.string(), note: z.string().nullable() }),
+            slots: ["default"],
+          },
+          Reading: {
+            props: z.object({ value: z.number(), unit: z.string().optional() }),
+          },
+        },
+      },
+      { strict: false },
+    );
+    expect(gen.prompt).toContain(
+      "Panel (children): [title:string, note?:string]",
+    );
+    const source = JSON.stringify({
+      state: { on: true },
+      elements: [
+        [0, "Panel", ["Hi"], { visible: { $state: "/on" }, on: null }],
+        [1, "Reading", [2, null]],
+        [1, "Panel", ["Inner"], { note: "x" }],
+        [2, "Reading", { value: 3, unit: "C" }],
+      ],
+    });
+    const reader = new ReadableStream<string>({
+      start(c) {
+        for (const character of source) c.enqueue(character);
+        c.close();
+      },
+    })
+      .pipeThrough(gen.createTransform())
+      .getReader();
+    const stock = createSpecStreamCompiler<Spec>();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      stock.push(value);
+    }
+    expect(stock.getResult()).toStrictEqual({
+      root: "e0",
+      state: { on: true },
+      elements: {
+        e0: {
+          type: "Panel",
+          props: { title: "Hi", note: null },
+          children: ["e1", "e2"],
+          visible: { $state: "/on" },
+        },
+        e1: { type: "Reading", props: { value: 2 } },
+        e2: {
+          type: "Panel",
+          props: { title: "Inner", note: "x" },
+          children: ["e3"],
+        },
+        e3: { type: "Reading", props: { value: 3, unit: "C" } },
+      },
+    });
+
+    for (const [elements, message] of [
+      [
+        [
+          [0, "Reading", [1]],
+          [1, "Reading", [2]],
+        ],
+        "no parent",
+      ],
+      [[[0, "Missing", []]], "unknown component"],
+      [[[0, "Reading", ["one"]]], "Props in order: value, unit?."],
+      [
+        [
+          [0, "Panel", ["a"]],
+          [0, "Panel", ["b"]],
+        ],
+        "second root",
+      ],
+    ] as const) {
+      expect(() =>
+        gen.createCompiler().push(JSON.stringify({ state: null, elements })),
+      ).toThrow(message);
+    }
+  });
+
   it("feeds stock JSONL consumers", async () => {
     const gen = generation();
     const source = new ReadableStream<string>({
