@@ -359,6 +359,20 @@ function denseIndex(arr: unknown[], segment: string): number | undefined {
 }
 
 /**
+ * True for values a path can be walked into.
+ *
+ * `typeof null === "object"`, so a plain `typeof value === "object"` test keeps
+ * walking into `null` and the next property access throws. A `null` member is
+ * treated like a missing one: the caller replaces it with the container the
+ * next segment needs.
+ */
+function isContainer(
+  value: unknown,
+): value is Record<string, unknown> | unknown[] {
+  return typeof value === "object" && value !== null;
+}
+
+/**
  * Set a value in an object by JSON Pointer path (RFC 6901).
  * Automatically creates arrays when the path segment is a numeric index.
  */
@@ -383,15 +397,12 @@ export function setByPath(
     if (Array.isArray(current)) {
       const index = denseIndex(current, segment);
       if (index === undefined) return;
-      if (current[index] === undefined || typeof current[index] !== "object") {
+      if (current[index] === undefined || !isContainer(current[index])) {
         current[index] = nextIsNumeric ? [] : {};
       }
       current = current[index] as Record<string, unknown> | unknown[];
     } else {
-      if (
-        !Object.hasOwn(current, segment) ||
-        typeof current[segment] !== "object"
-      ) {
+      if (!Object.hasOwn(current, segment) || !isContainer(current[segment])) {
         current[segment] = nextIsNumeric ? [] : {};
       }
       current = current[segment] as Record<string, unknown> | unknown[];
@@ -437,15 +448,12 @@ export function addByPath(
     if (Array.isArray(current)) {
       const index = denseIndex(current, segment);
       if (index === undefined) return;
-      if (current[index] === undefined || typeof current[index] !== "object") {
+      if (current[index] === undefined || !isContainer(current[index])) {
         current[index] = nextIsNumeric ? [] : {};
       }
       current = current[index] as Record<string, unknown> | unknown[];
     } else {
-      if (
-        !Object.hasOwn(current, segment) ||
-        typeof current[segment] !== "object"
-      ) {
+      if (!Object.hasOwn(current, segment) || !isContainer(current[segment])) {
         current[segment] = nextIsNumeric ? [] : {};
       }
       current = current[segment] as Record<string, unknown> | unknown[];
@@ -482,15 +490,12 @@ export function removeByPath(obj: Record<string, unknown>, path: string): void {
 
     if (Array.isArray(current)) {
       const index = parseInt(segment, 10);
-      if (current[index] === undefined || typeof current[index] !== "object") {
+      if (current[index] === undefined || !isContainer(current[index])) {
         return; // path does not exist
       }
       current = current[index] as Record<string, unknown> | unknown[];
     } else {
-      if (
-        !Object.hasOwn(current, segment) ||
-        typeof current[segment] !== "object"
-      ) {
+      if (!Object.hasOwn(current, segment) || !isContainer(current[segment])) {
         return; // path does not exist
       }
       current = current[segment] as Record<string, unknown> | unknown[];
