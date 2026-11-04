@@ -4,6 +4,22 @@ title: "Changelog"
 
 Notable changes and updates to json-render.
 
+## v0.22.0
+
+November 4, 2026
+
+### New: Chat SDK Renderer
+
+Added `@json-render/chat` to render specs as Chat SDK cards. One catalog posts native messages on Slack, Teams, and the other Chat SDK platforms. `streamCard` streams a card into a thread and edits it as elements arrive, and `toCard` validates specs against per-component schemas and optional platform limits before posting.
+
+See the [Chat SDK API reference](/docs/api/chat) for setup, streaming, and limits.
+
+### New: Chat SDK Example
+
+Added an example playground that previews generated messages as Slack renders them, with a Teams Adaptive Card view and a copy button for Block Kit Builder.
+
+---
+
 ## v0.21.4
 
 October 30, 2026

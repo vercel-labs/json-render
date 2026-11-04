@@ -1,8 +1,21 @@
 # Changelog
 
-## 0.21.4
+## 0.22.0
 
 <!-- release:start -->
+
+### New Features
+
+- **Chat SDK renderer:** Added `@json-render/chat` to render specs as Chat SDK cards, so one catalog posts natively on Slack, Teams, and the other Chat SDK platforms. `streamCard` streams a card into a thread and edits it as elements arrive, and `toCard` validates specs against per-component schemas and optional platform limits. State expressions, `visible`, and `repeat` resolve against `spec.state` (#451)
+- **Chat SDK example:** Added a playground that previews generated messages as Slack renders them, with a Teams Adaptive Card view and a copy button for Block Kit Builder (#451)
+
+### Contributors
+
+- @Railly
+
+<!-- release:end -->
+
+## 0.21.4
 
 ### Documentation
 
@@ -13,7 +26,6 @@
 
 - @bensabic
 
-<!-- release:end -->
 
 ## 0.21.3
 
