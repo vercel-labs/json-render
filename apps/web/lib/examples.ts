@@ -108,6 +108,7 @@ export const examples: Example[] = [
       "Generate native Slack, Teams, and Discord cards from json-render specs with Chat SDK, with a Slack preview.",
     tags: ["React", "Next.js", "Chat SDK"],
     githubPath: "examples/chat-sdk",
+    demoUrl: "https://chat-sdk-demo.json-render.dev",
   },
   {
     slug: "react-pdf",
