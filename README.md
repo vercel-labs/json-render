@@ -433,6 +433,36 @@ const spec = {
 const html = await renderToHtml(spec);
 ```
 
+### Chat SDK (Slack, Teams, Discord)
+
+```typescript
+import { defineCatalog } from "@json-render/core";
+import {
+  schema,
+  standardComponentDefinitions,
+  streamCard,
+  toCard,
+} from "@json-render/chat";
+import { streamText } from "ai";
+
+const catalog = defineCatalog(schema, {
+  components: standardComponentDefinitions,
+});
+
+// Stream a generated card into a Chat SDK thread
+chat.onNewMention(async (thread, message) => {
+  const result = streamText({
+    model: "anthropic/claude-haiku-4.5",
+    system: catalog.prompt(),
+    prompt: message.text,
+  });
+  await streamCard(thread, result.textStream);
+});
+
+// Or convert a complete spec and post it
+await thread.post(toCard(spec, { limits: { tables: 1, charts: 2 } }));
+```
+
 ### Image (SVG/PNG)
 
 ```typescript
