@@ -693,3 +693,11 @@ json-render supports completely different spec formats for different renderers:
 ```
 
 Each renderer defines its own schema with `defineSchema()` and its own prompt template.
+
+## Compact streaming
+
+`createCompactGeneration(catalog.data, { strict: true })` derives a response schema, prompt, and streaming decoder for OpenAI strict structured outputs. Send `jsonSchema` through the provider's enforced structured-output API and `prompt` as the system instructions. Use the plain user request; `buildUserPrompt()` adds incompatible JSONL instructions.
+
+Pipe decoded model text through `createTransform()` to emit standard JSONL patches for existing streaming adapters. For direct spec access, use `createCompiler().push(text)` and call `getResult()` at completion. Partial snapshots are provisional; propagate provider and completion errors, including structural validation failures. Generated IDs are not stable across new layouts.
+
+The default `createCompactGeneration(catalog.data)` uses native nested JSON and is not compatible with OpenAI strict mode. Unsupported strict catalog schemas fail preparation. Literal props retain catalog constraints; validate custom refinements involving expressions in the application after resolution. See the [streaming guide](https://json-render.dev/docs/streaming#compact-streaming) for wire encodings, supported schemas, expressions, and provider requirements.
