@@ -267,6 +267,8 @@ function App({ spec, state, setState }) {
 }
 ```
 
+If `getSetState` returns `undefined`, actions still run and receive a no-op setter, so any state updates they make are discarded.
+
 ## @json-render/react-native
 
 `@json-render/react-native` uses the same `defineRegistry` API. The only difference is that components return React Native elements instead of HTML:

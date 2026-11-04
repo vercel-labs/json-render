@@ -142,6 +142,7 @@ function Dashboard({ spec }) {
 | `@json-render/remotion`     | Remotion video renderer, timeline schema                               |
 | `@json-render/react-pdf`    | React PDF renderer for generating PDF documents from specs             |
 | `@json-render/react-email`  | React Email renderer for HTML/plain-text emails from specs             |
+| `@json-render/chat`         | Chat SDK renderer for native Slack, Teams, and Discord cards from specs |
 | `@json-render/ink`          | Ink terminal renderer with built-in components for interactive TUIs.   |
 | `@json-render/image`        | Image renderer for SVG/PNG output (OG images, social cards) via Satori |
 | `@json-render/directives`   | Pre-built custom directives — $format, $math, $concat, $count, $truncate, $pluralize, $join, $t (i18n) |
@@ -228,7 +229,7 @@ const { registry } = defineRegistry(catalog, {
 ### Solid (UI)
 
 ```tsx
-import { defineRegistry, Renderer } from "@json-render/solid";
+import { defineRegistry, JSONUIProvider, Renderer } from "@json-render/solid";
 import { schema } from "@json-render/solid/schema";
 
 const { registry } = defineRegistry(catalog, {
@@ -236,13 +237,15 @@ const { registry } = defineRegistry(catalog, {
     Card: (renderProps) => <div>{renderProps.children}</div>,
     Button: (renderProps) => (
       <button onClick={() => renderProps.emit("press")}>
-        {renderProps.element.props.label as string}
+        {renderProps.props.label}
       </button>
     ),
   },
 });
 
-<Renderer spec={spec} registry={registry} />;
+<JSONUIProvider registry={registry}>
+  <Renderer spec={spec} registry={registry} />
+</JSONUIProvider>;
 ```
 
 ### shadcn/ui (Web)
@@ -428,6 +431,36 @@ const spec = {
 };
 
 const html = await renderToHtml(spec);
+```
+
+### Chat SDK (Slack, Teams, Discord)
+
+```typescript
+import { defineCatalog } from "@json-render/core";
+import {
+  schema,
+  standardComponentDefinitions,
+  streamCard,
+  toCard,
+} from "@json-render/chat";
+import { streamText } from "ai";
+
+const catalog = defineCatalog(schema, {
+  components: standardComponentDefinitions,
+});
+
+// Stream a generated card into a Chat SDK thread
+chat.onNewMention(async (thread, message) => {
+  const result = streamText({
+    model: "anthropic/claude-haiku-4.5",
+    system: catalog.prompt(),
+    prompt: message.text,
+  });
+  await streamCard(thread, result.textStream);
+});
+
+// Or convert a complete spec and post it
+await thread.post(toCard(spec, { limits: { tables: 1, charts: 2 } }));
 ```
 
 ### Image (SVG/PNG)
@@ -808,7 +841,8 @@ pnpm dev
 - http://react-email-demo.json-render.localhost:1355 - React Email Example
 - http://remotion-demo.json-render.localhost:1355 - Remotion Video Example
 - Chat Example: run `pnpm dev` in `examples/chat`
-- [Experimental Jev composition](https://json-render.dev/docs/jev): use `experimental_composeSpec` and `experimental_createEvaluator` from core with your own catalog, or select **Jev (Experimental)** in `/playground`. Unreleased; source-build instructions are in the guide.
+- http://chat-sdk-demo.json-render.localhost:1355 - Chat SDK Example
+- [Experimental Jev composition](https://json-render.dev/docs/jev): use `experimental_composeSpec` and `experimental_createEvaluator` from core with your own catalog, or select **Jev (Experimental)** in `/playground`. Available since v0.21.0; pin exact package versions as described in the guide.
 - Svelte Example: run `pnpm dev` in `examples/svelte` or `examples/svelte-chat`
 - Vue Example: run `pnpm dev` in `examples/vue`
 - Vite Renderers (React + Vue + Svelte + Solid): run `pnpm dev` in `examples/vite-renderers`

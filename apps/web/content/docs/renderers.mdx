@@ -155,7 +155,7 @@ See the [@json-render/svelte API reference](/docs/api/svelte) for details.
 SolidJS renderer with fine-grained reactivity, state bindings, validation, visibility, and event-driven actions.
 
 ```tsx
-import { defineRegistry, Renderer } from "@json-render/solid";
+import { defineRegistry, JSONUIProvider, Renderer } from "@json-render/solid";
 import { schema } from "@json-render/solid/schema";
 
 const { registry } = defineRegistry(catalog, {
@@ -164,7 +164,9 @@ const { registry } = defineRegistry(catalog, {
   },
 });
 
-<Renderer spec={spec} registry={registry} />;
+<JSONUIProvider registry={registry}>
+  <Renderer spec={spec} registry={registry} />
+</JSONUIProvider>;
 ```
 
 See the [@json-render/solid API reference](/docs/api/solid) for details.

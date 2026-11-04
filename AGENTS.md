@@ -67,6 +67,7 @@ Do **not** add `--port` flags -- portless handles port assignment automatically.
 
 - Run `pnpm type-check` after each turn to ensure type safety
 - Documentation lives in `apps/web/content/docs/` and uses Geistdocs frontmatter. Keep public `/docs` URLs, heading IDs, `lib/page-titles.ts`, `lib/docs-navigation.ts`, and the content `meta.json` files in sync.
+- Use the `technical-writer` skill (`.agents/skills/technical-writer/SKILL.md`) when you write or edit prose for this repo, including docs pages, READMEs, changelog entries, commit messages, PR descriptions, and issues.
 - For docs routing or infrastructure changes, run `pnpm turbo run build --filter='web^...'`, `pnpm --filter web build`, and `pnpm --filter web test:routes`. Existing-page source and Markdown parity are covered by `apps/web/tests/fixtures/docs-baseline.json`; update fixtures only when intentionally changing the documented content.
 - When making user-facing changes (new packages, API changes, new features, renamed exports, changed behavior), update the relevant documentation:
   - Package `README.md` files in `packages/*/README.md`

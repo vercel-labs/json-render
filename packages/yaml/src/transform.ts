@@ -1,9 +1,11 @@
 import { parse, stringify } from "yaml";
 import { applyPatch as applyUnifiedDiff } from "diff";
 import {
+  applySpecStreamPatch,
   SPEC_DATA_PART_TYPE,
   deepMergeSpec,
   diffToPatches,
+  getByPath,
   type JsonPatch,
   type Spec,
   type StreamChunk,
@@ -15,6 +17,30 @@ export const YAML_EDIT_FENCE = "```yaml-edit";
 export const YAML_PATCH_FENCE = "```yaml-patch";
 export const DIFF_FENCE = "```diff";
 export const FENCE_CLOSE = "```";
+
+/** Most bytes that copy patches may add to the working spec in one stream. */
+const MAX_COPIED_BYTES = 1_000_000;
+
+/** Approximates the size of a JSON value in bytes, stopping once it passes `limit`. */
+function measureBytes(value: unknown, limit: number): number {
+  let bytes = 0;
+  const stack: unknown[] = [value];
+  while (stack.length > 0 && bytes <= limit) {
+    const node = stack.pop();
+    if (typeof node === "string") {
+      bytes += node.length + 2;
+    } else if (node && typeof node === "object") {
+      bytes += 2;
+      for (const [key, child] of Object.entries(node)) {
+        bytes += key.length + 4;
+        stack.push(child);
+      }
+    } else {
+      bytes += 8;
+    }
+  }
+  return bytes;
+}
 
 export interface YamlTransformOptions {
   /** Seed with a previous spec for multi-turn edit support. */
@@ -53,6 +79,7 @@ export function createYamlTransform(
 
   // Streaming compiler for yaml-spec progressive rendering
   let compiler = createYamlStreamCompiler<Record<string, unknown>>();
+  let copiedBytes = 0;
 
   // The "current spec" — built up during yaml-spec, used as base for yaml-edit
   let currentSpec: Record<string, unknown> = options?.previousSpec
@@ -98,7 +125,7 @@ export function createYamlTransform(
     closeTextBlock(controller);
     controller.enqueue({
       type: SPEC_DATA_PART_TYPE,
-      data: { type: "patch", patch },
+      data: { type: "patch", patch: structuredClone(patch) },
     });
   }
 
@@ -189,33 +216,22 @@ export function createYamlTransform(
       if (!trimmed) continue;
       try {
         const patch = JSON.parse(trimmed) as JsonPatch;
-        if (patch.op) {
+        if (!patch.op) continue;
+        if (patch.op === "copy" && patch.from) {
+          const value = getByPath(currentSpec, patch.from);
+          const remaining = MAX_COPIED_BYTES - copiedBytes;
+          const bytes = measureBytes(value, remaining);
+          if (bytes > remaining) continue;
+          copiedBytes += bytes;
           emitPatch(patch, controller);
-          // Update currentSpec for subsequent edits
-          if (patch.op === "add" || patch.op === "replace") {
-            const parts = patch.path.split("/").filter(Boolean);
-            let target: Record<string, unknown> = currentSpec;
-            for (let i = 0; i < parts.length - 1; i++) {
-              const key = parts[i]!;
-              if (typeof target[key] !== "object" || target[key] === null) {
-                target[key] = {};
-              }
-              target = target[key] as Record<string, unknown>;
-            }
-            const lastKey = parts[parts.length - 1];
-            if (lastKey) target[lastKey] = patch.value;
-          } else if (patch.op === "remove") {
-            const parts = patch.path.split("/").filter(Boolean);
-            let target: Record<string, unknown> = currentSpec;
-            for (let i = 0; i < parts.length - 1; i++) {
-              const key = parts[i]!;
-              if (typeof target[key] !== "object" || target[key] === null)
-                break;
-              target = target[key] as Record<string, unknown>;
-            }
-            const lastKey = parts[parts.length - 1];
-            if (lastKey) delete target[lastKey];
-          }
+          applySpecStreamPatch(currentSpec, {
+            op: "add",
+            path: patch.path,
+            value: structuredClone(value),
+          });
+        } else {
+          emitPatch(patch, controller);
+          applySpecStreamPatch(currentSpec, patch);
         }
       } catch {
         // Skip invalid JSON lines

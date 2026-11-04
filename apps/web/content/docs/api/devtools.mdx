@@ -142,4 +142,4 @@ type DevtoolsEvent =
 function isProduction(): boolean
 ```
 
-`true` when `process.env.NODE_ENV === "production"`. Adapters use this to short-circuit to a null render.
+`true` when `process.env.NODE_ENV === "production"`, including when a bundler replaces the expression in a browser without a `process` global. Adapters use this to skip rendering devtools. Unbundled environments without `process.env` return `false`.

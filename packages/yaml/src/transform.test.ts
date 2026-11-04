@@ -129,6 +129,154 @@ describe("createYamlTransform", () => {
     expect(hasTitleUpdate).toBe(true);
   });
 
+  it("applies yaml-patch moves before later yaml-edit fences", async () => {
+    const output = await runTransform([
+      "```yaml-patch\n",
+      '{"op":"add","path":"/a","value":1}\n',
+      "```\n",
+      "```yaml-patch\n",
+      '{"op":"move","from":"/a","path":"/b"}\n',
+      "```\n",
+      "```yaml-edit\n",
+      "b: null\n",
+      "```\n",
+    ]);
+
+    expect(extractPatches(output)).toEqual([
+      { op: "add", path: "/a", value: 1 },
+      { op: "move", from: "/a", path: "/b" },
+      { op: "remove", path: "/b" },
+    ]);
+  });
+
+  it("applies yaml-patch copies before later yaml-edit fences", async () => {
+    const output = await runTransform([
+      "```yaml-patch\n",
+      '{"op":"add","path":"/a","value":1}\n',
+      "```\n",
+      "```yaml-patch\n",
+      '{"op":"copy","from":"/a","path":"/b"}\n',
+      "```\n",
+      "```yaml-edit\n",
+      "b: null\n",
+      "```\n",
+    ]);
+
+    expect(extractPatches(output)).toEqual([
+      { op: "add", path: "/a", value: 1 },
+      { op: "copy", from: "/a", path: "/b" },
+      { op: "remove", path: "/b" },
+    ]);
+  });
+
+  it("does not mutate emitted array values when a later patch moves items", async () => {
+    const output = await runTransform([
+      "```yaml-patch\n",
+      '{"op":"add","path":"/l","value":[1,2,3]}\n',
+      '{"op":"move","from":"/l/0","path":"/l/-"}\n',
+      "```\n",
+    ]);
+
+    expect(extractPatches(output)[0]).toEqual({
+      op: "add",
+      path: "/l",
+      value: [1, 2, 3],
+    });
+  });
+
+  it("drops copy patches that would grow the working spec past its limit", async () => {
+    const copies = Array.from(
+      { length: 40 },
+      (_, i) => `{"op":"copy","from":"/a","path":"/a/c${i}"}\n`,
+    );
+    const output = await runTransform([
+      "```yaml-patch\n",
+      '{"op":"add","path":"/a","value":{"v":1}}\n',
+      ...copies,
+      "```\n",
+    ]);
+
+    const emitted = (extractPatches(output) as { op: string }[]).filter(
+      (p) => p.op === "copy",
+    );
+    expect(emitted.length).toBeGreaterThan(0);
+    expect(emitted.length).toBeLessThan(40);
+  });
+
+  it("drops copy patches once copied strings pass the byte budget", async () => {
+    const big = "x".repeat(16 * 1024);
+    const copies = Array.from(
+      { length: 200 },
+      (_, i) => `{"op":"copy","from":"/a","path":"/c${i}"}\n`,
+    );
+    const output = await runTransform([
+      "```yaml-patch\n",
+      `{"op":"add","path":"/a","value":"${big}"}\n`,
+      ...copies,
+      "```\n",
+    ]);
+
+    const emitted = (extractPatches(output) as { op: string }[]).filter(
+      (p) => p.op === "copy",
+    );
+    expect(emitted.length).toBeGreaterThan(0);
+    expect(emitted.length).toBeLessThan(200);
+  });
+
+  it("keeps copied objects independent in the working spec", async () => {
+    const output = await runTransform([
+      "```yaml-patch\n",
+      '{"op":"add","path":"/a","value":{"x":1}}\n',
+      '{"op":"copy","from":"/a","path":"/b"}\n',
+      '{"op":"replace","path":"/b/x","value":2}\n',
+      "```\n",
+      "```yaml-edit\n",
+      "a:\n  x: 2\n",
+      "```\n",
+    ]);
+
+    expect(extractPatches(output).at(-1)).toEqual({
+      op: "replace",
+      path: "/a/x",
+      value: 2,
+    });
+  });
+
+  it("does not mutate patches emitted by yaml-edit when a later patch moves items", async () => {
+    const output = await runTransform([
+      "```yaml-edit\n",
+      "l: [1, 2, 3]\n",
+      "```\n",
+      "```yaml-patch\n",
+      '{"op":"move","from":"/l/0","path":"/l/-"}\n',
+      "```\n",
+    ]);
+
+    expect(extractPatches(output)[0]).toEqual({
+      op: "add",
+      path: "/l",
+      value: [1, 2, 3],
+    });
+  });
+
+  it("applies yaml-patch copies split across single-character chunks", async () => {
+    const text = [
+      "```yaml-patch\n",
+      '{"op":"add","path":"/a~1b","value":1}\n',
+      '{"op":"copy","from":"/a~1b","path":"/c"}\n',
+      "```\n",
+      "```yaml-edit\n",
+      "c: null\n",
+      "```\n",
+    ].join("");
+    const output = await runTransform(text.split(""));
+
+    expect(extractPatches(output).at(-1)).toEqual({
+      op: "remove",
+      path: "/c",
+    });
+  });
+
   it("swallows fence delimiters (not emitted as text)", async () => {
     const output = await runTransform([
       "```yaml-spec\n",

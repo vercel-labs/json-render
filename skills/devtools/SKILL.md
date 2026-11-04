@@ -7,7 +7,7 @@ description: Drop-in inspector panel for any json-render app. Use when the user 
 
 A floating inspector panel for json-render apps. Framework-agnostic core + per-framework adapters (React, Vue, Svelte, Solid).
 
-Production-safe: the component renders `null` when `NODE_ENV === "production"`.
+Production-safe: the component renders no devtools UI when `process.env.NODE_ENV === "production"`, including when a bundler replaces the expression in a browser without a `process` global. Unbundled environments without `process.env` retain development behavior.
 
 ## Install
 

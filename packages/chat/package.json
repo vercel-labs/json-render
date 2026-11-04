@@ -1,0 +1,65 @@
+{
+  "name": "@json-render/chat",
+  "version": "0.22.0",
+  "license": "Apache-2.0",
+  "description": "Chat SDK renderer for @json-render/core. JSON becomes native cards on Slack, Teams, Discord, Google Chat and more.",
+  "keywords": [
+    "json",
+    "chat",
+    "chat-sdk",
+    "slack",
+    "teams",
+    "discord",
+    "ai",
+    "generative-ui",
+    "llm",
+    "renderer"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vercel-labs/json-render.git",
+    "directory": "packages/chat"
+  },
+  "homepage": "https://json-render.dev",
+  "bugs": {
+    "url": "https://github.com/vercel-labs/json-render/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "check-types": "tsc --noEmit",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@json-render/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "chat": "^4.43.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@chat-adapter/slack": "^4.43.0",
+    "@chat-adapter/teams": "^4.43.0",
+    "@internal/typescript-config": "workspace:*",
+    "chat": "^4.43.0",
+    "tsup": "^8.0.2",
+    "typescript": "^5.4.5",
+    "zod": "^4.0.0"
+  }
+}

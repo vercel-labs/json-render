@@ -14,6 +14,14 @@ const DEFAULT_OPTIONS: Required<SerializeOptions> = {
 };
 
 /**
+ * Serialize an object key for a JavaScript object literal. Identifiers stay bare, `__proto__` uses computed syntax to remain an own property, and other keys are quoted.
+ */
+function serializeObjectKey(key: string): string {
+  if (key === "__proto__") return `[${JSON.stringify(key)}]`;
+  return /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(key) ? key : JSON.stringify(key);
+}
+
+/**
  * Escape a string for use in code
  */
 export function escapeString(
@@ -92,8 +100,7 @@ export function serializePropValue(
       .filter(([, v]) => v !== undefined)
       .map(([k, v]) => {
         const serialized = serializePropValue(v, opts).value;
-        // Use shorthand if key matches value for simple identifiers
-        return `${k}: ${serialized}`;
+        return `${serializeObjectKey(k)}: ${serialized}`;
       });
 
     return { value: `{ ${entries.join(", ")} }`, needsBraces: true };

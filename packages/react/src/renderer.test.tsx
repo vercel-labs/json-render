@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { defineCatalog, type Spec } from "@json-render/core";
 import { z } from "zod";
 import {
@@ -10,6 +10,7 @@ import {
   type ComponentRenderProps,
 } from "./renderer";
 import { schema } from "./schema";
+import type { SetState } from "./catalog-types";
 
 describe("Renderer", () => {
   it("renders null for null spec", () => {
@@ -196,5 +197,81 @@ describe("Renderer", () => {
       "[json-render] $item in repeat.statePath used outside of a repeat scope",
     );
     warn.mockRestore();
+  });
+});
+
+describe("defineRegistry handlers without a state setter", () => {
+  const catalog = defineCatalog(schema, {
+    components: {
+      Button: { props: z.object({ label: z.string() }), slots: [] },
+    },
+    actions: { run: { description: "Run an action" } },
+  });
+  const spec: Spec = {
+    root: "btn",
+    elements: {
+      btn: {
+        type: "Button",
+        props: { label: "Go" },
+        on: { press: { action: "run", params: { value: 1 } } },
+      },
+    },
+  };
+
+  function mount(action: (...args: never[]) => unknown, getSetState: never) {
+    const { registry, handlers } = defineRegistry(catalog, {
+      components: {
+        Button: ({ props, emit }) => (
+          <button data-testid="btn" onClick={() => emit("press")}>
+            {props.label}
+          </button>
+        ),
+      },
+      actions: { run: action as never },
+    });
+    render(
+      <JSONUIProvider
+        registry={registry}
+        handlers={handlers(getSetState, () => ({}))}
+      >
+        <Renderer spec={spec} registry={registry} />
+      </JSONUIProvider>,
+    );
+  }
+
+  it("invokes the action once with a no-op setter", async () => {
+    const action = vi.fn(async (_p: unknown, setState: SetState) => {
+      setState((prev) => prev);
+    });
+    mount(action, (() => undefined) as never);
+    fireEvent.click(screen.getByTestId("btn"));
+    await waitFor(() => expect(action).toHaveBeenCalledTimes(1));
+    expect(action).toHaveBeenCalledWith({ value: 1 }, expect.any(Function), {});
+  });
+
+  it("passes the real setter when one is provided", async () => {
+    const setState = vi.fn();
+    const action = vi.fn(async (_p: unknown, set: SetState) => {
+      set((prev) => prev);
+    });
+    mount(action, (() => setState) as never);
+    fireEvent.click(screen.getByTestId("btn"));
+    await waitFor(() => expect(setState).toHaveBeenCalledTimes(1));
+    expect(action).toHaveBeenCalledTimes(1);
+  });
+
+  it("still surfaces async action errors", async () => {
+    const action = vi.fn(async () => {
+      throw new Error("boom");
+    });
+    const { handlers } = defineRegistry(catalog, {
+      components: { Button: () => null },
+      actions: { run: action },
+    });
+    const run = handlers(
+      () => undefined,
+      () => ({}),
+    ).run;
+    await expect(run!({})).rejects.toThrow("boom");
   });
 });

@@ -361,7 +361,10 @@ const { spec, text, hasSpec } = useJsonRenderMessage(parts: DataPart[]);
 
 // spec: Spec | null     - compiled from JSONL patches in data parts
 // text: string          - concatenated text parts
-// hasSpec: boolean      - true when spec is non-null
+// hasSpec: boolean      - true when spec has at least one element
+//
+// text joins all text parts and spec merges all spec parts, so neither keeps
+// the original part order. See the ordered example in the AI SDK guide.
 ```
 
 ### buildSpecFromParts / getTextFromParts

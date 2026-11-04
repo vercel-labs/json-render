@@ -441,8 +441,8 @@ import { useStateStore as useStateStoreFromContext } from "./contexts/state";
  * import { useBoundProp } from "@json-render/solid";
  *
  * const Input: ComponentRenderer = (ctx) => {
- *   const [value, setValue] = useBoundProp<string>(ctx.props.value, ctx.bindings?.value);
- *   return <input value={value ?? ""} onInput={(e) => setValue(e.target.value)} />;
+ *   const [, setValue] = useBoundProp<string>(ctx.props.value, ctx.bindings?.value);
+ *   return <input value={ctx.props.value ?? ""} onInput={(e) => setValue(e.target.value)} />;
  * };
  * ```
  */

@@ -1,0 +1,9 @@
+{
+  // Type-checks the tests that assert inferred types. The full core
+  // project is not type-checked in CI yet.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": ["src/schema.test.ts"]
+}

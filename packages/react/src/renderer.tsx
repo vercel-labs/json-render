@@ -1036,7 +1036,8 @@ export interface DefineRegistryResult {
   /**
    * Create ActionProvider-compatible handlers.
    * Accepts getter functions so handlers always read the latest state/setState
-   * (e.g. from React refs).
+   * (e.g. from React refs). When `getSetState` returns `undefined`, actions
+   * still run and receive a no-op setter, so state updates are discarded.
    */
   handlers: (
     getSetState: () => SetState | undefined,
@@ -1142,11 +1143,9 @@ export function defineRegistry<C extends Catalog>(
     > = {};
     for (const [name, actionFn] of actionMap) {
       result[name] = async (params) => {
-        const setState = getSetState();
+        const setState = getSetState() ?? (() => undefined);
         const state = getState();
-        if (setState) {
-          await actionFn(params, setState, state);
-        }
+        await actionFn(params, setState, state);
       };
     }
     return result;

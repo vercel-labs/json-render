@@ -75,7 +75,7 @@ function renderElement(
     const items =
       (getByPath(stateModel, statePath) as unknown[] | undefined) ?? [];
 
-    const fragments = items.map((item, index) => {
+    const itemChildren = items.map((item, index) => {
       const key =
         repeat.key && typeof item === "object" && item !== null
           ? String((item as Record<string, unknown>)[repeat.key!] ?? index)
@@ -94,14 +94,14 @@ function renderElement(
         ),
       );
 
-      return (
-        <Component key={key} element={resolvedElement} emit={noopEmit}>
-          {children}
-        </Component>
-      );
+      return <React.Fragment key={key}>{children}</React.Fragment>;
     });
 
-    return <>{fragments}</>;
+    return (
+      <Component key={elementKey} element={resolvedElement} emit={noopEmit}>
+        {itemChildren}
+      </Component>
+    );
   }
 
   const children = resolvedElement.children?.map((childKey) =>

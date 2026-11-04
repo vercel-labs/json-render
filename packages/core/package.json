@@ -1,6 +1,6 @@
 {
   "name": "@json-render/core",
-  "version": "0.21.0",
+  "version": "0.22.0",
   "license": "Apache-2.0",
   "description": "JSON becomes real things. Define your catalog, register your components, let AI generate.",
   "keywords": [
@@ -47,6 +47,7 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
+    "check-types": "tsc -p tsconfig.check.json",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

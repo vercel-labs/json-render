@@ -3,13 +3,14 @@
  * returns true, so dropping `<JsonRenderDevtools />` into an app costs
  * nothing in production builds.
  *
- * Tree-shaken bundlers will fold constant `process.env.NODE_ENV` checks.
- * Consumers that run in browsers without `process` also work because the
- * typeof check guards the access.
+ * Keep `process.env.NODE_ENV` directly replaceable by bundlers, even when
+ * the browser has no `process` global. Unbundled environments without
+ * `process.env` fall back to development behavior.
  */
 export function isProduction(): boolean {
-  if (typeof process !== "undefined" && process.env) {
+  try {
     return process.env.NODE_ENV === "production";
+  } catch {
+    return false;
   }
-  return false;
 }

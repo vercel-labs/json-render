@@ -4,6 +4,110 @@ title: "Changelog"
 
 Notable changes and updates to json-render.
 
+## v0.22.0
+
+November 4, 2026
+
+### New: Chat SDK Renderer
+
+Added `@json-render/chat` to render specs as Chat SDK cards. One catalog posts native messages on Slack, Teams, and the other Chat SDK platforms. `streamCard` streams a card into a thread and edits it as elements arrive, and `toCard` validates specs against per-component schemas and optional platform limits before posting.
+
+See the [Chat SDK API reference](/docs/api/chat) for setup, streaming, and limits.
+
+### New: Chat SDK Example
+
+Added an example playground that previews generated messages as Slack renders them, with a Teams Adaptive Card view and a copy button for Block Kit Builder.
+
+---
+
+## v0.21.4
+
+October 30, 2026
+
+### Improved: Examples
+
+Added the eve TanStack Agent example with links to its source repository and Vercel template.
+
+### Improved: Documentation
+
+Added shared technical writing guidance for documentation changes.
+
+---
+
+## v0.21.3
+
+October 24, 2026
+
+### Fixed: YAML Patch State
+
+Move and copy operations now update the working spec used by later YAML edits. Copied and emitted values are isolated, and copy growth is bounded.
+
+### Fixed: JSON Pointer Paths
+
+Path helpers now follow own properties and preserve dense arrays, ignoring inherited paths and out-of-range array indexes.
+
+### Fixed: Repeated Stream Operations
+
+Every SpecStream JSONL line is now applied, including repeated append operations.
+
+### Fixed: Chat Example Styling
+
+Corrected Tailwind source paths so chat examples include Streamdown and shadcn styles.
+
+### Fixed: shadcn Skill Installation
+
+The skill is now named `json-render-shadcn` so installing it does not replace the official shadcn skill.
+
+### Improved: Documentation
+
+Corrected Solid registry and reactive input examples, documented mixed message part ordering and `useJsonRenderMessage` aggregation, and updated Jev composition setup to use published npm packages.
+
+---
+
+## v0.21.2
+
+October 23, 2026
+
+### Fixed: Code Generation
+
+Generated prop objects now quote non-identifier keys and use computed syntax for `__proto__`, preserving it as an own property.
+
+### Fixed: Production Devtools
+
+Devtools now honor production bundle replacements for `process.env.NODE_ENV`, so they stay disabled in production browsers without a global `process` object.
+
+### Fixed: PDF Repeat Containers
+
+`renderToBuffer`, `renderToStream`, and `renderToFile` now render repeat containers once with each item's children inside, including the container for an empty repeat.
+
+### Fixed: React Registry Actions
+
+Registry actions now run with a no-op setter when no state setter is available, so actions that do not change state are still invoked.
+
+---
+
+## v0.21.1
+
+October 13, 2026
+
+### Fixed: Dotted Form Values
+
+Form value lookups now preserve literal emails, URLs, and version strings instead of treating them as missing state paths.
+
+### Fixed: Numeric Validation
+
+The `numeric` validator now rejects partially numeric strings such as `"123abc"`, empty strings, and whitespace-only strings instead of accepting them as numbers.
+
+### Fixed: Schema Type Inference
+
+`s.any()` fields now infer as `any`, matching `z.any()`, so validated specs remain assignable to `Spec` without casts.
+
+### Improved: Documentation
+
+Migrated the docs site to Geistdocs while preserving public URLs, page content, and anchors. Updated native WebMCP discovery and search with the Geistdocs MCP adapter.
+
+---
+
 ## v0.21.0
 
 September 18, 2026

@@ -49,6 +49,24 @@ function ExampleCard({ example }: { example: Example }) {
               Live Demo
             </a>
           )}
+          {example.templateUrl && (
+            <a
+              href={example.templateUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm text-foreground hover:text-primary transition-colors"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                className="h-3.5 w-3.5"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path d="M12 2 24 22H0z" />
+              </svg>
+              Template
+            </a>
+          )}
           <a
             href={getGitHubUrl(example)}
             target="_blank"

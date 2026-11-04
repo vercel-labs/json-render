@@ -158,6 +158,51 @@ function ChatMessage({ message }: { message: { parts: Array<{ type: string; text
 }
 ```
 
+**Preserving part order**
+
+The example above is a message-level layout: `text` joins all text parts, and `spec` combines all spec data parts into one cumulative spec. It renders the joined text followed by the UI, not the original part order.
+
+For mixed inline layouts, iterate `message.parts` instead. Render the latest merged `spec` once at the **first** `SPEC_DATA_PART_TYPE` position and skip subsequent spec parts. Individual spec parts may be patches, not standalone UI blocks. Later patches update that same UI in place, even when text or tools occur between them; this does not create a separate UI snapshot at each patch position.
+
+```tsx
+import { Fragment, type ReactNode } from "react";
+import type { UIMessage } from "ai";
+import { SPEC_DATA_PART_TYPE } from "@json-render/core";
+import { useJsonRenderMessage, Renderer } from "@json-render/react";
+
+function OrderedChatMessage({
+  message,
+  renderPart,
+}: {
+  message: UIMessage;
+  renderPart: (part: UIMessage["parts"][number]) => ReactNode;
+}) {
+  const { spec, hasSpec } = useJsonRenderMessage(message.parts);
+  const firstSpecIndex = message.parts.findIndex(
+    (part) => part.type === SPEC_DATA_PART_TYPE,
+  );
+
+  return (
+    <div>
+      {message.parts.map((part, index) => {
+        if (part.type === SPEC_DATA_PART_TYPE) {
+          if (index !== firstSpecIndex || !hasSpec || !spec) return null;
+          return <Renderer key={index} spec={spec} registry={registry} />;
+        }
+        if (part.type === "text") {
+          return <p key={index}>{part.text}</p>;
+        }
+        return <Fragment key={index}>{renderPart(part)}</Fragment>;
+      })}
+    </div>
+  );
+}
+```
+
+Here, `registry` is your component registry and `renderPart` is your application's renderer for tool, reasoning, source, and other parts (return `null` for parts you do not display). For `text → tool → text → spec patch → text → spec patch`, the layout is `text → tool → text → merged UI → text`. Do not also render the hook's aggregated `text`, or the text will appear twice.
+
+During streaming, `hasSpec` can be false while the initial patches have not added any elements yet. The UI appears at the first spec-part position once `hasSpec` is true; text-only messages render without a UI block. See the [chat example's ordered segments](https://github.com/vercel-labs/json-render/blob/main/examples/chat/app/page.tsx) for a complete implementation that also groups adjacent text and tool parts.
+
 ## Prompt Engineering
 
 The `catalog.prompt()` method creates an optimized system prompt that:

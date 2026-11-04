@@ -37,7 +37,9 @@ export const catalog = defineCatalog(schema, {
     },
     Input: {
       props: z.object({
-        value: z.union([z.string(), z.record(z.unknown())]).nullable(),
+        value: z
+          .union([z.string(), z.record(z.string(), z.unknown())])
+          .nullable(),
         label: z.string(),
         placeholder: z.string().nullable(),
       }),
@@ -55,6 +57,8 @@ export const catalog = defineCatalog(schema, {
 
 `defineRegistry` conditionally requires the `actions` field only when the catalog declares actions.
 
+Registry callbacks receive resolved values through `renderProps.props`. Read changing values inside JSX to preserve Solid's reactivity; `useBoundProp` returns a scalar value and a write-back setter, not an accessor.
+
 ```tsx
 import { defineRegistry, useBoundProp } from "@json-render/solid";
 import { catalog } from "./catalog";
@@ -63,26 +67,26 @@ export const { registry } = defineRegistry(catalog, {
   components: {
     Card: (renderProps) => (
       <div class="card">
-        <h3>{renderProps.element.props.title as string}</h3>
+        <h3>{renderProps.props.title}</h3>
         {renderProps.children}
       </div>
     ),
     Button: (renderProps) => (
       <button onClick={() => renderProps.emit("press")}>
-        {renderProps.element.props.label as string}
+        {renderProps.props.label}
       </button>
     ),
     Input: (renderProps) => {
-      const [value, setValue] = useBoundProp(
-        renderProps.element.props.value,
+      const [, setValue] = useBoundProp(
+        renderProps.props.value,
         renderProps.bindings?.value,
       );
       return (
         <label>
-          {renderProps.element.props.label as string}
+          {renderProps.props.label}
           <input
-            value={String(value() ?? "")}
-            placeholder={String(renderProps.element.props.placeholder ?? "")}
+            value={String(renderProps.props.value ?? "")}
+            placeholder={String(renderProps.props.placeholder ?? "")}
             onInput={(e) => setValue(e.currentTarget.value)}
           />
         </label>
@@ -99,16 +103,18 @@ export const { registry } = defineRegistry(catalog, {
 ### 3. Render Specs
 
 ```tsx
-import { Renderer, StateProvider, ActionProvider } from "@json-render/solid";
+import { Renderer, JSONUIProvider } from "@json-render/solid";
 import { registry } from "./registry";
 
 export function App(props: { spec: any }) {
   return (
-    <StateProvider initialState={{ form: { name: "" } }}>
-      <ActionProvider handlers={{ submit: () => console.log("submit") }}>
-        <Renderer spec={props.spec} registry={registry} />
-      </ActionProvider>
-    </StateProvider>
+    <JSONUIProvider
+      registry={registry}
+      initialState={{ form: { name: "" } }}
+      handlers={{ submit: () => console.log("submit") }}
+    >
+      <Renderer spec={props.spec} registry={registry} />
+    </JSONUIProvider>
   );
 }
 ```
@@ -168,7 +174,7 @@ const store = createStateStore({ count: 0 });
 | `useActions()` / `useAction()`                | Action context and single-action helper               |
 | `useValidation()` / `useOptionalValidation()` | Validation context (throwing/non-throwing)            |
 | `useFieldValidation(path, config)`            | Field state accessors plus validate/touch/clear       |
-| `useBoundProp(value, binding)`                | Fine-grained two-way binding helper                   |
+| `useBoundProp(value, binding)`                | Resolved prop value plus a write-back setter          |
 | `useUIStream(options)`                        | Stream UI specs from an endpoint                      |
 | `useChatUI(options)`                          | Chat-style spec generation hook                       |
 

@@ -11,6 +11,10 @@ Most users never import from this package directly. Pick the adapter that matche
 
 See the [devtools guide](https://json-render.dev/docs/devtools) for the full walkthrough.
 
+## Production builds
+
+Framework adapters render no devtools UI when the bundler replaces `process.env.NODE_ENV` with `"production"`, including in browsers without a `process` global. Unbundled environments without `process.env` fall back to development behavior.
+
 ## Installation
 
 ```bash

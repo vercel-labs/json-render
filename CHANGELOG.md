@@ -1,8 +1,99 @@
 # Changelog
 
-## 0.21.0
+## 0.22.0
 
 <!-- release:start -->
+
+### New Features
+
+- **Chat SDK renderer:** Added `@json-render/chat` to render specs as Chat SDK cards, so one catalog posts natively on Slack, Teams, and the other Chat SDK platforms. `streamCard` streams a card into a thread and edits it as elements arrive, and `toCard` validates specs against per-component schemas and optional platform limits. State expressions, `visible`, and `repeat` resolve against `spec.state` (#451)
+- **Chat SDK example:** Added a playground that previews generated messages as Slack renders them, with a Teams Adaptive Card view and a copy button for Block Kit Builder (#451)
+
+### Contributors
+
+- @Railly
+
+<!-- release:end -->
+
+## 0.21.4
+
+### Documentation
+
+- Added the **eve TanStack Agent template** to the examples page, with links to its source repository and Vercel template (#442)
+- Added shared **technical writing guidance** for documentation changes (#441)
+
+### Contributors
+
+- @bensabic
+
+
+## 0.21.3
+
+### Bug Fixes
+
+- **YAML patch state:** Keep move and copy operations in sync with later YAML edits, isolate copied and emitted values, and bound copy growth (#411)
+- **JSON Pointer paths:** Keep path helpers on own properties and dense arrays, ignoring inherited paths and out-of-range array indexes (#411)
+- **Repeated stream operations:** Apply every SpecStream JSONL line, including repeated append operations (#414)
+- **Chat example styling:** Correct Tailwind source paths so chat examples include Streamdown and shadcn styles (#415)
+- **shadcn skill installation:** Rename the skill to `json-render-shadcn` to avoid replacing the official shadcn skill (#417)
+
+### Documentation
+
+- Correct **Solid registry and reactive input examples** across guides, API references, and package documentation (#413)
+- Document **mixed message part ordering** and the aggregation behavior of `useJsonRenderMessage` (#416)
+- Document **published Jev composition APIs** with exact-version npm installation instructions (#418)
+
+### Contributors
+
+- @lahfir
+- @dajiaohuang
+- @Jassi2004
+- @xiehuanyi
+- @kevin9327
+- @adhamali450
+- @monsterlag
+- @Bortlesboat
+
+## 0.21.2
+
+### Bug Fixes
+
+- **Code generation:** Quote non-identifier object keys and preserve `__proto__` as an own property when serializing props (#407)
+- **Production devtools:** Honor production bundle replacements for `process.env.NODE_ENV` so devtools stay disabled without a browser `process` global (#408)
+- **PDF repeats:** Render repeat containers once, including empty repeats, across server-side PDF output methods (#409)
+- **React registry actions:** Run actions with a no-op setter when no state setter is available (#410)
+
+### Contributors
+
+- @lahfir
+- @dajiaohuang
+- @Jassi2004
+- @xiehuanyi
+- @peter-cynomi
+- @Yi-111-a
+
+## 0.21.1
+
+### Bug Fixes
+
+- **Dotted form values:** Preserve literal emails, URLs, and version strings in form value lookups instead of treating them as missing state paths (#353)
+- **Numeric validation:** Reject partially numeric strings such as `"123abc"`, empty strings, and whitespace-only strings instead of accepting them as numbers (#389)
+- **Schema type inference:** Infer `s.any()` fields as `any`, matching `z.any()`, so validated specs remain assignable to `Spec` without casts (#390)
+
+### Documentation
+
+- Migrated the **docs site** to Geistdocs while preserving public URLs, page content, and anchors (#340)
+- Updated **native WebMCP discovery and search** with the Geistdocs MCP adapter (#363)
+
+### Contributors
+
+- @ctate
+- @Railly
+- @fix2015
+- @kevin9327
+- @tmchow
+
+## 0.21.0
 
 ### New Features
 
@@ -19,7 +110,6 @@
 
 - @ctate
 - @Railly
-<!-- release:end -->
 
 ## 0.20.0
 

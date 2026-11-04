@@ -300,7 +300,7 @@ export function getByPath(obj: unknown, path: string): unknown {
     if (Array.isArray(current)) {
       const index = parseInt(segment, 10);
       current = current[index];
-    } else if (typeof current === "object") {
+    } else if (typeof current === "object" && Object.hasOwn(current, segment)) {
       current = (current as Record<string, unknown>)[segment];
     } else {
       return undefined;
@@ -351,6 +351,13 @@ function isNumericIndex(str: string): boolean {
   return /^\d+$/.test(str);
 }
 
+/** Returns the index a segment names in `arr`, or undefined unless it is a number no larger than the length, so writes never leave holes. */
+function denseIndex(arr: unknown[], segment: string): number | undefined {
+  return isNumericIndex(segment) && Number(segment) <= arr.length
+    ? Number(segment)
+    : undefined;
+}
+
 /**
  * Set a value in an object by JSON Pointer path (RFC 6901).
  * Automatically creates arrays when the path segment is a numeric index.
@@ -362,7 +369,7 @@ export function setByPath(
 ): void {
   const segments = parseJsonPointer(path);
 
-  if (segments.length === 0) return;
+  if (segments.length === 0 || segments.includes("__proto__")) return;
 
   let current: Record<string, unknown> | unknown[] = obj;
 
@@ -374,13 +381,17 @@ export function setByPath(
       (isNumericIndex(nextSegment) || nextSegment === "-");
 
     if (Array.isArray(current)) {
-      const index = parseInt(segment, 10);
+      const index = denseIndex(current, segment);
+      if (index === undefined) return;
       if (current[index] === undefined || typeof current[index] !== "object") {
         current[index] = nextIsNumeric ? [] : {};
       }
       current = current[index] as Record<string, unknown> | unknown[];
     } else {
-      if (!(segment in current) || typeof current[segment] !== "object") {
+      if (
+        !Object.hasOwn(current, segment) ||
+        typeof current[segment] !== "object"
+      ) {
         current[segment] = nextIsNumeric ? [] : {};
       }
       current = current[segment] as Record<string, unknown> | unknown[];
@@ -392,8 +403,8 @@ export function setByPath(
     if (lastSegment === "-") {
       current.push(value);
     } else {
-      const index = parseInt(lastSegment, 10);
-      current[index] = value;
+      const index = denseIndex(current, lastSegment);
+      if (index !== undefined) current[index] = value;
     }
   } else {
     current[lastSegment] = value;
@@ -412,7 +423,7 @@ export function addByPath(
 ): void {
   const segments = parseJsonPointer(path);
 
-  if (segments.length === 0) return;
+  if (segments.length === 0 || segments.includes("__proto__")) return;
 
   let current: Record<string, unknown> | unknown[] = obj;
 
@@ -424,13 +435,17 @@ export function addByPath(
       (isNumericIndex(nextSegment) || nextSegment === "-");
 
     if (Array.isArray(current)) {
-      const index = parseInt(segment, 10);
+      const index = denseIndex(current, segment);
+      if (index === undefined) return;
       if (current[index] === undefined || typeof current[index] !== "object") {
         current[index] = nextIsNumeric ? [] : {};
       }
       current = current[index] as Record<string, unknown> | unknown[];
     } else {
-      if (!(segment in current) || typeof current[segment] !== "object") {
+      if (
+        !Object.hasOwn(current, segment) ||
+        typeof current[segment] !== "object"
+      ) {
         current[segment] = nextIsNumeric ? [] : {};
       }
       current = current[segment] as Record<string, unknown> | unknown[];
@@ -442,8 +457,8 @@ export function addByPath(
     if (lastSegment === "-") {
       current.push(value);
     } else {
-      const index = parseInt(lastSegment, 10);
-      current.splice(index, 0, value);
+      const index = denseIndex(current, lastSegment);
+      if (index !== undefined) current.splice(index, 0, value);
     }
   } else {
     current[lastSegment] = value;
@@ -458,7 +473,7 @@ export function addByPath(
 export function removeByPath(obj: Record<string, unknown>, path: string): void {
   const segments = parseJsonPointer(path);
 
-  if (segments.length === 0) return;
+  if (segments.length === 0 || segments.includes("__proto__")) return;
 
   let current: Record<string, unknown> | unknown[] = obj;
 
@@ -472,7 +487,10 @@ export function removeByPath(obj: Record<string, unknown>, path: string): void {
       }
       current = current[index] as Record<string, unknown> | unknown[];
     } else {
-      if (!(segment in current) || typeof current[segment] !== "object") {
+      if (
+        !Object.hasOwn(current, segment) ||
+        typeof current[segment] !== "object"
+      ) {
         return; // path does not exist
       }
       current = current[segment] as Record<string, unknown> | unknown[];
@@ -869,7 +887,6 @@ export function createSpecStreamCompiler<T = Record<string, unknown>>(
   let result = { ...initial } as T;
   let buffer = "";
   const appliedPatches: SpecStreamLine[] = [];
-  const processedLines = new Set<string>();
 
   return {
     push(chunk: string): { result: T; newPatches: SpecStreamLine[] } {
@@ -882,8 +899,7 @@ export function createSpecStreamCompiler<T = Record<string, unknown>>(
 
       for (const line of lines) {
         const trimmed = line.trim();
-        if (!trimmed || processedLines.has(trimmed)) continue;
-        processedLines.add(trimmed);
+        if (!trimmed) continue;
 
         const patch = parseSpecStreamLine(trimmed);
         if (patch) {
@@ -905,8 +921,7 @@ export function createSpecStreamCompiler<T = Record<string, unknown>>(
       // Process any remaining buffer
       if (buffer.trim()) {
         const patch = parseSpecStreamLine(buffer);
-        if (patch && !processedLines.has(buffer.trim())) {
-          processedLines.add(buffer.trim());
+        if (patch) {
           applySpecStreamPatch(result as Record<string, unknown>, patch);
           appliedPatches.push(patch);
           result = { ...result };
@@ -924,7 +939,6 @@ export function createSpecStreamCompiler<T = Record<string, unknown>>(
       result = { ...newInitial } as T;
       buffer = "";
       appliedPatches.length = 0;
-      processedLines.clear();
     },
   };
 }
