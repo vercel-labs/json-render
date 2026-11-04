@@ -100,7 +100,7 @@ await thread.post(toCard(spec));
 
 Specs can read from `spec.state`. `toCard` resolves `$state`, `$item`, `$index`, and `$template` expressions, drops elements whose `visible` condition is false, and renders the children of an element with `repeat` once per item. A `Table` with `repeat` uses its rows as a template, with one copy per item. A `Table` whose `rows` resolve to objects matches each header to the key with the same name.
 
-A posted message has no inputs, so `$bindState` and `$bindItem` have no effect.
+A `Fields`, `Actions`, or `Section` left without children, for example after a `repeat` over an empty array, is omitted, since platforms reject empty groups. A posted message has no inputs, so `$bindState` and `$bindItem` have no effect.
 
 Expansion stops at `maxElements`, which defaults to 1000 elements and table rows, so nested repeats over state cannot grow without bound. `toCard` throws `CardSpecError` when a spec goes past it, and `toPartialCard` keeps what was expanded so far.
 

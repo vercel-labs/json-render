@@ -467,3 +467,111 @@ describe("image-only card", () => {
     expect(card.imageUrl).toBe("https://example.com/chart.png");
   });
 });
+
+describe("group pruning", () => {
+  const blockTypes = (card: CardElement | null) =>
+    cardToSlackBlocks(card as never).map((b) => b.type);
+
+  it("drops children a group cannot hold while streaming", async () => {
+    const spec = {
+      root: "card",
+      elements: {
+        card: {
+          type: "Card",
+          props: { title: "Hi" },
+          children: ["kpis", "acts"],
+        },
+        kpis: { type: "Fields", props: {}, children: ["oops", "f"] },
+        oops: { type: "Text", props: { content: "not a field" }, children: [] },
+        f: { type: "Field", props: { label: "A", value: "1" }, children: [] },
+        acts: { type: "Actions", props: {}, children: ["oops"] },
+      },
+    } as unknown as Spec;
+    const partial = toPartialCard(spec);
+    expect(() => cardToSlackBlocks(partial as never)).not.toThrow();
+    expect(partial?.children).toEqual([
+      { type: "fields", children: [{ type: "field", label: "A", value: "1" }] },
+    ]);
+
+    const lines = [
+      { op: "add", path: "/root", value: "card" },
+      ...Object.entries(spec.elements).map(([key, value]) => ({
+        op: "add",
+        path: `/elements/${key}`,
+        value,
+      })),
+    ].map((patch) => `${JSON.stringify(patch)}\n`);
+    async function* model() {
+      yield* lines;
+    }
+    const target = {
+      async post(card: CardElement) {
+        cardToSlackBlocks(card as never);
+        return {
+          async edit(next: CardElement) {
+            cardToSlackBlocks(next as never);
+          },
+        };
+      },
+    };
+    // The final spec is invalid, so streamCard rejects with the spec issues,
+    // not with a TypeError from a malformed partial card.
+    await expect(
+      streamCard(target, model(), { updateIntervalMs: 0 }),
+    ).rejects.toBeInstanceOf(CardSpecError);
+  });
+
+  it("omits Fields and Actions left empty by repeat or visible", () => {
+    const card = toCard({
+      root: "card",
+      state: { items: [], show: false },
+      elements: {
+        card: {
+          type: "Card",
+          props: { title: "Status" },
+          children: ["kpis", "acts", "note"],
+        },
+        kpis: {
+          type: "Fields",
+          props: {},
+          repeat: { statePath: "/items" },
+          children: ["f"],
+        },
+        f: {
+          type: "Field",
+          props: { label: { $item: "k" }, value: { $item: "v" } },
+          children: [],
+        },
+        acts: { type: "Actions", props: {}, children: ["go"] },
+        go: {
+          type: "Button",
+          props: { id: "go", label: "Go" },
+          visible: { $state: "/show" },
+          children: [],
+        },
+        note: { type: "Text", props: { content: "All quiet" }, children: [] },
+      },
+    } as unknown as Spec);
+    expect(card.children.map((c) => c.type)).toEqual(["text"]);
+    expect(blockTypes(card)).not.toContain("actions");
+  });
+
+  it("rejects a Card that only held empty groups", () => {
+    expect(() =>
+      toCard({
+        root: "card",
+        state: { items: [] },
+        elements: {
+          card: { type: "Card", props: {}, children: ["kpis"] },
+          kpis: {
+            type: "Fields",
+            props: {},
+            repeat: { statePath: "/items" },
+            children: ["f"],
+          },
+          f: { type: "Field", props: { label: "a", value: "b" }, children: [] },
+        },
+      } as unknown as Spec),
+    ).toThrow(/needs a title, an image or at least one child/);
+  });
+});

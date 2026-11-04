@@ -131,13 +131,6 @@ function validateStructure(
   const root = elements[spec.root];
   if (!root) issues.push(`root "${spec.root}" is not an element`);
   else if (root.type !== "Card") issues.push("root must be a Card");
-  else if (
-    !root.props.title &&
-    !root.props.subtitle &&
-    !root.props.imageUrl &&
-    !root.children.length
-  )
-    issues.push("the Card needs a title, an image or at least one child");
 
   for (const [key, el] of Object.entries(elements)) {
     if (el.children.length && !defs[el.type]?.slots?.length)
@@ -433,6 +426,53 @@ function materialize(spec: Partial<Spec>, maxElements: number): Materialized {
   return { elements: out, missing, overflow };
 }
 
+// Which child types each group accepts. Other children would turn into
+// fields or buttons without their required props.
+const ACCEPTS: Record<string, string[]> = {
+  Fields: ["Field"],
+  Actions: ["Button", "LinkButton"],
+};
+const GROUPS = new Set(["Fields", "Actions", "Section"]);
+
+const hasContent = (el: Element) =>
+  Boolean(
+    el.props.title ||
+    el.props.subtitle ||
+    el.props.imageUrl ||
+    el.children.length,
+  );
+
+/**
+ * Drop children a group cannot hold and omit groups left empty, for example
+ * a Fields repeated over an empty array. Platforms reject an empty fields or
+ * actions block, and the whole message with it. Works bottom-up from the root.
+ */
+function prune(elements: Record<string, Element>, rootKey: string) {
+  const kept = new Map<string, boolean>();
+  const visit = (key: string): boolean => {
+    const cached = kept.get(key);
+    if (cached !== undefined) return cached;
+    kept.set(key, false);
+    const el = elements[key];
+    if (!el) return false;
+    const accepts = ACCEPTS[el.type];
+    el.children = el.children.filter(
+      (child) =>
+        elements[child] !== undefined &&
+        (!accepts || accepts.includes(elements[child]!.type)) &&
+        visit(child),
+    );
+    const keep =
+      key === rootKey ||
+      (GROUPS.has(el.type)
+        ? el.children.length > 0
+        : el.type !== "Card" || hasContent(el));
+    kept.set(key, keep);
+    return keep;
+  };
+  visit(rootKey);
+}
+
 function buildCard(
   root: Element,
   elements: Record<string, Element>,
@@ -469,6 +509,11 @@ export function toCard(spec: Spec, options: ToCardOptions = {}): CardElement {
       ...missing.map((key) => `missing element "${key}"`),
       ...validateStructure(spec, elements, defs as ComponentDefs),
     ];
+  if (!issues.length) {
+    prune(elements, spec.root);
+    if (!hasContent(elements[spec.root]!))
+      issues.push("the Card needs a title, an image or at least one child");
+  }
   if (!issues.length && options.limits)
     issues = validateLimits(elements, options.limits);
   if (issues.length) throw new CardSpecError(issues);
@@ -500,19 +545,11 @@ export function toPartialCard(
     if (parsed?.success)
       ok[key] = { ...el, props: parsed.data as Record<string, any> };
   }
-  for (const el of Object.values(ok))
-    el.children = el.children.filter((c) => ok[c]);
   const root = spec.root ? ok[spec.root] : undefined;
   if (!root || root.type !== "Card") return null;
-  const ready = (key: string) => {
-    const el = ok[key]!;
-    if (key === spec.root) return false;
-    if (el.type === "Fields" || el.type === "Actions" || el.type === "Section")
-      return el.children.length > 0;
-    return true;
-  };
+  prune(ok, spec.root!);
   const keys: string[] = [];
-  for (const key of root.children.filter(ready)) {
+  for (const key of root.children) {
     try {
       toChild(key, ok);
       keys.push(key);
