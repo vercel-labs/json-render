@@ -2,8 +2,14 @@ import type { Spec } from "@json-render/core";
 import { cardToSlackBlocks } from "@chat-adapter/slack/blocks";
 import { cardToAdaptiveCard } from "@chat-adapter/teams/cards";
 import { describe, expect, it } from "vitest";
-import type { CardElement } from "chat";
-import { CardSpecError, streamCard, toCard, toPartialCard } from "./index";
+import type { CardElement, Thread } from "chat";
+import {
+  CardSpecError,
+  streamCard,
+  toCard,
+  toPartialCard,
+  type CardTarget,
+} from "./index";
 
 const report: Spec = {
   root: "card",
@@ -149,5 +155,195 @@ describe("streamCard", () => {
     expect(calls.filter((c) => c.op === "post")).toHaveLength(1);
     expect(calls.at(-1)?.children).toBe(4);
     expect(result.card.title).toBe("Weekly deploys");
+  });
+});
+
+// A Chat SDK Thread must be usable as a streamCard target without casts.
+export const threadIsCardTarget = (thread: Thread): CardTarget => thread;
+
+describe("state expressions", () => {
+  it("resolves $state props against spec.state", () => {
+    const card = toCard({
+      root: "card",
+      state: { total: "985" },
+      elements: {
+        card: { type: "Card", props: { title: "Deploys" }, children: ["kpis"] },
+        kpis: { type: "Fields", props: {}, children: ["f"] },
+        f: {
+          type: "Field",
+          props: { label: "Total", value: { $state: "/total" } },
+          children: [],
+        },
+      },
+    } as unknown as Spec);
+    expect(card.children[0]).toEqual({
+      type: "fields",
+      children: [{ type: "field", label: "Total", value: "985" }],
+    });
+  });
+});
+
+describe("repeat", () => {
+  it("renders a repeated element's children once per state item", () => {
+    const card = toCard({
+      root: "card",
+      state: {
+        people: [
+          { name: "Ana", done: 3 },
+          { name: "Luis", done: 5 },
+        ],
+      },
+      elements: {
+        card: { type: "Card", props: { title: "Standup" }, children: ["list"] },
+        list: {
+          type: "Section",
+          props: {},
+          repeat: { statePath: "/people" },
+          children: ["kpis"],
+        },
+        kpis: { type: "Fields", props: {}, children: ["who"] },
+        who: {
+          type: "Field",
+          props: { label: { $item: "name" }, value: { $item: "done" } },
+          children: [],
+        },
+      },
+    } as unknown as Spec);
+    expect(card.children[0]).toEqual({
+      type: "section",
+      children: [
+        {
+          type: "fields",
+          children: [{ type: "field", label: "Ana", value: "3" }],
+        },
+        {
+          type: "fields",
+          children: [{ type: "field", label: "Luis", value: "5" }],
+        },
+      ],
+    });
+  });
+
+  it("reports children that never arrived", () => {
+    const spec = clone();
+    spec.elements.card.children.push("ghost");
+    expect(() => toCard(spec)).toThrow(/missing element "ghost"/);
+  });
+});
+
+describe("nested cards", () => {
+  it("renders an inner Card as a titled Section", () => {
+    const card = toCard({
+      root: "card",
+      elements: {
+        card: { type: "Card", props: { title: "Standup" }, children: ["ana"] },
+        ana: { type: "Card", props: { title: "Ana" }, children: ["note"] },
+        note: {
+          type: "Text",
+          props: { content: "Shipped the API" },
+          children: [],
+        },
+      },
+    } as unknown as Spec);
+    expect(card.children[0]).toEqual({
+      type: "section",
+      children: [
+        { type: "text", content: "Ana", style: "bold" },
+        { type: "text", content: "Shipped the API", style: undefined },
+      ],
+    });
+  });
+});
+
+describe("table rows from state", () => {
+  it("accepts rows bound to an array of objects", () => {
+    const card = toCard({
+      root: "card",
+      state: { people: [{ name: "Ana", points: 16 }] },
+      elements: {
+        card: { type: "Card", props: {}, children: ["t"] },
+        t: {
+          type: "Table",
+          props: { headers: ["Name", "Points"], rows: { $state: "/people" } },
+          children: [],
+        },
+      },
+    } as unknown as Spec);
+    expect(card.children[0]).toMatchObject({
+      type: "table",
+      rows: [["Ana", "16"]],
+    });
+  });
+});
+
+describe("repeated table", () => {
+  it("expands template rows once per item", () => {
+    const card = toCard({
+      root: "card",
+      state: {
+        prs: [
+          { author: "ana", age: 2 },
+          { author: "luis", age: 5 },
+        ],
+      },
+      elements: {
+        card: { type: "Card", props: {}, children: ["t"] },
+        t: {
+          type: "Table",
+          props: {
+            headers: ["Author", "Age"],
+            rows: [{ a: { $item: "author" }, b: { $item: "age" } }],
+          },
+          repeat: { statePath: "/prs" },
+          children: [],
+        },
+      },
+    } as unknown as Spec);
+    expect(card.children[0]).toMatchObject({
+      rows: [
+        ["ana", "2"],
+        ["luis", "5"],
+      ],
+    });
+  });
+});
+
+describe("object rows", () => {
+  it("matches object keys to headers by name and ignores extra keys", () => {
+    const card = toCard({
+      root: "card",
+      state: { prs: [{ id: 7, status: "open", author: "ana" }] },
+      elements: {
+        card: { type: "Card", props: {}, children: ["t"] },
+        t: {
+          type: "Table",
+          props: { headers: ["Author", "Status"], rows: { $state: "/prs" } },
+          children: [],
+        },
+      },
+    } as unknown as Spec);
+    expect(card.children[0]).toMatchObject({ rows: [["ana", "open"]] });
+  });
+});
+
+describe("object rows with partial header matches", () => {
+  it("fills unmatched headers with the remaining non-id keys", () => {
+    const card = toCard({
+      root: "card",
+      state: {
+        prs: [{ id: "1", title: "Add auth", author: "ana", age: "2d" }],
+      },
+      elements: {
+        card: { type: "Card", props: {}, children: ["t"] },
+        t: {
+          type: "Table",
+          props: { headers: ["PR", "Author", "Age"], rows: { $state: "/prs" } },
+          children: [],
+        },
+      },
+    } as unknown as Spec);
+    expect(card.children[0]).toMatchObject({
+      rows: [["Add auth", "ana", "2d"]],
+    });
   });
 });

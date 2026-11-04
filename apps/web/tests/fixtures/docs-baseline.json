@@ -186,6 +186,42 @@
       ]
     },
     {
+      "path": "/docs/api/chat",
+      "file": "content/docs/api/chat.mdx",
+      "title": "@json-render/chat",
+      "metadataTitle": "@json-render/chat API | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/chat\")\n\n# @json-render/chat\n",
+      "sourceSha256": "da99b1209808aacb80002a3ab0c4a84fbd1a57053f20d493fd8dc3a6180613d7",
+      "bodySha256": "3f5b3796d11ea4b122dccf95dc073546f0f935fdf67d820608692ab73dab57da",
+      "markdownSha256": "fc4a7012ea46b9ce54c1c569797d731329a06e5a73de7a28a4eb416d3f164c99",
+      "headings": [
+        {
+          "title": "Install",
+          "id": "install"
+        },
+        {
+          "title": "schema",
+          "id": "schema"
+        },
+        {
+          "title": "streamCard",
+          "id": "streamcard"
+        },
+        {
+          "title": "toCard",
+          "id": "tocard"
+        },
+        {
+          "title": "State and repeat",
+          "id": "state-and-repeat"
+        },
+        {
+          "title": "Validation and limits",
+          "id": "validation-and-limits"
+        }
+      ]
+    },
+    {
       "path": "/docs/api/codegen",
       "file": "content/docs/api/codegen.mdx",
       "title": "@json-render/codegen",
@@ -3011,9 +3047,9 @@
       "title": "Installation",
       "metadataTitle": "Installation | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/installation\")\n\n# Installation\n",
-      "sourceSha256": "937bfb315b619c999082fac5253c2609db1e68d736ca0bf011c7eded9ec93593",
-      "bodySha256": "13b1b9d4c4f7de99ed2493358608eabb4565a956db8750f458efd437ffc6c8d1",
-      "markdownSha256": "08bbe2a46b41b4354feeb3538416a85f6d5cf9b5343d4dbf524e21ae8d56b46f",
+      "sourceSha256": "e9407bb86673995018de809c0284796d965a10e8b70ab09909ea0d4c2f54d5c2",
+      "bodySha256": "a57e094241cfd94489405bf4f8bd92f1a724525e18e1909a55289d8e2e28df46",
+      "markdownSha256": "b4463509817b54e3a8a73eedde9e7f97ae7190481a565604b0b75df228e0b23e",
       "headings": [
         {
           "title": "For React UI",
@@ -3042,6 +3078,10 @@
         {
           "title": "For React Email",
           "id": "for-react-email"
+        },
+        {
+          "title": "For Chat SDK",
+          "id": "for-chat-sdk"
         },
         {
           "title": "For External State Management (Optional)",
@@ -3407,9 +3447,9 @@
       "title": "Skills",
       "metadataTitle": "Skills | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\";\n\nexport const metadata = pageMetadata(\"docs/skills\");\n\n# Skills\n",
-      "sourceSha256": "27238d43649da196ac6e27f4abbcd5d008b6f20bc8a96fdf4126ccb51f81d8f6",
-      "bodySha256": "4586974cd1f61c0fbdf5ef4f3e57b881847239a6f64af37fb1dbc8550143cf11",
-      "markdownSha256": "24cca000daaecc74914a3fe20a492a230b425457b9d01980b0da9957c92b3357",
+      "sourceSha256": "c4aaf807f007aa103b9b2d3f4e7682ccc01ac24beb8af2706485ce242ef8b57d",
+      "bodySha256": "89947454b49942483e8c9b1df67e100b1b785a90a204c133498ee4301f362ebe",
+      "markdownSha256": "34d6f9fefc5b49965f5e31c2b525fbe077cdbc94325e1d314035bab283f5fa32",
       "headings": [
         {
           "title": "Available Skills",
@@ -3458,6 +3498,10 @@
         {
           "title": "react-email",
           "id": "react-email"
+        },
+        {
+          "title": "chat",
+          "id": "chat"
         },
         {
           "title": "react-native",

@@ -102,6 +102,14 @@ export const examples: Example[] = [
     demoUrl: "https://react-email-demo.json-render.dev",
   },
   {
+    slug: "chat-sdk",
+    title: "Chat SDK",
+    description:
+      "Generate native Slack, Teams, and Discord cards from json-render specs with Chat SDK, with a Slack preview.",
+    tags: ["React", "Next.js", "Chat SDK"],
+    githubPath: "examples/chat-sdk",
+  },
+  {
     slug: "react-pdf",
     title: "React PDF",
     description:

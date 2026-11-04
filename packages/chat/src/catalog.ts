@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+// Models often emit numbers for display values. Accept them and show them as text.
+const displayText = z.union([z.string(), z.number()]).transform(String);
+
 const pieChart = z.object({
   type: z.literal("pie"),
   segments: z
@@ -58,7 +61,7 @@ export const standardComponentDefinitions = {
     example: {},
   },
   Field: {
-    props: z.object({ label: z.string().min(1), value: z.string().min(1) }),
+    props: z.object({ label: z.string().min(1), value: displayText }),
     slots: [],
     description: "One label and value pair inside Fields. Good for KPIs.",
     example: { label: "Deploys", value: "1,284" },
@@ -66,7 +69,7 @@ export const standardComponentDefinitions = {
   Table: {
     props: z.object({
       headers: z.array(z.string()).min(1),
-      rows: z.array(z.array(z.string())),
+      rows: z.array(z.array(displayText)),
       align: z.array(z.enum(["left", "center", "right"])).nullish(),
       caption: z.string().nullish(),
     }),
@@ -135,6 +138,6 @@ export const standardComponentDefinitions = {
     description: "Button that opens a URL.",
     example: { label: "Open dashboard", url: "https://vercel.com" },
   },
-} as const;
+};
 
 export type StandardComponentDefinitions = typeof standardComponentDefinitions;

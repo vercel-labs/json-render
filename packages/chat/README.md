@@ -23,10 +23,10 @@ const catalog = defineCatalog(schema, {
   components: standardComponentDefinitions,
 });
 
-bot.onNewMention(async (thread, message) => {
+chat.onNewMention(async (thread, message) => {
   const result = streamText({
     model: "anthropic/claude-haiku-4.5",
-    instructions: catalog.prompt(),
+    system: catalog.prompt(),
     prompt: message.text,
   });
   await streamCard(thread, result.textStream);
@@ -38,6 +38,10 @@ bot.onNewMention(async (thread, message) => {
 ## Components
 
 `Card` is the root. Inside it you can use `Section`, `Text`, `Fields` and `Field`, `Table`, `Chart` (pie, bar, line, area), `Divider`, `Image`, and `Actions` with `Button` and `LinkButton`. Each one maps to a Chat SDK card element.
+
+## State and repeat
+
+`toCard` resolves `$state`, `$item`, `$index`, and `$template` expressions against `spec.state`, honors `visible` conditions, and expands `repeat`. A posted message has no inputs, so `$bindState` and `$bindItem` have no effect.
 
 ## Validation and limits
 

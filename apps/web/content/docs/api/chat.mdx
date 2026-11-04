@@ -1,0 +1,138 @@
+---
+title: "@json-render/chat"
+---
+
+Chat SDK renderer. Turn JSON specs into [Chat SDK](https://chat-sdk.dev) cards, which each adapter posts in its native format: Block Kit on Slack, Adaptive Cards on Teams, and the card format of the other platforms.
+
+## Install
+
+```bash
+npm install @json-render/core @json-render/chat chat zod
+```
+
+See the [Chat SDK example](https://github.com/vercel-labs/json-render/tree/main/examples/chat-sdk) for a playground that previews generated messages as Slack renders them.
+
+## schema
+
+The chat element schema for specs. Use with `defineCatalog` from core.
+
+```typescript
+import { defineCatalog } from "@json-render/core";
+import { schema, standardComponentDefinitions } from "@json-render/chat";
+
+const catalog = defineCatalog(schema, {
+  components: standardComponentDefinitions,
+});
+```
+
+The root element is a `Card`. Every component maps to a Chat SDK card element.
+
+<table>
+  <thead>
+    <tr>
+      <th>Component</th>
+      <th>Chat SDK element</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td><code>Card</code></td><td>The card itself. An inner <code>Card</code> renders as a titled section, since cards cannot nest.</td></tr>
+    <tr><td><code>Section</code></td><td><code>section</code></td></tr>
+    <tr><td><code>Text</code></td><td><code>text</code>, with markdown content</td></tr>
+    <tr><td><code>Fields</code> and <code>Field</code></td><td><code>fields</code> and <code>field</code></td></tr>
+    <tr><td><code>Table</code></td><td><code>table</code></td></tr>
+    <tr><td><code>Chart</code></td><td><code>chart</code>, as a pie, bar, line, or area chart</td></tr>
+    <tr><td><code>Divider</code></td><td><code>divider</code></td></tr>
+    <tr><td><code>Image</code></td><td><code>image</code></td></tr>
+    <tr><td><code>Actions</code>, <code>Button</code>, and <code>LinkButton</code></td><td><code>actions</code>, <code>button</code>, and <code>link-button</code></td></tr>
+  </tbody>
+</table>
+
+## streamCard
+
+Stream a model's spec into a chat message. `streamCard` posts the card once its root element exists, edits the message as elements arrive, and finishes with a validated card.
+
+```typescript
+import { streamCard } from "@json-render/chat";
+import { streamText } from "ai";
+
+chat.onNewMention(async (thread, message) => {
+  const result = streamText({
+    model: "anthropic/claude-haiku-4.5",
+    system: catalog.prompt(),
+    prompt: message.text,
+  });
+  await streamCard(thread, result.textStream);
+});
+```
+
+The target is any object with Chat SDK's `post(card)` method that returns a message with `edit(card)`, such as a `Thread` or a `Channel`.
+
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td><code>updateIntervalMs</code></td><td>Minimum time between message edits while the spec streams. Defaults to 500, the interval Chat SDK uses for streaming with post and edit.</td></tr>
+    <tr><td><code>limits</code></td><td>Platform limits to enforce on the final card. See <a href="#validation-and-limits">validation and limits</a>.</td></tr>
+    <tr><td><code>components</code></td><td>Component definitions. Defaults to the standard components.</td></tr>
+  </tbody>
+</table>
+
+If the final spec is invalid, `streamCard` throws `CardSpecError` after the partial message is visible, so you can retry or edit the message.
+
+## toCard
+
+Convert a complete spec to a `CardElement`. Post the result with `thread.post(card)`.
+
+```typescript
+import { toCard } from "@json-render/chat";
+
+await thread.post(toCard(spec));
+```
+
+`toPartialCard(spec)` returns a best-effort card for a spec that is still streaming. It keeps the elements whose props validate and returns `null` until the root `Card` exists.
+
+## State and repeat
+
+Specs can read from `spec.state`. `toCard` resolves `$state`, `$item`, `$index`, and `$template` expressions, drops elements whose `visible` condition is false, and renders the children of an element with `repeat` once per item. A `Table` with `repeat` uses its rows as a template, with one copy per item. A `Table` whose `rows` resolve to objects matches each header to the key with the same name.
+
+A posted message has no inputs, so `$bindState` and `$bindItem` have no effect.
+
+## Validation and limits
+
+`toCard` validates the props of every element against its component schema and checks the structure of the spec. It throws `CardSpecError`, whose `issues` array has one readable entry per problem. Send the issues back to the model to get a corrected spec.
+
+```typescript
+import { CardSpecError, toCard } from "@json-render/chat";
+
+try {
+  await thread.post(toCard(spec, { limits: { tables: 1, charts: 2 } }));
+} catch (error) {
+  if (error instanceof CardSpecError) console.log(error.issues);
+}
+```
+
+Platforms cap what a message can hold, and Chat SDK adapters degrade content past those caps. For example, the Slack adapter turns a second table into a code block. Pass `limits` to reject the spec instead.
+
+<table>
+  <thead>
+    <tr>
+      <th>Limit</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td><code>tables</code></td><td>Tables per message</td></tr>
+    <tr><td><code>charts</code></td><td>Charts per message</td></tr>
+    <tr><td><code>fields</code></td><td>Fields per <code>Fields</code> element</td></tr>
+    <tr><td><code>tableRows</code></td><td>Table rows, including the header</td></tr>
+    <tr><td><code>tableColumns</code></td><td>Table columns</td></tr>
+    <tr><td><code>chartTitle</code></td><td>Characters in a chart title</td></tr>
+    <tr><td><code>chartLabel</code></td><td>Characters in a chart category, series, or segment label</td></tr>
+    <tr><td><code>chartSeries</code></td><td>Series in a chart, or segments in a pie chart</td></tr>
+    <tr><td><code>chartPoints</code></td><td>Categories in a bar, line, or area chart</td></tr>
+  </tbody>
+</table>

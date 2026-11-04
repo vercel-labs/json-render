@@ -16,6 +16,8 @@ export const schema = defineSchema(
           type: s.ref("catalog.components"),
           props: s.propsOf("catalog.components"),
           children: s.array(s.string()),
+          visible: { ...s.any(), ...s.optional() },
+          repeat: { ...s.any(), ...s.optional() },
         }),
       ),
     }),
@@ -30,9 +32,10 @@ export const schema = defineSchema(
   }),
   {
     defaultRules: [
-      "The root element MUST be a Card. Every other element is a descendant of it.",
-      "Messages are static. There is no state, no repeat and no visibility logic.",
+      "The root element MUST be a Card. Every other element is a descendant of it. To group items inside the message, use Section, not another Card.",
+      "Messages are static once posted. $state, $item, $index, $template, repeat and visible are resolved when the card is built, but there are no inputs, so do not use $bindState or $bindItem.",
       "Pick components by the shape of the data: Fields for a few key numbers, Table for row data, Chart for a trend or a share of a whole, Actions for next steps.",
+      'For a Table backed by state, set rows to { "$state": "/path" } where the path holds an array of rows (arrays or objects with one value per header).',
       "Text content uses markdown: **bold**, _italic_, `code` and [label](https://url). Do not use headings inside Text.",
       "Field elements MUST be children of a Fields element. Button and LinkButton elements MUST be children of an Actions element.",
       "Every series in a bar, line or area Chart has exactly one value per category, in category order.",

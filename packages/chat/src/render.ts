@@ -1,20 +1,15 @@
-import type { Spec } from "@json-render/core";
 import {
-  Actions,
-  Button,
-  Card,
-  CardText,
-  Chart,
-  Divider,
-  Field,
-  Fields,
-  Image,
-  LinkButton,
-  Section,
-  Table,
-  type CardChild,
-  type CardElement,
-} from "chat";
+  evaluateVisibility,
+  getByPath,
+  resolveElementProps,
+  resolveRepeatItemStatePath,
+  resolveRepeatStatePath,
+  type PropResolutionContext,
+  type Spec,
+  type UIElement,
+} from "@json-render/core";
+import type { CardChild, CardElement } from "chat";
+import * as build from "./elements";
 import type { ZodType } from "zod";
 import { standardComponentDefinitions } from "./catalog";
 
@@ -57,6 +52,37 @@ export class CardSpecError extends Error {
   }
 }
 
+const normalizeKey = (value: string) =>
+  value.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+// Rows bound from state often arrive as objects. Each header takes the key
+// with the same name, and the remaining headers take the remaining keys in
+// order, with id-like keys last.
+const ID_KEYS = new Set(["id", "key", "uuid"]);
+
+function normalizeTableRows(props: Record<string, any>) {
+  if (!Array.isArray(props.rows) || !Array.isArray(props.headers)) return props;
+  const headers = (props.headers as unknown[]).map((h) =>
+    normalizeKey(String(h)),
+  );
+  const rows = props.rows.map((row: unknown) => {
+    if (!row || typeof row !== "object" || Array.isArray(row)) return row;
+    const entries = Object.entries(row as Record<string, unknown>).map(
+      ([k, v]) => [normalizeKey(k), v] as const,
+    );
+    const byKey = new Map(entries);
+    const unmatched = entries.filter(([k]) => !headers.includes(k));
+    const rest = [
+      ...unmatched.filter(([k]) => !ID_KEYS.has(k)),
+      ...unmatched.filter(([k]) => ID_KEYS.has(k)),
+    ];
+    return headers.map((h) =>
+      byKey.has(h) ? byKey.get(h) : rest.shift()?.[1],
+    );
+  });
+  return { ...props, rows };
+}
+
 function validateProps(
   elements: Record<string, Element>,
   defs: ComponentDefs,
@@ -68,7 +94,11 @@ function validateProps(
       issues.push(`${key}: unknown component "${el.type}"`);
       continue;
     }
-    const parsed = def.props.safeParse(el.props ?? {});
+    const props =
+      el.type === "Table"
+        ? normalizeTableRows(el.props ?? {})
+        : (el.props ?? {});
+    const parsed = def.props.safeParse(props);
     if (!parsed.success) {
       for (const issue of parsed.error.issues)
         issues.push(`${key}.props.${issue.path.join(".")}: ${issue.message}`);
@@ -185,21 +215,26 @@ function toChild(key: string, elements: Record<string, Element>): CardChild {
   const children = () => el.children.map((k) => elements[k]!);
   switch (el.type) {
     case "Section":
-      return Section(el.children.map((k) => toChild(k, elements)));
+      return build.section(el.children.map((k) => toChild(k, elements)));
+    case "Card":
+      // Chat cards cannot nest, so an inner Card becomes a titled Section.
+      return build.section([
+        ...(p.title ? [build.text(p.title, "bold")] : []),
+        ...(p.subtitle ? [build.text(p.subtitle, "muted")] : []),
+        ...el.children.map((k) => toChild(k, elements)),
+      ]);
     case "Text":
-      return CardText(p.content, { style: p.style ?? undefined });
+      return build.text(p.content, p.style ?? undefined);
     case "Divider":
-      return Divider();
+      return build.divider();
     case "Image":
-      return Image({ url: p.url, alt: p.alt });
+      return build.image(p.url, p.alt);
     case "Fields":
-      return Fields(
-        children().map((f) =>
-          Field({ label: f.props.label, value: f.props.value }),
-        ),
+      return build.fields(
+        children().map((f) => build.field(f.props.label, f.props.value)),
       );
     case "Table":
-      return Table({
+      return build.table({
         headers: p.headers,
         rows: p.rows,
         align: p.align ?? undefined,
@@ -207,7 +242,7 @@ function toChild(key: string, elements: Record<string, Element>): CardChild {
       });
     case "Chart": {
       const c = p.chart;
-      return Chart({
+      return build.chart({
         title: p.title,
         chart:
           c.type === "pie"
@@ -230,11 +265,11 @@ function toChild(key: string, elements: Record<string, Element>): CardChild {
       });
     }
     case "Actions":
-      return Actions(
+      return build.actions(
         children().map((b) =>
           b.type === "LinkButton"
-            ? LinkButton({ label: b.props.label, url: b.props.url })
-            : Button({
+            ? build.linkButton({ label: b.props.label, url: b.props.url })
+            : build.button({
                 id: b.props.id,
                 label: b.props.label,
                 style: b.props.style ?? undefined,
@@ -247,17 +282,97 @@ function toChild(key: string, elements: Record<string, Element>): CardChild {
   }
 }
 
-function cloneElements(spec: Partial<Spec>): Record<string, Element> {
+/**
+ * Turn a spec into literal elements reachable from the root. Prop
+ * expressions ($state, $item, $index, $template and so on) resolve against
+ * spec.state, `visible` conditions drop elements, and `repeat` renders the
+ * element's children once per item, with keys suffixed by the item index.
+ */
+function materialize(
+  spec: Partial<Spec>,
+  missing: string[] = [],
+): Record<string, Element> {
+  const source = (spec.elements ?? {}) as Record<string, Partial<UIElement>>;
+  const stateModel = (spec.state ?? {}) as Record<string, unknown>;
   const out: Record<string, Element> = {};
-  for (const [key, el] of Object.entries(spec.elements ?? {})) {
-    const e = el as Partial<Element> | undefined;
-    if (!e?.type) continue;
-    out[key] = {
-      type: e.type,
-      props: { ...(e.props ?? {}) },
-      children: [...(e.children ?? [])],
+  const seen = new Set<string>();
+
+  const visit = (key: string, outKey: string, ctx: PropResolutionContext) => {
+    const el = source[key];
+    if (!el?.type) {
+      missing.push(key);
+      return false;
+    }
+    if (seen.has(outKey)) return false;
+    if (el.visible !== undefined && !evaluateVisibility(el.visible, ctx))
+      return false;
+    seen.add(outKey);
+    const children: string[] = [];
+    const childKeys = el.children ?? [];
+    const props = (el.props ?? {}) as Record<string, unknown>;
+    if (el.repeat && el.type === "Table" && Array.isArray(props.rows)) {
+      // A repeated Table treats its rows as a template, one copy per item.
+      const path = resolveRepeatStatePath(
+        el.repeat.statePath,
+        ctx.repeatBasePath,
+      );
+      const items = path ? getByPath(stateModel, path) : undefined;
+      const rows = (Array.isArray(items) ? items : []).flatMap((item, index) =>
+        (props.rows as unknown[]).map(
+          (row) =>
+            resolveElementProps(
+              { row },
+              {
+                stateModel,
+                repeatItem: item,
+                repeatIndex: index,
+                repeatBasePath: resolveRepeatItemStatePath(path!, index),
+              },
+            ).row,
+        ),
+      );
+      out[outKey] = {
+        type: el.type,
+        props: { ...resolveElementProps(props, ctx), rows },
+        children: [],
+      };
+      return true;
+    }
+    if (el.repeat) {
+      const path = resolveRepeatStatePath(
+        el.repeat.statePath,
+        ctx.repeatBasePath,
+      );
+      const items = path ? getByPath(stateModel, path) : undefined;
+      (Array.isArray(items) ? items : []).forEach((item, index) => {
+        const itemCtx: PropResolutionContext = {
+          stateModel,
+          repeatItem: item,
+          repeatIndex: index,
+          repeatBasePath: resolveRepeatItemStatePath(path!, index),
+        };
+        for (const child of childKeys) {
+          const childOut = `${child}#${outKey === key ? "" : `${outKey}.`}${index}`;
+          if (visit(child, childOut, itemCtx)) children.push(childOut);
+        }
+      });
+    } else {
+      const suffix = outKey.slice(key.length);
+      for (const child of childKeys)
+        if (visit(child, child + suffix, ctx)) children.push(child + suffix);
+    }
+    out[outKey] = {
+      type: el.type,
+      props: resolveElementProps(
+        (el.props ?? {}) as Record<string, unknown>,
+        ctx,
+      ),
+      children,
     };
-  }
+    return true;
+  };
+
+  if (spec.root) visit(spec.root, spec.root, { stateModel });
   return out;
 }
 
@@ -266,7 +381,7 @@ function buildCard(
   elements: Record<string, Element>,
   keys: string[],
 ): CardElement {
-  return Card({
+  return build.card({
     title: root.props.title ?? undefined,
     subtitle: root.props.subtitle ?? undefined,
     imageUrl: root.props.imageUrl ?? undefined,
@@ -285,9 +400,14 @@ export function toCard(spec: Spec, options: ToCardOptions = {}): CardElement {
   const defs = options.components ?? standardComponentDefinitions;
   if (!spec || typeof spec.root !== "string" || !spec.elements)
     throw new CardSpecError(["spec needs a root and elements"]);
-  const elements = cloneElements(spec);
+  const missing: string[] = [];
+  const elements = materialize(spec, missing);
   let issues = validateProps(elements, defs as ComponentDefs);
-  if (!issues.length) issues = validateStructure(spec, elements);
+  if (!issues.length)
+    issues = [
+      ...missing.map((key) => `missing element "${key}"`),
+      ...validateStructure(spec, elements),
+    ];
   if (!issues.length && options.limits)
     issues = validateLimits(elements, options.limits);
   if (issues.length) throw new CardSpecError(issues);
@@ -306,10 +426,12 @@ export function toPartialCard(
 ): CardElement | null {
   const defs = (options.components ??
     standardComponentDefinitions) as ComponentDefs;
-  const all = cloneElements(spec);
+  const all = materialize(spec);
   const ok: Record<string, Element> = {};
   for (const [key, el] of Object.entries(all)) {
-    const parsed = defs[el.type]?.props.safeParse(el.props);
+    const parsed = defs[el.type]?.props.safeParse(
+      el.type === "Table" ? normalizeTableRows(el.props) : el.props,
+    );
     if (parsed?.success)
       ok[key] = { ...el, props: parsed.data as Record<string, any> };
   }
@@ -319,7 +441,7 @@ export function toPartialCard(
   if (!root || root.type !== "Card") return null;
   const ready = (key: string) => {
     const el = ok[key]!;
-    if (el.type === "Card") return false;
+    if (key === spec.root) return false;
     if (el.type === "Fields" || el.type === "Actions" || el.type === "Section")
       return el.children.length > 0;
     return true;
