@@ -13,9 +13,10 @@ npm install @json-render/core @json-render/react @json-render/next
 ### 1. Define your application spec
 
 ```typescript
+// lib/spec.ts
 import type { NextAppSpec } from "@json-render/next";
 
-const spec: NextAppSpec = {
+export const spec: NextAppSpec = {
   metadata: {
     title: { default: "My App", template: "%s | My App" },
   },
@@ -49,34 +50,49 @@ const spec: NextAppSpec = {
 ```typescript
 // lib/app.ts
 import { createNextApp } from "@json-render/next/server";
+import { spec } from "./spec";
 
-export const { Page, generateMetadata, generateStaticParams } = createNextApp({ spec });
+export const { getPageData, generateMetadata, generateStaticParams } = createNextApp({ spec });
 ```
 
 ### 3. Wire up Next.js routes
 
 ```tsx
 // app/[[...slug]]/page.tsx
-export { Page as default, generateMetadata, generateStaticParams } from "@/lib/app";
+import { notFound } from "next/navigation";
+import { PageRenderer } from "@json-render/next";
+import { getPageData, generateMetadata, generateStaticParams } from "@/lib/app";
+
+export { generateMetadata, generateStaticParams };
+
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ slug?: string[] }>;
+}) {
+  const data = await getPageData({ params });
+  if (!data) notFound();
+  return <PageRenderer {...data} />;
+}
 ```
 
 ```tsx
 // app/[[...slug]]/layout.tsx
+"use client";
+
 import { NextAppProvider } from "@json-render/next";
 import { registry, handlers } from "@/lib/registry";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body>
-        <NextAppProvider registry={registry} handlers={handlers}>
-          {children}
-        </NextAppProvider>
-      </body>
-    </html>
+    <NextAppProvider registry={registry} handlers={handlers}>
+      {children}
+    </NextAppProvider>
   );
 }
 ```
+
+The layout is a Client Component because `registry` holds functions. Keep `<html>` and `<body>` in your root `app/layout.tsx`.
 
 ## Features
 

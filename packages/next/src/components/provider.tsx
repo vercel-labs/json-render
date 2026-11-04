@@ -37,7 +37,7 @@ export interface NextAppProviderProps {
  * Provider that holds the component registry and action handlers
  * for the entire json-render Next.js application.
  *
- * Wrap your root layout with this provider:
+ * Wrap your route layout with this provider:
  *
  * ```tsx
  * // app/[[...slug]]/layout.tsx
@@ -46,11 +46,9 @@ export interface NextAppProviderProps {
  *
  * export default function Layout({ children }) {
  *   return (
- *     <html><body>
- *       <NextAppProvider registry={registry} handlers={handlers}>
- *         {children}
- *       </NextAppProvider>
- *     </body></html>
+ *     <NextAppProvider registry={registry} handlers={handlers}>
+ *       {children}
+ *     </NextAppProvider>
  *   );
  * }
  * ```
