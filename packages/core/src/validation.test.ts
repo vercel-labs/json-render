@@ -119,9 +119,18 @@ describe("builtInValidationFunctions", () => {
       expect(builtInValidationFunctions.min(2, { min: 3 })).toBe(false);
     });
 
-    it("fails for non-numbers", () => {
-      expect(builtInValidationFunctions.min("5", { min: 3 })).toBe(false);
+    it("compares numeric strings at the minimum boundary", () => {
+      expect(builtInValidationFunctions.min("5", { min: 3 })).toBe(true);
+      expect(builtInValidationFunctions.min("3", { min: 3 })).toBe(true);
+      expect(builtInValidationFunctions.min("2", { min: 3 })).toBe(false);
     });
+
+    it.each(["", " ", "5px", null, false, NaN])(
+      "fails for invalid value %s",
+      (value) => {
+        expect(builtInValidationFunctions.min(value, { min: 3 })).toBe(false);
+      },
+    );
   });
 
   describe("max", () => {
@@ -133,6 +142,19 @@ describe("builtInValidationFunctions", () => {
     it("fails when number exceeds maximum", () => {
       expect(builtInValidationFunctions.max(6, { max: 5 })).toBe(false);
     });
+
+    it("compares numeric strings at the maximum boundary", () => {
+      expect(builtInValidationFunctions.max("3", { max: 5 })).toBe(true);
+      expect(builtInValidationFunctions.max("5", { max: 5 })).toBe(true);
+      expect(builtInValidationFunctions.max("6", { max: 5 })).toBe(false);
+    });
+
+    it.each(["", " ", "5px", null, false, NaN])(
+      "fails for invalid value %s",
+      (value) => {
+        expect(builtInValidationFunctions.max(value, { max: 5 })).toBe(false);
+      },
+    );
   });
 
   describe("numeric", () => {

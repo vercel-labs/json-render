@@ -4,6 +4,12 @@ import { DynamicValueSchema, resolveDynamicValue } from "./types";
 import { VisibilityConditionSchema, evaluateVisibility } from "./visibility";
 import { resolvePropValue } from "./props";
 
+const toNumber = (value: unknown): number => {
+  if (typeof value === "number") return value;
+  if (typeof value === "string" && value.trim() !== "") return Number(value);
+  return NaN;
+};
+
 /**
  * Validation check definition
  */
@@ -132,31 +138,25 @@ export const builtInValidationFunctions: Record<string, ValidationFunction> = {
    * Check minimum numeric value
    */
   min: (value: unknown, args?: Record<string, unknown>) => {
-    if (typeof value !== "number") return false;
     const min = args?.min;
     if (typeof min !== "number") return false;
-    return value >= min;
+    return toNumber(value) >= min;
   },
 
   /**
    * Check maximum numeric value
    */
   max: (value: unknown, args?: Record<string, unknown>) => {
-    if (typeof value !== "number") return false;
     const max = args?.max;
     if (typeof max !== "number") return false;
-    return value <= max;
+    return toNumber(value) <= max;
   },
 
   /**
    * Check if value is a number
    */
   numeric: (value: unknown) => {
-    if (typeof value === "number") return !isNaN(value);
-    if (typeof value === "string") {
-      return value.trim() !== "" && !isNaN(Number(value));
-    }
-    return false;
+    return !Number.isNaN(toNumber(value));
   },
 
   /**
