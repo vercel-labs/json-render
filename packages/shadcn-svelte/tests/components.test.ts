@@ -37,7 +37,7 @@ describe("shadcn-svelte component behavior", () => {
 
   it("reads and updates openPath for Dialog", async () => {
     const onStateChange = vi.fn();
-    render(DialogHarness, { onStateChange });
+    const { unmount } = render(DialogHarness, { onStateChange });
 
     expect(screen.getByText("Dialog content")).toBeTruthy();
 
@@ -47,5 +47,8 @@ describe("shadcn-svelte component behavior", () => {
     expect(onStateChange).toHaveBeenCalledWith([
       { path: "/dialog/open", value: false },
     ]);
+
+    unmount();
+    await new Promise((resolve) => setTimeout(resolve, 50));
   });
 });
