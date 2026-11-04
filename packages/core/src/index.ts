@@ -27,6 +27,8 @@ export type {
   // Mixed stream types (chat + GenUI)
   MixedStreamCallbacks,
   MixedStreamParser,
+  MixedStreamParserOptions,
+  JsonRenderTransformOptions,
   // AI SDK stream transform
   StreamChunk,
   SpecDataPart,

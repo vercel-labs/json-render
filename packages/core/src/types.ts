@@ -955,6 +955,23 @@ export interface MixedStreamCallbacks {
   onPatch: (patch: SpecStreamLine) => void;
   /** Called when a text (non-JSONL) line is received */
   onText: (text: string) => void;
+  /**
+   * Called for a patch-shaped line (starts with `{` and has an `"op"` key) that
+   * does not parse as a patch, e.g. when the model was cut off mid-patch.
+   *
+   * Without it such a line is silently dropped inside a ```spec fence and shown
+   * as prose outside one; either way the loss is invisible.
+   */
+  onInvalid?: (line: string) => void;
+}
+
+/** Options for {@link createMixedStreamParser}. */
+export interface MixedStreamParserOptions {
+  /**
+   * Drop a patch-shaped line that appears outside a ```spec fence instead of
+   * streaming it as prose. Inside a fence such a line is always dropped.
+   */
+  dropInvalidPatches?: boolean;
 }
 
 /**
@@ -967,6 +984,12 @@ export interface MixedStreamParser {
   push(chunk: string): void;
   /** Flush any remaining buffered content. Call when the stream ends. */
   flush(): void;
+}
+
+/** A line that claims to be a patch: the heuristic used by both readers. */
+function isPatchShapedLine(line: string): boolean {
+  const trimmed = line.trim();
+  return trimmed.startsWith("{") && /"op"\s*:/.test(trimmed);
 }
 
 /**
@@ -991,6 +1014,7 @@ export interface MixedStreamParser {
  */
 export function createMixedStreamParser(
   callbacks: MixedStreamCallbacks,
+  options: MixedStreamParserOptions = {},
 ): MixedStreamParser {
   let buffer = "";
   let inSpecFence = false;
@@ -1014,6 +1038,8 @@ export function createMixedStreamParser(
       const patch = parseSpecStreamLine(trimmed);
       if (patch) {
         callbacks.onPatch(patch);
+      } else if (isPatchShapedLine(trimmed)) {
+        callbacks.onInvalid?.(trimmed);
       }
       return;
     }
@@ -1022,6 +1048,11 @@ export function createMixedStreamParser(
     const patch = parseSpecStreamLine(trimmed);
     if (patch) {
       callbacks.onPatch(patch);
+    } else if (isPatchShapedLine(trimmed)) {
+      callbacks.onInvalid?.(trimmed);
+      if (!options.dropInvalidPatches) {
+        callbacks.onText(line);
+      }
     } else {
       callbacks.onText(line);
     }
@@ -1101,10 +1132,23 @@ const SPEC_FENCE_CLOSE = "```";
  * return createUIMessageStreamResponse({ stream });
  * ```
  */
-export function createJsonRenderTransform(): TransformStream<
-  StreamChunk,
-  StreamChunk
-> {
+/** Options for {@link createJsonRenderTransform}. */
+export interface JsonRenderTransformOptions {
+  /**
+   * Called for a patch-shaped line (starts with `{` and has an `"op"` key) that
+   * does not parse as a patch, e.g. when the model was cut off mid-patch.
+   */
+  onInvalid?: (line: string) => void;
+  /**
+   * Drop a patch-shaped line that appears outside a ```spec fence instead of
+   * emitting it as text. Inside a fence such a line is always dropped.
+   */
+  dropInvalidPatches?: boolean;
+}
+
+export function createJsonRenderTransform(
+  options: JsonRenderTransformOptions = {},
+): TransformStream<StreamChunk, StreamChunk> {
   let lineBuffer = "";
   let currentTextId = "";
   // Whether the current incomplete line might be JSONL (starts with '{')
@@ -1171,7 +1215,8 @@ export function createJsonRenderTransform(): TransformStream<
       if (trimmed) {
         const patch = parseSpecStreamLine(trimmed);
         if (patch) emitPatch(patch, controller);
-        // Non-patch lines inside the fence are silently dropped
+        else if (isPatchShapedLine(trimmed)) options.onInvalid?.(trimmed);
+        // Other non-patch lines inside the fence are silently dropped
       }
       lineBuffer = "";
       buffering = false;
@@ -1182,6 +1227,12 @@ export function createJsonRenderTransform(): TransformStream<
       const patch = parseSpecStreamLine(trimmed);
       if (patch) {
         emitPatch(patch, controller);
+      } else if (isPatchShapedLine(trimmed)) {
+        options.onInvalid?.(trimmed);
+        if (!options.dropInvalidPatches) {
+          // Was buffered but isn't JSONL — flush as text
+          emitTextDelta(lineBuffer, controller);
+        }
       } else {
         // Was buffered but isn't JSONL — flush as text
         emitTextDelta(lineBuffer, controller);
@@ -1215,6 +1266,7 @@ export function createJsonRenderTransform(): TransformStream<
       if (trimmed) {
         const patch = parseSpecStreamLine(trimmed);
         if (patch) emitPatch(patch, controller);
+        else if (isPatchShapedLine(trimmed)) options.onInvalid?.(trimmed);
       }
       return;
     }
@@ -1229,6 +1281,11 @@ export function createJsonRenderTransform(): TransformStream<
     const patch = parseSpecStreamLine(trimmed);
     if (patch) {
       emitPatch(patch, controller);
+    } else if (isPatchShapedLine(trimmed)) {
+      options.onInvalid?.(trimmed);
+      if (!options.dropInvalidPatches) {
+        emitTextDelta(line + "\n", controller);
+      }
     } else {
       emitTextDelta(line + "\n", controller);
     }
