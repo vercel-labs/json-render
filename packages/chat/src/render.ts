@@ -131,8 +131,13 @@ function validateStructure(
   const root = elements[spec.root];
   if (!root) issues.push(`root "${spec.root}" is not an element`);
   else if (root.type !== "Card") issues.push("root must be a Card");
-  else if (!root.props.title && !root.props.subtitle && !root.children.length)
-    issues.push("the Card needs a title or at least one child");
+  else if (
+    !root.props.title &&
+    !root.props.subtitle &&
+    !root.props.imageUrl &&
+    !root.children.length
+  )
+    issues.push("the Card needs a title, an image or at least one child");
 
   for (const [key, el] of Object.entries(elements)) {
     if (el.children.length && !defs[el.type]?.slots?.length)

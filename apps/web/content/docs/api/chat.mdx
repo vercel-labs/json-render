@@ -106,7 +106,7 @@ Expansion stops at `maxElements`, which defaults to 1000 elements and table rows
 
 ## Validation and limits
 
-`toCard` validates the props of every element against its component schema and checks the structure of the spec, for example that a component without slots has no children and that the root `Card` has a title or a child. It throws `CardSpecError`, whose `issues` array has one readable entry per problem. Send the issues back to the model to get a corrected spec.
+`toCard` validates the props of every element against its component schema and checks the structure of the spec, for example that a component without slots has no children and that the root `Card` has a title, an image, or a child. It throws `CardSpecError`, whose `issues` array has one readable entry per problem. Send the issues back to the model to get a corrected spec.
 
 ```typescript
 import { CardSpecError, toCard } from "@json-render/chat";

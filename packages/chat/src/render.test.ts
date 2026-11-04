@@ -431,7 +431,7 @@ describe("review fixes", () => {
         root: "card",
         elements: { card: { type: "Card", props: {}, children: [] } },
       } as unknown as Spec),
-    ).toThrow(/needs a title or at least one child/);
+    ).toThrow(/needs a title, an image or at least one child/);
   });
 
   it("does not post a titleless card before its first child arrives", async () => {
@@ -449,5 +449,21 @@ describe("review fixes", () => {
     }
     await streamCard(target, model(), { updateIntervalMs: 0 });
     expect(posts).toEqual([1]);
+  });
+});
+
+describe("image-only card", () => {
+  it("accepts a Card with only an imageUrl", () => {
+    const card = toCard({
+      root: "card",
+      elements: {
+        card: {
+          type: "Card",
+          props: { imageUrl: "https://example.com/chart.png" },
+          children: [],
+        },
+      },
+    } as unknown as Spec);
+    expect(card.imageUrl).toBe("https://example.com/chart.png");
   });
 });

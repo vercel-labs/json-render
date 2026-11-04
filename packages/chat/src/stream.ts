@@ -55,10 +55,13 @@ export async function streamCard(
     const { result, newPatches } = compiler.push(chunk);
     if (!newPatches.length || Date.now() - lastUpdate < interval) continue;
     const partial = toPartialCard(result, options);
-    // Platforms reject an empty message, so wait for a title or a child.
+    // Platforms reject an empty message, so wait for visible content.
     if (
       partial &&
-      (partial.title || partial.subtitle || partial.children.length)
+      (partial.title ||
+        partial.subtitle ||
+        partial.imageUrl ||
+        partial.children.length)
     )
       await flush(partial);
   }
