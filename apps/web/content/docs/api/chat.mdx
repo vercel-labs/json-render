@@ -77,6 +77,7 @@ The target is any object with Chat SDK's `post(card)` method that returns a mess
   <tbody>
     <tr><td><code>updateIntervalMs</code></td><td>Minimum time between message edits while the spec streams. Defaults to 500, the interval Chat SDK uses for streaming with post and edit.</td></tr>
     <tr><td><code>limits</code></td><td>Platform limits to enforce on the final card. See <a href="#validation-and-limits">validation and limits</a>.</td></tr>
+    <tr><td><code>maxElements</code></td><td>Maximum number of elements and table rows the spec may expand to. See <a href="#state-and-repeat">state and repeat</a>.</td></tr>
     <tr><td><code>components</code></td><td>Component definitions. Defaults to the standard components.</td></tr>
   </tbody>
 </table>
@@ -101,9 +102,11 @@ Specs can read from `spec.state`. `toCard` resolves `$state`, `$item`, `$index`,
 
 A posted message has no inputs, so `$bindState` and `$bindItem` have no effect.
 
+Expansion stops at `maxElements`, which defaults to 1000 elements and table rows, so nested repeats over state cannot grow without bound. `toCard` throws `CardSpecError` when a spec goes past it, and `toPartialCard` keeps what was expanded so far.
+
 ## Validation and limits
 
-`toCard` validates the props of every element against its component schema and checks the structure of the spec. It throws `CardSpecError`, whose `issues` array has one readable entry per problem. Send the issues back to the model to get a corrected spec.
+`toCard` validates the props of every element against its component schema and checks the structure of the spec, for example that a component without slots has no children and that the root `Card` has a title or a child. It throws `CardSpecError`, whose `issues` array has one readable entry per problem. Send the issues back to the model to get a corrected spec.
 
 ```typescript
 import { CardSpecError, toCard } from "@json-render/chat";

@@ -40,7 +40,6 @@ export async function streamCard(
   const compiler = createSpecStreamCompiler<Spec>();
   let message: CardMessage | undefined;
   let lastUpdate = 0;
-  let pending: CardElement | null = null;
   let lastSent = "";
 
   const flush = async (card: CardElement) => {
@@ -54,12 +53,14 @@ export async function streamCard(
 
   for await (const chunk of textStream) {
     const { result, newPatches } = compiler.push(chunk);
-    if (!newPatches.length) continue;
-    pending = toPartialCard(result, options);
-    if (pending && Date.now() - lastUpdate >= interval) {
-      await flush(pending);
-      pending = null;
-    }
+    if (!newPatches.length || Date.now() - lastUpdate < interval) continue;
+    const partial = toPartialCard(result, options);
+    // Platforms reject an empty message, so wait for a title or a child.
+    if (
+      partial &&
+      (partial.title || partial.subtitle || partial.children.length)
+    )
+      await flush(partial);
   }
 
   const spec = compiler.getResult();

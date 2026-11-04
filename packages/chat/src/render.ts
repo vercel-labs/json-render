@@ -4,6 +4,7 @@ import {
   resolveElementProps,
   resolveRepeatItemStatePath,
   resolveRepeatStatePath,
+  splitRepeatVisibility,
   type PropResolutionContext,
   type Spec,
   type UIElement,
@@ -19,7 +20,10 @@ type Element = {
   children: string[];
 };
 
-type ComponentDefs = Record<string, { props: ZodType }>;
+type ComponentDefs = Record<
+  string,
+  { props: ZodType; slots?: readonly string[] }
+>;
 
 /**
  * Per-message limits a platform enforces. Chat SDK adapters degrade content
@@ -43,7 +47,16 @@ export interface ToCardOptions {
   components?: ComponentDefs;
   /** Platform limits to enforce before posting. */
   limits?: CardLimits;
+  /**
+   * Maximum number of elements and table rows a spec may expand to after
+   * `repeat`. Expansion stops at this budget, so nested repeats cannot grow
+   * without bound. Defaults to 1000, well above what a chat message can hold
+   * (Slack caps a message at 50 blocks and a table at 100 rows).
+   */
+  maxElements?: number;
 }
+
+const DEFAULT_MAX_ELEMENTS = 1000;
 
 export class CardSpecError extends Error {
   constructor(public readonly issues: string[]) {
@@ -112,13 +125,18 @@ function validateProps(
 function validateStructure(
   spec: Spec,
   elements: Record<string, Element>,
+  defs: Record<string, { slots?: readonly string[] }>,
 ): string[] {
   const issues: string[] = [];
   const root = elements[spec.root];
   if (!root) issues.push(`root "${spec.root}" is not an element`);
   else if (root.type !== "Card") issues.push("root must be a Card");
+  else if (!root.props.title && !root.props.subtitle && !root.children.length)
+    issues.push("the Card needs a title or at least one child");
 
   for (const [key, el] of Object.entries(elements)) {
+    if (el.children.length && !defs[el.type]?.slots?.length)
+      issues.push(`${key}: ${el.type} cannot have children`);
     for (const childKey of el.children) {
       const child = elements[childKey];
       if (!child) {
@@ -288,49 +306,92 @@ function toChild(key: string, elements: Record<string, Element>): CardChild {
  * spec.state, `visible` conditions drop elements, and `repeat` renders the
  * element's children once per item, with keys suffixed by the item index.
  */
-function materialize(
-  spec: Partial<Spec>,
-  missing: string[] = [],
-): Record<string, Element> {
+interface Materialized {
+  elements: Record<string, Element>;
+  missing: string[];
+  overflow: boolean;
+}
+
+function materialize(spec: Partial<Spec>, maxElements: number): Materialized {
   const source = (spec.elements ?? {}) as Record<string, Partial<UIElement>>;
   const stateModel = (spec.state ?? {}) as Record<string, unknown>;
   const out: Record<string, Element> = {};
+  const missing: string[] = [];
   const seen = new Set<string>();
+  let budget = maxElements;
+  let overflow = false;
+  // Spend one unit of the budget before allocating anything for it.
+  const spend = () => {
+    if (budget <= 0) {
+      overflow = true;
+      return false;
+    }
+    budget -= 1;
+    return true;
+  };
 
-  const visit = (key: string, outKey: string, ctx: PropResolutionContext) => {
+  const itemsAt = (
+    repeat: NonNullable<UIElement["repeat"]>,
+    ctx: PropResolutionContext,
+  ) => {
+    const path = resolveRepeatStatePath(repeat.statePath, ctx.repeatBasePath);
+    const items = path ? getByPath(stateModel, path) : undefined;
+    return { path: path ?? "", items: Array.isArray(items) ? items : [] };
+  };
+
+  const itemContext = (
+    path: string,
+    item: unknown,
+    index: number,
+  ): PropResolutionContext => ({
+    stateModel,
+    repeatItem: item,
+    repeatIndex: index,
+    repeatBasePath: resolveRepeatItemStatePath(path, index),
+  });
+
+  const visit = (
+    key: string,
+    outKey: string,
+    ctx: PropResolutionContext,
+  ): boolean => {
     const el = source[key];
     if (!el?.type) {
       missing.push(key);
       return false;
     }
     if (seen.has(outKey)) return false;
-    if (el.visible !== undefined && !evaluateVisibility(el.visible, ctx))
+    // Outside a repeat scope, the $item and $index parts of a repeat
+    // container's visible condition filter its items, as in the React renderer.
+    const { container, itemFilter } =
+      el.repeat && ctx.repeatIndex === undefined
+        ? splitRepeatVisibility(el.visible)
+        : { container: el.visible, itemFilter: undefined };
+    if (container !== undefined && !evaluateVisibility(container, ctx))
       return false;
+    if (!spend()) return false;
     seen.add(outKey);
-    const children: string[] = [];
-    const childKeys = el.children ?? [];
+
     const props = (el.props ?? {}) as Record<string, unknown>;
-    if (el.repeat && el.type === "Table" && Array.isArray(props.rows)) {
+    const childKeys = el.children ?? [];
+    const children: string[] = [];
+    const repeat = el.repeat;
+    const keep = (path: string, item: unknown, index: number) =>
+      itemFilter === undefined ||
+      evaluateVisibility(itemFilter, itemContext(path, item, index));
+
+    if (repeat && el.type === "Table" && Array.isArray(props.rows)) {
       // A repeated Table treats its rows as a template, one copy per item.
-      const path = resolveRepeatStatePath(
-        el.repeat.statePath,
-        ctx.repeatBasePath,
-      );
-      const items = path ? getByPath(stateModel, path) : undefined;
-      const rows = (Array.isArray(items) ? items : []).flatMap((item, index) =>
-        (props.rows as unknown[]).map(
-          (row) =>
-            resolveElementProps(
-              { row },
-              {
-                stateModel,
-                repeatItem: item,
-                repeatIndex: index,
-                repeatBasePath: resolveRepeatItemStatePath(path!, index),
-              },
-            ).row,
-        ),
-      );
+      const { path, items } = itemsAt(repeat, ctx);
+      const rows: unknown[] = [];
+      for (let index = 0; index < items.length && !overflow; index++) {
+        if (!keep(path, items[index], index)) continue;
+        const itemCtx = itemContext(path, items[index], index);
+        for (const row of props.rows as unknown[]) {
+          if (!spend()) break;
+          rows.push(resolveElementProps({ row }, itemCtx).row);
+        }
+      }
       out[outKey] = {
         type: el.type,
         props: { ...resolveElementProps(props, ctx), rows },
@@ -338,24 +399,18 @@ function materialize(
       };
       return true;
     }
-    if (el.repeat) {
-      const path = resolveRepeatStatePath(
-        el.repeat.statePath,
-        ctx.repeatBasePath,
-      );
-      const items = path ? getByPath(stateModel, path) : undefined;
-      (Array.isArray(items) ? items : []).forEach((item, index) => {
-        const itemCtx: PropResolutionContext = {
-          stateModel,
-          repeatItem: item,
-          repeatIndex: index,
-          repeatBasePath: resolveRepeatItemStatePath(path!, index),
-        };
+
+    if (repeat) {
+      const { path, items } = itemsAt(repeat, ctx);
+      const scope = outKey === key ? "" : `${outKey}.`;
+      for (let index = 0; index < items.length && !overflow; index++) {
+        if (!keep(path, items[index], index)) continue;
+        const itemCtx = itemContext(path, items[index], index);
         for (const child of childKeys) {
-          const childOut = `${child}#${outKey === key ? "" : `${outKey}.`}${index}`;
+          const childOut = `${child}#${scope}${index}`;
           if (visit(child, childOut, itemCtx)) children.push(childOut);
         }
-      });
+      }
     } else {
       const suffix = outKey.slice(key.length);
       for (const child of childKeys)
@@ -363,17 +418,14 @@ function materialize(
     }
     out[outKey] = {
       type: el.type,
-      props: resolveElementProps(
-        (el.props ?? {}) as Record<string, unknown>,
-        ctx,
-      ),
+      props: resolveElementProps(props, ctx),
       children,
     };
     return true;
   };
 
   if (spec.root) visit(spec.root, spec.root, { stateModel });
-  return out;
+  return { elements: out, missing, overflow };
 }
 
 function buildCard(
@@ -400,13 +452,17 @@ export function toCard(spec: Spec, options: ToCardOptions = {}): CardElement {
   const defs = options.components ?? standardComponentDefinitions;
   if (!spec || typeof spec.root !== "string" || !spec.elements)
     throw new CardSpecError(["spec needs a root and elements"]);
-  const missing: string[] = [];
-  const elements = materialize(spec, missing);
+  const maxElements = options.maxElements ?? DEFAULT_MAX_ELEMENTS;
+  const { elements, missing, overflow } = materialize(spec, maxElements);
+  if (overflow)
+    throw new CardSpecError([
+      `the spec expands to more than ${maxElements} elements and table rows`,
+    ]);
   let issues = validateProps(elements, defs as ComponentDefs);
   if (!issues.length)
     issues = [
       ...missing.map((key) => `missing element "${key}"`),
-      ...validateStructure(spec, elements),
+      ...validateStructure(spec, elements, defs as ComponentDefs),
     ];
   if (!issues.length && options.limits)
     issues = validateLimits(elements, options.limits);
@@ -422,11 +478,15 @@ export function toCard(spec: Spec, options: ToCardOptions = {}): CardElement {
  */
 export function toPartialCard(
   spec: Partial<Spec>,
-  options: Pick<ToCardOptions, "components"> = {},
+  options: Pick<ToCardOptions, "components" | "maxElements"> = {},
 ): CardElement | null {
   const defs = (options.components ??
     standardComponentDefinitions) as ComponentDefs;
-  const all = materialize(spec);
+  // Past the budget the partial card keeps what was expanded so far.
+  const all = materialize(
+    spec,
+    options.maxElements ?? DEFAULT_MAX_ELEMENTS,
+  ).elements;
   const ok: Record<string, Element> = {};
   for (const [key, el] of Object.entries(all)) {
     const parsed = defs[el.type]?.props.safeParse(

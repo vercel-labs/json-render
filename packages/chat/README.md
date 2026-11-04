@@ -41,7 +41,7 @@ chat.onNewMention(async (thread, message) => {
 
 ## State and repeat
 
-`toCard` resolves `$state`, `$item`, `$index`, and `$template` expressions against `spec.state`, honors `visible` conditions, and expands `repeat`. A posted message has no inputs, so `$bindState` and `$bindItem` have no effect.
+`toCard` resolves `$state`, `$item`, `$index`, and `$template` expressions against `spec.state`, honors `visible` conditions, and expands `repeat`. A posted message has no inputs, so `$bindState` and `$bindItem` have no effect. Expansion stops at `maxElements` (1000 elements and table rows by default).
 
 ## Validation and limits
 

@@ -347,3 +347,107 @@ describe("object rows with partial header matches", () => {
     });
   });
 });
+
+describe("review fixes", () => {
+  // Six nested repeats over ten items would expand to a million elements.
+  const bomb = () => {
+    const elements: Record<string, unknown> = {
+      card: { type: "Card", props: { title: "Bomb" }, children: ["l0"] },
+    };
+    for (let i = 0; i < 6; i++)
+      elements[`l${i}`] = {
+        type: "Section",
+        props: {},
+        repeat: { statePath: "/items" },
+        children: [i < 5 ? `l${i + 1}` : "leaf"],
+      };
+    elements.leaf = { type: "Text", props: { content: "x" }, children: [] };
+    return {
+      root: "card",
+      state: { items: Array.from({ length: 10 }, (_, i) => i) },
+      elements,
+    } as unknown as Spec;
+  };
+
+  it("stops expanding nested repeats at the element budget", () => {
+    const started = Date.now();
+    expect(() => toCard(bomb())).toThrow(/more than 1000 elements/);
+    const partial = toPartialCard(bomb());
+    expect(Date.now() - started).toBeLessThan(2000);
+    const count = (node: unknown): number =>
+      1 +
+      (
+        ((node as { children?: unknown[] }).children ?? []) as unknown[]
+      ).reduce<number>((sum, child) => sum + count(child), 0);
+    expect(count(partial)).toBeLessThanOrEqual(1001);
+  });
+
+  it("rejects children under a component without slots", () => {
+    const spec = clone();
+    spec.elements.extra = {
+      type: "Text",
+      props: { content: "lost" },
+      children: [],
+    };
+    spec.elements.summary = {
+      type: "Text",
+      props: { content: "hi" },
+      children: ["extra"],
+    };
+    spec.elements.card.children.push("summary");
+    expect(() => toCard(spec)).toThrow(/summary: Text cannot have children/);
+  });
+
+  it("filters repeat items by the container's item-scoped visible condition", () => {
+    const card = toCard({
+      root: "card",
+      state: {
+        todos: [
+          { t: "a", status: "todo" },
+          { t: "b", status: "done" },
+        ],
+      },
+      elements: {
+        card: { type: "Card", props: { title: "Todos" }, children: ["list"] },
+        list: {
+          type: "Section",
+          props: {},
+          repeat: { statePath: "/todos" },
+          visible: { $item: "status", eq: "todo" },
+          children: ["row"],
+        },
+        row: { type: "Text", props: { content: { $item: "t" } }, children: [] },
+      },
+    } as unknown as Spec);
+    expect(card.children[0]).toEqual({
+      type: "section",
+      children: [{ type: "text", content: "a", style: undefined }],
+    });
+  });
+
+  it("rejects an empty Card", () => {
+    expect(() =>
+      toCard({
+        root: "card",
+        elements: { card: { type: "Card", props: {}, children: [] } },
+      } as unknown as Spec),
+    ).toThrow(/needs a title or at least one child/);
+  });
+
+  it("does not post a titleless card before its first child arrives", async () => {
+    const posts: number[] = [];
+    const target = {
+      async post(card: CardElement) {
+        posts.push(card.children.length);
+        return { async edit() {} };
+      },
+    };
+    async function* model() {
+      yield `${JSON.stringify({ op: "add", path: "/root", value: "card" })}\n`;
+      yield `${JSON.stringify({ op: "add", path: "/elements/card", value: { type: "Card", props: {}, children: ["t"] } })}\n`;
+      yield `${JSON.stringify({ op: "add", path: "/elements/t", value: { type: "Text", props: { content: "Hi" }, children: [] } })}\n`;
+    }
+    await streamCard(target, model(), { updateIntervalMs: 0 });
+    expect(posts).toEqual([1]);
+  });
+});

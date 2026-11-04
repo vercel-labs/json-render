@@ -75,7 +75,7 @@ Standard components: `Card`, `Section`, `Text` (markdown), `Fields` with `Field`
 
 ## State, repeat, and visibility
 
-`$state`, `$item`, `$index`, and `$template` resolve against `spec.state`. `visible` conditions drop elements. `repeat` renders an element's children once per item. A repeated `Table` expands its rows as a template, and object rows map to headers by key name. `$bindState` and `$bindItem` have no effect because posted messages have no inputs.
+`$state`, `$item`, `$index`, and `$template` resolve against `spec.state`. `visible` conditions drop elements. `repeat` renders an element's children once per item. A repeated `Table` expands its rows as a template, and object rows map to headers by key name. `$bindState` and `$bindItem` have no effect because posted messages have no inputs. Expansion stops at `maxElements` (default 1000 elements and table rows); `toCard` throws past it.
 
 ## Validation and limits
 
