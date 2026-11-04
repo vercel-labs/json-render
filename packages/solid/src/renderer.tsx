@@ -386,7 +386,8 @@ function ElementRendererContent(props: ElementRendererContentProps) {
             </For>
           );
 
-        const rendered = (
+        // Create content in the selected branch; Solid DOM nodes cannot be shared.
+        const rendered = () => (
           <Component
             element={props.resolvedElement}
             emit={props.emit}
@@ -399,12 +400,15 @@ function ElementRendererContent(props: ElementRendererContentProps) {
         );
 
         return (
-          <Show when={devtoolsActive() && props.elementKey} fallback={rendered}>
+          <Show
+            when={devtoolsActive() && props.elementKey}
+            fallback={rendered()}
+          >
             <span
               data-jr-key={props.elementKey}
               style={{ display: "contents" }}
             >
-              {rendered}
+              {rendered()}
             </span>
           </Show>
         );
