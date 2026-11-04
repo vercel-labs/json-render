@@ -142,6 +142,7 @@ function Dashboard({ spec }) {
 | `@json-render/remotion`     | Remotion video renderer, timeline schema                               |
 | `@json-render/react-pdf`    | React PDF renderer for generating PDF documents from specs             |
 | `@json-render/react-email`  | React Email renderer for HTML/plain-text emails from specs             |
+| `@json-render/chat`         | Chat SDK renderer for native Slack, Teams, and Discord cards from specs |
 | `@json-render/ink`          | Ink terminal renderer with built-in components for interactive TUIs.   |
 | `@json-render/image`        | Image renderer for SVG/PNG output (OG images, social cards) via Satori |
 | `@json-render/directives`   | Pre-built custom directives — $format, $math, $concat, $count, $truncate, $pluralize, $join, $t (i18n) |
@@ -810,6 +811,7 @@ pnpm dev
 - http://react-email-demo.json-render.localhost:1355 - React Email Example
 - http://remotion-demo.json-render.localhost:1355 - Remotion Video Example
 - Chat Example: run `pnpm dev` in `examples/chat`
+- http://chat-sdk-demo.json-render.localhost:1355 - Chat SDK Example
 - [Experimental Jev composition](https://json-render.dev/docs/jev): use `experimental_composeSpec` and `experimental_createEvaluator` from core with your own catalog, or select **Jev (Experimental)** in `/playground`. Available since v0.21.0; pin exact package versions as described in the guide.
 - Svelte Example: run `pnpm dev` in `examples/svelte` or `examples/svelte-chat`
 - Vue Example: run `pnpm dev` in `examples/vue`
