@@ -33,6 +33,22 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "worker": {
+        "import": "./dist/index.server.mjs",
+        "require": "./dist/index.server.js"
+      },
+      "browser": {
+        "import": "./dist/index.mjs",
+        "require": "./dist/index.js"
+      },
+      "deno": {
+        "import": "./dist/index.server.mjs",
+        "require": "./dist/index.server.js"
+      },
+      "node": {
+        "import": "./dist/index.server.mjs",
+        "require": "./dist/index.server.js"
+      },
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
     },
@@ -46,7 +62,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "rm -rf dist && tsup",
     "dev": "tsup --watch",
     "check-types": "tsc --noEmit",
     "typecheck": "tsc --noEmit"
@@ -56,6 +72,7 @@
   },
   "devDependencies": {
     "@internal/typescript-config": "workspace:*",
+    "@types/node": "^22.15.3",
     "esbuild-plugin-solid": "^0.6.0",
     "solid-js": "^1.9.0",
     "tsup": "^8.0.2",
