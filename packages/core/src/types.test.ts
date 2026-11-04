@@ -15,9 +15,33 @@ import {
   createSpecStreamCompiler,
   createMixedStreamParser,
   createJsonRenderTransform,
+  splitSpecText,
   SPEC_DATA_PART_TYPE,
 } from "./types";
 import type { Spec, SpecStreamLine, StreamChunk } from "./types";
+
+async function collectTransformProse(text: string): Promise<string> {
+  const transform = createJsonRenderTransform();
+  const writer = transform.writable.getWriter();
+  const reader = transform.readable.getReader();
+  const chunks: StreamChunk[] = [];
+  const readAll = (async () => {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+    }
+  })();
+  await writer.write({ type: "text-start", id: "1" });
+  await writer.write({ type: "text-delta", id: "1", delta: text });
+  await writer.write({ type: "text-end", id: "1" });
+  await writer.close();
+  await readAll;
+  return chunks
+    .filter((chunk) => chunk.type === "text-delta")
+    .map((chunk) => (chunk as { delta: string }).delta)
+    .join("");
+}
 
 describe("findFormValue", () => {
   const dottedValues = [
@@ -856,7 +880,7 @@ describe("createMixedStreamParser", () => {
 
     parser.push("Hello, here is your UI:\n");
     expect(texts).toHaveLength(1);
-    expect(texts[0]).toBe("Hello, here is your UI:");
+    expect(texts[0]).toBe("Hello, here is your UI:\n");
     expect(patches).toHaveLength(0);
   });
 
@@ -872,7 +896,7 @@ describe("createMixedStreamParser", () => {
       'Here is the dashboard:\n{"op":"add","path":"/root","value":"dash"}\n',
     );
     expect(texts).toHaveLength(1);
-    expect(texts[0]).toBe("Here is the dashboard:");
+    expect(texts[0]).toBe("Here is the dashboard:\n");
     expect(patches).toHaveLength(1);
     expect(patches[0]!.path).toBe("/root");
   });
@@ -925,7 +949,7 @@ describe("createMixedStreamParser", () => {
     expect(texts[0]).toBe("Some trailing text");
   });
 
-  it("skips empty lines", () => {
+  it("keeps blank lines as paragraph breaks", () => {
     const patches: SpecStreamLine[] = [];
     const texts: string[] = [];
     const parser = createMixedStreamParser({
@@ -935,7 +959,62 @@ describe("createMixedStreamParser", () => {
 
     parser.push("\n\n\n");
     expect(patches).toHaveLength(0);
-    expect(texts).toHaveLength(0);
+    expect(texts).toEqual(["\n", "\n", "\n"]);
+  });
+
+  it("reproduces the prose the transform streams for a fenced spec", async () => {
+    const input =
+      'Here is your report.\n\n```spec\n{"op":"add","path":"/root","value":"report"}\n```\n\nLet me know.';
+    const patches: SpecStreamLine[] = [];
+    const texts: string[] = [];
+    const parser = createMixedStreamParser({
+      onPatch: (p) => patches.push(p),
+      onText: (t) => texts.push(t),
+    });
+
+    parser.push(input);
+    parser.flush();
+
+    const streamed = await collectTransformProse(input);
+    expect(texts.join("")).toBe(streamed);
+    expect(texts.join("")).toBe("Here is your report.\n\n\nLet me know.");
+    expect(patches).toHaveLength(1);
+  });
+});
+
+// =============================================================================
+// splitSpecText
+// =============================================================================
+
+describe("splitSpecText", () => {
+  it("returns the prose the transform streams for the same text", async () => {
+    const input =
+      'Here is your report.\n\n```spec\n{"op":"add","path":"/root","value":"report"}\n```\n\nLet me know.';
+
+    const { segments, invalid } = splitSpecText(input);
+    const prose = segments
+      .filter((segment) => segment.type === "text")
+      .map((segment) => segment.text)
+      .join("");
+
+    expect(prose).toBe(await collectTransformProse(input));
+    expect(prose).toBe("Here is your report.\n\n\nLet me know.");
+    expect(segments.filter((segment) => segment.type === "patch")).toHaveLength(
+      1,
+    );
+    expect(invalid).toEqual([]);
+  });
+
+  it("reports lines inside the fence that are not patches", () => {
+    const { segments, invalid } = splitSpecText(
+      'Intro\n```spec\nnot json\n{"op":"add","path":"/a","value":1}\n```\n',
+    );
+
+    expect(invalid).toEqual(["not json"]);
+    expect(segments.filter((segment) => segment.type === "patch")).toHaveLength(
+      1,
+    );
+    expect(segments[0]).toEqual({ type: "text", text: "Intro\n" });
   });
 });
 
@@ -1353,8 +1432,8 @@ describe("createMixedStreamParser - fence mode", () => {
 
     expect(patches.length).toBe(1);
     expect(patches[0].op).toBe("add");
-    expect(texts).toContain("Hello");
-    expect(texts).toContain("Goodbye");
+    expect(texts).toContain("Hello\n");
+    expect(texts).toContain("Goodbye\n");
   });
 
   it("fence delimiters are not emitted as text or patches", () => {
