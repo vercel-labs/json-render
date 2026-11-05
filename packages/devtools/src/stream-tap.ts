@@ -155,6 +155,11 @@ export function recordUsage(events: EventStore, usage: TokenUsage): void {
   events.push({ kind: "stream-usage", at: Date.now(), usage });
 }
 
+/** Deep-copies JSON part data, reading through framework proxies, so replaying parts never mutates them. */
+function cloneJson<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
+}
+
 /**
  * Replay every `SPEC_DATA_PART` in `parts` and return the resulting spec,
  * or `null` if the message has no UI. Mirrors the framework-side
@@ -175,13 +180,13 @@ export function extractSpecFromParts(
     if (!data) continue;
     if (data.type === "patch") {
       hasSpec = true;
-      applySpecPatch(spec, data.patch);
+      applySpecPatch(spec, cloneJson(data.patch));
     } else if (data.type === "flat") {
       hasSpec = true;
-      Object.assign(spec, data.spec);
+      Object.assign(spec, cloneJson(data.spec));
     } else if (data.type === "nested") {
       hasSpec = true;
-      Object.assign(spec, nestedToFlat(data.spec));
+      Object.assign(spec, nestedToFlat(cloneJson(data.spec)));
     }
   }
   return hasSpec ? spec : null;
