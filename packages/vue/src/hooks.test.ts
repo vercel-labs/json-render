@@ -370,3 +370,31 @@ describe("useJsonRenderMessage", () => {
     expect(hasSpec.value).toBe(true);
   });
 });
+
+describe("buildSpecFromParts replay", () => {
+  it("returns the same spec when the same parts are built twice", () => {
+    const patch = (op: Record<string, unknown>) => ({
+      type: "data-spec",
+      data: { type: "patch", patch: op },
+    });
+    const parts = [
+      patch({ op: "add", path: "/root", value: "main" }),
+      patch({ op: "add", path: "/state/posts", value: [] }),
+      patch({ op: "add", path: "/state/posts/0", value: { id: "1" } }),
+      patch({ op: "add", path: "/state/posts/1", value: { id: "2" } }),
+      patch({
+        op: "add",
+        path: "/elements/main",
+        value: { type: "Card", props: {}, children: [] },
+      }),
+      patch({ op: "add", path: "/elements/main/children/-", value: "child" }),
+    ];
+
+    const first = buildSpecFromParts(parts);
+    const second = buildSpecFromParts(parts);
+
+    expect(second).toEqual(first);
+    expect(second?.state?.posts).toEqual([{ id: "1" }, { id: "2" }]);
+    expect(second?.elements.main?.children).toEqual(["child"]);
+  });
+});
