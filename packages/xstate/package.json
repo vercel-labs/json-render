@@ -49,7 +49,7 @@
   "devDependencies": {
     "@internal/typescript-config": "workspace:*",
     "tsup": "^8.0.2",
-    "typescript": "^5.4.5",
+    "typescript": "^7.0.2",
     "@xstate/store": "^3.0.0"
   }
 }

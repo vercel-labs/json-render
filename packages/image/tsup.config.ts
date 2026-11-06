@@ -1,9 +1,9 @@
 import { defineConfig } from "tsup";
+import { emitTypes } from "../../scripts/emit-types.mjs";
 
 export default defineConfig({
   entry: ["src/index.ts", "src/server.ts", "src/catalog.ts", "src/render.tsx"],
   format: ["cjs", "esm"],
-  dts: true,
   sourcemap: true,
   clean: true,
   external: [
@@ -14,4 +14,7 @@ export default defineConfig({
     "react",
     "react/jsx-runtime",
   ],
+  onSuccess: async () => {
+    await emitTypes(__dirname);
+  },
 });

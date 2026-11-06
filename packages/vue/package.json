@@ -56,7 +56,7 @@
     "@internal/typescript-config": "workspace:*",
     "@vue/test-utils": "^2.4.6",
     "tsup": "^8.0.2",
-    "typescript": "^5.4.5",
+    "typescript": "^7.0.2",
     "vue": "^3.5.0"
   },
   "peerDependencies": {

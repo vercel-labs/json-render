@@ -62,7 +62,7 @@
     "@types/react": "19.2.14",
     "next": "16.2.1",
     "tsup": "^8.0.2",
-    "typescript": "^5.4.5"
+    "typescript": "^7.0.2"
   },
   "peerDependencies": {
     "next": "^16.2.0",
