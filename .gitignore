@@ -41,6 +41,7 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+__pycache__/
 
 # opensrc - source code for packages
 opensrc/
