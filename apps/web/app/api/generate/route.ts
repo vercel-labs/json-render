@@ -28,7 +28,7 @@ const PLAYGROUND_RULES = [
 ];
 
 const MAX_PROMPT_LENGTH = 500;
-const DEFAULT_MODEL = "anthropic/claude-haiku-4.5";
+const DEFAULT_MODEL = "openai/gpt-6-luna-fast";
 
 function getSystemPrompt(isYaml: boolean, editModes?: EditMode[]): string {
   if (isYaml) {
