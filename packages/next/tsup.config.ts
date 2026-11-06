@@ -1,4 +1,5 @@
 import { defineConfig } from "tsup";
+import { emitTypes } from "../../scripts/emit-types.mjs";
 
 const sharedExternal = [
   "react",
@@ -17,16 +18,17 @@ export default defineConfig([
       "page-renderer-client": "src/page-renderer-client.tsx",
     },
     format: ["cjs", "esm"],
-    dts: true,
     sourcemap: true,
     splitting: true,
     banner: { js: '"use client";' },
     external: sharedExternal,
+    onSuccess: async () => {
+      await emitTypes(__dirname);
+    },
   },
   {
     entry: { server: "src/server.ts" },
     format: ["cjs", "esm"],
-    dts: true,
     sourcemap: true,
     splitting: false,
     external: [...sharedExternal, /page-renderer-client/],

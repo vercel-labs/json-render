@@ -1,10 +1,13 @@
 import { defineConfig } from "tsup";
+import { emitTypes } from "../../scripts/emit-types.mjs";
 
 export default defineConfig({
   entry: ["src/index.ts", "src/schema.ts"],
   format: ["cjs", "esm"],
-  dts: true,
   sourcemap: true,
   clean: true,
   external: ["vue", "@json-render/core"],
+  onSuccess: async () => {
+    await emitTypes(__dirname);
+  },
 });
