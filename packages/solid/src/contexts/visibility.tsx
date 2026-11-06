@@ -1,4 +1,9 @@
-import { createContext, useContext, type ParentProps } from "solid-js";
+import {
+  createContext,
+  useContext,
+  type ParentProps,
+  type JSX,
+} from "solid-js";
 import {
   evaluateVisibility,
   type VisibilityCondition,
@@ -15,7 +20,9 @@ const VisibilityContext = createContext<VisibilityContextValue | null>(null);
 
 export type VisibilityProviderProps = ParentProps;
 
-export function VisibilityProvider(props: VisibilityProviderProps) {
+export function VisibilityProvider(
+  props: VisibilityProviderProps,
+): JSX.Element {
   const stateStore = useStateStore();
 
   const visibilityCtx: CoreVisibilityContext = {

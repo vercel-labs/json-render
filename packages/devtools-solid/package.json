@@ -40,7 +40,7 @@
   ],
   "scripts": {
     "build": "tsup",
-    "dev": "tsup --watch",
+    "dev": "tsup --watch src",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

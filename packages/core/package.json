@@ -46,7 +46,7 @@
   ],
   "scripts": {
     "build": "tsup",
-    "dev": "tsup --watch",
+    "dev": "tsup --watch src",
     "check-types": "tsc -p tsconfig.check.json",
     "typecheck": "tsc --noEmit"
   },
