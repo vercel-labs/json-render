@@ -68,7 +68,7 @@ const MyRenderer = createRenderer(catalog, components);
 <MyRenderer spec={spec} directives={directives} />
 ```
 
-All four renderers (React, Vue, Svelte, Solid) accept the `directives` prop on their provider and `createRenderer` output.
+The React, Vue, Svelte, Solid, and React PDF renderers accept the `directives` prop on their provider and `createRenderer` output. React PDF's `renderToBuffer`, `renderToStream`, and `renderToFile` also accept `directives` in their options.
 
 ### Prompt Generation
 

@@ -152,6 +152,8 @@ All render functions accept an optional second argument with:
 
 - `registry` - Custom component registry (merged with standard components)
 - `state` - Initial state for `$state` / `$cond` dynamic prop resolution
+- `functions` - Named functions for `$computed` expressions
+- `directives` - Custom directives for user-defined `$`-prefixed dynamic values
 - `handlers` - Action handlers
 
 Nested lists can set `repeat.statePath` to `{ "$item": "field" }` to iterate an array on the enclosing repeat item.
