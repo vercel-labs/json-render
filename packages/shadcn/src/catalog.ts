@@ -355,10 +355,11 @@ export const shadcnComponentDefinitions = {
       value: z.string().nullable(),
       checks: validationCheckSchema,
       validateOn: validateOnSchema,
+      direction: z.enum(["vertical", "horizontal"]).nullable(),
     }),
     events: ["change"],
     description:
-      "Radio button group. Use { $bindState } on value for binding. Use checks for validation. validateOn controls timing (default: change).",
+      "Radio button group. Use { $bindState } on value for binding. Use checks for validation. validateOn controls timing (default: change). Use direction to control layout ('vertical' or 'horizontal', default: 'vertical').",
   },
 
   Switch: {
