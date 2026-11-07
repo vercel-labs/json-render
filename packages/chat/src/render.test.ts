@@ -156,6 +156,56 @@ describe("streamCard", () => {
     expect(calls.at(-1)?.children).toBe(4);
     expect(result.card.title).toBe("Weekly deploys");
   });
+
+  it("gives CardSpecError the message it already posted", async () => {
+    // Limits apply to the final card only, so the partial card with two
+    // tables is visible when the final check fails.
+    const spec = clone();
+    spec.elements.table2 = spec.elements.table;
+    spec.elements.card.children.push("table2");
+    const lines = [
+      { op: "add", path: "/root", value: "card" },
+      ...Object.entries(spec.elements).map(([key, value]) => ({
+        op: "add",
+        path: `/elements/${key}`,
+        value,
+      })),
+    ].map((patch) => `${JSON.stringify(patch)}\n`);
+    async function* model() {
+      yield* lines;
+    }
+    const message = { async edit() {} };
+    const target = { post: async () => message };
+    const error = await streamCard(target, model(), {
+      updateIntervalMs: 0,
+      limits: { tables: 1 },
+    }).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(CardSpecError);
+    expect((error as CardSpecError).issues).toEqual([
+      "at most 1 Table per message",
+    ]);
+    expect((error as CardSpecError).postedMessage).toBe(message);
+  });
+
+  it("leaves postedMessage undefined when nothing was posted", async () => {
+    let posts = 0;
+    const target = {
+      async post() {
+        posts += 1;
+        return { async edit() {} };
+      },
+    };
+    async function* model() {
+      yield `${JSON.stringify({ op: "add", path: "/root", value: "card" })}\n`;
+      yield `${JSON.stringify({ op: "add", path: "/elements/card", value: { type: "Card", props: {}, children: [] } })}\n`;
+    }
+    const error = await streamCard(target, model(), {
+      updateIntervalMs: 0,
+    }).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(CardSpecError);
+    expect(posts).toBe(0);
+    expect((error as CardSpecError).postedMessage).toBeUndefined();
+  });
 });
 
 // A Chat SDK Thread must be usable as a streamCard target without casts.
