@@ -23,6 +23,10 @@ import type { PropResolutionContext } from "./props";
 const numericOrStateRef = z.union([
   z.number(),
   z.object({ $state: z.string() }),
+  // Custom directive operand, e.g. `{ "$count": ... }`, resolved at evaluation.
+  z
+    .record(z.string().startsWith("$"), z.unknown())
+    .refine((value) => Object.keys(value).length > 0),
 ]);
 
 const comparisonOps = {

@@ -6,7 +6,11 @@ import {
   findDirective,
 } from "./directives";
 import { resolvePropValue } from "./props";
-import { evaluateVisibility } from "./visibility";
+import {
+  evaluateVisibility,
+  VisibilityConditionSchema,
+  VisibilityConditionStrictSchema,
+} from "./visibility";
 import type { PropResolutionContext } from "./props";
 
 describe("defineDirective", () => {
@@ -268,6 +272,28 @@ describe("custom directives in visibility conditions", () => {
         { $state: "/limit", eq: { $count: { $state: "/cart/items" } } },
         { stateModel },
       ),
+    ).toBe(false);
+  });
+});
+
+describe("directive operands in visibility schemas", () => {
+  it("accepts a directive as a numeric comparison operand", () => {
+    const condition = {
+      $state: "/limit",
+      lte: { $count: { $state: "/cart/items" } },
+    };
+    expect(VisibilityConditionSchema.safeParse(condition).success).toBe(true);
+    expect(VisibilityConditionStrictSchema.safeParse(condition).success).toBe(
+      true,
+    );
+  });
+
+  it("still rejects a non-directive object operand", () => {
+    expect(
+      VisibilityConditionStrictSchema.safeParse({
+        $state: "/limit",
+        lte: { count: 2 },
+      }).success,
     ).toBe(false);
   });
 });
