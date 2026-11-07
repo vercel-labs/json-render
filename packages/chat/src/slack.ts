@@ -38,7 +38,7 @@ export const slackSchema = defineSchema(
       "Every native Slack block is a leaf with children: []. Put nested Block Kit elements, composition objects, and child blocks directly in props using Slack's field names and type discriminators.",
       "Do not include a top-level type in block props. The component name supplies it. Nested native objects MUST include their Slack type when required.",
       "Use Slack text objects ({type: plain_text or mrkdwn, text: ...}) where required.",
-      "This catalog is for posted messages. File blocks, input blocks, and standalone Markdown, rich-text, and video blocks are not exposed.",
+      "This catalog is for posted messages. Modal-only alert blocks, file blocks, input blocks, and standalone Markdown, rich-text, and video blocks are not exposed.",
       "The caller posts these blocks through Slack's Web API. Native Slack blocks cannot be passed to Chat SDK thread.post or streamCard.",
     ],
   },

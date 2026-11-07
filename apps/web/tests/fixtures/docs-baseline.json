@@ -191,9 +191,9 @@
       "title": "@json-render/chat",
       "metadataTitle": "@json-render/chat API | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/chat\")\n\n# @json-render/chat\n",
-      "sourceSha256": "6e82f72f0bfdfc0ddd0d98c451d2bda523e36a8dff3d815efa4409263d710c91",
-      "bodySha256": "c5bcb1480a5fadcfdab1df649dcea1562dea8777aab6c880f0c73c3631f3e640",
-      "markdownSha256": "60263be0ea7e5660765268f756708caa0a60a0cc8bcfd215ee21109518ec332a",
+      "sourceSha256": "042feaaefdfa886aa72015a28a54186a39702149704ded62dba82bc4dfbffb19",
+      "bodySha256": "5e45bf06f31441aee11da3e2c8159ab06696e743ccf21bbf55f43b97bd7030d1",
+      "markdownSha256": "0e96fc2049d6d92af49a97ff6654b42cccb349093ba145ad172dcd0bc3978d94",
       "headings": [
         {
           "title": "Install",

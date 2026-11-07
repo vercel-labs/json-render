@@ -45,20 +45,6 @@ export const slackBlockDefinitions = {
       ],
     },
   },
-  SlackAlert: {
-    type: "alert",
-    props: block({
-      text: textObject(3000),
-      level: z
-        .enum(["default", "info", "warning", "error", "success"])
-        .optional(),
-    }),
-    description: "An informational, success, warning, or error alert.",
-    example: {
-      text: { type: "plain_text", text: "Deployment complete" },
-      level: "success",
-    },
-  },
   SlackCard: {
     type: "card",
     props: block({

@@ -31,7 +31,6 @@ describe("native Slack catalog", () => {
     ).toEqual(
       [
         "actions",
-        "alert",
         "card",
         "carousel",
         "container",
@@ -59,6 +58,7 @@ describe("native Slack catalog", () => {
     expect(prompt).toContain("SlackMessage");
     expect(prompt).toContain("SlackLayout");
     expect(prompt).toContain("Nested native objects");
+    expect(prompt).not.toContain("SlackAlert");
     expect(prompt).not.toContain("root element MUST be a Card");
   });
 
@@ -309,6 +309,17 @@ describe("native spec resolution and validation", () => {
     expect(() => toSlackBlocks(spec)).toThrow(/cannot have children/);
     spec.elements.message!.children = [];
     expect(() => toSlackBlocks(spec)).toThrow(/needs at least one block/);
+  });
+
+  it("rejects modal-only alerts in a posted message", () => {
+    expect(() =>
+      toSlackBlocks(
+        specFor("SlackAlert", {
+          text: plain("Deployment complete"),
+          level: "success",
+        }),
+      ),
+    ).toThrow(/unknown Slack component "SlackAlert"/);
   });
 
   it("does not expose file, input, Markdown, rich-text, or video blocks", () => {

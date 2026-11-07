@@ -83,7 +83,7 @@ Standard components: `Card`, `Section`, `Text` (markdown), `Fields` with `Field`
 
 ## Native Slack Block Kit
 
-For Slack-specific content, use `defineCatalog(slackSchema, { components: slackComponentDefinitions })` and `toSlackBlocks(spec)`, all exported from `@json-render/chat`. This message catalog adds alerts, native cards, carousels, containers, context actions, layouts, plans, and task cards, alongside native versions of the existing message blocks. It omits file and input blocks, which need different Slack APIs or surfaces, and standalone Markdown, rich-text, and video blocks.
+For Slack-specific content, use `defineCatalog(slackSchema, { components: slackComponentDefinitions })` and `toSlackBlocks(spec)`, all exported from `@json-render/chat`. This message catalog adds native cards, carousels, containers, context actions, layouts, plans, and task cards, alongside native versions of the existing message blocks. It omits modal-only alerts and file/input blocks, which need different Slack APIs or surfaces, and standalone Markdown, rich-text, and video blocks.
 
 The root must be `SlackMessage`. Native components use a `Slack` prefix, such as `SlackSection`, `SlackActions`, and `SlackLayout`. Each block has `children: []` and native Slack fields in `props`, omitting the outer `type`. Nested elements and composition objects go directly in props with their native `type` values; all fields are retained. Use `SlackGroup` for grouping, visibility, and repeating child blocks over state.
 

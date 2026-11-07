@@ -55,7 +55,7 @@ toCard(spec, { limits: { tables: 1, charts: 2 } });
 
 ## Native Slack Block Kit
 
-Use `slackSchema`, `slackComponentDefinitions`, and `toSlackBlocks` for Slack-specific content. The native catalog adds message blocks that the portable card model cannot express: alerts, native cards and carousels, titled containers, multi-column layouts, context actions, plans, and task cards. It also exposes native versions of the existing message blocks, including data tables and data visualizations. See the [Slack Block Kit reference](https://docs.slack.dev/reference/block-kit/blocks/) for their payloads.
+Use `slackSchema`, `slackComponentDefinitions`, and `toSlackBlocks` for Slack-specific content. The native catalog adds message blocks that the portable card model cannot express: native cards and carousels, titled containers, multi-column layouts, context actions, plans, and task cards. It also exposes native versions of the existing message blocks, including data tables and data visualizations. See the [Slack Block Kit reference](https://docs.slack.dev/reference/block-kit/blocks/) for their payloads.
 
 ```ts
 import { defineCatalog, type Spec } from "@json-render/core";
@@ -74,10 +74,9 @@ const spec: Spec = {
   elements: {
     message: { type: "SlackMessage", props: {}, children: ["status"] },
     status: {
-      type: "SlackAlert",
+      type: "SlackSection",
       props: {
         text: { type: "plain_text", text: "Deployment complete" },
-        level: "success",
       },
       children: [],
     },
@@ -97,7 +96,7 @@ await slack.webClient.chat.postMessage({
 });
 ```
 
-The root is `SlackMessage`. Native block names use a `Slack` prefix: `SlackActions`, `SlackAlert`, `SlackCard`, `SlackCarousel`, `SlackContainer`, `SlackContextActions`, `SlackContext`, `SlackDataTable`, `SlackDataVisualization`, `SlackDivider`, `SlackHeader`, `SlackImage`, `SlackLayout`, `SlackPlan`, `SlackSection`, `SlackTable`, and `SlackTaskCard`.
+The root is `SlackMessage`. Native block names use a `Slack` prefix: `SlackActions`, `SlackCard`, `SlackCarousel`, `SlackContainer`, `SlackContextActions`, `SlackContext`, `SlackDataTable`, `SlackDataVisualization`, `SlackDivider`, `SlackHeader`, `SlackImage`, `SlackLayout`, `SlackPlan`, `SlackSection`, `SlackTable`, and `SlackTaskCard`.
 
 Each block is a leaf with `children: []`. Put nested elements and composition objects directly in `props`, using Slack's field names and nested `type` values. Buttons, select and multi-select menus, pickers, feedback controls, workflow buttons, and composition objects retain their native payloads. Rich text can still appear inside native payloads, such as task details and table cells. Unknown native fields are preserved. The component supplies the outer block's `type`; omit it from `props`.
 
@@ -105,4 +104,4 @@ Use `SlackGroup` to group blocks or repeat children over state. `$state`, `$item
 
 `toSlackBlocks` throws `CardSpecError` for invalid block props, missing elements, cycles, invalid nesting, or an exceeded budget. Nested native objects are retained as JSON; Slack validates their component-specific rules, surface eligibility, and aggregate limits. Each source element must have a single child reference; use `SlackGroup` to repeat blocks. Native blocks go directly to Slack's Web API and cannot be passed to `thread.post()` or `streamCard()`.
 
-The message catalog intentionally omits `file` and `input` blocks: files require Slack's remote-files API, and input blocks belong to modal/Home views. Dedicated `markdown`, `rich_text`, and `video` components are also outside this catalog's scope.
+The message catalog intentionally omits `alert`, `file`, and `input` blocks: [alerts are modal-only](https://docs.slack.dev/reference/block-kit/blocks/alert-block/), files require Slack's remote-files API, and input blocks belong to modal/Home views. Dedicated `markdown`, `rich_text`, and `video` components are also outside this catalog's scope.
