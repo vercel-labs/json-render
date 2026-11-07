@@ -24,6 +24,7 @@ const PLAYGROUND_RULES = [
   'For form inputs (Input, Textarea, Select), always include checks for validation (e.g. required, email, minLength). Always pair checks with a $bindState expression on the value prop (e.g. { "$bindState": "/path" }).',
   "NEVER use emoji characters. Use the Icon component with Lucide icon names instead. For example, use Icon with name:'MapPin' instead of a pin emoji, Icon with name:'Mail' instead of an envelope emoji, etc.",
   "For icon+label patterns, use a horizontal Stack with gap:'sm' and align:'center' containing an Icon and a Text.",
+  "For places, locations, travel, directions, delivery areas or 'near X' prompts, use the Map component (never an image of a map). Give markers accurate real-world {lng, lat} coordinates and set fitToContent:true. Leave Map style null unless the user explicitly asks for satellite imagery. Use route for A-to-B directions and isochrone for 'within N minutes'. Keep the rest of the UI small: one Card with the Map and, if useful, a single Table of the places or stops (name plus a short note). Do NOT add Metrics or text for route distance, drive time or elevation; the Map shows the real distance and duration from Mapbox Directions.",
   "For any tabular or list data with consistent columns (items, orders, stats), ALWAYS use the Table component. Never simulate tables with Stacks — the columns won't align.",
 ];
 
