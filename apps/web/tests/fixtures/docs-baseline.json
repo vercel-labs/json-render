@@ -191,9 +191,9 @@
       "title": "@json-render/chat",
       "metadataTitle": "@json-render/chat API | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/chat\")\n\n# @json-render/chat\n",
-      "sourceSha256": "e4c727360fe598b2f8bb3435bc184d4936625045d4fffc39dce7950ebf75f917",
-      "bodySha256": "81250149f008c60473251a9b833c9bd6c90ac36b50fbbb03c17be6152ffdd161",
-      "markdownSha256": "0e1e1935eb8e952be1c1c14c2295523ef54d5ff5b6db63847ff4af5e55e7c8eb",
+      "sourceSha256": "6e82f72f0bfdfc0ddd0d98c451d2bda523e36a8dff3d815efa4409263d710c91",
+      "bodySha256": "c5bcb1480a5fadcfdab1df649dcea1562dea8777aab6c880f0c73c3631f3e640",
+      "markdownSha256": "60263be0ea7e5660765268f756708caa0a60a0cc8bcfd215ee21109518ec332a",
       "headings": [
         {
           "title": "Install",
@@ -218,6 +218,10 @@
         {
           "title": "Validation and limits",
           "id": "validation-and-limits"
+        },
+        {
+          "title": "Native Slack Block Kit",
+          "id": "native-slack-block-kit"
         }
       ]
     },

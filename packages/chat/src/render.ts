@@ -310,7 +310,10 @@ interface Materialized {
   overflow: boolean;
 }
 
-function materialize(spec: Partial<Spec>, maxElements: number): Materialized {
+export function materialize(
+  spec: Partial<Spec>,
+  maxElements: number,
+): Materialized {
   const source = (spec.elements ?? {}) as Record<string, Partial<UIElement>>;
   const stateModel = (spec.state ?? {}) as Record<string, unknown>;
   const out: Record<string, Element> = {};

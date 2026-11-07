@@ -81,6 +81,16 @@ Standard components: `Card`, `Section`, `Text` (markdown), `Fields` with `Field`
 
 `toCard` throws `CardSpecError` with an `issues` array (one entry per problem). Send the issues back to the model to repair the spec. Pass `limits` to reject specs that a platform would degrade, for example `{ tables: 1, charts: 2 }` for Slack. Available limits: `tables`, `charts`, `fields`, `tableRows`, `tableColumns`, `chartTitle`, `chartLabel`, `chartSeries`, `chartPoints`.
 
+## Native Slack Block Kit
+
+For Slack-specific content, use `defineCatalog(slackSchema, { components: slackComponentDefinitions })` and `toSlackBlocks(spec)`, all exported from `@json-render/chat`. This message catalog adds alerts, native cards, carousels, containers, context actions, layouts, plans, and task cards, alongside native versions of the existing message blocks. It omits file and input blocks, which need different Slack APIs or surfaces, and standalone Markdown, rich-text, and video blocks.
+
+The root must be `SlackMessage`. Native components use a `Slack` prefix, such as `SlackSection`, `SlackActions`, and `SlackLayout`. Each block has `children: []` and native Slack fields in `props`, omitting the outer `type`. Nested elements and composition objects go directly in props with their native `type` values; all fields are retained. Use `SlackGroup` for grouping, visibility, and repeating child blocks over state.
+
+Post the result through `slack.webClient.chat.postMessage({ channel, text, blocks: toSlackBlocks(spec) })`, where `slack` is an existing Slack adapter. Native blocks cannot go through `thread.post()` or `streamCard()`.
+
+`toSlackBlocks` validates block props and spec structure, resolves state expressions, and throws `CardSpecError` on invalid specs. Slack validates nested element semantics, surface eligibility, and aggregate platform limits. `maxElements` defaults to 1000 expanded spec elements; `maxBlocks` defaults to 50 top-level blocks. Native payloads inside props are not counted by these budgets. Each source element must have a single child reference; use a `SlackGroup` to repeat blocks.
+
 ## Runtime
 
 The renderer imports `chat` for types only, so it runs in the browser and on the server. Convert a card for a specific platform with the adapter, for example `cardToSlackBlocks` from `@chat-adapter/slack/blocks` or `cardToAdaptiveCard` from `@chat-adapter/teams/cards`.
