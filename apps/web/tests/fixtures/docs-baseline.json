@@ -191,9 +191,9 @@
       "title": "@json-render/chat",
       "metadataTitle": "@json-render/chat API | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/chat\")\n\n# @json-render/chat\n",
-      "sourceSha256": "042feaaefdfa886aa72015a28a54186a39702149704ded62dba82bc4dfbffb19",
-      "bodySha256": "5e45bf06f31441aee11da3e2c8159ab06696e743ccf21bbf55f43b97bd7030d1",
-      "markdownSha256": "0e96fc2049d6d92af49a97ff6654b42cccb349093ba145ad172dcd0bc3978d94",
+      "sourceSha256": "3a9f899ef422b3ab9d455c487dd1fefd270ed2f3beacd8ed317760e76cfa96bf",
+      "bodySha256": "1cc4d6b0d457dfd9015006bbb3b634ba69339f295fec4083de36284f5cef0e3f",
+      "markdownSha256": "8b2a4804944a73d668f8a9ac77a523e955363ae90e079d1733d142f7b33be278",
       "headings": [
         {
           "title": "Install",
@@ -212,16 +212,16 @@
           "id": "tocard"
         },
         {
+          "title": "Portable composition",
+          "id": "portable-composition"
+        },
+        {
           "title": "State and repeat",
           "id": "state-and-repeat"
         },
         {
           "title": "Validation and limits",
           "id": "validation-and-limits"
-        },
-        {
-          "title": "Native Slack Block Kit",
-          "id": "native-slack-block-kit"
         }
       ]
     },

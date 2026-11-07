@@ -75,21 +75,21 @@ Standard components: `Card`, `Section`, `Text` (markdown), `Fields` with `Field`
 
 ## State, repeat, and visibility
 
-`$state`, `$item`, `$index`, and `$template` resolve against `spec.state`. `visible` conditions drop elements. `repeat` renders an element's children once per item. A repeated `Table` expands its rows as a template, and object rows map to headers by key name. `$bindState` and `$bindItem` have no effect because posted messages have no inputs. Expansion stops at `maxElements` (default 1000 elements and table rows); `toCard` throws past it.
+`$state`, `$item`, `$index`, and `$template` resolve against `spec.state`. `visible` conditions drop elements. `repeat` renders an element's children once per item. A repeated `Table` expands its rows as a template, and object rows map to headers by key name. Selections report events to the bot; `$bindState` and `$bindItem` do not create local form state. Expansion stops at `maxElements` (default 1000 elements and table rows); `toCard` throws past it.
 
 ## Validation and limits
 
 `toCard` throws `CardSpecError` with an `issues` array (one entry per problem). Send the issues back to the model to repair the spec. Pass `limits` to reject specs that a platform would degrade, for example `{ tables: 1, charts: 2 }` for Slack. Available limits: `tables`, `charts`, `fields`, `tableRows`, `tableColumns`, `chartTitle`, `chartLabel`, `chartSeries`, `chartPoints`.
 
-## Native Slack Block Kit
+## Portable composition
 
-For Slack-specific content, use `defineCatalog(slackSchema, { components: slackComponentDefinitions })` and `toSlackBlocks(spec)`, all exported from `@json-render/chat`. This message catalog adds native cards, carousels, containers, context actions, layouts, plans, and task cards, alongside native versions of the existing message blocks. It omits modal-only alerts and file/input blocks, which need different Slack APIs or surfaces, and standalone Markdown, rich-text, and video blocks.
+`Columns` and `Carousel` hold `Section` or nested `Card` items and emit section layout hints. Older or unsupported adapters render the same items vertically. Native layouts depend on adapter support and valid platform-specific content; do not promise identical presentation across platforms.
 
-The root must be `SlackMessage`. Native components use a `Slack` prefix, such as `SlackSection`, `SlackActions`, and `SlackLayout`. Each block has `children: []` and native Slack fields in `props`, omitting the outer `type`. Nested elements and composition objects go directly in props with their native `type` values; all fields are retained. Use `SlackGroup` for grouping, visibility, and repeating child blocks over state.
+`Actions` accepts `Select` and `RadioSelect`, with `id`, `label`, `options` (`label`, `value`, optional `description`), optional `initialOption`, `optional`, and `dispatchAction`. Values must be unique; initial selections must exist. Use the adapter's normal action/submission handlers, including Teams' card submission flow. Control availability and fallback behavior depend on the adapter and its configuration.
 
-Post the result through `slack.webClient.chat.postMessage({ channel, text, blocks: toSlackBlocks(spec) })`, where `slack` is an existing Slack adapter. Native blocks cannot go through `thread.post()` or `streamCard()`.
+`TaskList` contains `Task` elements. A task has `title`, `status` (`pending`, `in_progress`, `complete`, `error`), and optional `details` and `output`; it renders a text snapshot, not a live SDK Plan. `Feedback` has `id`, optional `label`, `positiveLabel`, and `negativeLabel`; its buttons use `<id>:positive` and `<id>:negative` action IDs and corresponding values. `Link` takes `label` and `url`.
 
-`toSlackBlocks` validates block props and spec structure, resolves state expressions, and throws `CardSpecError` on invalid specs. Slack validates nested element semantics, surface eligibility, and aggregate platform limits. `maxElements` defaults to 1000 expanded spec elements; `maxBlocks` defaults to 50 top-level blocks. Native payloads inside props are not counted by these budgets. Each source element must have a single child reference; use a `SlackGroup` to repeat blocks.
+All of these use `toCard`/`streamCard` and the shared catalog. Nested Card images are retained. Empty layouts and untitled empty task lists are pruned. Do not send native Slack payloads to these portable APIs.
 
 ## Runtime
 

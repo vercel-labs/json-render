@@ -9,6 +9,9 @@ import type {
   FieldsElement,
   ImageElement,
   LinkButtonElement,
+  LinkElement,
+  SelectElement,
+  RadioSelectElement,
   SectionElement,
   TableElement,
   TextElement,
@@ -37,10 +40,28 @@ export const image = (url: string, alt?: string): ImageElement => ({
 
 export const divider = (): DividerElement => ({ type: "divider" });
 
-export const section = (children: CardChild[]): SectionElement => ({
+// Older Chat SDK adapters ignore layout hints and keep the section's content.
+export type SectionLayout = "stack" | "columns" | "carousel";
+export const section = (
+  children: CardChild[],
+  layout?: SectionLayout,
+): SectionElement & { layout?: SectionLayout } => ({
   type: "section",
   children,
+  ...(layout ? { layout } : {}),
 });
+
+export const link = (label: string, url: string): LinkElement => ({
+  type: "link",
+  label,
+  url,
+});
+export const select = (
+  options: Omit<SelectElement, "type">,
+): SelectElement => ({ type: "select", ...options });
+export const radioSelect = (
+  options: Omit<RadioSelectElement, "type">,
+): RadioSelectElement => ({ type: "radio_select", ...options });
 
 export const field = (label: string, value: string): FieldElement => ({
   type: "field",

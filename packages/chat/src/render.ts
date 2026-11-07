@@ -145,11 +145,18 @@ function validateStructure(
         issues.push(`${key}: Fields only holds Field elements`);
       if (
         el.type === "Actions" &&
-        !["Button", "LinkButton"].includes(child.type)
+        !["Button", "LinkButton", "Select", "RadioSelect"].includes(child.type)
       )
         issues.push(
-          `${key}: Actions only holds Button and LinkButton elements`,
+          `${key}: Actions only holds Button, LinkButton, Select and RadioSelect elements`,
         );
+      if (
+        ["Columns", "Carousel"].includes(el.type) &&
+        !["Section", "Card"].includes(child.type)
+      )
+        issues.push(`${key}: ${el.type} only holds Section and Card elements`);
+      if (el.type === "TaskList" && child.type !== "Task")
+        issues.push(`${key}: TaskList only holds Task elements`);
     }
     if (el.type === "Table") {
       const width = el.props.headers.length;
@@ -232,11 +239,60 @@ function toChild(key: string, elements: Record<string, Element>): CardChild {
   switch (el.type) {
     case "Section":
       return build.section(el.children.map((k) => toChild(k, elements)));
+    case "Columns":
+    case "Carousel":
+      return build.section(
+        el.children.map((k) => toChild(k, elements)),
+        el.type === "Columns" ? "columns" : "carousel",
+      );
+    case "TaskList":
+      return build.section([
+        ...(p.title ? [build.text(p.title, "bold")] : []),
+        ...el.children.map((k) => toChild(k, elements)),
+      ]);
+    case "Task":
+      return build.section([
+        build.text(p.title, "bold"),
+        build.text(
+          (
+            {
+              pending: "Pending",
+              in_progress: "In progress",
+              complete: "Complete",
+              error: "Error",
+            } as Record<string, string>
+          )[p.status]!,
+          "muted",
+        ),
+        ...(p.details ? [build.text(p.details)] : []),
+        ...(p.output ? [build.text(p.output)] : []),
+      ]);
+    case "Feedback":
+      return build.section([
+        ...(p.label ? [build.text(p.label)] : []),
+        build.actions([
+          build.button({
+            id: `${p.id}:positive`,
+            label: p.positiveLabel ?? "Helpful",
+            value: "positive",
+          }),
+          build.button({
+            id: `${p.id}:negative`,
+            label: p.negativeLabel ?? "Not helpful",
+            value: "negative",
+          }),
+        ]),
+      ]);
+    case "Link":
+      return build.link(p.label, p.url);
     case "Card":
       // Chat cards cannot nest, so an inner Card becomes a titled Section.
       return build.section([
         ...(p.title ? [build.text(p.title, "bold")] : []),
         ...(p.subtitle ? [build.text(p.subtitle, "muted")] : []),
+        ...(p.imageUrl
+          ? [build.image(p.imageUrl, p.title || "Card image")]
+          : []),
         ...el.children.map((k) => toChild(k, elements)),
       ]);
     case "Text":
@@ -282,16 +338,39 @@ function toChild(key: string, elements: Record<string, Element>): CardChild {
     }
     case "Actions":
       return build.actions(
-        children().map((b) =>
-          b.type === "LinkButton"
+        children().map((b) => {
+          if (b.type === "Select" || b.type === "RadioSelect") {
+            const options = {
+              id: b.props.id,
+              label: b.props.label,
+              options: b.props.options.map(
+                (option: {
+                  label: string;
+                  value: string;
+                  description?: string | null;
+                }) => ({
+                  label: option.label,
+                  value: option.value,
+                  description: option.description ?? undefined,
+                }),
+              ),
+              initialOption: b.props.initialOption ?? undefined,
+              optional: b.props.optional ?? undefined,
+              dispatchAction: b.props.dispatchAction ?? undefined,
+            };
+            return b.type === "Select"
+              ? build.select(options)
+              : build.radioSelect(options);
+          }
+          return b.type === "LinkButton"
             ? build.linkButton({ label: b.props.label, url: b.props.url })
             : build.button({
                 id: b.props.id,
                 label: b.props.label,
                 style: b.props.style ?? undefined,
                 value: b.props.value ?? undefined,
-              }),
-        ),
+              });
+        }),
       );
     default:
       throw new CardSpecError([`${key}: ${el.type} cannot be nested here`]);
@@ -310,10 +389,7 @@ interface Materialized {
   overflow: boolean;
 }
 
-export function materialize(
-  spec: Partial<Spec>,
-  maxElements: number,
-): Materialized {
+function materialize(spec: Partial<Spec>, maxElements: number): Materialized {
   const source = (spec.elements ?? {}) as Record<string, Partial<UIElement>>;
   const stateModel = (spec.state ?? {}) as Record<string, unknown>;
   const out: Record<string, Element> = {};
@@ -433,9 +509,19 @@ export function materialize(
 // fields or buttons without their required props.
 const ACCEPTS: Record<string, string[]> = {
   Fields: ["Field"],
-  Actions: ["Button", "LinkButton"],
+  Actions: ["Button", "LinkButton", "Select", "RadioSelect"],
+  Columns: ["Section", "Card"],
+  Carousel: ["Section", "Card"],
+  TaskList: ["Task"],
 };
-const GROUPS = new Set(["Fields", "Actions", "Section"]);
+const GROUPS = new Set([
+  "Fields",
+  "Actions",
+  "Section",
+  "Columns",
+  "Carousel",
+  "TaskList",
+]);
 
 const hasContent = (el: Element) =>
   Boolean(
@@ -468,7 +554,8 @@ function prune(elements: Record<string, Element>, rootKey: string) {
     const keep =
       key === rootKey ||
       (GROUPS.has(el.type)
-        ? el.children.length > 0
+        ? el.children.length > 0 ||
+          (el.type === "TaskList" && Boolean(el.props.title))
         : el.type !== "Card" || hasContent(el));
     kept.set(key, keep);
     return keep;

@@ -37,11 +37,35 @@ chat.onNewMention(async (thread, message) => {
 
 ## Components
 
-`Card` is the root. Inside it you can use `Section`, `Text`, `Fields` and `Field`, `Table`, `Chart` (pie, bar, line, area), `Divider`, `Image`, and `Actions` with `Button` and `LinkButton`. Each one maps to a Chat SDK card element.
+`Card` is the root. Inside it you can use `Section`, `Text`, `Fields` and `Field`, `Table`, `Chart` (pie, bar, line, area), `Divider`, `Image`, and `Actions` with `Button` and `LinkButton`. Additional portable components include `Columns`, `Carousel`, `TaskList` with `Task`, `Feedback`, `Link`, and `Actions` with `Select` and `RadioSelect`. Each component maps to Chat SDK elements.
+
+## Portable composition
+
+Use `Columns` and `Carousel` to group `Section` or nested `Card` items. They produce ordinary Chat SDK sections with a layout hint. Adapters that do not support the hint keep their existing vertical rendering; all items remain in source order. Native rendering of these hints is proposed in [Chat SDK PR #1126](https://github.com/vercel/chat/pull/1126). The released adapters currently used here stack the items; this package does not require an unreleased SDK dependency.
+
+`Actions` also accepts `Select` and `RadioSelect`. Each takes `id`, `label`, `options` (objects with `label`, `value`, and optional `description`), optional `initialOption`, `optional`, and `dispatchAction`. Option values must be unique, and `initialOption` must match one of them. Interaction and submission behavior follow the adapter: Slack reports selections as actions, Teams uses its card submission flow, and support on other platforms follows Chat SDK and the adapter configuration. For example, Discord select controls require Components V2; the existing Embeds format does not render them.
+
+`Feedback` produces ordinary buttons with action IDs `<id>:positive` and `<id>:negative`, and values `positive` and `negative`. Optional `label`, `positiveLabel`, and `negativeLabel` customize their text. Handle these through Chat SDK's normal action handlers.
+
+`TaskList` holds `Task` children and accepts an optional `title`. Tasks take `title`, `status` (`pending`, `in_progress`, `complete`, or `error`), and optional `details` and `output`. They render as text sections representing a snapshot. For a live plan with lifecycle methods, use Chat SDK's `Plan` API directly. `Link` takes `label` and `url` and renders an inline link.
+
+```json
+{
+  "root": "report",
+  "elements": {
+    "report": { "type": "Card", "props": { "title": "Deployment" }, "children": ["tasks", "rating"] },
+    "tasks": { "type": "TaskList", "props": { "title": "Progress" }, "children": ["build"] },
+    "build": { "type": "Task", "props": { "title": "Build", "status": "complete", "output": "Build passed" }, "children": [] },
+    "rating": { "type": "Feedback", "props": { "id": "deployment-rating", "label": "Was this helpful?" }, "children": [] }
+  }
+}
+```
+
+Post these specs with `thread.post(toCard(spec))`, or use `streamCard` to stream them. State expressions, visibility, repeats, validation, and expansion budgets apply as for the existing components. Nested cards retain their title, subtitle, image, and children. A `Columns`, `Carousel`, or untitled `TaskList` with no visible children is omitted.
 
 ## State and repeat
 
-`toCard` resolves `$state`, `$item`, `$index`, and `$template` expressions against `spec.state`, honors `visible` conditions, and expands `repeat`. A posted message has no inputs, so `$bindState` and `$bindItem` have no effect. Expansion stops at `maxElements` (1000 elements and table rows by default).
+`toCard` resolves `$state`, `$item`, `$index`, and `$template` expressions against `spec.state`, honors `visible` conditions, and expands `repeat`. Selections report events to the bot; `$bindState` and `$bindItem` do not create local form state. Expansion stops at `maxElements` (1000 elements and table rows by default).
 
 ## Validation and limits
 
@@ -52,56 +76,3 @@ Platforms cap what a message can hold, and Chat SDK adapters degrade content pas
 ```ts
 toCard(spec, { limits: { tables: 1, charts: 2 } });
 ```
-
-## Native Slack Block Kit
-
-Use `slackSchema`, `slackComponentDefinitions`, and `toSlackBlocks` for Slack-specific content. The native catalog adds message blocks that the portable card model cannot express: native cards and carousels, titled containers, multi-column layouts, context actions, plans, and task cards. It also exposes native versions of the existing message blocks, including data tables and data visualizations. See the [Slack Block Kit reference](https://docs.slack.dev/reference/block-kit/blocks/) for their payloads.
-
-```ts
-import { defineCatalog, type Spec } from "@json-render/core";
-import {
-  slackSchema,
-  slackComponentDefinitions,
-  toSlackBlocks,
-} from "@json-render/chat";
-
-const catalog = defineCatalog(slackSchema, {
-  components: slackComponentDefinitions,
-});
-
-const spec: Spec = {
-  root: "message",
-  elements: {
-    message: { type: "SlackMessage", props: {}, children: ["status"] },
-    status: {
-      type: "SlackSection",
-      props: {
-        text: { type: "plain_text", text: "Deployment complete" },
-      },
-      children: [],
-    },
-  },
-};
-
-const blocks = toSlackBlocks(spec);
-```
-
-Pass `catalog.prompt()` to your model to generate native specs. With an existing Slack adapter, post the blocks through its Web API client:
-
-```ts
-await slack.webClient.chat.postMessage({
-  channel: "C123",
-  text: "Deployment complete",
-  blocks,
-});
-```
-
-The root is `SlackMessage`. Native block names use a `Slack` prefix: `SlackActions`, `SlackCard`, `SlackCarousel`, `SlackContainer`, `SlackContextActions`, `SlackContext`, `SlackDataTable`, `SlackDataVisualization`, `SlackDivider`, `SlackHeader`, `SlackImage`, `SlackLayout`, `SlackPlan`, `SlackSection`, `SlackTable`, and `SlackTaskCard`.
-
-Each block is a leaf with `children: []`. Put nested elements and composition objects directly in `props`, using Slack's field names and nested `type` values. Buttons, select and multi-select menus, pickers, feedback controls, workflow buttons, and composition objects retain their native payloads. Rich text can still appear inside native payloads, such as task details and table cells. Unknown native fields are preserved. The component supplies the outer block's `type`; omit it from `props`.
-
-Use `SlackGroup` to group blocks or repeat children over state. `$state`, `$item`, `$index`, `$template`, `visible`, and group `repeat` resolve before conversion. `maxElements` defaults to 1000 expanded spec elements. `maxBlocks` defaults to 50 top-level blocks. These budgets do not count native objects nested inside props; Slack enforces their limits.
-
-`toSlackBlocks` throws `CardSpecError` for invalid block props, missing elements, cycles, invalid nesting, or an exceeded budget. Nested native objects are retained as JSON; Slack validates their component-specific rules, surface eligibility, and aggregate limits. Each source element must have a single child reference; use `SlackGroup` to repeat blocks. Native blocks go directly to Slack's Web API and cannot be passed to `thread.post()` or `streamCard()`.
-
-The message catalog intentionally omits `alert`, `file`, and `input` blocks: [alerts are modal-only](https://docs.slack.dev/reference/block-kit/blocks/alert-block/), files require Slack's remote-files API, and input blocks belong to modal/Home views. Dedicated `markdown`, `rich_text`, and `video` components are also outside this catalog's scope.
