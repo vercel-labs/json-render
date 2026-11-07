@@ -69,7 +69,14 @@ function SectionComponent({
 }: ComponentRenderProps<StandardComponentProps<"Section">>) {
   const p = element.props;
 
-  return <EmailSection style={p.style ?? undefined}>{children}</EmailSection>;
+  return (
+    <EmailSection
+      style={p.style ?? undefined}
+      className={p.className ?? undefined}
+    >
+      {children}
+    </EmailSection>
+  );
 }
 
 function RowComponent({
@@ -87,7 +94,14 @@ function ColumnComponent({
 }: ComponentRenderProps<StandardComponentProps<"Column">>) {
   const p = element.props;
 
-  return <EmailColumn style={p.style ?? undefined}>{children}</EmailColumn>;
+  return (
+    <EmailColumn
+      style={p.style ?? undefined}
+      className={p.className ?? undefined}
+    >
+      {children}
+    </EmailColumn>
+  );
 }
 
 // =============================================================================
@@ -143,15 +157,18 @@ function ImageComponent({
 }: ComponentRenderProps<StandardComponentProps<"Image">>) {
   const p = element.props;
 
-  return (
+  const img = (
     <EmailImg
       src={p.src}
       alt={p.alt ?? undefined}
       width={p.width ?? undefined}
       height={p.height ?? undefined}
       style={p.style ?? undefined}
+      className={p.className ?? undefined}
     />
   );
+
+  return p.href ? <EmailLink href={p.href}>{img}</EmailLink> : img;
 }
 
 function HrComponent({
