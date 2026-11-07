@@ -13,6 +13,7 @@ import type { CardChild, CardElement } from "chat";
 import * as build from "./elements";
 import type { ZodType } from "zod";
 import { standardComponentDefinitions } from "./catalog";
+import type { CardMessage } from "./stream";
 
 type Element = {
   type: string;
@@ -59,6 +60,14 @@ export interface ToCardOptions {
 const DEFAULT_MAX_ELEMENTS = 1000;
 
 export class CardSpecError extends Error {
+  /**
+   * The message streamCard posted before the final spec failed validation,
+   * so you can edit it instead of leaving the partial card in the thread.
+   * Undefined when the error comes from toCard, or when the stream ended
+   * before streamCard posted anything.
+   */
+  postedMessage?: CardMessage;
+
   constructor(public readonly issues: string[]) {
     super(issues.join("\n"));
     this.name = "CardSpecError";
