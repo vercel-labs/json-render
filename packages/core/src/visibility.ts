@@ -10,6 +10,8 @@ import type {
   StateModel,
 } from "./types";
 import { getByPath } from "./types";
+import { findDirective } from "./directives";
+import type { PropResolutionContext } from "./props";
 
 // =============================================================================
 // Schemas
@@ -176,8 +178,8 @@ export interface VisibilityContext {
 // =============================================================================
 
 /**
- * Resolve a comparison value. If it's a `{ $state }` reference, look it up;
- * otherwise return the literal.
+ * Resolve a comparison value. If it's a `{ $state }` reference or a custom
+ * directive, resolve it; otherwise return the literal.
  */
 function resolveComparisonValue(
   value: unknown,
@@ -190,6 +192,14 @@ function resolveComparisonValue(
     ) {
       return getByPath(ctx.stateModel, (value as { $state: string }).$state);
     }
+    // Custom directives (e.g. `{ "$count": ... }`) resolve the same way they
+    // do in props. Only contexts built for prop resolution carry a registry.
+    const propCtx = ctx as PropResolutionContext;
+    const directive = findDirective(
+      value as Record<string, unknown>,
+      propCtx.directives,
+    );
+    if (directive) return directive.resolve(value, propCtx);
   }
   return value;
 }
