@@ -12,7 +12,7 @@
     "build": "next build",
     "start": "next start",
     "test:routes": "node scripts/test-routes.mjs",
-    "lint": "oxlint",
+    "lint": "oxlint --deny-warnings",
     "check-types": "fumadocs-mdx && next typegen && tsc --noEmit"
   },
   "dependencies": {

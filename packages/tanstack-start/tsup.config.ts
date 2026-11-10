@@ -10,7 +10,7 @@ const sharedExternal = [
   "zod",
 ];
 
-export default defineConfig([
+export default defineConfig((options) => [
   {
     entry: { index: "src/index.ts" },
     format: ["cjs", "esm"],
@@ -19,7 +19,9 @@ export default defineConfig([
     banner: ({ format }) => (format === "cjs" ? { js: '"use client";' } : {}),
     external: sharedExternal,
     onSuccess: async () => {
-      await emitTypes(__dirname);
+      await emitTypes(__dirname, {
+        watch: Boolean(options.watch),
+      });
     },
   },
   {

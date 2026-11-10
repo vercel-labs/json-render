@@ -1,7 +1,7 @@
 import { defineConfig } from "tsup";
 import { emitTypes } from "../../scripts/emit-types.mjs";
 
-export default defineConfig({
+export default defineConfig((options) => ({
   entry: ["src/index.ts", "src/server.ts", "src/catalog.ts", "src/render.tsx"],
   format: ["cjs", "esm"],
   sourcemap: true,
@@ -15,6 +15,8 @@ export default defineConfig({
     "react/jsx-runtime",
   ],
   onSuccess: async () => {
-    await emitTypes(__dirname);
+    await emitTypes(__dirname, {
+      watch: Boolean(options.watch),
+    });
   },
-});
+}));

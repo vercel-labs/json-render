@@ -7,7 +7,7 @@
     "./*": "./src/*.tsx"
   },
   "scripts": {
-    "lint": "oxlint",
+    "lint": "oxlint --deny-warnings",
     "generate:component": "turbo gen react-component",
     "check-types": "tsc --noEmit"
   },
