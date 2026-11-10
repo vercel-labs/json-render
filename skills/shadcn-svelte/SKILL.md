@@ -102,7 +102,7 @@ Then render in your Svelte component:
 
 ### Input
 - **Button** - Button with label, variant (primary, secondary, danger), disabled
-- **Link** - Anchor link with label and href
+- **Link** - Anchor link with label, href, target (_self, _blank)
 - **Input** - Text input with label, name, type, placeholder, value, checks
 - **Textarea** - Multi-line input with label, name, placeholder, rows, value, checks
 - **Select** - Dropdown select with label, name, options (string[]), value, checks
