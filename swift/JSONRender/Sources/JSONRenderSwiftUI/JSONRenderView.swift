@@ -122,6 +122,11 @@ public final class JSONRenderModel: ObservableObject {
             navigate: navigate
         )
         self.dispatcher.requestConfirmation = confirm
+        // Record the watched values of the initial render, so the first state
+        // change compares against them and runs its watch actions.
+        if let tree = tree(loading: loading) {
+            watchTracker.snapshot(watchRecords(tree, state: store.snapshot))
+        }
         self.subscription = store.subscribe { [weak self] in
             self?.stateChanged()
         }
@@ -157,8 +162,22 @@ public final class JSONRenderModel: ObservableObject {
         )
     }
 
+    /// Store listeners run on the thread that changed the state. Actions run
+    /// on the cooperative pool, so changes from a background thread are
+    /// applied on the main thread, where SwiftUI expects published changes and
+    /// where `withAnimation` takes effect.
     private func stateChanged() {
-        if let animation, Thread.isMainThread {
+        if Thread.isMainThread {
+            applyStateChange()
+        } else {
+            DispatchQueue.main.async { [weak self] in
+                self?.applyStateChange()
+            }
+        }
+    }
+
+    private func applyStateChange() {
+        if let animation {
             withAnimation(animation) { revision &+= 1 }
         } else {
             revision &+= 1

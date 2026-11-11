@@ -449,12 +449,25 @@ public func watchRecords<Render>(_ tree: RenderedElement<Render>, state: JSONVal
 /// Fires `watch` actions when a watched state path changes.
 ///
 /// The first update records the current values without firing, matching the
-/// React renderer, which skips the initial mount.
+/// React renderer, which skips the initial mount. Call `snapshot(_:)` when the
+/// tree first renders so the first state change after that compares against
+/// the initial values and fires.
 public final class WatchTracker {
     private var previous: [String: JSONValue?] = [:]
     private var hasSnapshot = false
 
     public init() {}
+
+    /// Records the watched values of the initial render without running any
+    /// watch actions.
+    public func snapshot(_ records: [WatchRecord]) {
+        var next: [String: JSONValue?] = [:]
+        for record in records {
+            next[record.id] = record.value
+        }
+        previous = next
+        hasSnapshot = true
+    }
 
     public func process(
         _ records: [WatchRecord],

@@ -175,6 +175,32 @@ final class RenderTreeTests: XCTestCase {
         XCTAssertEqual(calls.value, 1, "Unchanged values do not fire again")
     }
 
+    func testWatchTrackerSnapshotFiresOnFirstChange() async throws {
+        let calls = Box<Int>(0)
+        let spec = Spec.decodePartial(
+            JSONValue.decode(
+                #"{"root":"t","state":{"value":"a"},"elements":{"t":{"type":"Text","props":{},"watch":{"/value":{"action":"record"}}}}}"#
+            )!
+        )
+        let state = StateStore(spec: spec)
+        let dispatcher = ActionDispatcher(store: state)
+        dispatcher.register("record") { _ in calls.value += 1 }
+        let registry = Fixtures.recordingRegistry()
+
+        func records() -> [WatchRecord] {
+            let tree = buildRenderTree(spec: spec, registry: registry, store: state, dispatcher: dispatcher)!
+            return watchRecords(tree, state: state.snapshot)
+        }
+
+        let tracker = WatchTracker()
+        tracker.snapshot(records())
+        XCTAssertEqual(calls.value, 0, "Taking the snapshot does not fire watch actions")
+
+        state.set("/value", .string("b"))
+        await tracker.process(records(), dispatcher: dispatcher, store: state)
+        XCTAssertEqual(calls.value, 1, "The first change after the snapshot fires")
+    }
+
     func testCyclicSpecStopsAtTheCycle() throws {
         let recorder = WarningRecorder()
         let tree = try build(

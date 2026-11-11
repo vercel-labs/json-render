@@ -545,7 +545,7 @@ public indirect enum ActionOnSuccess: Codable, Equatable, Sendable {
                 return
             }
             if container.contains(DynamicCodingKey("action")) {
-                self = .action(try container.decode(ActionOnSuccessAction.self, forKey: DynamicCodingKey("action")))
+                self = .action(try ActionOnSuccessAction(from: decoder))
                 return
             }
         }
@@ -565,8 +565,7 @@ public indirect enum ActionOnSuccess: Codable, Equatable, Sendable {
             var container = encoder.container(keyedBy: DynamicCodingKey.self)
             try container.encode(value, forKey: DynamicCodingKey("set"))
         case .action(let value):
-            var container = encoder.container(keyedBy: DynamicCodingKey.self)
-            try container.encode(value, forKey: DynamicCodingKey("action"))
+            try value.encode(to: encoder)
         }
     }
 }
@@ -611,7 +610,7 @@ public indirect enum ActionOnError: Codable, Equatable, Sendable {
                 return
             }
             if container.contains(DynamicCodingKey("action")) {
-                self = .action(try container.decode(ActionOnErrorAction.self, forKey: DynamicCodingKey("action")))
+                self = .action(try ActionOnErrorAction(from: decoder))
                 return
             }
         }
@@ -628,8 +627,7 @@ public indirect enum ActionOnError: Codable, Equatable, Sendable {
             var container = encoder.container(keyedBy: DynamicCodingKey.self)
             try container.encode(value, forKey: DynamicCodingKey("set"))
         case .action(let value):
-            var container = encoder.container(keyedBy: DynamicCodingKey.self)
-            try container.encode(value, forKey: DynamicCodingKey("action"))
+            try value.encode(to: encoder)
         }
     }
 }

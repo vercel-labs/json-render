@@ -116,8 +116,11 @@ private func writeValue(
             } else if let index = denseIndex(segment, array.count) {
                 if mode == .add {
                     array.insert(value, at: index)
-                } else {
+                } else if index < array.count {
                     array[index] = value
+                } else {
+                    // Core assigns `array[array.length]`, which appends.
+                    array.append(value)
                 }
             }
             return .array(array)

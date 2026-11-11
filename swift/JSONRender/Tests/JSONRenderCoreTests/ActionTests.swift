@@ -140,6 +140,37 @@ final class ActionTests: XCTestCase {
         XCTAssertEqual(navigated.value, "/done")
     }
 
+    func testDecodesActionCallbacks() async throws {
+        let spec = try XCTUnwrap(
+            Spec.decodePartial(
+                #"{"root":"b","elements":{"b":{"type":"Button","props":{},"on":{"press":{"action":"save","onSuccess":{"action":"track","params":{"event":"saved"}},"onError":{"action":"report"}}}}}}"#
+            )
+        )
+        let element = try XCTUnwrap(spec.elements["b"], "Element with action callbacks decodes")
+        let binding = try XCTUnwrap(element.on?["press"]?.bindings.first)
+        XCTAssertEqual(
+            binding.onSuccess,
+            .action(ActionOnSuccessAction(action: "track", params: ["event": .value(.string("saved"))]))
+        )
+        XCTAssertEqual(binding.onError, .action(ActionOnErrorAction(action: "report")))
+
+        let encoded = try JSONEncoder().encode(binding)
+        XCTAssertEqual(try JSONDecoder().decode(ActionBinding.self, from: encoded), binding)
+        let object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        let onSuccess = try XCTUnwrap(object["onSuccess"] as? [String: Any])
+        XCTAssertEqual(onSuccess["action"] as? String, "track")
+
+        let tracked = Box<[String: JSONValue]?>(nil)
+        let (dispatcher, _) = makeDispatcher(
+            handlers: [
+                "save": { _ in },
+                "track": { params in tracked.value = params },
+            ]
+        )
+        await dispatcher.dispatch(binding)
+        XCTAssertEqual(tracked.value, ["event": .string("saved")])
+    }
+
     func testErrorHandlerWritesMessage() async {
         struct Failure: LocalizedError {
             var errorDescription: String? { "Network down" }

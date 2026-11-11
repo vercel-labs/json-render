@@ -413,9 +413,15 @@ class Emitter {
       for (const item of objectCases) {
         const key = new DynamicCodingKeyExpression(item.key);
         lines.push(`            if container.contains(${key.expression}) {`);
-        lines.push(
-          `                self = .${item.caseName}(try container.decode(${item.associated}.self, forKey: ${key.expression}))`,
-        );
+        if (item.whole) {
+          // A multi-property object branch is keyed by its first property,
+          // but the payload is the object itself, not the value under that key.
+          lines.push(`                self = .${item.caseName}(try ${item.associated}(from: decoder))`);
+        } else {
+          lines.push(
+            `                self = .${item.caseName}(try container.decode(${item.associated}.self, forKey: ${key.expression}))`,
+          );
+        }
         lines.push("                return");
         lines.push("            }");
       }
@@ -440,7 +446,9 @@ class Emitter {
       if (item.key !== null) {
         const key = new DynamicCodingKeyExpression(item.key);
         lines.push(`        case .${item.caseName}(let value):`);
-        if (item.associated) {
+        if (item.whole) {
+          lines.push("            try value.encode(to: encoder)");
+        } else if (item.associated) {
           lines.push("            var container = encoder.container(keyedBy: DynamicCodingKey.self)");
           lines.push(`            try container.encode(value, forKey: ${key.expression})`);
         } else {
@@ -530,7 +538,7 @@ class Emitter {
       this.emitStruct(structName, members, typeParams, "packages/core (inline object type)");
       this.emitted.add(structName);
     }
-    return { caseName, associated: structName, key: jsonKey };
+    return { caseName, associated: structName, key: jsonKey, whole: true };
   }
 
   text() {

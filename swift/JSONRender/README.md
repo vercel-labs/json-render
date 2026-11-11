@@ -60,7 +60,7 @@ struct ContentView: View {
 }
 ```
 
-`JSONRenderView` takes a `Spec`, a `RendererRegistry<AnyView>`, an optional `initialState`, optional `navigate` and `confirm` closures, a `loading` flag for streamed specs, and an optional `animation` for layout changes caused by state updates, such as an element that a visibility condition shows or hides. The view owns a `StateStore` seeded from `spec.state`, rebuilds the tree when state changes, and runs `watch` bindings after the first snapshot.
+`JSONRenderView` takes a `Spec`, a `RendererRegistry<AnyView>`, an optional `initialState`, optional `navigate` and `confirm` closures, a `loading` flag for streamed specs, and an optional `animation` for layout changes caused by state updates, such as an element that a visibility condition shows or hides. The view owns a `StateStore` seeded from `spec.state`, rebuilds the tree on the main thread when state changes, and runs `watch` bindings when a watched value changes after the initial render.
 
 When the `spec` you pass changes, the view applies it to the existing model. A different spec renders the new tree and resets the store to the new spec's `state`. An equal spec keeps the current state, including edits made through `$bindState`.
 
