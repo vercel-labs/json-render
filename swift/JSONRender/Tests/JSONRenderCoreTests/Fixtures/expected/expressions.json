@@ -1,0 +1,50 @@
+{
+  "component": "Column",
+  "props": {
+    "gap": 8
+  },
+  "children": [
+    {
+      "component": "Text",
+      "props": {
+        "text": "Ada"
+      }
+    },
+    {
+      "component": "Text",
+      "props": {
+        "text": "Premium"
+      }
+    },
+    {
+      "component": "Text",
+      "props": {
+        "text": "Hello Ada, you have 3 items"
+      }
+    },
+    {
+      "component": "Badge",
+      "props": {
+        "meta": {
+          "theme": "dark",
+          "literal": "x",
+          "bind": "dark"
+        },
+        "tags": [
+          "math",
+          "code"
+        ]
+      }
+    },
+    {
+      "component": "Text",
+      "props": {
+        "items": [
+          "Ada",
+          "static",
+          null
+        ]
+      }
+    }
+  ]
+}

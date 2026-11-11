@@ -1,0 +1,1533 @@
+{
+ "id": "coffee-shop",
+ "title": "Coffee shop dashboard",
+ "prompt": "A dashboard for my coffee shop: today's sales, top drinks, and inventory alerts",
+ "model": "anthropic/claude-sonnet-5.5",
+ "recordedAt": "2026-11-11T18:07:05.499Z",
+ "chunks": [
+  {
+   "t": 7603,
+   "text": "{"
+  },
+  {
+   "t": 7634,
+   "text": "\"op\":\"add\",\"path\":"
+  },
+  {
+   "t": 7666,
+   "text": "\"/root\",\"value\":\"main"
+  },
+  {
+   "t": 7700,
+   "text": "\"}\n{\"op\":\""
+  },
+  {
+   "t": 7733,
+   "text": "add\",\"path\":\"/elements"
+  },
+  {
+   "t": 7769,
+   "text": "/main\",\"value\":{\"type"
+  },
+  {
+   "t": 7802,
+   "text": "\":\"Stack\",\"props\":"
+  },
+  {
+   "t": 7833,
+   "text": "{\"direction\":\"vert"
+  },
+  {
+   "t": 7871,
+   "text": "ical\",\"gap\":\"lg"
+  },
+  {
+   "t": 7903,
+   "text": "\"},\"children\":[\"title\",\""
+  },
+  {
+   "t": 7958,
+   "text": "subtitle\",\"metrics"
+  },
+  {
+   "t": 7972,
+   "text": "\",\"sales-card\",\"drin"
+  },
+  {
+   "t": 8000,
+   "text": "ks-card\",\"alerts-"
+  },
+  {
+   "t": 8033,
+   "text": "switch\",\"alerts-card"
+  },
+  {
+   "t": 8067,
+   "text": "\"]}}\n{\"op"
+  },
+  {
+   "t": 8103,
+   "text": "\":\"add\",\"path\":\"/"
+  },
+  {
+   "t": 8138,
+   "text": "elements/title\",\"value\":{"
+  },
+  {
+   "t": 8177,
+   "text": "\"type\":\"Heading\",\""
+  },
+  {
+   "t": 8204,
+   "text": "props\":{\"text\":\""
+  },
+  {
+   "t": 8247,
+   "text": "Da"
+  },
+  {
+   "t": 8268,
+   "text": "ily Gr"
+  },
+  {
+   "t": 8311,
+   "text": "ind"
+  },
+  {
+   "t": 8335,
+   "text": " Dashboard\",\"level\":\""
+  },
+  {
+   "t": 8368,
+   "text": "h1\"},\"children\":["
+  },
+  {
+   "t": 8402,
+   "text": "]}}\n{\"op\":"
+  },
+  {
+   "t": 8439,
+   "text": "\"add\",\"path\":\"/el"
+  },
+  {
+   "t": 8470,
+   "text": "ements/subtitle\",\"value"
+  },
+  {
+   "t": 8505,
+   "text": "\":{\"type\":\"Text"
+  },
+  {
+   "t": 8561,
+   "text": "\",\"props\":{\"text\":\""
+  },
+  {
+   "t": 8569,
+   "text": "Today"
+  },
+  {
+   "t": 8606,
+   "text": "'s sales, best"
+  },
+  {
+   "t": 8638,
+   "text": " s"
+  },
+  {
+   "t": 8672,
+   "text": "ellers, and st"
+  },
+  {
+   "t": 8700,
+   "text": "ock at"
+  },
+  {
+   "t": 8734,
+   "text": " a glance\",\"variant\":\""
+  },
+  {
+   "t": 8767,
+   "text": "muted\"},\"children\":["
+  },
+  {
+   "t": 8804,
+   "text": "]}}\n{\"op\":"
+  },
+  {
+   "t": 8834,
+   "text": "\"add\",\"path\":\"/el"
+  },
+  {
+   "t": 8867,
+   "text": "ements/metrics\",\"value\":"
+  },
+  {
+   "t": 8902,
+   "text": "{\"type\":\"Grid"
+  },
+  {
+   "t": 8939,
+   "text": "\",\"props\":{\"columns\":"
+  },
+  {
+   "t": 8969,
+   "text": "2,\"gap\":\"md"
+  },
+  {
+   "t": 9005,
+   "text": "\"},\"children\":[\"m"
+  },
+  {
+   "t": 9035,
+   "text": "1\",\"m2\",\"m3\",\""
+  },
+  {
+   "t": 9070,
+   "text": "m4\"]}}\n{"
+  },
+  {
+   "t": 9105,
+   "text": "\"op\":\"add\",\"path\":"
+  },
+  {
+   "t": 9163,
+   "text": "\"/elements/m1\",\""
+  },
+  {
+   "t": 9177,
+   "text": "value\":{\"type\":\""
+  },
+  {
+   "t": 9201,
+   "text": "Metric\",\"props\":{\"label"
+  },
+  {
+   "t": 9237,
+   "text": "\":\"S"
+  },
+  {
+   "t": 9274,
+   "text": "ales today"
+  },
+  {
+   "t": 9302,
+   "text": "\",\"value\":\"$2"
+  },
+  {
+   "t": 9350,
+   "text": ",184"
+  },
+  {
+   "t": 9370,
+   "text": "\",\"detail\":\"+"
+  },
+  {
+   "t": 9401,
+   "text": "12% vs last"
+  },
+  {
+   "t": 9477,
+   "text": " T"
+  },
+  {
+   "t": 9506,
+   "text": "ue\",\"trend\":\"up\",\""
+  },
+  {
+   "t": 9535,
+   "text": "icon\":\"d"
+  },
+  {
+   "t": 9573,
+   "text": "ollarsign.circ"
+  },
+  {
+   "t": 9604,
+   "text": "le.fill\",\"tint\":"
+  },
+  {
+   "t": 9635,
+   "text": "\"green\"},\"children\":["
+  },
+  {
+   "t": 9670,
+   "text": "]}}\n{\"op\":"
+  },
+  {
+   "t": 9701,
+   "text": "\"add\",\"path\":\"/el"
+  },
+  {
+   "t": 9737,
+   "text": "ements/m2\",\"value\":{"
+  },
+  {
+   "t": 9770,
+   "text": "\"type\":\"Metric\",\""
+  },
+  {
+   "t": 9803,
+   "text": "props\":{\"label\":\""
+  },
+  {
+   "t": 9838,
+   "text": "Orders\",\"value\":\"312\",\""
+  },
+  {
+   "t": 9873,
+   "text": "detail\":\"+28"
+  },
+  {
+   "t": 9919,
+   "text": " v"
+  },
+  {
+   "t": 9939,
+   "text": "s av"
+  },
+  {
+   "t": 9990,
+   "text": "g\",\"trend\":\"up\",\""
+  },
+  {
+   "t": 10005,
+   "text": "icon\":\"cup.and"
+  },
+  {
+   "t": 10037,
+   "text": ".saucer.fill\",\""
+  },
+  {
+   "t": 10071,
+   "text": "tint\":\"brown\"},"
+  },
+  {
+   "t": 10102,
+   "text": "\"children\":[]}}"
+  },
+  {
+   "t": 10140,
+   "text": "\n{\"op\":\"add\",\"path"
+  },
+  {
+   "t": 10185,
+   "text": "\":\"/elements/m3"
+  },
+  {
+   "t": 10213,
+   "text": "\",\"value\":{\"type\":\""
+  },
+  {
+   "t": 10239,
+   "text": "Metric\",\"props\":{\""
+  },
+  {
+   "t": 10275,
+   "text": "label\":\"Avg tic"
+  },
+  {
+   "t": 10304,
+   "text": "ket\",\"value\":\"$7."
+  },
+  {
+   "t": 10335,
+   "text": "00\",\"detail\":\"-"
+  },
+  {
+   "t": 10371,
+   "text": "$0.20"
+  },
+  {
+   "t": 10402,
+   "text": "\",\""
+  },
+  {
+   "t": 10446,
+   "text": "trend\":\"down"
+  },
+  {
+   "t": 10473,
+   "text": "\",\"icon\":\"receipt"
+  },
+  {
+   "t": 10504,
+   "text": ".fill\",\"tint\":\""
+  },
+  {
+   "t": 10539,
+   "text": "orange\"},\"children\":["
+  },
+  {
+   "t": 10581,
+   "text": "]}}\n{\"op\":"
+  },
+  {
+   "t": 10602,
+   "text": "\"add\",\"path\":\"/el"
+  },
+  {
+   "t": 10639,
+   "text": "ements/m4\",\"value\":{"
+  },
+  {
+   "t": 10672,
+   "text": "\"type\":\"Metric\",\""
+  },
+  {
+   "t": 10705,
+   "text": "props\":{\"label\":\""
+  },
+  {
+   "t": 10737,
+   "text": "Wait time\",\"value\":\"3"
+  },
+  {
+   "t": 10770,
+   "text": "m"
+  },
+  {
+   "t": 10804,
+   "text": " 40s\",\"detail\":\""
+  },
+  {
+   "t": 10837,
+   "text": "On"
+  },
+  {
+   "t": 10871,
+   "text": " target"
+  },
+  {
+   "t": 10905,
+   "text": "\",\"trend\":\"neutral"
+  },
+  {
+   "t": 10939,
+   "text": "\",\"icon\":\"timer\",\""
+  },
+  {
+   "t": 10977,
+   "text": "tint\":\"bl"
+  },
+  {
+   "t": 11002,
+   "text": "ue\"},\"children\":[]"
+  },
+  {
+   "t": 11036,
+   "text": "}}\n{\"op\":\""
+  },
+  {
+   "t": 11073,
+   "text": "add\",\"path\":\"/elements"
+  },
+  {
+   "t": 11105,
+   "text": "/sales-card\",\"value\":"
+  },
+  {
+   "t": 11145,
+   "text": "{\"type\":\"Card\",\""
+  },
+  {
+   "t": 11171,
+   "text": "props\":{\"title\":\""
+  },
+  {
+   "t": 11204,
+   "text": "Sales by hour\",\"icon"
+  },
+  {
+   "t": 11245,
+   "text": "\":\"chart.line.u"
+  },
+  {
+   "t": 11282,
+   "text": "ptrend.xyax"
+  },
+  {
+   "t": 11304,
+   "text": "is\",\"tint\":\"green\""
+  },
+  {
+   "t": 11337,
+   "text": "},\"children\":[\"sales-"
+  },
+  {
+   "t": 11374,
+   "text": "chart\"]}}\n{"
+  },
+  {
+   "t": 11410,
+   "text": "\"op\":\"add\",\"path\":"
+  },
+  {
+   "t": 11436,
+   "text": "\"/elements/sales-"
+  },
+  {
+   "t": 11471,
+   "text": "chart\",\"value\":{\"type"
+  },
+  {
+   "t": 11503,
+   "text": "\":\"LineChart\",\"props"
+  },
+  {
+   "t": 11541,
+   "text": "\":{\"data\":{\"$"
+  },
+  {
+   "t": 11571,
+   "text": "state\":\"/sales\"},"
+  },
+  {
+   "t": 11604,
+   "text": "\"xKey\":\"hour"
+  },
+  {
+   "t": 11636,
+   "text": "\",\"yKey\":\"amount"
+  },
+  {
+   "t": 11670,
+   "text": "\",\"tint\":\"green\",\"height"
+  },
+  {
+   "t": 11703,
+   "text": "\":180},\"children\":["
+  },
+  {
+   "t": 11738,
+   "text": "]}}\n{\"op\":"
+  },
+  {
+   "t": 11780,
+   "text": "\"add\",\"path\":\"/state"
+  },
+  {
+   "t": 11804,
+   "text": "/sales\",\"value\":[]"
+  },
+  {
+   "t": 11838,
+   "text": "}\n{\"op\":\"add"
+  },
+  {
+   "t": 11885,
+   "text": "\",\"path\":\"/state/s"
+  },
+  {
+   "t": 11909,
+   "text": "ales/0\",\"value\":{\""
+  },
+  {
+   "t": 11942,
+   "text": "hour\":\"7am\",\"am"
+  },
+  {
+   "t": 11978,
+   "text": "ount\":280"
+  },
+  {
+   "t": 12003,
+   "text": "}}\n{\"op\":\""
+  },
+  {
+   "t": 12037,
+   "text": "add\",\"path\":\"/state/"
+  },
+  {
+   "t": 12070,
+   "text": "sales/1\",\"value\":{"
+  },
+  {
+   "t": 12105,
+   "text": "\"hour\":\"9am\",\""
+  },
+  {
+   "t": 12140,
+   "text": "amount\":520}}\n{"
+  },
+  {
+   "t": 12170,
+   "text": "\"op\":\"add\",\"path\":"
+  },
+  {
+   "t": 12207,
+   "text": "\"/state/sales/2"
+  },
+  {
+   "t": 12253,
+   "text": "\",\"value\":{\"hour\":"
+  },
+  {
+   "t": 12291,
+   "text": "\"11am\",\"amount\":340"
+  },
+  {
+   "t": 12304,
+   "text": "}}\n{\"op\":\""
+  },
+  {
+   "t": 12343,
+   "text": "add\",\"path\":\"/state/"
+  },
+  {
+   "t": 12371,
+   "text": "sales/3\",\"value\":{"
+  },
+  {
+   "t": 12404,
+   "text": "\"hour\":\"1pm"
+  },
+  {
+   "t": 12438,
+   "text": "\",\"amount\":410}}"
+  },
+  {
+   "t": 12471,
+   "text": "\n{\"op\":\"add\",\"path"
+  },
+  {
+   "t": 12511,
+   "text": "\":\"/state/sales/"
+  },
+  {
+   "t": 12537,
+   "text": "4\",\"value\":{\"hour"
+  },
+  {
+   "t": 12571,
+   "text": "\":\"3pm\",\"amount"
+  },
+  {
+   "t": 12645,
+   "text": "\":360"
+  },
+  {
+   "t": 12645,
+   "text": "}}\n{\"op\":\""
+  },
+  {
+   "t": 12670,
+   "text": "add\",\"path\":\"/state/"
+  },
+  {
+   "t": 12704,
+   "text": "sales/5\",\"value\":{"
+  },
+  {
+   "t": 12747,
+   "text": "\"hour\":\"5pm"
+  },
+  {
+   "t": 12775,
+   "text": "\",\"amount\":274}}"
+  },
+  {
+   "t": 12807,
+   "text": "\n{\"op\":\"add\",\"path"
+  },
+  {
+   "t": 12839,
+   "text": "\":\"/elements/drin"
+  },
+  {
+   "t": 12870,
+   "text": "ks-card\",\"value\":{\""
+  },
+  {
+   "t": 12905,
+   "text": "type\":\"Card\",\"props\":"
+  },
+  {
+   "t": 12939,
+   "text": "{\"title\":\"Top dr"
+  },
+  {
+   "t": 12974,
+   "text": "inks\",\"icon\":\"star"
+  },
+  {
+   "t": 13008,
+   "text": ".fill\",\"tint\":\""
+  },
+  {
+   "t": 13041,
+   "text": "orange\"},\"children\":[\""
+  },
+  {
+   "t": 13076,
+   "text": "drinks-list\"]}"
+  },
+  {
+   "t": 13104,
+   "text": "}\n{\"op\":\"add"
+  },
+  {
+   "t": 13142,
+   "text": "\",\"path\":\"/elements/"
+  },
+  {
+   "t": 13187,
+   "text": "drinks-list\",\"value\":"
+  },
+  {
+   "t": 13217,
+   "text": "{\"type\":\"List\",\"props"
+  },
+  {
+   "t": 13239,
+   "text": "\":{},\"repeat\":"
+  },
+  {
+   "t": 13285,
+   "text": "{\"statePath\":\"/"
+  },
+  {
+   "t": 13309,
+   "text": "drinks\",\"key\":\"id"
+  },
+  {
+   "t": 13344,
+   "text": "\"},\"children\":[\"drink"
+  },
+  {
+   "t": 13377,
+   "text": "-item\"]}}\n{"
+  },
+  {
+   "t": 13407,
+   "text": "\"op\":\"add\",\"path\":"
+  },
+  {
+   "t": 13449,
+   "text": "\"/elements/drink-"
+  },
+  {
+   "t": 13470,
+   "text": "item\",\"value\":{\"type\":"
+  },
+  {
+   "t": 13505,
+   "text": "\"ListItem\",\"props\":"
+  },
+  {
+   "t": 13538,
+   "text": "{\"title\":{\"$item"
+  },
+  {
+   "t": 13572,
+   "text": "\":\"name\"},\"subt"
+  },
+  {
+   "t": 13626,
+   "text": "itle\":{\"$item\":"
+  },
+  {
+   "t": 13642,
+   "text": "\"note"
+  },
+  {
+   "t": 13675,
+   "text": "\"},\"icon\":\""
+  },
+  {
+   "t": 13710,
+   "text": "cup.and.saucer"
+  },
+  {
+   "t": 13739,
+   "text": ".fill\",\"tint\":\""
+  },
+  {
+   "t": 13775,
+   "text": "brown\",\"trailing\":{"
+  },
+  {
+   "t": 13805,
+   "text": "\"$item\":\"sold\""
+  },
+  {
+   "t": 13839,
+   "text": "}},\"children\":[]}"
+  },
+  {
+   "t": 13872,
+   "text": "}\n{\"op\":\"add"
+  },
+  {
+   "t": 13906,
+   "text": "\",\"path\":\"/state/dr"
+  },
+  {
+   "t": 13938,
+   "text": "inks\",\"value\":[]}"
+  },
+  {
+   "t": 13970,
+   "text": "\n{\"op\":\"add\",\""
+  },
+  {
+   "t": 14005,
+   "text": "path\":\"/state/drin"
+  },
+  {
+   "t": 14037,
+   "text": "ks/0\",\"value\":{\""
+  },
+  {
+   "t": 14071,
+   "text": "id\":\"1\",\"name\":\""
+  },
+  {
+   "t": 14114,
+   "text": "Oat"
+  },
+  {
+   "t": 14137,
+   "text": " Mil"
+  },
+  {
+   "t": 14178,
+   "text": "k Latte\",\"note\":\""
+  },
+  {
+   "t": 14205,
+   "text": "H"
+  },
+  {
+   "t": 14237,
+   "text": "ot or"
+  },
+  {
+   "t": 14271,
+   "text": " iced\",\"sold\":\"84"
+  },
+  {
+   "t": 14345,
+   "text": " sold\"}}\n{"
+  },
+  {
+   "t": 14345,
+   "text": "\"op\":\"add\",\"path\":"
+  },
+  {
+   "t": 14386,
+   "text": "\"/state/drinks/"
+  },
+  {
+   "t": 14410,
+   "text": "1\",\"value\":{\"id\":"
+  },
+  {
+   "t": 14445,
+   "text": "\"2\",\"name\":\"C"
+  },
+  {
+   "t": 14477,
+   "text": "old Brew\",\"note\":\""
+  },
+  {
+   "t": 14515,
+   "text": "Large most"
+  },
+  {
+   "t": 14548,
+   "text": " popular\",\"sold\":\"67"
+  },
+  {
+   "t": 14575,
+   "text": " sold\"}}\n{"
+  },
+  {
+   "t": 14609,
+   "text": "\"op\":\"add\",\"path\":"
+  },
+  {
+   "t": 14639,
+   "text": "\"/state/drinks/"
+  },
+  {
+   "t": 14671,
+   "text": "2\",\"value\":{\"id\":"
+  },
+  {
+   "t": 14705,
+   "text": "\"3\",\"name\":\"Fl"
+  },
+  {
+   "t": 14737,
+   "text": "at"
+  },
+  {
+   "t": 14773,
+   "text": " White\",\"note\":\"Double"
+  },
+  {
+   "t": 14808,
+   "text": " shot\",\"sold\":\"52"
+  },
+  {
+   "t": 14839,
+   "text": " sold\"}}\n{"
+  },
+  {
+   "t": 14878,
+   "text": "\"op\":\"add\",\"path\":"
+  },
+  {
+   "t": 14904,
+   "text": "\"/state/drinks/"
+  },
+  {
+   "t": 14938,
+   "text": "3\",\"value\":{\"id\":"
+  },
+  {
+   "t": 14984,
+   "text": "\"4\",\"name\":\"Mat"
+  },
+  {
+   "t": 15018,
+   "text": "cha"
+  },
+  {
+   "t": 15049,
+   "text": " Latte\",\"note\":\"Se"
+  },
+  {
+   "t": 15101,
+   "text": "asonal fav"
+  },
+  {
+   "t": 15123,
+   "text": "orite\",\"sold\":\"38"
+  },
+  {
+   "t": 15185,
+   "text": " sold\"}}\n{"
+  },
+  {
+   "t": 15199,
+   "text": "\"op\":\"add\",\"path\":"
+  },
+  {
+   "t": 15238,
+   "text": "\"/elements/alerts"
+  },
+  {
+   "t": 15238,
+   "text": "-switch\",\"value\":{\""
+  },
+  {
+   "t": 15271,
+   "text": "type\":\"Switch\",\"props"
+  },
+  {
+   "t": 15314,
+   "text": "\":{\"label\":\"Show"
+  },
+  {
+   "t": 15367,
+   "text": " inventory alerts\",\"description"
+  },
+  {
+   "t": 15389,
+   "text": "\":\"Low"
+  },
+  {
+   "t": 15406,
+   "text": "-"
+  },
+  {
+   "t": 15445,
+   "text": "stock items need"
+  },
+  {
+   "t": 15475,
+   "text": " att"
+  },
+  {
+   "t": 15505,
+   "text": "ention\",\"checked\":{\"$"
+  },
+  {
+   "t": 15545,
+   "text": "bindState\":\"/showA"
+  },
+  {
+   "t": 15572,
+   "text": "lerts\"}},\"children"
+  },
+  {
+   "t": 15605,
+   "text": "\":[]}}\n{\""
+  },
+  {
+   "t": 15638,
+   "text": "op\":\"add\",\"path\":\""
+  },
+  {
+   "t": 15671,
+   "text": "/state/showAlerts"
+  },
+  {
+   "t": 15707,
+   "text": "\",\"value\":true}\n{\""
+  },
+  {
+   "t": 15743,
+   "text": "op\":\"add\",\"path\":\""
+  },
+  {
+   "t": 15771,
+   "text": "/el"
+  },
+  {
+   "t": 15804,
+   "text": "ements/alerts-card\",\""
+  },
+  {
+   "t": 15837,
+   "text": "value\":{\"type\":\""
+  },
+  {
+   "t": 15873,
+   "text": "Card\",\"props\":{\"title\":"
+  },
+  {
+   "t": 15911,
+   "text": "\"Inventory alerts"
+  },
+  {
+   "t": 15938,
+   "text": "\",\"icon\":\"ex"
+  },
+  {
+   "t": 15971,
+   "text": "clamationmark.triang"
+  },
+  {
+   "t": 16009,
+   "text": "le.fill\",\"tint\":"
+  },
+  {
+   "t": 16050,
+   "text": "\"red\"},\"visible\":"
+  },
+  {
+   "t": 16075,
+   "text": "{\"$state\":\"/show"
+  },
+  {
+   "t": 16110,
+   "text": "Alerts\""
+  },
+  {
+   "t": 16138,
+   "text": "},\"children\":[\"alert"
+  },
+  {
+   "t": 16171,
+   "text": "-ban"
+  },
+  {
+   "t": 16206,
+   "text": "ner\",\"stock-list\",\"re"
+  },
+  {
+   "t": 16241,
+   "text": "order-row\"]}}"
+  },
+  {
+   "t": 16272,
+   "text": "\n{\"op\":\"add\",\""
+  },
+  {
+   "t": 16310,
+   "text": "path\":\"/elements/al"
+  },
+  {
+   "t": 16339,
+   "text": "ert-banner\",\"value\":{"
+  },
+  {
+   "t": 16373,
+   "text": "\"type\":\"Alert\",\""
+  },
+  {
+   "t": 16405,
+   "text": "props\":{\"title\":\"3"
+  },
+  {
+   "t": 16440,
+   "text": " items running low\",\"message\":\""
+  },
+  {
+   "t": 16473,
+   "text": "Oat milk may"
+  },
+  {
+   "t": 16507,
+   "text": " run out before close"
+  },
+  {
+   "t": 16542,
+   "text": ".\",\"type\":\"warning\""
+  },
+  {
+   "t": 16572,
+   "text": "},\"children\":["
+  },
+  {
+   "t": 16604,
+   "text": "]}}\n{\"op\":"
+  },
+  {
+   "t": 16653,
+   "text": "\"add\",\"path\":\"/el"
+  },
+  {
+   "t": 16677,
+   "text": "ements/stock-list\",\"value"
+  },
+  {
+   "t": 16704,
+   "text": "\":{\"type\":\"List\",\""
+  },
+  {
+   "t": 16742,
+   "text": "props\":{},\"repeat"
+  },
+  {
+   "t": 16772,
+   "text": "\":{\"statePath\":\""
+  },
+  {
+   "t": 16805,
+   "text": "/stock\",\"key\":\"id"
+  },
+  {
+   "t": 16850,
+   "text": "\"},\"children\":[\"stock"
+  },
+  {
+   "t": 16872,
+   "text": "-item\"]}}\n{"
+  },
+  {
+   "t": 16910,
+   "text": "\"op\":\"add\",\"path\":"
+  },
+  {
+   "t": 16960,
+   "text": "\"/elements/stock-"
+  },
+  {
+   "t": 16971,
+   "text": "item\",\"value\":{\"type\":"
+  },
+  {
+   "t": 17006,
+   "text": "\"ListItem\",\"props\":"
+  },
+  {
+   "t": 17046,
+   "text": "{\"title\":{\"$item"
+  },
+  {
+   "t": 17076,
+   "text": "\":\"name\"},\"subt"
+  },
+  {
+   "t": 17118,
+   "text": "itle\":{\"$item\":"
+  },
+  {
+   "t": 17142,
+   "text": "\"par"
+  },
+  {
+   "t": 17174,
+   "text": "\"},\"icon\":\"sh"
+  },
+  {
+   "t": 17207,
+   "text": "ipp"
+  },
+  {
+   "t": 17239,
+   "text": "ingb"
+  },
+  {
+   "t": 17279,
+   "text": "ox.fill\",\"tint\":"
+  },
+  {
+   "t": 17317,
+   "text": "\"orange\",\"trailing\":"
+  },
+  {
+   "t": 17343,
+   "text": "{\"$item\":\"left\""
+  },
+  {
+   "t": 17375,
+   "text": "}},\"children\":["
+  },
+  {
+   "t": 17408,
+   "text": "]}}\n{\"op\":"
+  },
+  {
+   "t": 17440,
+   "text": "\"add\",\"path\":\"/state"
+  },
+  {
+   "t": 17472,
+   "text": "/stock\",\"value\":[]"
+  },
+  {
+   "t": 17526,
+   "text": "}\n{\"op\":\"add"
+  },
+  {
+   "t": 17551,
+   "text": "\",\"path\":\"/state/st"
+  },
+  {
+   "t": 17577,
+   "text": "ock/0\",\"value\":{\""
+  },
+  {
+   "t": 17605,
+   "text": "id\":\"1\",\"name\":\""
+  },
+  {
+   "t": 17642,
+   "text": "Oat mil"
+  },
+  {
+   "t": 17671,
+   "text": "k\",\"par\":\"Par:"
+  },
+  {
+   "t": 17705,
+   "text": " 12"
+  },
+  {
+   "t": 17740,
+   "text": " cartons\",\"left\":\""
+  },
+  {
+   "t": 17772,
+   "text": "3"
+  },
+  {
+   "t": 17806,
+   "text": " left"
+  },
+  {
+   "t": 17839,
+   "text": "\"}}\n{\"op\":"
+  },
+  {
+   "t": 17875,
+   "text": "\"add\",\"path\":\"/state"
+  },
+  {
+   "t": 17905,
+   "text": "/stock/1\",\"value\":"
+  },
+  {
+   "t": 17939,
+   "text": "{\"id\":\"2\",\"name"
+  },
+  {
+   "t": 17989,
+   "text": "\":\"Espresso beans"
+  },
+  {
+   "t": 18021,
+   "text": "\",\"par\":\"Par: "
+  },
+  {
+   "t": 18039,
+   "text": "10 b"
+  },
+  {
+   "t": 18074,
+   "text": "ags\",\"left\":\"4 left"
+  },
+  {
+   "t": 18106,
+   "text": "\"}}\n{\"op\":"
+  },
+  {
+   "t": 18139,
+   "text": "\"add\",\"path\":\"/state"
+  },
+  {
+   "t": 18172,
+   "text": "/stock/2\",\"value\":"
+  },
+  {
+   "t": 18216,
+   "text": "{\"id\":\"3\",\"name"
+  },
+  {
+   "t": 18238,
+   "text": "\":\"12"
+  },
+  {
+   "t": 18278,
+   "text": "o"
+  },
+  {
+   "t": 18307,
+   "text": "z lids\",\"par\":\""
+  },
+  {
+   "t": 18345,
+   "text": "Par: 20"
+  },
+  {
+   "t": 18376,
+   "text": " sleeves\",\"left\":"
+  },
+  {
+   "t": 18408,
+   "text": "\"5"
+  },
+  {
+   "t": 18438,
+   "text": " left\"}}\n{\""
+  },
+  {
+   "t": 18471,
+   "text": "op\":\"add\",\"path\":\""
+  },
+  {
+   "t": 18506,
+   "text": "/elements/reorder-"
+  },
+  {
+   "t": 18542,
+   "text": "row\",\"value\":{\"type\":"
+  },
+  {
+   "t": 18572,
+   "text": "\"Stack\",\"props\":{"
+  },
+  {
+   "t": 18605,
+   "text": "\"direction\":\"horizont"
+  },
+  {
+   "t": 18639,
+   "text": "al\",\"gap\":\"md\",\""
+  },
+  {
+   "t": 18672,
+   "text": "align\":\"center\",\""
+  },
+  {
+   "t": 18730,
+   "text": "justify\":\"between\"},\""
+  },
+  {
+   "t": 18739,
+   "text": "children\":[\"order-badge\",\""
+  },
+  {
+   "t": 18773,
+   "text": "reorder-btn\"]"
+  },
+  {
+   "t": 18809,
+   "text": "}}\n{\"op\":\""
+  },
+  {
+   "t": 18840,
+   "text": "add\",\"path\":\"/elements"
+  },
+  {
+   "t": 18877,
+   "text": "/order-badge\",\"value\":"
+  },
+  {
+   "t": 18914,
+   "text": "{\"type\":\"Badge"
+  },
+  {
+   "t": 18952,
+   "text": "\",\"props\":{\"text\":{"
+  },
+  {
+   "t": 18992,
+   "text": "\"$cond\":{\"$"
+  },
+  {
+   "t": 19017,
+   "text": "state\":\"/reordered\""
+  },
+  {
+   "t": 19047,
+   "text": "},\"$then\":\"Re"
+  },
+  {
+   "t": 19081,
+   "text": "order placed\",\"$else\":"
+  },
+  {
+   "t": 19110,
+   "text": "\"Low stock\"},\""
+  },
+  {
+   "t": 19141,
+   "text": "variant\":{\"$cond"
+  },
+  {
+   "t": 19188,
+   "text": "\":{\"$state\":\"/"
+  },
+  {
+   "t": 19211,
+   "text": "reordered\"},\"$then"
+  },
+  {
+   "t": 19241,
+   "text": "\":\"success\",\"$else\":\""
+  },
+  {
+   "t": 19273,
+   "text": "warning\"}},\"children\":"
+  },
+  {
+   "t": 19320,
+   "text": "[]}}\n{\"op"
+  },
+  {
+   "t": 19388,
+   "text": "\":\"add\",\"path\":\"/"
+  },
+  {
+   "t": 19425,
+   "text": "elements/reorder-bt"
+  },
+  {
+   "t": 19444,
+   "text": "n\",\"value"
+  },
+  {
+   "t": 19451,
+   "text": "\":{\"type\":\"Button"
+  },
+  {
+   "t": 19480,
+   "text": "\",\"props\":{\"label\":{"
+  },
+  {
+   "t": 19507,
+   "text": "\"$cond\":{\"$"
+  },
+  {
+   "t": 19545,
+   "text": "state\":\"/reordered\""
+  },
+  {
+   "t": 19572,
+   "text": "},\"$then\":\""
+  },
+  {
+   "t": 19616,
+   "text": "Ordered\",\"$else\":\""
+  },
+  {
+   "t": 19639,
+   "text": "Reorder all\"},\"vari"
+  },
+  {
+   "t": 19732,
+   "text": "ant\":\"primary\",\"icon"
+  },
+  {
+   "t": 19734,
+   "text": "\":\"c"
+  },
+  {
+   "t": 19741,
+   "text": "art.f"
+  },
+  {
+   "t": 19774,
+   "text": "ill\",\"disabled\":{\""
+  },
+  {
+   "t": 19807,
+   "text": "$state\":\"/reordered"
+  },
+  {
+   "t": 19841,
+   "text": "\"}},\"on\":{\""
+  },
+  {
+   "t": 19876,
+   "text": "press\":["
+  },
+  {
+   "t": 19912,
+   "text": "{\"action\":\"setState\",\""
+  },
+  {
+   "t": 19942,
+   "text": "params\":{\"statePath\":"
+  },
+  {
+   "t": 19971,
+   "text": "\"/reordered\",\"value\":"
+  },
+  {
+   "t": 20008,
+   "text": "true}},{\"action\":\""
+  },
+  {
+   "t": 20043,
+   "text": "toast\",\"params\":{\"message"
+  },
+  {
+   "t": 20075,
+   "text": "\":\"Re"
+  },
+  {
+   "t": 20108,
+   "text": "order placed for "
+  },
+  {
+   "t": 20145,
+   "text": "3 low-stock items\""
+  },
+  {
+   "t": 20175,
+   "text": "}}]"
+  },
+  {
+   "t": 20205,
+   "text": "},\"children\":[]}}"
+  },
+  {
+   "t": 20243,
+   "text": "\n{\"op\":\"add\",\""
+  },
+  {
+   "t": 20273,
+   "text": "path\":\"/state/reord"
+  },
+  {
+   "t": 20306,
+   "text": "ered\",\"value\":false}"
+  }
+ ]
+}

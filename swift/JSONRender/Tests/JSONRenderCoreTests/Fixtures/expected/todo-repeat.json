@@ -1,0 +1,70 @@
+{
+  "component": "Column",
+  "props": {
+    "gap": "md"
+  },
+  "children": [
+    {
+      "component": "Heading",
+      "props": {
+        "text": "Projects"
+      }
+    },
+    {
+      "component": "List",
+      "props": {},
+      "children": [
+        {
+          "component": "Card",
+          "props": {
+            "title": "Alpha",
+            "index": 0,
+            "caption": "Alpha"
+          },
+          "children": [
+            {
+              "component": "List",
+              "props": {},
+              "children": [
+                {
+                  "component": "Row",
+                  "props": {
+                    "title": "Design",
+                    "position": 0,
+                    "done": false,
+                    "label": "Design"
+                  },
+                  "children": [
+                    {
+                      "component": "Button",
+                      "props": {
+                        "label": "Select"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "component": "Row",
+                  "props": {
+                    "title": "Ship",
+                    "position": 1,
+                    "done": true,
+                    "label": "Ship"
+                  },
+                  "children": [
+                    {
+                      "component": "Button",
+                      "props": {
+                        "label": "Select"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

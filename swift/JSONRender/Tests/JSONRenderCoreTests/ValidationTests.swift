@@ -1,0 +1,149 @@
+import XCTest
+@testable import JSONRenderCore
+
+final class ValidationTests: XCTestCase {
+    private func validate(_ json: String, checkOrphans: Bool = false) -> SpecValidationResult {
+        guard let value = JSONValue.decode(json) else {
+            XCTFail("Test JSON is invalid")
+            return SpecValidationResult(valid: false, issues: [])
+        }
+        return validateSpecJSON(value, options: ValidateSpecOptions(checkOrphans: checkOrphans))
+    }
+
+    func testMissingRoot() {
+        let result = validate(#"{"elements":{}}"#)
+        XCTAssertFalse(result.valid)
+        XCTAssertEqual(result.issues.map(\.code), [.missingRoot])
+    }
+
+    func testRootNotFound() {
+        let result = validate(#"{"root":"x","elements":{"a":{"type":"Text","props":{}}}}"#)
+        XCTAssertFalse(result.valid)
+        XCTAssertTrue(result.issues.contains { $0.code == .rootNotFound })
+    }
+
+    func testEmptyElements() {
+        let result = validate(#"{"root":"a","elements":{}}"#)
+        XCTAssertFalse(result.valid)
+        XCTAssertTrue(result.issues.contains { $0.code == .emptySpec })
+    }
+
+    func testMissingChildren() {
+        let result = validate(
+            #"{"root":"a","elements":{"a":{"type":"Column","props":{},"children":["missing"]}}}"#
+        )
+        XCTAssertFalse(result.valid)
+        let issue = result.issues.first { $0.code == .missingChild }
+        XCTAssertEqual(issue?.elementKey, "a")
+    }
+
+    func testMissingSlotChild() {
+        let result = validate(
+            #"{"root":"a","elements":{"a":{"type":"Card","props":{},"slots":{"footer":["nope"]}}}}"#
+        )
+        XCTAssertTrue(result.issues.contains { $0.code == .missingChild && $0.message.contains("footer") })
+    }
+
+    func testInvalidVisibleMixedScope() {
+        let result = validate(
+            #"{"root":"a","elements":{"a":{"type":"Text","props":{},"visible":{"$state":"/x","$item":"y"}}}}"#
+        )
+        XCTAssertTrue(result.issues.contains { $0.code == .invalidVisible })
+    }
+
+    func testInvalidVisibleShapes() {
+        let invalid = [
+            #"{"$state":"/x","gt":"3"}"#,
+            #"{"$index":false}"#,
+            #"{"$state":"/x","not":false}"#,
+            #"{"$state":"/x","unknown":1}"#,
+        ]
+        for visible in invalid {
+            let value = JSONValue.decode(#"{"root":"a","elements":{"a":{"type":"Text","props":{},"visible":\#(visible)}}}"#)!
+            XCTAssertFalse(validateSpecJSON(value).valid, visible)
+        }
+
+        let valid = [
+            "true",
+            #"{"$state":"/x","eq":"a"}"#,
+            #"{"$item":"field","neq":2}"#,
+            #"{"$index":true,"gte":0}"#,
+            #"{"$state":"/x","gte":{"$state":"/y"}}"#,
+            #"{"$state":"/x","not":true}"#,
+            #"[{"$state":"/x","eq":1},{"$item":"y","eq":2}]"#,
+            #"{"$and":[{"$state":"/x","eq":1},{"$or":[{"$state":"/y","eq":2},{"$state":"/z","eq":3}]}]}"#,
+            #"{"$and":[]}"#,
+        ]
+        for visible in valid {
+            let value = JSONValue.decode(#"{"root":"a","elements":{"a":{"type":"Text","props":{},"visible":\#(visible)}}}"#)!
+            let result = validateSpecJSON(value)
+            XCTAssertTrue(result.valid, "\(visible): \(result.issues.map(\.message))")
+        }
+    }
+
+    func testRepeatWithoutChildren() {
+        let result = validate(
+            #"{"root":"a","elements":{"a":{"type":"List","props":{},"repeat":{"statePath":"/items"}},"b":{"type":"Text","props":{}}},"state":{"items":[]}}"#
+        )
+        XCTAssertTrue(result.issues.contains { $0.code == .repeatWithoutChildren })
+    }
+
+    func testRepeatStateMismatch() {
+        let result = validate(
+            #"{"root":"a","elements":{"a":{"type":"List","props":{},"repeat":{"statePath":"/items"},"children":["b"]},"b":{"type":"Text","props":{}}},"state":{"items":5}}"#
+        )
+        XCTAssertTrue(result.issues.contains { $0.code == .repeatStateMismatch })
+    }
+
+    func testRepeatStateMissing() {
+        let result = validate(
+            #"{"root":"a","elements":{"a":{"type":"List","props":{},"repeat":{"statePath":"/items"},"children":["b"]},"b":{"type":"Text","props":{}}},"state":{}}"#
+        )
+        XCTAssertTrue(result.issues.contains {
+            $0.code == .repeatStateMismatch && $0.message.contains("no value there")
+        })
+    }
+
+    func testRelativeRepeatOutsideScope() {
+        let result = validate(
+            #"{"root":"a","elements":{"a":{"type":"List","props":{},"repeat":{"statePath":{"$item":"tasks"}},"children":["b"]},"b":{"type":"Text","props":{}}}}"#
+        )
+        XCTAssertTrue(result.issues.contains { $0.code == .repeatItemOutsideScope })
+    }
+
+    func testNestedRelativeRepeatIsValid() {
+        let result = validate(
+            #"{"root":"a","elements":{"a":{"type":"List","props":{},"repeat":{"statePath":"/groups"},"children":["b"]},"b":{"type":"List","props":{},"repeat":{"statePath":{"$item":"items"}},"children":["c"]},"c":{"type":"Text","props":{}}},"state":{"groups":[{"items":[]}]}}"#
+        )
+        XCTAssertTrue(result.valid, result.issues.map(\.message).joined(separator: "\n"))
+    }
+
+    func testMisplacedFields() {
+        let result = validate(
+            #"{"root":"a","elements":{"a":{"type":"Text","props":{"visible":true,"on":{},"repeat":{},"watch":{}}}}}"#
+        )
+        let codes = Set(result.issues.map(\.code))
+        XCTAssertTrue(codes.contains(.visibleInProps))
+        XCTAssertTrue(codes.contains(.onInProps))
+        XCTAssertTrue(codes.contains(.repeatInProps))
+        XCTAssertTrue(codes.contains(.watchInProps))
+    }
+
+    func testOrphanedElement() {
+        let json = #"{"root":"a","elements":{"a":{"type":"Text","props":{}},"orphan":{"type":"Text","props":{}}}}"#
+
+        XCTAssertTrue(validate(json).valid)
+        let withOrphans = validate(json, checkOrphans: true)
+        XCTAssertTrue(withOrphans.valid, "Orphans are warnings, not errors")
+        XCTAssertTrue(withOrphans.issues.contains {
+            $0.code == .orphanedElement && $0.elementKey == "orphan" && $0.severity == .warning
+        })
+    }
+
+    func testDecodedSpecMatchesRawValidation() throws {
+        for name in try Fixtures.specNames() {
+            let decoded = validateSpec(try Fixtures.spec(name))
+            XCTAssertTrue(decoded.valid, name)
+        }
+    }
+}

@@ -52,6 +52,21 @@ jobs:
       - name: Build packages
         run: pnpm turbo run build --filter='./packages/*'
       - run: pnpm test
+      - name: Check generated Swift spec model
+        run: node swift/JSONRender/Scripts/generate-spec-model.mjs --check
+
+  swift:
+    name: Swift
+    runs-on: ubuntu-latest
+    container: swift:6.1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        working-directory: swift/JSONRender
+        run: swift build
+      - name: Test
+        working-directory: swift/JSONRender
+        run: swift test
 
   docs:
     name: Docs (${{ matrix.environment }})

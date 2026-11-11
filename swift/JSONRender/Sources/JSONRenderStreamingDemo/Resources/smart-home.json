@@ -1,0 +1,1521 @@
+{
+ "id": "smart-home",
+ "title": "Smart home",
+ "prompt": "A smart home control panel: rooms, lights, thermostat, and energy use this week",
+ "model": "anthropic/claude-sonnet-5.5",
+ "recordedAt": "2026-11-11T17:38:53.592Z",
+ "chunks": [
+  {
+   "t": 8215,
+   "text": "{"
+  },
+  {
+   "t": 8245,
+   "text": "\"op\":\"add\",\"path\":"
+  },
+  {
+   "t": 8280,
+   "text": "\"/root\",\"value\":\"main"
+  },
+  {
+   "t": 8312,
+   "text": "\"}\n{\"op\":\""
+  },
+  {
+   "t": 8393,
+   "text": "add\",\"path\":\"/elements"
+  },
+  {
+   "t": 8393,
+   "text": "/main\",\"value\":{\"type"
+  },
+  {
+   "t": 8414,
+   "text": "\":\"Stack\",\"props\":"
+  },
+  {
+   "t": 8447,
+   "text": "{\"direction\":\"vert"
+  },
+  {
+   "t": 8484,
+   "text": "ical\",\"gap\":\"lg"
+  },
+  {
+   "t": 8516,
+   "text": "\"},\"children\":[\"header\",\""
+  },
+  {
+   "t": 8546,
+   "text": "mode-row\",\"metrics"
+  },
+  {
+   "t": 8578,
+   "text": "\",\"rooms-card\",\"clim"
+  },
+  {
+   "t": 8614,
+   "text": "ate-card\",\"energy-swit"
+  },
+  {
+   "t": 8649,
+   "text": "ch\",\"energy-card\"]"
+  },
+  {
+   "t": 8686,
+   "text": "}}\n{\"op\":\""
+  },
+  {
+   "t": 8744,
+   "text": "add\",\"path\":\"/elements"
+  },
+  {
+   "t": 8746,
+   "text": "/header\",\"value\":{\"type"
+  },
+  {
+   "t": 8818,
+   "text": "\":\"Stack\",\"props\":"
+  },
+  {
+   "t": 8823,
+   "text": "{\"direction\":\"vert"
+  },
+  {
+   "t": 8877,
+   "text": "ical\",\"gap\":\"xs"
+  },
+  {
+   "t": 8880,
+   "text": "\"},\"children\":[\"title\",\""
+  },
+  {
+   "t": 8929,
+   "text": "subtitle\"]}}"
+  },
+  {
+   "t": 8947,
+   "text": "\n{\"op\":\"add\",\""
+  },
+  {
+   "t": 8981,
+   "text": "path\":\"/elements/title"
+  },
+  {
+   "t": 9014,
+   "text": "\",\"value\":{\"type\":\""
+  },
+  {
+   "t": 9050,
+   "text": "Heading\",\"props\":{\""
+  },
+  {
+   "t": 9087,
+   "text": "text\":\"Smart Home"
+  },
+  {
+   "t": 9115,
+   "text": "\",\"level\":\"h1\"},"
+  },
+  {
+   "t": 9150,
+   "text": "\"children\":[]}}"
+  },
+  {
+   "t": 9188,
+   "text": "\n{\"op\":\"add\",\"path"
+  },
+  {
+   "t": 9226,
+   "text": "\":\"/elements/subt"
+  },
+  {
+   "t": 9249,
+   "text": "itle\",\"value\":{\"type"
+  },
+  {
+   "t": 9280,
+   "text": "\":\"Text\",\"props\":{"
+  },
+  {
+   "t": 9316,
+   "text": "\"text\":\"Rooms"
+  },
+  {
+   "t": 9359,
+   "text": ", lights, clim"
+  },
+  {
+   "t": 9381,
+   "text": "ate and energy at"
+  },
+  {
+   "t": 9413,
+   "text": " a glance\",\"variant\":\""
+  },
+  {
+   "t": 9451,
+   "text": "muted\"},\"children\":["
+  },
+  {
+   "t": 9481,
+   "text": "]}}\n{\"op\":"
+  },
+  {
+   "t": 9558,
+   "text": "\"add\",\"path\":\"/state"
+  },
+  {
+   "t": 9558,
+   "text": "/mode\",\"value\":\"home"
+  },
+  {
+   "t": 9586,
+   "text": "\"}\n{\"op\":\""
+  },
+  {
+   "t": 9615,
+   "text": "add\",\"path\":\"/elements"
+  },
+  {
+   "t": 9650,
+   "text": "/mode-row\",\"value\":"
+  },
+  {
+   "t": 9687,
+   "text": "{\"type\":\"Stack"
+  },
+  {
+   "t": 9725,
+   "text": "\",\"props\":{\"direction\":"
+  },
+  {
+   "t": 9747,
+   "text": "\"horizontal\",\"gap"
+  },
+  {
+   "t": 9782,
+   "text": "\":\"md\",\"align\":\"center"
+  },
+  {
+   "t": 9822,
+   "text": "\""
+  },
+  {
+   "t": 9851,
+   "text": "},\"children\":[\"mode-"
+  },
+  {
+   "t": 9881,
+   "text": "badge\",\"home"
+  },
+  {
+   "t": 9917,
+   "text": "-btn\",\"away-btn"
+  },
+  {
+   "t": 9951,
+   "text": "\"]}}\n{\"op"
+  },
+  {
+   "t": 9982,
+   "text": "\":\"add\",\"path\":\"/"
+  },
+  {
+   "t": 10017,
+   "text": "elements/mode-badge"
+  },
+  {
+   "t": 10053,
+   "text": "\",\"value\":{\"type\":\""
+  },
+  {
+   "t": 10102,
+   "text": "Badge\",\"props\":{\""
+  },
+  {
+   "t": 10118,
+   "text": "text\":{\"$cond\":"
+  },
+  {
+   "t": 10151,
+   "text": "{\"$state\":\"/"
+  },
+  {
+   "t": 10189,
+   "text": "mode\",\"eq\":\"away"
+  },
+  {
+   "t": 10215,
+   "text": "\"},\"$then\":\""
+  },
+  {
+   "t": 10251,
+   "text": "Away m"
+  },
+  {
+   "t": 10286,
+   "text": "ode\",\"$else\":\"Home"
+  },
+  {
+   "t": 10315,
+   "text": " mode\"},\"variant\":"
+  },
+  {
+   "t": 10348,
+   "text": "{\"$cond\":{\""
+  },
+  {
+   "t": 10384,
+   "text": "$state\":\"/mode\",\""
+  },
+  {
+   "t": 10415,
+   "text": "eq\":\"away\"},\""
+  },
+  {
+   "t": 10450,
+   "text": "$then\":\"warning\",\"$"
+  },
+  {
+   "t": 10481,
+   "text": "else\":\"success\"}},\""
+  },
+  {
+   "t": 10514,
+   "text": "children\":[]}}\n{"
+  },
+  {
+   "t": 10553,
+   "text": "\"op\":\"add\",\"path\":"
+  },
+  {
+   "t": 10595,
+   "text": "\"/elements/home-bt"
+  },
+  {
+   "t": 10614,
+   "text": "n\",\"value\":{\"type\":"
+  },
+  {
+   "t": 10650,
+   "text": "\"Button\",\"props\":{\""
+  },
+  {
+   "t": 10683,
+   "text": "label\":\"I"
+  },
+  {
+   "t": 10715,
+   "text": "'"
+  },
+  {
+   "t": 10747,
+   "text": "m Home\",\"variant\":\""
+  },
+  {
+   "t": 10794,
+   "text": "secondary\",\"icon\":\""
+  },
+  {
+   "t": 10817,
+   "text": "house.fill\"},\"on"
+  },
+  {
+   "t": 10851,
+   "text": "\":{\"press\":[{\""
+  },
+  {
+   "t": 10882,
+   "text": "action\":\"setState\",\"params\":"
+  },
+  {
+   "t": 10917,
+   "text": "{\"statePath\":\"/"
+  },
+  {
+   "t": 10948,
+   "text": "mode\",\"value\":\"home\""
+  },
+  {
+   "t": 10993,
+   "text": "}},{\"action\":\"to"
+  },
+  {
+   "t": 11024,
+   "text": "ast\",\"params\":{\"message\":"
+  },
+  {
+   "t": 11060,
+   "text": "\"Wel"
+  },
+  {
+   "t": 11082,
+   "text": "come home"
+  },
+  {
+   "t": 11114,
+   "text": "."
+  },
+  {
+   "t": 11149,
+   "text": " Home"
+  },
+  {
+   "t": 11180,
+   "text": " mode is"
+  },
+  {
+   "t": 11214,
+   "text": " on.\"}}]},\"children"
+  },
+  {
+   "t": 11247,
+   "text": "\":[]}}\n{\""
+  },
+  {
+   "t": 11288,
+   "text": "op\":\"add\",\"path"
+  },
+  {
+   "t": 11319,
+   "text": "\":\"/elements/away-"
+  },
+  {
+   "t": 11350,
+   "text": "btn\",\"value\":{\"type"
+  },
+  {
+   "t": 11382,
+   "text": "\":\"Button\",\"props\":{"
+  },
+  {
+   "t": 11416,
+   "text": "\"label\":\"Away"
+  },
+  {
+   "t": 11448,
+   "text": " Mode\",\"variant\":\""
+  },
+  {
+   "t": 11484,
+   "text": "primary\",\"icon\":\"l"
+  },
+  {
+   "t": 11517,
+   "text": "ock.fill\"},\"on"
+  },
+  {
+   "t": 11553,
+   "text": "\":{\"press\":[{\""
+  },
+  {
+   "t": 11582,
+   "text": "action\":\"setState\",\"params\":"
+  },
+  {
+   "t": 11620,
+   "text": "{\"statePath\":\"/"
+  },
+  {
+   "t": 11649,
+   "text": "mode\",\"value\":\"away\""
+  },
+  {
+   "t": 11681,
+   "text": "}},{\"action\":\"to"
+  },
+  {
+   "t": 11716,
+   "text": "ast\",\"params\":{\"message\":"
+  },
+  {
+   "t": 11752,
+   "text": "\"Away mode on"
+  },
+  {
+   "t": 11783,
+   "text": ". Lights off"
+  },
+  {
+   "t": 11817,
+   "text": ","
+  },
+  {
+   "t": 11848,
+   "text": " doors locked.\"}}]"
+  },
+  {
+   "t": 11887,
+   "text": "},\"children\":[]}}"
+  },
+  {
+   "t": 11916,
+   "text": "\n{\"op\":\"add\",\""
+  },
+  {
+   "t": 11948,
+   "text": "path\":\"/elements/met"
+  },
+  {
+   "t": 11982,
+   "text": "rics\",\"value\":{\"type"
+  },
+  {
+   "t": 12018,
+   "text": "\":\"Grid\",\"props\":"
+  },
+  {
+   "t": 12057,
+   "text": "{\"columns\":2,\""
+  },
+  {
+   "t": 12086,
+   "text": "gap\":\"md\"},\""
+  },
+  {
+   "t": 12116,
+   "text": "children\":[\"m-"
+  },
+  {
+   "t": 12148,
+   "text": "temp\",\"m-energy\",\""
+  },
+  {
+   "t": 12187,
+   "text": "m-lights\",\"m-c"
+  },
+  {
+   "t": 12217,
+   "text": "ost\"]}}\n{\""
+  },
+  {
+   "t": 12249,
+   "text": "op\":\"add\",\"path\":\""
+  },
+  {
+   "t": 12283,
+   "text": "/elements/m-temp"
+  },
+  {
+   "t": 12316,
+   "text": "\",\"value\":{\"type\":\""
+  },
+  {
+   "t": 12349,
+   "text": "Metric\",\"props\":{\""
+  },
+  {
+   "t": 12381,
+   "text": "label\":\"Indoor"
+  },
+  {
+   "t": 12416,
+   "text": "\",\"value\":\"21.5"
+  },
+  {
+   "t": 12449,
+   "text": "°C\",\"detail\":\""
+  },
+  {
+   "t": 12485,
+   "text": "Target 22°C\",\"trend"
+  },
+  {
+   "t": 12517,
+   "text": "\":\"neutral\",\"icon"
+  },
+  {
+   "t": 12548,
+   "text": "\":\"thermometer."
+  },
+  {
+   "t": 12603,
+   "text": "medium\",\"tint\":\"or"
+  },
+  {
+   "t": 12617,
+   "text": "ange\"},\"children\":[]"
+  },
+  {
+   "t": 12650,
+   "text": "}}\n{\"op\":\""
+  },
+  {
+   "t": 12682,
+   "text": "add\",\"path\":\"/elements"
+  },
+  {
+   "t": 12717,
+   "text": "/m-energy\",\"value\":"
+  },
+  {
+   "t": 12748,
+   "text": "{\"type\":\"Metric"
+  },
+  {
+   "t": 12784,
+   "text": "\",\"props\":{\"label\":\""
+  },
+  {
+   "t": 12817,
+   "text": "Today\",\"value\":\"12."
+  },
+  {
+   "t": 12850,
+   "text": "4 kWh\",\"detail"
+  },
+  {
+   "t": 12883,
+   "text": "\":\"8% below"
+  },
+  {
+   "t": 12916,
+   "text": " av"
+  },
+  {
+   "t": 12950,
+   "text": "g\",\"trend\":\"down"
+  },
+  {
+   "t": 12983,
+   "text": "\",\"icon\":\"b"
+  },
+  {
+   "t": 13023,
+   "text": "olt.fill\",\"tint"
+  },
+  {
+   "t": 13049,
+   "text": "\":\"yellow\"},\""
+  },
+  {
+   "t": 13083,
+   "text": "children\":[]}}\n{"
+  },
+  {
+   "t": 13117,
+   "text": "\"op\":\"add\",\"path\":"
+  },
+  {
+   "t": 13148,
+   "text": "\"/elements/m-l"
+  },
+  {
+   "t": 13184,
+   "text": "ights\",\"value\":{\"type\":"
+  },
+  {
+   "t": 13215,
+   "text": "\"Metric\",\"props\":{"
+  },
+  {
+   "t": 13251,
+   "text": "\"label\":\"Lights On"
+  },
+  {
+   "t": 13282,
+   "text": "\",\"value\":\"5 of "
+  },
+  {
+   "t": 13318,
+   "text": "12\",\"detail\":\"3 "
+  },
+  {
+   "t": 13351,
+   "text": "rooms\",\"tr"
+  },
+  {
+   "t": 13383,
+   "text": "end\":\"neutral\",\"ic"
+  },
+  {
+   "t": 13417,
+   "text": "on\":\"lightbulb"
+  },
+  {
+   "t": 13451,
+   "text": ".fill\",\"tint\":\""
+  },
+  {
+   "t": 13483,
+   "text": "teal\"},\"children\":["
+  },
+  {
+   "t": 13519,
+   "text": "]}}\n{\"op\":"
+  },
+  {
+   "t": 13550,
+   "text": "\"add\",\"path\":\"/el"
+  },
+  {
+   "t": 13586,
+   "text": "ements/m-cost\",\"value"
+  },
+  {
+   "t": 13620,
+   "text": "\":{\"type\":\"Met"
+  },
+  {
+   "t": 13651,
+   "text": "ric\",\"props\":{\"label\":"
+  },
+  {
+   "t": 13684,
+   "text": "\"This"
+  },
+  {
+   "t": 13721,
+   "text": " Week\",\"value\":\"$18"
+  },
+  {
+   "t": 13767,
+   "text": ".20"
+  },
+  {
+   "t": 13783,
+   "text": "\",\"detail\":\"Up"
+  },
+  {
+   "t": 13817,
+   "text": " $"
+  },
+  {
+   "t": 13849,
+   "text": "1"
+  },
+  {
+   "t": 13884,
+   "text": ".10\",\"trend\":\"up"
+  },
+  {
+   "t": 13919,
+   "text": "\",\"icon\":\"d"
+  },
+  {
+   "t": 13954,
+   "text": "ollarsign.circ"
+  },
+  {
+   "t": 13986,
+   "text": "le."
+  },
+  {
+   "t": 14017,
+   "text": "fill\",\"tint\":\"green"
+  },
+  {
+   "t": 14051,
+   "text": "\"},\"children\":[]}"
+  },
+  {
+   "t": 14092,
+   "text": "}\n{\"op\":\"add"
+  },
+  {
+   "t": 14124,
+   "text": "\",\"path\":\"/elements/"
+  },
+  {
+   "t": 14149,
+   "text": "r"
+  },
+  {
+   "t": 14185,
+   "text": "ooms-card\",\"value\":{"
+  },
+  {
+   "t": 14225,
+   "text": "\"type\":\"Card\",\"props"
+  },
+  {
+   "t": 14257,
+   "text": "\":{\"title\":\"R"
+  },
+  {
+   "t": 14301,
+   "text": "ooms\",\"icon\":\"square"
+  },
+  {
+   "t": 14318,
+   "text": ".gr"
+  },
+  {
+   "t": 14352,
+   "text": "id.2"
+  },
+  {
+   "t": 14385,
+   "text": "x2.fill\",\"tint"
+  },
+  {
+   "t": 14421,
+   "text": "\":\"blue\"},\"children"
+  },
+  {
+   "t": 14459,
+   "text": "\":[\"rooms-list\""
+  },
+  {
+   "t": 14485,
+   "text": "]}}\n{\"op\":"
+  },
+  {
+   "t": 14520,
+   "text": "\"add\",\"path\":\"/el"
+  },
+  {
+   "t": 14550,
+   "text": "ements/rooms-list\",\""
+  },
+  {
+   "t": 14584,
+   "text": "value\":{\"type\":\"List"
+  },
+  {
+   "t": 14617,
+   "text": "\",\"props\":{},\"repe"
+  },
+  {
+   "t": 14650,
+   "text": "at\":{\"statePath\":"
+  },
+  {
+   "t": 14689,
+   "text": "\"/rooms\",\"key\":"
+  },
+  {
+   "t": 14717,
+   "text": "\"id\"},\"children\":[\""
+  },
+  {
+   "t": 14752,
+   "text": "room-item\"]}}"
+  },
+  {
+   "t": 14789,
+   "text": "\n{\"op\":\"add\",\"path"
+  },
+  {
+   "t": 14821,
+   "text": "\":\"/elements/room-"
+  },
+  {
+   "t": 14852,
+   "text": "item\",\"value\":{\"type\":"
+  },
+  {
+   "t": 14884,
+   "text": "\"ListItem\",\"props\":"
+  },
+  {
+   "t": 14921,
+   "text": "{\"title\":{\"$item"
+  },
+  {
+   "t": 14954,
+   "text": "\":\"name\"},\"subt"
+  },
+  {
+   "t": 14995,
+   "text": "itle\":{\"$item\":"
+  },
+  {
+   "t": 15027,
+   "text": "\"lights\"},\"icon"
+  },
+  {
+   "t": 15059,
+   "text": "\":{\"$item\":\"ic"
+  },
+  {
+   "t": 15097,
+   "text": "on\"},\"tint\":{"
+  },
+  {
+   "t": 15120,
+   "text": "\"$item\":\"tint\""
+  },
+  {
+   "t": 15171,
+   "text": "},\"trailing\":{\""
+  },
+  {
+   "t": 15191,
+   "text": "$item\":\"temp\"}"
+  },
+  {
+   "t": 15225,
+   "text": "},\"children\":[]}}"
+  },
+  {
+   "t": 15269,
+   "text": "\n{\"op\":\"add\",\""
+  },
+  {
+   "t": 15284,
+   "text": "path\":\"/state/roo"
+  },
+  {
+   "t": 15320,
+   "text": "ms\",\"value\":[]}"
+  },
+  {
+   "t": 15354,
+   "text": "\n{\"op\":\"add\",\"path"
+  },
+  {
+   "t": 15384,
+   "text": "\":\"/state/rooms"
+  },
+  {
+   "t": 15418,
+   "text": "/0\",\"value\":{\"id"
+  },
+  {
+   "t": 15451,
+   "text": "\":\"1\",\"name\":\""
+  },
+  {
+   "t": 15486,
+   "text": "Living Room\",\"l"
+  },
+  {
+   "t": 15519,
+   "text": "ights\":\"3"
+  },
+  {
+   "t": 15555,
+   "text": " lights on\",\"icon\":"
+  },
+  {
+   "t": 15606,
+   "text": "\"sofa.fill\",\""
+  },
+  {
+   "t": 15635,
+   "text": "tint\":\"or"
+  },
+  {
+   "t": 15660,
+   "text": "ange\",\"temp\":\"22"
+  },
+  {
+   "t": 15684,
+   "text": "°"
+  },
+  {
+   "t": 15717,
+   "text": "C\"}}\n{\"op"
+  },
+  {
+   "t": 15752,
+   "text": "\":\"add\",\"path\":\"/"
+  },
+  {
+   "t": 15792,
+   "text": "state/rooms/1\",\""
+  },
+  {
+   "t": 15819,
+   "text": "value\":{\"id\":\"2"
+  },
+  {
+   "t": 15851,
+   "text": "\",\"name\":\"Kitch"
+  },
+  {
+   "t": 15895,
+   "text": "en\",\"lights\":\"2"
+  },
+  {
+   "t": 15918,
+   "text": " lights on\",\"icon\":"
+  },
+  {
+   "t": 15967,
+   "text": "\"fork.knife\",\""
+  },
+  {
+   "t": 15984,
+   "text": "tint\":\"green"
+  },
+  {
+   "t": 16016,
+   "text": "\",\"temp\":\"21°C"
+  },
+  {
+   "t": 16050,
+   "text": "\"}}\n{\"op\":"
+  },
+  {
+   "t": 16091,
+   "text": "\"add\",\"path\":\"/state"
+  },
+  {
+   "t": 16118,
+   "text": "/rooms/2\",\"value"
+  },
+  {
+   "t": 16151,
+   "text": "\":{\"id\":\"3\",\""
+  },
+  {
+   "t": 16191,
+   "text": "name\":\"Bedroom"
+  },
+  {
+   "t": 16231,
+   "text": "\",\"lights\":\"All off"
+  },
+  {
+   "t": 16253,
+   "text": "\",\"icon\":\"bed."
+  },
+  {
+   "t": 16288,
+   "text": "double.fill\",\"tint\":"
+  },
+  {
+   "t": 16327,
+   "text": "\"indigo\",\"temp\":"
+  },
+  {
+   "t": 16351,
+   "text": "\"20"
+  },
+  {
+   "t": 16388,
+   "text": "°C\"}}\n{\""
+  },
+  {
+   "t": 16418,
+   "text": "op\":\"add\",\"path\":\""
+  },
+  {
+   "t": 16451,
+   "text": "/state/rooms/3"
+  },
+  {
+   "t": 16484,
+   "text": "\",\"value\":{\"id\":\""
+  },
+  {
+   "t": 16519,
+   "text": "4\",\"name\":\"Office\",\""
+  },
+  {
+   "t": 16550,
+   "text": "lights\":\"All"
+  },
+  {
+   "t": 16586,
+   "text": " off\",\"icon\":\"deskt"
+  },
+  {
+   "t": 16618,
+   "text": "op"
+  },
+  {
+   "t": 16651,
+   "text": "computer\",\""
+  },
+  {
+   "t": 16686,
+   "text": "tint\":\"purple\",\"tem"
+  },
+  {
+   "t": 16718,
+   "text": "p\":\"21°C\"}"
+  },
+  {
+   "t": 16752,
+   "text": "}\n{\"op\":\"add"
+  },
+  {
+   "t": 16783,
+   "text": "\",\"path\":\"/elements/"
+  },
+  {
+   "t": 16817,
+   "text": "climate-card\",\"value\":{"
+  },
+  {
+   "t": 16849,
+   "text": "\"type\":\"Card\",\"props"
+  },
+  {
+   "t": 16894,
+   "text": "\":{\"title\":\"Th"
+  },
+  {
+   "t": 16917,
+   "text": "ermostat\",\"description"
+  },
+  {
+   "t": 16951,
+   "text": "\":\"He"
+  },
+  {
+   "t": 16984,
+   "text": "ating to 22°C\",\"ic"
+  },
+  {
+   "t": 17023,
+   "text": "on\":\"thermometer."
+  },
+  {
+   "t": 17060,
+   "text": "sun."
+  },
+  {
+   "t": 17085,
+   "text": "fill\",\"tint\":\"red"
+  },
+  {
+   "t": 17121,
+   "text": "\"},\"children\":[\"climate"
+  },
+  {
+   "t": 17153,
+   "text": "-prog"
+  },
+  {
+   "t": 17187,
+   "text": "ress\",\"e"
+  },
+  {
+   "t": 17220,
+   "text": "co-switch\"]}}"
+  },
+  {
+   "t": 17252,
+   "text": "\n{\"op\":\"add\",\""
+  },
+  {
+   "t": 17287,
+   "text": "path\":\"/elements/clim"
+  },
+  {
+   "t": 17320,
+   "text": "ate-progress\",\"value\":{"
+  },
+  {
+   "t": 17353,
+   "text": "\"type\":\"Progress\",\""
+  },
+  {
+   "t": 17403,
+   "text": "props\":{\"value\":21"
+  },
+  {
+   "t": 17418,
+   "text": ".5,\"max\":22,"
+  },
+  {
+   "t": 17449,
+   "text": "\"label\":\"Re"
+  },
+  {
+   "t": 17484,
+   "text": "aching target\",\"tint\":\""
+  },
+  {
+   "t": 17517,
+   "text": "orange\"},\"children\":["
+  },
+  {
+   "t": 17552,
+   "text": "]}}\n{\"op\":"
+  },
+  {
+   "t": 17587,
+   "text": "\"add\",\"path"
+  },
+  {
+   "t": 17639,
+   "text": "\":\"/state"
+  },
+  {
+   "t": 17673,
+   "text": "/e"
+  },
+  {
+   "t": 17689,
+   "text": "co\",\"value\":false"
+  },
+  {
+   "t": 17717,
+   "text": "}\n{\"op\":\"add"
+  },
+  {
+   "t": 17750,
+   "text": "\",\"path\":\"/elements/"
+  },
+  {
+   "t": 17785,
+   "text": "eco-switch\",\"value\":"
+  },
+  {
+   "t": 17817,
+   "text": "{\"type\":\"Switch"
+  },
+  {
+   "t": 17850,
+   "text": "\",\"props\":{\"label\":\""
+  },
+  {
+   "t": 17884,
+   "text": "Eco mode\",\"description\":"
+  },
+  {
+   "t": 17921,
+   "text": "\"L"
+  },
+  {
+   "t": 17954,
+   "text": "ower target"
+  },
+  {
+   "t": 17985,
+   "text": " when"
+  },
+  {
+   "t": 18021,
+   "text": " r"
+  },
+  {
+   "t": 18050,
+   "text": "ooms are empty\",\"checked"
+  },
+  {
+   "t": 18088,
+   "text": "\":{\"$bindState\":"
+  },
+  {
+   "t": 18118,
+   "text": "\"/eco\"}},\""
+  },
+  {
+   "t": 18153,
+   "text": "children\":[]}}\n{"
+  },
+  {
+   "t": 18187,
+   "text": "\"op\":\"add\",\"path\":"
+  },
+  {
+   "t": 18219,
+   "text": "\"/state/showEnerg"
+  },
+  {
+   "t": 18258,
+   "text": "y\",\"value\":true}\n{"
+  },
+  {
+   "t": 18293,
+   "text": "\"op\":\"add\",\"path\":"
+  },
+  {
+   "t": 18322,
+   "text": "\"/elements/energy-"
+  },
+  {
+   "t": 18358,
+   "text": "switch\",\"value\":{\"type"
+  },
+  {
+   "t": 18402,
+   "text": "\":\"Switch\",\"props\":"
+  },
+  {
+   "t": 18424,
+   "text": "{\"label\":\"Show we"
+  },
+  {
+   "t": 18450,
+   "text": "ekly energy\",\""
+  },
+  {
+   "t": 18484,
+   "text": "description\":\"Us"
+  },
+  {
+   "t": 18520,
+   "text": "age per day this"
+  },
+  {
+   "t": 18552,
+   "text": " week\",\"checked\":{\"$"
+  },
+  {
+   "t": 18589,
+   "text": "bindState\":\"/showE"
+  },
+  {
+   "t": 18623,
+   "text": "nergy\"}},\"children"
+  },
+  {
+   "t": 18652,
+   "text": "\":[]}}\n{\""
+  },
+  {
+   "t": 18687,
+   "text": "op\":\"add\",\"path\":\""
+  },
+  {
+   "t": 18725,
+   "text": "/elements/energy-card"
+  },
+  {
+   "t": 18759,
+   "text": "\",\"value\":{\"type\":\""
+  },
+  {
+   "t": 18788,
+   "text": "Card\",\"props\":{\"title"
+  },
+  {
+   "t": 18816,
+   "text": "\":\"Energy This"
+  },
+  {
+   "t": 18852,
+   "text": " Week\",\"icon\":\"b"
+  },
+  {
+   "t": 18884,
+   "text": "olt.fill\",\"tint"
+  },
+  {
+   "t": 18924,
+   "text": "\":\"yellow\"},\""
+  },
+  {
+   "t": 18958,
+   "text": "visible\":{\"$state\":"
+  },
+  {
+   "t": 18983,
+   "text": "\"/showEnergy\""
+  },
+  {
+   "t": 19017,
+   "text": "},\"children\":[\"energy-"
+  },
+  {
+   "t": 19055,
+   "text": "chart\"]}}\n{"
+  },
+  {
+   "t": 19091,
+   "text": "\"op\":\"add\",\"path\":"
+  },
+  {
+   "t": 19122,
+   "text": "\"/elements/energy-"
+  },
+  {
+   "t": 19152,
+   "text": "chart\",\"value\":{\"type"
+  },
+  {
+   "t": 19184,
+   "text": "\":\"BarChart\",\"props"
+  },
+  {
+   "t": 19217,
+   "text": "\":{\"data"
+  },
+  {
+   "t": 19250,
+   "text": "\":{\"$"
+  },
+  {
+   "t": 19287,
+   "text": "state\":\"/energy\"},"
+  },
+  {
+   "t": 19332,
+   "text": "\"xKey\":\"day\",\""
+  },
+  {
+   "t": 19361,
+   "text": "yKey\":\"kwh"
+  },
+  {
+   "t": 19383,
+   "text": "\",\"tint\":\"yellow"
+  },
+  {
+   "t": 19418,
+   "text": "\",\"height\":180"
+  },
+  {
+   "t": 19454,
+   "text": "},"
+  },
+  {
+   "t": 19486,
+   "text": "\"children\":[]}}"
+  },
+  {
+   "t": 19519,
+   "text": "\n{\"op\":\"add\",\"path"
+  },
+  {
+   "t": 19563,
+   "text": "\":\"/state/energy\",\""
+  },
+  {
+   "t": 19591,
+   "text": "value\":[]}\n{\""
+  },
+  {
+   "t": 19619,
+   "text": "op\":\"add\",\"path\":\""
+  },
+  {
+   "t": 19650,
+   "text": "/state/energy/0\",\""
+  },
+  {
+   "t": 19690,
+   "text": "value\":{\"day\":\""
+  },
+  {
+   "t": 19728,
+   "text": "Mon\",\"kwh\":13"
+  },
+  {
+   "t": 19763,
+   "text": ".2"
+  },
+  {
+   "t": 19799,
+   "text": "}}\n{\"op\":\""
+  },
+  {
+   "t": 19824,
+   "text": "add\",\"path\":\"/state/"
+  },
+  {
+   "t": 19852,
+   "text": "energy/1\",\"value\":{"
+  },
+  {
+   "t": 19887,
+   "text": "\"day\":\"Tue\",\""
+  },
+  {
+   "t": 19918,
+   "text": "kwh\":11.8}"
+  },
+  {
+   "t": 19957,
+   "text": "}\n{\"op\":\"add"
+  },
+  {
+   "t": 19986,
+   "text": "\",\"path\":\"/state/energ"
+  },
+  {
+   "t": 20025,
+   "text": "y/2\",\"value\":{\""
+  },
+  {
+   "t": 20063,
+   "text": "day\":\"Wed\",\"k"
+  },
+  {
+   "t": 20089,
+   "text": "wh\":14.5}}"
+  },
+  {
+   "t": 20133,
+   "text": "\n{\"op\":\"add\",\""
+  },
+  {
+   "t": 20164,
+   "text": "path\":\"/state/energy"
+  },
+  {
+   "t": 20191,
+   "text": "/3\",\"value\":{\"day"
+  },
+  {
+   "t": 20244,
+   "text": "\":\"Thu\",\"kw"
+  },
+  {
+   "t": 20264,
+   "text": "h\":12.1}}"
+  },
+  {
+   "t": 20325,
+   "text": "\n{\"op\":\"add\",\"path"
+  },
+  {
+   "t": 20328,
+   "text": "\":\"/state/energy/"
+  },
+  {
+   "t": 20356,
+   "text": "4\",\"value\":{\"day\":"
+  },
+  {
+   "t": 20387,
+   "text": "\"Fri\",\"kwh"
+  },
+  {
+   "t": 20418,
+   "text": "\":15.0"
+  },
+  {
+   "t": 20478,
+   "text": "}}\n{\"op\":\""
+  },
+  {
+   "t": 20487,
+   "text": "add\",\"path\":\"/state/"
+  },
+  {
+   "t": 20529,
+   "text": "energy/5\",\"value\":{"
+  },
+  {
+   "t": 20554,
+   "text": "\"day\":\"Sat\",\""
+  },
+  {
+   "t": 20588,
+   "text": "kwh\":16.3"
+  },
+  {
+   "t": 20623,
+   "text": "}}\n{\"op\":\""
+  },
+  {
+   "t": 20656,
+   "text": "add\",\"path\":\"/state/"
+  },
+  {
+   "t": 20688,
+   "text": "energy/6\",\"value\":{"
+  },
+  {
+   "t": 20719,
+   "text": "\"day\":\"Sun\",\""
+  },
+  {
+   "t": 20755,
+   "text": "kwh\":12.4}"
+  },
+  {
+   "t": 20784,
+   "text": "}"
+  }
+ ]
+}

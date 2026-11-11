@@ -1,0 +1,77 @@
+{
+  "root": "app",
+  "state": {
+    "projects": [
+      {
+        "name": "Alpha",
+        "archived": false,
+        "tasks": [
+          { "title": "Design", "done": false },
+          { "title": "Ship", "done": true }
+        ]
+      },
+      {
+        "name": "Beta",
+        "archived": true,
+        "tasks": []
+      }
+    ],
+    "selected": ""
+  },
+  "elements": {
+    "app": {
+      "type": "Column",
+      "props": { "gap": "md" },
+      "children": ["title", "projects"]
+    },
+    "title": {
+      "type": "Heading",
+      "props": { "text": "Projects" }
+    },
+    "projects": {
+      "type": "List",
+      "props": {},
+      "visible": { "$item": "archived", "neq": true },
+      "repeat": { "statePath": "/projects", "key": "name" },
+      "children": ["project"]
+    },
+    "project": {
+      "type": "Card",
+      "props": {
+        "title": { "$item": "name" },
+        "index": { "$index": true },
+        "caption": { "$template": "${name}" }
+      },
+      "children": ["tasks"]
+    },
+    "tasks": {
+      "type": "List",
+      "props": {},
+      "repeat": { "statePath": { "$item": "tasks" } },
+      "children": ["task"]
+    },
+    "task": {
+      "type": "Row",
+      "props": {
+        "title": { "$item": "title" },
+        "position": { "$index": true },
+        "done": { "$item": "done" },
+        "label": { "$template": "${title}" }
+      },
+      "children": ["select"]
+    },
+    "select": {
+      "type": "Button",
+      "props": { "label": "Select" },
+      "on": {
+        "press": {
+          "action": "setState",
+          "params": {
+            "statePath": "/selected",
+            "value": { "$item": "title" }
+          }
+        }
+      }
+    }
+  }
+}
