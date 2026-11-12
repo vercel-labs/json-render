@@ -116,6 +116,32 @@ describe("builtInValidationFunctions", () => {
     });
   });
 
+  describe("min and max decimal strings", () => {
+    it.each([
+      "Infinity",
+      "-Infinity",
+      "NaN",
+      "1e999",
+      "0x10",
+      "0b1",
+      "0o7",
+      "",
+      "   ",
+      "9".repeat(400),
+    ])("rejects %s for both bounds", (value) => {
+      expect(builtInValidationFunctions.min(value, { min: -100 })).toBe(false);
+      expect(builtInValidationFunctions.max(value, { max: 100 })).toBe(false);
+    });
+
+    it.each(["5", "-3", "2.5", " 7 ", "+.5", "5."])(
+      "accepts decimal string %s within bounds",
+      (value) => {
+        expect(builtInValidationFunctions.min(value, { min: -10 })).toBe(true);
+        expect(builtInValidationFunctions.max(value, { max: 10 })).toBe(true);
+      },
+    );
+  });
+
   describe("min", () => {
     it("passes when number meets minimum", () => {
       expect(builtInValidationFunctions.min(5, { min: 3 })).toBe(true);

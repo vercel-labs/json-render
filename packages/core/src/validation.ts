@@ -10,6 +10,15 @@ const toNumber = (value: unknown): number => {
   return NaN;
 };
 
+const toDecimalNumber = (value: unknown): number => {
+  if (typeof value === "number") return value;
+  if (typeof value !== "string") return NaN;
+  const text = value.trim();
+  if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(text)) return NaN;
+  const number = Number(text);
+  return Number.isFinite(number) ? number : NaN;
+};
+
 /**
  * Validation check definition
  */
@@ -140,7 +149,7 @@ export const builtInValidationFunctions: Record<string, ValidationFunction> = {
   min: (value: unknown, args?: Record<string, unknown>) => {
     const min = args?.min;
     if (typeof min !== "number") return false;
-    return toNumber(value) >= min;
+    return toDecimalNumber(value) >= min;
   },
 
   /**
@@ -149,7 +158,7 @@ export const builtInValidationFunctions: Record<string, ValidationFunction> = {
   max: (value: unknown, args?: Record<string, unknown>) => {
     const max = args?.max;
     if (typeof max !== "number") return false;
-    return toNumber(value) <= max;
+    return toDecimalNumber(value) <= max;
   },
 
   /**
