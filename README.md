@@ -568,7 +568,7 @@ const spec: NextAppSpec = {
   },
 };
 
-// Server: creates Page, generateMetadata, generateStaticParams
+// Server: creates getPageData, generateMetadata, generateStaticParams
 const app = createNextApp({ spec });
 
 // Client: wrap your layout with NextAppProvider
