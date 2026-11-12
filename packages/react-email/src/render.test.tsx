@@ -405,3 +405,69 @@ describe("example specs", () => {
     });
   }
 });
+
+// =============================================================================
+// className and linked images
+// =============================================================================
+
+describe("className and Image href", () => {
+  const img = (extra: Record<string, unknown>) =>
+    minimalSpec({
+      img: {
+        type: "Image",
+        props: {
+          src: "https://x.com/logo.png",
+          alt: "Logo",
+          width: 120,
+          height: null,
+          style: null,
+          ...extra,
+        },
+        children: [],
+      },
+    });
+
+  it("passes className to Image, Section and Column", async () => {
+    const html = await renderToHtml(
+      minimalSpec({
+        sec: {
+          type: "Section",
+          props: { style: null, className: "sec-m" },
+          children: ["row"],
+        },
+        row: { type: "Row", props: { style: null }, children: ["col"] },
+        col: {
+          type: "Column",
+          props: { style: null, className: "col-m" },
+          children: [],
+        },
+        pic: {
+          type: "Image",
+          props: {
+            src: "https://x.com/a.png",
+            alt: null,
+            width: null,
+            height: null,
+            style: null,
+            className: "img-m",
+          },
+          children: [],
+        },
+      }),
+    );
+    expect(html).toMatch(/class="sec-m"/);
+    expect(html).toMatch(/class="col-m"/);
+    expect(html).toMatch(/class="img-m"/);
+  });
+
+  it("wraps Image in a link when href is set", async () => {
+    const html = await renderToHtml(img({ href: "https://x.com" }));
+    expect(html).toMatch(/<a href="https:\/\/x\.com"[^>]*><img[^>]*logo\.png/);
+  });
+
+  it("renders a plain Image without href or className", async () => {
+    const html = await renderToHtml(img({}));
+    expect(html).toContain("logo.png");
+    expect(html).not.toContain('href="https://x.com"');
+  });
+});

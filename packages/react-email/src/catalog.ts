@@ -1,6 +1,8 @@
 import { z } from "zod";
 
 const styleSchema = z.record(z.string(), z.any()).nullable();
+// For media queries in a <style> block (e.g. stack columns on mobile).
+const classNameSchema = z.string().nullish();
 
 /**
  * Standard component definitions for React Email catalogs.
@@ -61,6 +63,7 @@ export const standardComponentDefinitions = {
   Section: {
     props: z.object({
       style: styleSchema,
+      className: classNameSchema,
     }),
     slots: ["default"],
     description:
@@ -81,6 +84,7 @@ export const standardComponentDefinitions = {
   Column: {
     props: z.object({
       style: styleSchema,
+      className: classNameSchema,
     }),
     slots: ["default"],
     description:
@@ -158,10 +162,12 @@ export const standardComponentDefinitions = {
       width: z.number().nullable(),
       height: z.number().nullable(),
       style: styleSchema,
+      className: classNameSchema,
+      href: z.string().nullish(),
     }),
     slots: [],
     description:
-      "Image from a URL. src must be a fully qualified URL. Specify width and height for consistent rendering.",
+      "Image from a URL. src must be a fully qualified URL. Specify width and height for consistent rendering. Set href to make it a link (logo, banner).",
     example: {
       src: "https://picsum.photos/400/200?random=1",
       alt: "Hero image",
