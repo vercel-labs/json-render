@@ -99,6 +99,10 @@ A spec's `elements` map can reference the same element from several parents, so 
 
 A build that reaches a limit logs one warning and renders nothing, like other structural spec problems that leave nothing to render. Pass `RenderTreeLimits` to `JSONRenderView` or `buildRenderTree` to raise the limits for a spec that legitimately renders more nodes.
 
+## Watch cascades
+
+`watch` bindings run after a state change. A watch that writes the value it watches, such as a `pushState` on the same array, would otherwise keep running: every write is another state change, and the renderer runs another pass for it. The tracker shares one budget across a chain of watch-driven state changes, 64 actions by default, and stops the chain with a warning when the budget is spent. A state change the watch did not cause, such as a user action or a streamed spec update, starts a new chain. Pass `watchCascadeLimit` to `JSONRenderView` (or `maxCascadeDispatches` to `WatchTracker`) to change the budget.
+
 ## Built-in components
 
 `BuiltInComponents.registry()` provides Text, Stack, Row, Column, Button, Image, List, and Input.

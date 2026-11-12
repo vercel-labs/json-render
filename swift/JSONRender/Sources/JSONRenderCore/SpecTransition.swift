@@ -20,15 +20,28 @@ public func stateAfterSpecChange(
     let nextState = flattenState(next.state)
 
     var result = current
+    // Removals run before writes. A field that changes from a scalar or null to
+    // an object has its old leaf removed while its new children are written, so
+    // removing the old parent after writing its children would discard them.
+    // The union below has no defined order, so the two kinds of change cannot
+    // share one loop and rely on when each path happens to be visited.
+    var removals: [String] = []
+    var writes: [(path: String, value: JSONValue)] = []
     for path in Set(previousState.keys).union(nextState.keys) {
         let previousValue = previousState[path]
         let nextValue = nextState[path]
         guard previousValue != nextValue else { continue }
         if let nextValue {
-            result = setByPath(result, path, nextValue)
+            writes.append((path, nextValue))
         } else {
-            result = removeByPath(result, path)
+            removals.append(path)
         }
+    }
+    for path in removals {
+        result = removeByPath(result, path)
+    }
+    for write in writes {
+        result = setByPath(result, write.path, write.value)
     }
     return result
 }

@@ -7,6 +7,7 @@ public final class StateStore: @unchecked Sendable {
     private let lock = NSLock()
     private var state: JSONValue
     private var listeners: [UUID: () -> Void] = [:]
+    private var changeCount = 0
 
     public init(_ initialState: JSONValue = .object([:])) {
         self.state = initialState
@@ -28,6 +29,14 @@ public final class StateStore: @unchecked Sendable {
         snapshot.objectValue ?? [:]
     }
 
+    /// Counts the writes that changed the state. A watch pass uses this to tell
+    /// whether the change that triggered it came from its own actions.
+    public var version: Int {
+        lock.lock()
+        defer { lock.unlock() }
+        return changeCount
+    }
+
     /// Reads a value by JSON Pointer path.
     public func get(_ path: String) -> JSONValue? {
         getByPath(snapshot, path)
@@ -44,6 +53,7 @@ public final class StateStore: @unchecked Sendable {
             return
         }
         state = setByPath(state, path, value)
+        changeCount &+= 1
         let callbacks = Array(listeners.values)
         lock.unlock()
         for callback in callbacks { callback() }
@@ -64,6 +74,7 @@ public final class StateStore: @unchecked Sendable {
             return
         }
         state = next
+        changeCount &+= 1
         let callbacks = Array(listeners.values)
         lock.unlock()
         for callback in callbacks { callback() }
@@ -73,6 +84,7 @@ public final class StateStore: @unchecked Sendable {
     public func replace(_ next: JSONValue) {
         lock.lock()
         state = next
+        changeCount &+= 1
         let callbacks = Array(listeners.values)
         lock.unlock()
         for callback in callbacks { callback() }

@@ -22,7 +22,7 @@ final class ConformanceTests: XCTestCase {
             )
 
             let root = try XCTUnwrap(tree, "Fixture \(name) did not render")
-            XCTAssertEqual(record(root), expected, "Rendered tree differs for \(name)")
+            XCTAssertEqual(recordedElement(root), expected, "Rendered tree differs for \(name)")
         }
 
         // The unknown component fixture should have warned once and dropped

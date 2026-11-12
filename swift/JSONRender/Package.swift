@@ -42,5 +42,12 @@ let package = Package(
             dependencies: ["JSONRenderCore"],
             exclude: ["Fixtures"]
         ),
+        // Model behavior behind `JSONRenderView`. Its sources compile to
+        // nothing where SwiftUI is unavailable, so this target builds empty on
+        // Linux and the macOS job is what runs these tests.
+        .testTarget(
+            name: "JSONRenderSwiftUITests",
+            dependencies: ["JSONRenderCore", "JSONRenderSwiftUI"]
+        ),
     ]
 )

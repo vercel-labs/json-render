@@ -38,8 +38,8 @@ final class StreamingTests: XCTestCase {
         let tree = try XCTUnwrap(
             buildRenderTree(spec: spec, registry: Fixtures.recordingRegistry(), store: store)
         )
-        XCTAssertEqual(record(tree).component, "Column")
-        XCTAssertEqual(record(tree).children?.first?.props["text"], .string("Hi Ada"))
+        XCTAssertEqual(recordedElement(tree).component, "Column")
+        XCTAssertEqual(recordedElement(tree).children?.first?.props["text"], .string("Hi Ada"))
     }
 
     func testPartialSpecRendersWithLoading() throws {

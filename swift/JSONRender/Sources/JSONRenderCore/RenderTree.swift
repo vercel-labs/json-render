@@ -487,14 +487,17 @@ public struct RecordedElement: Codable, Equatable, Sendable {
 }
 
 /// Projects a rendered tree onto the recordable shape.
-public func record<Render>(_ element: RenderedElement<Render>) -> RecordedElement {
+///
+/// The name avoids the `record` method that `XCTestCase` declares, which would
+/// otherwise take precedence over an unqualified call in a test.
+public func recordedElement<Render>(_ element: RenderedElement<Render>) -> RecordedElement {
     RecordedElement(
         component: element.component,
         props: element.props,
-        children: element.children.isEmpty ? nil : element.children.map(record),
+        children: element.children.isEmpty ? nil : element.children.map(recordedElement),
         slots: element.slots.isEmpty
             ? nil
-            : element.slots.mapValues { $0.map(record) }
+            : element.slots.mapValues { $0.map(recordedElement) }
     )
 }
 
@@ -552,7 +555,26 @@ final class WatchCollector {
 /// React renderer, which skips the initial mount. Call `snapshot(_:)` when the
 /// spec first renders so the first state change after that compares against
 /// the initial values and fires.
+///
+/// A watch that writes the path it watches, such as `pushState` on its own
+/// array, would otherwise dispatch forever: every append changes the watched
+/// value, which starts another pass. Each pass can dispatch only from a budget
+/// that is shared by the whole chain of state changes, so a spec cannot exhaust
+/// the host's CPU or memory that way. The budget refills when a state change
+/// arrives that the tracker's own actions did not cause, such as user input or
+/// a streamed spec update.
 public final class WatchTracker {
+    /// The default number of watch actions one chain of state changes may run.
+    public static let defaultMaxCascadeDispatches = 64
+
+    /// The most actions one chain of watch-driven state changes may dispatch.
+    public let maxCascadeDispatches: Int
+
+    private var remainingCascadeDispatches: Int
+    private var warnedAboutCascade = false
+    /// The store version left by the previous pass, so the next pass can tell
+    /// whether its change came from an action this tracker dispatched.
+    private var expectedVersion: Int?
     private var previous: [String: JSONValue?] = [:]
     private var hasSnapshot = false
     private let functions: [String: ComputedFunction]
@@ -562,16 +584,21 @@ public final class WatchTracker {
     ///   - functions: Named functions for `$computed` parameters, from the
     ///     registry, so a watch action resolves them like an event does.
     ///   - directives: Custom directives for the same reason.
+    ///   - maxCascadeDispatches: The most watch actions one chain of
+    ///     watch-driven state changes may run before the tracker stops.
     public init(
         functions: [String: ComputedFunction] = [:],
-        directives: [String: Directive] = [:]
+        directives: [String: Directive] = [:],
+        maxCascadeDispatches: Int = WatchTracker.defaultMaxCascadeDispatches
     ) {
         self.functions = functions
         self.directives = directives
+        self.maxCascadeDispatches = max(1, maxCascadeDispatches)
+        self.remainingCascadeDispatches = max(1, maxCascadeDispatches)
     }
 
     /// Records the watched values of the initial render without running any
-    /// watch actions.
+    /// watch actions, and starts a new chain with a full budget.
     public func snapshot(_ records: [WatchRecord]) {
         var next: [String: JSONValue?] = [:]
         for record in records {
@@ -579,6 +606,9 @@ public final class WatchTracker {
         }
         previous = next
         hasSnapshot = true
+        remainingCascadeDispatches = maxCascadeDispatches
+        warnedAboutCascade = false
+        expectedVersion = nil
     }
 
     public func process(
@@ -586,6 +616,16 @@ public final class WatchTracker {
         dispatcher: ActionDispatcher,
         store: StateStore
     ) async {
+        defer { expectedVersion = store.version }
+
+        if expectedVersion != store.version {
+            // The change that triggered this pass did not come from an action
+            // this tracker dispatched, so it starts a new chain and a full
+            // budget.
+            remainingCascadeDispatches = maxCascadeDispatches
+            warnedAboutCascade = false
+        }
+
         var next: [String: JSONValue?] = [:]
 
         // Record this pass's values before running the actions, so a state
@@ -617,6 +657,7 @@ public final class WatchTracker {
 
             for list in record.bindings {
                 for binding in list.bindings {
+                    guard consumeCascadeDispatch() else { return }
                     var resolved: [String: JSONValue] = [:]
                     for (key, value) in binding.params ?? [:] {
                         if let value = resolveActionParam(value.jsonValue, context) {
@@ -630,5 +671,21 @@ public final class WatchTracker {
                 }
             }
         }
+    }
+
+    /// Takes one dispatch from the budget shared by the current chain of state
+    /// changes, and warns once when the chain has spent it.
+    private func consumeCascadeDispatch() -> Bool {
+        guard remainingCascadeDispatches > 0 else {
+            if !warnedAboutCascade {
+                warnedAboutCascade = true
+                JSONRenderLog.warn(
+                    "Stopped watch actions after \(maxCascadeDispatches) in one chain of state changes; the watched state keeps changing."
+                )
+            }
+            return false
+        }
+        remainingCascadeDispatches -= 1
+        return true
     }
 }

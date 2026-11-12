@@ -136,4 +136,61 @@ final class SpecTransitionTests: XCTestCase {
             .object(["name": .string("Edited"), "count": .number(1), "draft": .string("")])
         )
     }
+
+    func testChangedSpecReplacesScalarsWithObjects() {
+        // Several fields flip from a leaf to an object at once. The diff has to
+        // write the children and remove the old leaf for each field; if a
+        // removal of the old parent runs after its children are written, the
+        // field disappears. A single field would only fail for one of the two
+        // possible path orders.
+        var previousState: [String: JSONValue] = [:]
+        var nextState: [String: JSONValue] = [:]
+        var expected: [String: JSONValue] = [:]
+        for index in 0..<8 {
+            let key = "field\(index)"
+            previousState[key] = index.isMultiple(of: 2) ? .number(Double(index)) : .null
+            let object: JSONValue = .object([
+                "value": .number(Double(index)),
+                "nested": .object(["deep": .bool(true)]),
+            ])
+            nextState[key] = object
+            expected[key] = object
+        }
+
+        let previous = Spec(
+            root: "a",
+            elements: ["a": UIElement(type: "Text", props: [:])],
+            state: previousState
+        )
+        let next = Spec(
+            root: "a",
+            elements: ["a": UIElement(type: "Text", props: ["text": .string("changed")])],
+            state: nextState
+        )
+
+        let result = stateAfterSpecChange(previous: previous, next: next, current: .object([:]))
+
+        XCTAssertEqual(result, .object(expected))
+    }
+
+    func testChangedSpecReplacesObjectsWithScalars() {
+        let previous = Spec(
+            root: "a",
+            elements: ["a": UIElement(type: "Text", props: [:])],
+            state: ["settings": .object(["theme": .string("dark"), "size": .number(2)])]
+        )
+        let next = Spec(
+            root: "a",
+            elements: ["a": UIElement(type: "Text", props: ["text": .string("changed")])],
+            state: ["settings": .string("compact")]
+        )
+
+        let result = stateAfterSpecChange(
+            previous: previous,
+            next: next,
+            current: .object(["settings": .object(["theme": .string("light"), "size": .number(2)])])
+        )
+
+        XCTAssertEqual(result, .object(["settings": .string("compact")]))
+    }
 }

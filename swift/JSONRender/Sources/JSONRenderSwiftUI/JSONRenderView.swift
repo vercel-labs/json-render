@@ -38,6 +38,9 @@ public struct JSONRenderView: View {
     ///   - limits: Bounds for each rendered-tree build. A spec that exceeds a
     ///     limit is not rendered and logs one warning. Raise the limits for
     ///     specs that legitimately render more nodes.
+    ///   - watchCascadeLimit: The most `watch` actions one chain of watch-driven
+    ///     state changes may run before the chain stops. Raise it for specs
+    ///     whose watches legitimately write state in a long chain.
     public init(
         spec: Spec,
         registry: RendererRegistry<AnyView>,
@@ -46,7 +49,8 @@ public struct JSONRenderView: View {
         confirm: ((ActionConfirm) async -> Bool)? = nil,
         loading: Bool = false,
         animation: Animation? = nil,
-        limits: RenderTreeLimits = .default
+        limits: RenderTreeLimits = .default,
+        watchCascadeLimit: Int = WatchTracker.defaultMaxCascadeDispatches
     ) {
         self.spec = spec
         self.loading = loading
@@ -59,7 +63,8 @@ public struct JSONRenderView: View {
                 confirm: confirm,
                 loading: loading,
                 animation: animation,
-                limits: limits
+                limits: limits,
+                watchCascadeLimit: watchCascadeLimit
             )
         )
     }
@@ -122,7 +127,8 @@ public final class JSONRenderModel: ObservableObject {
         confirm: ((ActionConfirm) async -> Bool)? = nil,
         loading: Bool = false,
         animation: Animation? = nil,
-        limits: RenderTreeLimits = .default
+        limits: RenderTreeLimits = .default,
+        watchCascadeLimit: Int = WatchTracker.defaultMaxCascadeDispatches
     ) {
         self.spec = spec
         self.registry = registry
@@ -138,7 +144,8 @@ public final class JSONRenderModel: ObservableObject {
         self.dispatcher.requestConfirmation = confirm
         self.watchTracker = WatchTracker(
             functions: registry.functions,
-            directives: registry.directives
+            directives: registry.directives,
+            maxCascadeDispatches: watchCascadeLimit
         )
         self.hasWatches = spec.hasWatches
         // Record the watched values of the initial render, so the first state
@@ -175,6 +182,10 @@ public final class JSONRenderModel: ObservableObject {
         }
         if nextState != currentState {
             store.replace(nextState)
+        } else {
+            // The state is unchanged, so the store publishes nothing. Bump the
+            // revision here anyway: the body must be rebuilt from the new spec.
+            revision &+= 1
         }
     }
 
