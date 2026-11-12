@@ -64,7 +64,7 @@ export function serializePropValue(
   if (typeof value === "string") {
     return {
       value: `${q}${escapeString(value, opts.quotes)}${q}`,
-      needsBraces: false,
+      needsBraces: true,
     };
   }
 

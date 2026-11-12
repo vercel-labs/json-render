@@ -72,7 +72,7 @@ function serializePropValue(
 
 // Examples
 serializePropValue("hello")
-// { value: '"hello"', needsBraces: false }
+// { value: '"hello"', needsBraces: true }
 
 serializePropValue(42)
 // { value: '42', needsBraces: true }
@@ -93,7 +93,7 @@ function serializeProps(
 
 // Example
 serializeProps({ title: 'Dashboard', columns: 3, disabled: true })
-// 'title="Dashboard" columns={3} disabled'
+// 'title={"Dashboard"} columns={3} disabled'
 ```
 
 ### escapeString
