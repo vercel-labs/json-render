@@ -279,17 +279,7 @@ extension ComponentRenderContext where Render == AnyView {
     /// The children paired with their element identities, so a child that a
     /// visibility condition hides does not shift the identity of the others.
     var keyedChildren: [KeyedChild] {
-        var seen: [String: Int] = [:]
-        return children.indices.map { index in
-            let base = index < childIDs.count ? childIDs[index] : "#\(index)"
-            let count = seen[base, default: 0]
-            seen[base] = count + 1
-            return KeyedChild(
-                id: count == 0 ? base : "\(base)#\(count)",
-                index: index,
-                view: children[index]
-            )
-        }
+        identifiedChildren.map { KeyedChild(id: $0.id, index: $0.index, view: $0.content) }
     }
 }
 

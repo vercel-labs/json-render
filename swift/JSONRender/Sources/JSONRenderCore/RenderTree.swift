@@ -66,10 +66,48 @@ public func buildRenderTree<Render>(
     loading: Bool = false,
     limits: RenderTreeLimits = .default
 ) -> RenderedElement<Render>? {
-    guard !spec.root.isEmpty else { return nil }
-    guard spec.elements[spec.root] != nil else { return nil }
+    buildRenderTreeWithWatches(
+        spec: spec,
+        registry: registry,
+        store: store,
+        dispatcher: dispatcher,
+        loading: loading,
+        limits: limits
+    ).tree
+}
+
+/// One build of a spec: the rendered tree and the watch entries the build saw.
+///
+/// The watches come from the same pass that renders the tree, so a state
+/// change costs one build even when the spec watches state. They also include
+/// elements that the build hid, which a walk over the rendered tree would miss.
+public struct RenderTreeBuild<Render> {
+    /// The root element, or nil when the spec renders nothing or a limit
+    /// stopped the build.
+    public let tree: RenderedElement<Render>?
+    /// The watch entries of every element the build reached, in tree order.
+    public let watches: [WatchRecord]
+}
+
+/// Builds the rendered tree and the watch entries for the spec.
+///
+/// An element's watch is recorded before its visibility is evaluated, matching
+/// the React renderer, which runs the watch for a hidden element too. Children
+/// of a hidden element do not contribute watches because they never mount.
+public func buildRenderTreeWithWatches<Render>(
+    spec: Spec,
+    registry: RendererRegistry<Render>,
+    store: StateStore,
+    dispatcher: ActionDispatcher? = nil,
+    loading: Bool = false,
+    limits: RenderTreeLimits = .default
+) -> RenderTreeBuild<Render> {
+    guard !spec.root.isEmpty, spec.elements[spec.root] != nil else {
+        return RenderTreeBuild(tree: nil, watches: [])
+    }
 
     let budget = RenderTreeBudget(limits: limits)
+    let watches = WatchCollector()
     let tree = buildElement(
         key: spec.root,
         spec: spec,
@@ -80,12 +118,16 @@ public func buildRenderTree<Render>(
         scope: nil,
         depth: 1,
         ancestors: [],
-        budget: budget
+        budget: budget,
+        watches: watches
     )
 
     // A partial tree is not a valid rendering of the spec. When a limit stops
     // the build, drop whatever was built and let the caller render nothing.
-    return budget.isExhausted ? nil : tree
+    guard !budget.isExhausted else {
+        return RenderTreeBuild(tree: nil, watches: [])
+    }
+    return RenderTreeBuild(tree: tree, watches: watches.records)
 }
 
 private func buildElement<Render>(
@@ -98,7 +140,8 @@ private func buildElement<Render>(
     scope: RepeatScope?,
     depth: Int,
     ancestors: Set<String>,
-    budget: RenderTreeBudget
+    budget: RenderTreeBudget,
+    watches: WatchCollector
 ) -> RenderedElement<Render>? {
     guard budget.visit(depth: depth) else { return nil }
 
@@ -117,6 +160,10 @@ private func buildElement<Render>(
     }
 
     let state = store.snapshot
+
+    // Collect the watch before the visibility check: the React renderer runs
+    // the watch effect of a hidden element too.
+    watches.collect(key: key, element: element, scope: scope, state: state)
 
     // A repeat container's own `$item`/`$index` condition filters items rather
     // than hiding the container, unless the container is already inside a
@@ -163,7 +210,8 @@ private func buildElement<Render>(
             state: state,
             depth: depth + 1,
             ancestors: nextAncestors,
-            budget: budget
+            budget: budget,
+            watches: watches
         )
     } else {
         children = buildChildKeys(
@@ -176,7 +224,8 @@ private func buildElement<Render>(
             scope: scope,
             depth: depth + 1,
             ancestors: nextAncestors,
-            budget: budget
+            budget: budget,
+            watches: watches
         )
     }
 
@@ -197,7 +246,8 @@ private func buildElement<Render>(
             scope: scope,
             depth: depth + 1,
             ancestors: nextAncestors,
-            budget: budget
+            budget: budget,
+            watches: watches
         )
     }
 
@@ -260,7 +310,8 @@ private func buildChildKeys<Render>(
     scope: RepeatScope?,
     depth: Int,
     ancestors: Set<String>,
-    budget: RenderTreeBudget
+    budget: RenderTreeBudget,
+    watches: WatchCollector
 ) -> [RenderedElement<Render>] {
     var rendered: [RenderedElement<Render>] = []
     for childKey in childKeys {
@@ -275,7 +326,8 @@ private func buildChildKeys<Render>(
             scope: scope,
             depth: depth,
             ancestors: ancestors,
-            budget: budget
+            budget: budget,
+            watches: watches
         ) {
             rendered.append(child)
         }
@@ -295,7 +347,8 @@ private func buildRepeatChildren<Render>(
     state: JSONValue,
     depth: Int,
     ancestors: Set<String>,
-    budget: RenderTreeBudget
+    budget: RenderTreeBudget,
+    watches: WatchCollector
 ) -> [RenderedElement<Render>] {
     guard let repeatConfig = element.repeat else { return [] }
 
@@ -334,7 +387,8 @@ private func buildRepeatChildren<Render>(
             scope: itemScope,
             depth: depth,
             ancestors: ancestors,
-            budget: budget
+            budget: budget,
+            watches: watches
         ))
     }
     return rendered
@@ -446,6 +500,14 @@ public func record<Render>(_ element: RenderedElement<Render>) -> RecordedElemen
 
 // MARK: - Watch
 
+extension Spec {
+    /// Whether any element in the spec has a watch, so a caller can skip the
+    /// watch pass for a spec that never watches state.
+    public var hasWatches: Bool {
+        elements.values.contains { $0.watch != nil }
+    }
+}
+
 /// One watched state path on one rendered element.
 public struct WatchRecord: Sendable {
     public let id: String
@@ -453,47 +515,60 @@ public struct WatchRecord: Sendable {
     public let value: JSONValue?
     public let bindings: [ActionBindingList]
     public let scope: RepeatScope?
+
+    /// An identity that tells two entries for the same element and path apart
+    /// when the element renders inside a repeat.
+    static func id(key: String, scope: RepeatScope?, path: String) -> String {
+        "\(key)#\(scope?.basePath ?? "")/\(path)"
+    }
 }
 
-/// Collects the watch entries of a rendered tree against a state snapshot.
-public func watchRecords<Render>(_ tree: RenderedElement<Render>, state: JSONValue) -> [WatchRecord] {
-    var records: [WatchRecord] = []
+/// Gathers the watch entries as a build walks the spec.
+///
+/// Collection happens during the build rather than over the rendered tree, so
+/// an element whose `visible` condition hides it still contributes its watch.
+final class WatchCollector {
+    private(set) var records: [WatchRecord] = []
 
-    func visit(_ element: RenderedElement<Render>) {
-        if let watch = element.element.watch {
-            for (path, bindings) in watch {
-                records.append(
-                    WatchRecord(
-                        id: "\(element.key)#\(element.scope?.basePath ?? "")/\(path)",
-                        path: path,
-                        value: getByPath(state, path),
-                        bindings: [bindings],
-                        scope: element.scope
-                    )
+    func collect(key: String, element: UIElement, scope: RepeatScope?, state: JSONValue) {
+        guard let watch = element.watch else { return }
+        for (path, bindings) in watch {
+            records.append(
+                WatchRecord(
+                    id: WatchRecord.id(key: key, scope: scope, path: path),
+                    path: path,
+                    value: getByPath(state, path),
+                    bindings: [bindings],
+                    scope: scope
                 )
-            }
-        }
-        for child in element.children { visit(child) }
-        for slotChildren in element.slots.values {
-            for child in slotChildren { visit(child) }
+            )
         }
     }
-
-    visit(tree)
-    return records
 }
 
 /// Fires `watch` actions when a watched state path changes.
 ///
 /// The first update records the current values without firing, matching the
 /// React renderer, which skips the initial mount. Call `snapshot(_:)` when the
-/// tree first renders so the first state change after that compares against
+/// spec first renders so the first state change after that compares against
 /// the initial values and fires.
 public final class WatchTracker {
     private var previous: [String: JSONValue?] = [:]
     private var hasSnapshot = false
+    private let functions: [String: ComputedFunction]
+    private let directives: [String: Directive]
 
-    public init() {}
+    /// - Parameters:
+    ///   - functions: Named functions for `$computed` parameters, from the
+    ///     registry, so a watch action resolves them like an event does.
+    ///   - directives: Custom directives for the same reason.
+    public init(
+        functions: [String: ComputedFunction] = [:],
+        directives: [String: Directive] = [:]
+    ) {
+        self.functions = functions
+        self.directives = directives
+    }
 
     /// Records the watched values of the initial render without running any
     /// watch actions.
@@ -513,16 +588,31 @@ public final class WatchTracker {
     ) async {
         var next: [String: JSONValue?] = [:]
 
+        // Record this pass's values before running the actions, so a state
+        // change that lands while a slow action waits compares against them
+        // instead of the values from before this pass.
         for record in records {
             next[record.id] = record.value
-            guard hasSnapshot, let previousValue = previous[record.id] else { continue }
-            guard !strictEquals(previousValue, record.value) else { continue }
+        }
+        let wasSnapshot = hasSnapshot
+        let prior = previous
+        previous = next
+        hasSnapshot = true
+        guard wasSnapshot else { return }
+
+        for record in records {
+            // Values are compared structurally: a write to an unrelated path
+            // does not change the value at this path, and an action that
+            // writes an equal object back does not fire the watch again.
+            guard let previousValue = prior[record.id], previousValue != record.value else { continue }
 
             let context = PropResolutionContext(
                 stateModel: store.snapshot,
                 repeatItem: record.scope?.item,
                 repeatIndex: record.scope?.index,
-                repeatBasePath: record.scope?.basePath
+                repeatBasePath: record.scope?.basePath,
+                functions: functions,
+                directives: directives
             )
 
             for list in record.bindings {
@@ -540,8 +630,5 @@ public final class WatchTracker {
                 }
             }
         }
-
-        previous = next
-        hasSnapshot = true
     }
 }

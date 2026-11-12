@@ -111,8 +111,8 @@ enum ExampleComponents {
                                     .font(.callout)
                                     .foregroundStyle(.secondary)
                             }
-                            ForEach(context.children.indices, id: \.self) { index in
-                                context.children[index]
+                            ForEach(context.identifiedChildren) { child in
+                                child.content
                             }
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)

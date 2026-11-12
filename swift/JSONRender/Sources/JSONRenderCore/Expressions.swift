@@ -169,6 +169,15 @@ private func findDirective(
 }
 
 private func interpolateTemplate(_ template: String, _ context: PropResolutionContext) -> String {
+    interpolatePaths(template) { path in templateValue(path, context) }
+}
+
+/// Replaces each `${path}` in a string with `value(path)`.
+///
+/// Matches core's `/\$\{([^}]+)\}/g`: a reference needs at least one character
+/// between the braces, so `${}` and an unterminated `${` stay as written. Prop
+/// templates and confirm titles share this loop so the two stay in step.
+func interpolatePaths(_ template: String, value: (String) -> String) -> String {
     var result = ""
     var remainder = Substring(template)
     while let start = remainder.range(of: "${") {
@@ -178,8 +187,13 @@ private func interpolateTemplate(_ template: String, _ context: PropResolutionCo
             result += remainder[start.lowerBound...]
             return result
         }
-        let rawPath = String(afterStart[..<end])
-        result += templateValue(rawPath, context)
+        if end == afterStart.startIndex {
+            // `${}` is not a reference; keep it and keep scanning.
+            result += "${}"
+            remainder = afterStart[afterStart.index(after: end)...]
+            continue
+        }
+        result += value(String(afterStart[..<end]))
         remainder = afterStart[afterStart.index(after: end)...]
     }
     result += remainder

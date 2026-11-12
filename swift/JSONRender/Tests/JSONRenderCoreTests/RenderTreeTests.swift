@@ -159,8 +159,7 @@ final class RenderTreeTests: XCTestCase {
         let state = StateStore(spec: spec)
 
         func records() -> [WatchRecord] {
-            let tree = buildRenderTree(spec: spec, registry: registry, store: state, dispatcher: dispatcher)!
-            return watchRecords(tree, state: state.snapshot)
+            buildRenderTreeWithWatches(spec: spec, registry: registry, store: state, dispatcher: dispatcher).watches
         }
 
         let tracker = WatchTracker()
@@ -188,8 +187,7 @@ final class RenderTreeTests: XCTestCase {
         let registry = Fixtures.recordingRegistry()
 
         func records() -> [WatchRecord] {
-            let tree = buildRenderTree(spec: spec, registry: registry, store: state, dispatcher: dispatcher)!
-            return watchRecords(tree, state: state.snapshot)
+            buildRenderTreeWithWatches(spec: spec, registry: registry, store: state, dispatcher: dispatcher).watches
         }
 
         let tracker = WatchTracker()
@@ -199,6 +197,223 @@ final class RenderTreeTests: XCTestCase {
         state.set("/value", .string("b"))
         await tracker.process(records(), dispatcher: dispatcher, store: state)
         XCTAssertEqual(calls.value, 1, "The first change after the snapshot fires")
+    }
+
+    // MARK: - Watch change detection
+
+    private func makeWatchSpec(
+        watch: String,
+        state: String = #"{"value":"a","other":0}"#
+    ) -> Spec {
+        Spec.decodePartial(
+            JSONValue.decode(
+                #"{"root":"t","state":\#(state),"elements":{"t":{"type":"Text","props":{},"watch":{\#(watch)}}}}"#
+            )!
+        )
+    }
+
+    private func records(_ spec: Spec, _ state: StateStore) -> [WatchRecord] {
+        buildRenderTreeWithWatches(
+            spec: spec,
+            registry: Fixtures.recordingRegistry(),
+            store: state
+        ).watches
+    }
+
+    func testWatchOnObjectPathIgnoresUnrelatedAndEqualChanges() async throws {
+        let spec = makeWatchSpec(
+            watch: #""/filters":{"action":"record"}"#,
+            state: #"{"filters":{"q":"b"},"other":0}"#
+        )
+        let state = StateStore(spec: spec)
+        let calls = Box<Int>(0)
+        let dispatcher = ActionDispatcher(store: state)
+        dispatcher.register("record") { _ in calls.value += 1 }
+
+        let tracker = WatchTracker()
+        tracker.snapshot(records(spec, state))
+
+        state.set("/other", .number(1))
+        await tracker.process(records(spec, state), dispatcher: dispatcher, store: state)
+        XCTAssertEqual(calls.value, 0, "An unrelated path does not fire the watch")
+
+        state.set("/filters", .object(["q": .string("b")]))
+        await tracker.process(records(spec, state), dispatcher: dispatcher, store: state)
+        XCTAssertEqual(calls.value, 0, "An equal object does not fire the watch")
+
+        state.set("/filters", .object(["q": .string("c")]))
+        await tracker.process(records(spec, state), dispatcher: dispatcher, store: state)
+        XCTAssertEqual(calls.value, 1)
+
+        await tracker.process(records(spec, state), dispatcher: dispatcher, store: state)
+        XCTAssertEqual(calls.value, 1, "An unchanged object does not fire again")
+    }
+
+    func testWatchOnArrayPathIgnoresUnrelatedChanges() async throws {
+        let spec = makeWatchSpec(
+            watch: #""/items":{"action":"record"}"#,
+            state: #"{"items":[1,2],"other":0}"#
+        )
+        let state = StateStore(spec: spec)
+        let calls = Box<Int>(0)
+        let dispatcher = ActionDispatcher(store: state)
+        dispatcher.register("record") { _ in calls.value += 1 }
+
+        let tracker = WatchTracker()
+        tracker.snapshot(records(spec, state))
+
+        state.set("/other", .number(1))
+        await tracker.process(records(spec, state), dispatcher: dispatcher, store: state)
+        XCTAssertEqual(calls.value, 0)
+
+        state.set("/items", .array([.number(1), .number(2)]))
+        await tracker.process(records(spec, state), dispatcher: dispatcher, store: state)
+        XCTAssertEqual(calls.value, 0, "An equal array does not fire the watch")
+
+        state.set("/items", .array([.number(1), .number(3)]))
+        await tracker.process(records(spec, state), dispatcher: dispatcher, store: state)
+        XCTAssertEqual(calls.value, 1)
+    }
+
+    func testWatchActionWritingAnEqualObjectDoesNotLoop() async throws {
+        let spec = makeWatchSpec(
+            watch: #""/filters":{"action":"setState","params":{"statePath":"/filters","value":{"q":"a"}}}"#,
+            state: #"{"filters":{"q":"b"}}"#
+        )
+        let state = StateStore(spec: spec)
+        let dispatches = Box<Int>(0)
+        let dispatcher = ActionDispatcher(store: state)
+        dispatcher.onDispatch = { _ in dispatches.value += 1 }
+
+        let tracker = WatchTracker()
+        tracker.snapshot(records(spec, state))
+
+        state.set("/filters", .object(["q": .string("a")]))
+        // The model processes watches after every state change, including the
+        // one the watch action itself makes.
+        for _ in 0..<50 {
+            await tracker.process(records(spec, state), dispatcher: dispatcher, store: state)
+        }
+
+        XCTAssertEqual(dispatches.value, 1, "Writing an equal value back does not fire again")
+        XCTAssertEqual(state.get("/filters"), .object(["q": .string("a")]))
+    }
+
+    func testSlowWatchActionDoesNotFireAgainForALaterChange() async throws {
+        let spec = makeWatchSpec(watch: #""/value":{"action":"record"}"#)
+        let state = StateStore(spec: spec)
+        let calls = Box<Int>(0)
+        let gate = AsyncGate()
+        let dispatcher = ActionDispatcher(store: state)
+        dispatcher.register("record") { _ in
+            calls.value += 1
+            if calls.value == 1 { await gate.wait() }
+        }
+
+        let tracker = WatchTracker()
+        tracker.snapshot(records(spec, state))
+
+        state.set("/value", .string("b"))
+        let running = Task {
+            await tracker.process(records(spec, state), dispatcher: dispatcher, store: state)
+        }
+
+        // Wait for the slow handler to start, then change another path while
+        // it is still running.
+        var spins = 0
+        while calls.value == 0 && spins < 100_000 {
+            await Task.yield()
+            spins += 1
+        }
+        XCTAssertEqual(calls.value, 1)
+
+        state.set("/other", .number(1))
+        await tracker.process(records(spec, state), dispatcher: dispatcher, store: state)
+        XCTAssertEqual(calls.value, 1, "An unrelated change while the action runs does not fire it again")
+
+        await gate.open()
+        await running.value
+        XCTAssertEqual(calls.value, 1)
+    }
+
+    func testWatchOnHiddenElementFires() async throws {
+        var registry = Fixtures.recordingRegistry()
+        registry.components["Column"] = ComponentDefinition { _ in "Column" }
+        let spec = Spec.decodePartial(
+            JSONValue.decode(
+                #"{"root":"r","state":{"show":false,"value":"a"},"elements":{"r":{"type":"Column","props":{},"children":["hidden"]},"hidden":{"type":"Text","props":{},"visible":{"$state":"/show"},"watch":{"/value":{"action":"record"}}}}}"#
+            )!
+        )
+        let state = StateStore(spec: spec)
+        let calls = Box<Int>(0)
+        let dispatcher = ActionDispatcher(store: state)
+        dispatcher.register("record") { _ in calls.value += 1 }
+
+        let build = buildRenderTreeWithWatches(
+            spec: spec,
+            registry: registry,
+            store: state,
+            dispatcher: dispatcher
+        )
+        XCTAssertNotNil(build.tree)
+        XCTAssertTrue(try XCTUnwrap(build.tree).children.isEmpty, "The hidden element does not render")
+        XCTAssertEqual(build.watches.count, 1, "The hidden element still contributes its watch")
+
+        let tracker = WatchTracker()
+        tracker.snapshot(build.watches)
+        state.set("/value", .string("b"))
+        await tracker.process(
+            buildRenderTreeWithWatches(spec: spec, registry: registry, store: state, dispatcher: dispatcher).watches,
+            dispatcher: dispatcher,
+            store: state
+        )
+        XCTAssertEqual(calls.value, 1)
+    }
+
+    func testWatchParamsResolveComputedFunctions() async throws {
+        var registry = Fixtures.recordingRegistry()
+        registry.functions["shout"] = { arguments in
+            .string((arguments["text"]?.stringValue ?? "").uppercased())
+        }
+        let received = Box<[String: JSONValue]>([:])
+        let spec = makeWatchSpec(
+            watch: #""/value":{"action":"record","params":{"label":{"$computed":"shout","args":{"text":{"$state":"/value"}}}}}"#
+        )
+        let state = StateStore(spec: spec)
+        let dispatcher = ActionDispatcher(store: state)
+        dispatcher.register("record") { params in received.value = params }
+
+        let tracker = WatchTracker(functions: registry.functions, directives: registry.directives)
+        let records = buildRenderTreeWithWatches(
+            spec: spec,
+            registry: registry,
+            store: state,
+            dispatcher: dispatcher
+        ).watches
+        tracker.snapshot(records)
+
+        state.set("/value", .string("hi"))
+        await tracker.process(
+            buildRenderTreeWithWatches(
+                spec: spec,
+                registry: registry,
+                store: state,
+                dispatcher: dispatcher
+            ).watches,
+            dispatcher: dispatcher,
+            store: state
+        )
+
+        XCTAssertEqual(received.value["label"], .string("HI"))
+    }
+
+    func testSpecKnowsWhetherItWatchesState() {
+        XCTAssertTrue(makeWatchSpec(watch: #""/value":{"action":"record"}"#).hasWatches)
+        XCTAssertFalse(
+            Spec.decodePartial(
+                JSONValue.decode(#"{"root":"t","elements":{"t":{"type":"Text","props":{}}}}"#)!
+            ).hasWatches
+        )
     }
 
     func testCyclicSpecStopsAtTheCycle() throws {
@@ -211,5 +426,24 @@ final class RenderTreeTests: XCTestCase {
         XCTAssertTrue(recorder.messages.contains { $0.contains("contains itself") })
 
         _ = recorder
+    }
+}
+
+/// A one-shot gate: a test handler waits until the test opens it.
+actor AsyncGate {
+    private var waiters: [CheckedContinuation<Void, Never>] = []
+    private var isOpen = false
+
+    func wait() async {
+        if isOpen { return }
+        await withCheckedContinuation { continuation in
+            waiters.append(continuation)
+        }
+    }
+
+    func open() {
+        isOpen = true
+        for waiter in waiters { waiter.resume() }
+        waiters.removeAll()
     }
 }

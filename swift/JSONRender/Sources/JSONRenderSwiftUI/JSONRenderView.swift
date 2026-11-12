@@ -104,8 +104,12 @@ public final class JSONRenderModel: ObservableObject {
     /// Bounds for each rendered-tree build.
     public let limits: RenderTreeLimits
 
-    private let watchTracker = WatchTracker()
+    private let watchTracker: WatchTracker
     private var subscription: StateSubscription?
+
+    /// Whether any element in the current spec watches state. A state change
+    /// only needs its own build when a watch could fire.
+    private var hasWatches: Bool
 
     /// Increments on every state change so SwiftUI re-evaluates the body.
     @Published private(set) var revision = 0
@@ -132,10 +136,15 @@ public final class JSONRenderModel: ObservableObject {
             navigate: navigate
         )
         self.dispatcher.requestConfirmation = confirm
+        self.watchTracker = WatchTracker(
+            functions: registry.functions,
+            directives: registry.directives
+        )
+        self.hasWatches = spec.hasWatches
         // Record the watched values of the initial render, so the first state
         // change compares against them and runs its watch actions.
-        if let tree = tree(loading: loading) {
-            watchTracker.snapshot(watchRecords(tree, state: store.snapshot))
+        if hasWatches {
+            watchTracker.snapshot(buildWatches())
         }
         self.subscription = store.subscribe { [weak self] in
             self?.stateChanged()
@@ -145,18 +154,28 @@ public final class JSONRenderModel: ObservableObject {
     /// Applies a spec that the owning view received after the model was
     /// created.
     ///
-    /// A different spec rebuilds the tree and resets the store to the new
-    /// spec's `state`. An equal spec is ignored, so the current state, including
-    /// edits made through `$bindState`, is kept.
+    /// A different spec rebuilds the tree and updates only the initial state
+    /// keys whose value changed. An equal spec is ignored, so the current
+    /// state, including edits made through `$bindState`, is kept.
     public func update(spec newSpec: Spec) {
         guard newSpec != spec else { return }
+        let currentState = store.snapshot
         let nextState = stateAfterSpecChange(
             previous: spec,
             next: newSpec,
-            current: store.snapshot
+            current: currentState
         )
         spec = newSpec
-        store.replace(nextState)
+        hasWatches = newSpec.hasWatches
+        // A watch that appears with the new spec records its current value as
+        // its baseline, the way a watch does when its element first mounts, so
+        // the state merge below can still fire it.
+        if hasWatches {
+            watchTracker.snapshot(buildWatches())
+        }
+        if nextState != currentState {
+            store.replace(nextState)
+        }
     }
 
     /// Builds the current tree.
@@ -171,6 +190,18 @@ public final class JSONRenderModel: ObservableObject {
             loading: loading,
             limits: limits
         )
+    }
+
+    /// The watch entries of the current state, from one build of the tree.
+    private func buildWatches() -> [WatchRecord] {
+        buildRenderTreeWithWatches(
+            spec: spec,
+            registry: registry,
+            store: store,
+            dispatcher: dispatcher,
+            loading: loading,
+            limits: limits
+        ).watches
     }
 
     /// Store listeners run on the thread that changed the state. Actions run
@@ -193,8 +224,10 @@ public final class JSONRenderModel: ObservableObject {
         } else {
             revision &+= 1
         }
-        guard let tree = tree(loading: loading) else { return }
-        let records = watchRecords(tree, state: store.snapshot)
+        // The body builds the tree for SwiftUI; the watches come from a build
+        // of their own, so skip it when the spec has no watch to run.
+        guard hasWatches else { return }
+        let records = buildWatches()
         Task { @MainActor in
             await watchTracker.process(records, dispatcher: dispatcher, store: store)
         }

@@ -221,7 +221,9 @@ struct GridView: View {
     @Environment(\.jsonRenderTextScale) private var textScale
 
     var body: some View {
-        let columns = max(1, min(6, context.props.number("columns").map { Int($0) } ?? 2))
+        // Clamped before converting: `Int(_:)` traps for a value past
+        // `Int.max`, which a malformed `columns` in the spec can reach.
+        let columns = (context.props.number("columns") ?? 2).clampedInt(to: 1...6, fallback: 2)
         let spacing = CatalogTheme.gap(context.props["gap"], fallback: 12)
 
         ColumnsLayout(columns: columns, spacing: spacing, minColumnWidth: 140 * textScale) {

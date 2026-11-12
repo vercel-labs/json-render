@@ -123,6 +123,41 @@ public struct ComponentRenderContext<Render> {
     public func setState(at path: String, to value: JSONValue) {
         writeState(path, value)
     }
+
+    /// The children paired with their element identities, for a view container
+    /// that lists them. Hiding one child then does not shift the identity of
+    /// the children after it, which would lose their state and focus.
+    public var identifiedChildren: [IdentifiedChild<Render>] {
+        identifyChildren(children, ids: childIDs)
+    }
+}
+
+/// A rendered child paired with a stable identity.
+public struct IdentifiedChild<Render>: Identifiable {
+    /// The identity to give the child in a `ForEach`.
+    public let id: String
+    /// The child's position in the parent's `children`.
+    public let index: Int
+    /// The rendered child.
+    public let content: Render
+}
+
+/// Pairs each child with the element identity at the same position.
+///
+/// A child without an id falls back to its index. Repeated ids, which a spec
+/// that references the same child twice produces, get a unique suffix.
+public func identifyChildren<Render>(_ children: [Render], ids: [String]) -> [IdentifiedChild<Render>] {
+    var seen: [String: Int] = [:]
+    return children.indices.map { index in
+        let base = index < ids.count ? ids[index] : "#\(index)"
+        let count = seen[base, default: 0]
+        seen[base] = count + 1
+        return IdentifiedChild(
+            id: count == 0 ? base : "\(base)#\(count)",
+            index: index,
+            content: children[index]
+        )
+    }
 }
 
 /// A component renderer registered for one catalog component name.

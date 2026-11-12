@@ -44,7 +44,7 @@ public enum BuiltInComponents {
                     StackLayout(
                         horizontal: isHorizontal,
                         spacing: spacing(context.props["gap"] ?? context.props["spacing"], fallback: 8),
-                        children: context.children
+                        children: context.identifiedChildren
                     )
                 )
             },
@@ -52,8 +52,8 @@ public enum BuiltInComponents {
             "Row": ComponentDefinition { context in
                 AnyView(
                     HStack(alignment: .center, spacing: spacing(context.props["gap"] ?? context.props["spacing"], fallback: 8)) {
-                        ForEach(context.children.indices, id: \.self) { index in
-                            context.children[index]
+                        ForEach(context.identifiedChildren) { child in
+                            child.content
                         }
                     }
                 )
@@ -62,7 +62,7 @@ public enum BuiltInComponents {
             "Column": ComponentDefinition { context in
                 AnyView(
                     VStack(alignment: .leading, spacing: spacing(context.props["gap"] ?? context.props["spacing"], fallback: 8)) {
-                        ChildViews(children: context.children)
+                        ChildViews(children: context.identifiedChildren)
                     }
                 )
             },
@@ -104,7 +104,7 @@ public enum BuiltInComponents {
             "List": ComponentDefinition { context in
                 AnyView(
                     VStack(alignment: .leading, spacing: spacing(context.props["spacing"], fallback: 8)) {
-                        ChildViews(children: context.children)
+                        ChildViews(children: context.identifiedChildren)
                     }
                 )
             },
@@ -134,19 +134,22 @@ public enum BuiltInComponents {
 }
 
 /// Renders an array of already-rendered children in a vertical stack.
+///
+/// The children keep their element identities, so hiding one does not shift
+/// the state or focus of the ones after it.
 public struct ChildViews: View {
-    public let children: [AnyView]
+    public let children: [IdentifiedChild<AnyView>]
     public let spacing: CGFloat
 
-    public init(children: [AnyView], spacing: CGFloat = 0) {
+    public init(children: [IdentifiedChild<AnyView>], spacing: CGFloat = 0) {
         self.children = children
         self.spacing = spacing
     }
 
     public var body: some View {
         VStack(alignment: .leading, spacing: spacing) {
-            ForEach(children.indices, id: \.self) { index in
-                children[index]
+            ForEach(children) { child in
+                child.content
             }
         }
     }
@@ -155,19 +158,19 @@ public struct ChildViews: View {
 private struct StackLayout: View {
     let horizontal: Bool
     let spacing: CGFloat
-    let children: [AnyView]
+    let children: [IdentifiedChild<AnyView>]
 
     var body: some View {
         if horizontal {
             HStack(alignment: .center, spacing: spacing) {
-                ForEach(children.indices, id: \.self) { index in
-                    children[index]
+                ForEach(children) { child in
+                    child.content
                 }
             }
         } else {
             VStack(alignment: .leading, spacing: spacing) {
-                ForEach(children.indices, id: \.self) { index in
-                    children[index]
+                ForEach(children) { child in
+                    child.content
                 }
             }
         }

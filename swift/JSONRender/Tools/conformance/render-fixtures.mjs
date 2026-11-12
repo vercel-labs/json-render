@@ -8,7 +8,8 @@
 // into `data-slot` wrappers. jsdom turns the resulting markup back into a tree.
 //
 // Usage, from the repo root:
-//   node swift/JSONRender/Tools/conformance/render-fixtures.mjs
+//   node swift/JSONRender/Tools/conformance/render-fixtures.mjs          # write
+//   node swift/JSONRender/Tools/conformance/render-fixtures.mjs --check  # fail if stale
 //
 // Requires the workspace dependencies (react, react-dom, jsdom) and a built
 // `@json-render/react` package (`pnpm build --filter @json-render/react`).
@@ -124,8 +125,7 @@ function renderFixture(spec) {
   return record(root);
 }
 
-fs.mkdirSync(expectedDir, { recursive: true });
-
+const check = process.argv.includes("--check");
 const fixtureFiles = fs
   .readdirSync(specsDir)
   .filter((name) => name.endsWith(".json"))
@@ -136,10 +136,34 @@ if (fixtureFiles.length === 0) {
   process.exit(1);
 }
 
+let stale = 0;
+
 for (const file of fixtureFiles) {
   const spec = JSON.parse(fs.readFileSync(path.join(specsDir, file), "utf8"));
   const tree = renderFixture(spec);
   const outputFile = path.join(expectedDir, file);
-  fs.writeFileSync(outputFile, JSON.stringify(tree, null, 2) + "\n");
+  const output = JSON.stringify(tree, null, 2) + "\n";
+
+  if (check) {
+    const existing = fs.existsSync(outputFile)
+      ? fs.readFileSync(outputFile, "utf8")
+      : "";
+    if (existing !== output) {
+      stale += 1;
+      console.error(
+        `render-fixtures: ${path.relative(process.cwd(), outputFile)} is out of date. ` +
+          "Run `node swift/JSONRender/Tools/conformance/render-fixtures.mjs` to update it.",
+      );
+    }
+    continue;
+  }
+
+  fs.mkdirSync(expectedDir, { recursive: true });
+  fs.writeFileSync(outputFile, output);
   console.log(`render-fixtures: wrote ${path.relative(process.cwd(), outputFile)}`);
+}
+
+if (check) {
+  if (stale > 0) process.exit(1);
+  console.log("render-fixtures: expected trees are up to date.");
 }

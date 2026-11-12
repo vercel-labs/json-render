@@ -60,9 +60,9 @@ struct ContentView: View {
 }
 ```
 
-`JSONRenderView` takes a `Spec`, a `RendererRegistry<AnyView>`, an optional `initialState`, optional `navigate` and `confirm` closures, a `loading` flag for streamed specs, and an optional `animation` for layout changes caused by state updates, such as an element that a visibility condition shows or hides. The view owns a `StateStore` seeded from `spec.state`, rebuilds the tree on the main thread when state changes, and runs `watch` bindings when a watched value changes after the initial render.
+`JSONRenderView` takes a `Spec`, a `RendererRegistry<AnyView>`, an optional `initialState`, optional `navigate` and `confirm` closures (`navigate` is called on the main thread), a `loading` flag for streamed specs, and an optional `animation` for layout changes caused by state updates, such as an element that a visibility condition shows or hides. The view owns a `StateStore` seeded from `spec.state`, rebuilds the tree on the main thread when state changes, and runs `watch` bindings when a watched value changes after the initial render.
 
-When the `spec` you pass changes, the view applies it to the existing model. A different spec renders the new tree and resets the store to the new spec's `state`. An equal spec keeps the current state, including edits made through `$bindState`.
+When the `spec` you pass changes, the view applies it to the existing model. A different spec renders the new tree and updates only the `state` keys whose initial value changed, so a streamed patch that fills in props does not wipe what the user has typed. Keys the new spec drops are removed, and an equal spec keeps the current state.
 
 Register app components with `ComponentDefinition` and pass them through `extraComponents`:
 
@@ -72,7 +72,7 @@ let registry = BuiltInComponents.registry(
         "Card": ComponentDefinition { context in
             AnyView(
                 GroupBox(context.props.string("title") ?? "") {
-                    ChildViews(children: context.children)
+                    ChildViews(children: context.identifiedChildren)
                 }
             )
         },
@@ -170,7 +170,7 @@ While `loading` is true, children that have not arrived yet are skipped without 
 - Structural validation and catalog validation.
 - Expressions: `$state`, `$item`, `$index`, `$bindState`, `$bindItem`, `$cond`, `$computed`, and `$template`.
 - Visibility conditions and repeat expansion.
-- Actions: custom handlers, the built-in `setState`, `pushState`, and `removeState` actions, `on` bindings, `watch` bindings, and action confirmation.
+- Actions: custom handlers, the built-in `setState`, `pushState` (which expands `"$id"` and `{ "$id": true }` to a generated id), and `removeState` actions, `on` bindings, `watch` bindings, and action confirmation.
 - An observable state store with path reads and writes.
 - Unknown component and action handling that matches the React renderer.
 - Shared render tree limits that stop a spec from expanding exponentially.
@@ -192,7 +192,7 @@ swift build
 swift test
 ```
 
-On Linux, `swift build` compiles `JSONRenderCore` and the example apps' non-SwiftUI fallbacks. The SwiftUI targets are guarded by `#if canImport(SwiftUI)`.
+On Linux, `swift build` builds and `swift test` tests `JSONRenderCore`. The SwiftUI, catalog, and example sources are behind `#if canImport(SwiftUI)`, so they compile to empty modules there; CI also runs a macOS job that compiles them.
 
 The tests use XCTest. On macOS, `swift test` needs a full Xcode installation because the Command Line Tools do not include XCTest, while `swift build` works with either toolchain. On Linux, use the Swift 5.9 or later toolchain from [swift.org](https://www.swift.org/install/).
 
@@ -253,6 +253,7 @@ node swift/JSONRender/Scripts/generate-spec-model.mjs --check
 
 ```bash
 node swift/JSONRender/Tools/conformance/render-fixtures.mjs
+node swift/JSONRender/Tools/conformance/render-fixtures.mjs --check
 ```
 
-The script imports `packages/react/dist/index.mjs`, so build that package and install the workspace dependencies before running it.
+`--check` renders the fixtures without writing and exits non-zero when a checked-in expected tree differs, so the trees cannot drift from the React renderer. CI runs it. The script imports `packages/react/dist/index.mjs`, so build that package and install the workspace dependencies before running it.

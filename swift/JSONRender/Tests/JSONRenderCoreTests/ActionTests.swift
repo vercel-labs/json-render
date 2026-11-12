@@ -122,6 +122,9 @@ final class ActionTests: XCTestCase {
             handlers: ["save": { _ in }],
             navigate: { navigated.value = $0 }
         )
+        // Deliver inline: the default hops to the main thread, which no run
+        // loop pumps while an async test waits.
+        dispatcher.deliverToHost = { $0() }
 
         await dispatcher.dispatch(
             ActionBinding(
@@ -209,6 +212,90 @@ final class ActionTests: XCTestCase {
         XCTAssertFalse(received.value)
     }
 
+    func testNavigateIsDeliveredToTheHost() async {
+        let navigated = Box<[String]>([])
+        let (dispatcher, _) = makeDispatcher(
+            handlers: ["save": { _ in }],
+            navigate: { path in navigated.value.append(path) }
+        )
+        let deliveries = Box<Int>(0)
+        dispatcher.deliverToHost = { work in
+            deliveries.value += 1
+            work()
+        }
+
+        await dispatcher.dispatch(
+            ActionBinding(action: "save", onSuccess: .navigate("/done"))
+        )
+
+        XCTAssertEqual(deliveries.value, 1, "Navigate goes through host delivery")
+        XCTAssertEqual(navigated.value, ["/done"])
+    }
+
+    func testRunOnMainThreadRunsInlineOnTheMainThread() {
+        // XCTest runs synchronous tests on the main thread; the fast path must
+        // not defer the work, so a main-thread host sees navigate immediately.
+        XCTAssertTrue(Thread.isMainThread)
+        let ran = Box<Bool>(false)
+        runOnMainThread { ran.value = true }
+        XCTAssertTrue(ran.value)
+    }
+
+    func testPushStateExpandsTheIDToken() async throws {
+        let (dispatcher, store) = makeDispatcher(state: ["todos": .array([])])
+
+        for _ in 0..<2 {
+            await dispatcher.dispatch(
+                ActionBinding(
+                    action: "pushState",
+                    params: [
+                        "statePath": .value(.string("/todos")),
+                        "value": .value(
+                            .object([
+                                "id": .string("$id"),
+                                "title": .string("Write tests"),
+                                "done": .bool(false),
+                            ])
+                        ),
+                    ]
+                )
+            )
+        }
+
+        let todos = try XCTUnwrap(store.get("/todos")?.arrayValue)
+        XCTAssertEqual(todos.count, 2)
+        let ids = todos.compactMap { $0["id"]?.stringValue }
+        XCTAssertEqual(ids.count, 2)
+        for id in ids {
+            XCTAssertNotEqual(id, "$id")
+            XCTAssertNotNil(
+                id.range(of: #"^\d+-\d+$"#, options: .regularExpression),
+                "Expected a generated id, got \"\(id)\""
+            )
+        }
+        XCTAssertNotEqual(ids[0], ids[1], "Each push gets a new id")
+        XCTAssertEqual(todos[0]["title"], .string("Write tests"))
+    }
+
+    func testPushStateExpandsTheObjectIDToken() async throws {
+        let (dispatcher, store) = makeDispatcher(state: ["todos": .array([])])
+
+        await dispatcher.dispatch(
+            ActionBinding(
+                action: "pushState",
+                params: [
+                    "statePath": .value(.string("/todos")),
+                    "value": .value(.object(["id": .object(["$id": .bool(true)])])),
+                ]
+            )
+        )
+
+        let todos = try XCTUnwrap(store.get("/todos")?.arrayValue)
+        let id = try XCTUnwrap(todos.first?["id"]?.stringValue)
+        XCTAssertNotEqual(id, "$id")
+        XCTAssertNil(todos.first?["id"]?.objectValue)
+    }
+
     func testResolveActionInterpolatesConfirmation() {
         let resolved = resolveAction(
             ActionBinding(
@@ -221,5 +308,13 @@ final class ActionTests: XCTestCase {
         XCTAssertEqual(resolved.params["path"], .string("notes.txt"))
         XCTAssertEqual(resolved.confirm?.title, "Delete notes.txt")
         XCTAssertEqual(resolved.confirm?.message, "Remove notes.txt?")
+    }
+
+    func testInterpolateStateLeavesAnEmptyReference() {
+        let state = JSONValue.object(["file": .string("notes.txt")])
+
+        XCTAssertEqual(interpolateState("${}", stateModel: state), "${}")
+        XCTAssertEqual(interpolateState("a ${} b", stateModel: state), "a ${} b")
+        XCTAssertEqual(interpolateState("Delete ${/file}?", stateModel: state), "Delete notes.txt?")
     }
 }

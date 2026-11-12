@@ -50,6 +50,12 @@ public func applySpecStreamPatch(_ root: inout JSONValue, _ patch: JsonPatch) th
 }
 
 /// Applies a patch to a decoded spec by round-tripping through JSON.
+///
+/// The result goes through `decodePartial`, which drops an element that is
+/// still incomplete, so props that arrived before its `type` are lost rather
+/// than waiting for the rest. Use `SpecStreamCompiler`, which keeps the raw
+/// JSON and only decodes on demand, for a stream that patches an element in
+/// several steps.
 public func applySpecPatch(_ spec: inout Spec, _ patch: JsonPatch) throws {
     var root = spec.jsonValue
     try applySpecStreamPatch(&root, patch)

@@ -105,6 +105,19 @@ final class ExpressionTests: XCTestCase {
         XCTAssertEqual(resolvePropValue(missing, context()), .string("[]"))
     }
 
+    func testTemplateWithAnEmptyReferenceStaysLiteral() {
+        // Core's `${...}` pattern needs at least one character, so `${}` is
+        // not a reference and must not print the whole state model.
+        let empty = JSONValue.decode(#"{"$template":"a ${} b ${/theme}"}"#)!
+        XCTAssertEqual(resolvePropValue(empty, context()), .string("a ${} b dark"))
+
+        let onlyEmpty = JSONValue.decode(#"{"$template":"${}"}"#)!
+        XCTAssertEqual(resolvePropValue(onlyEmpty, context()), .string("${}"))
+
+        let unterminated = JSONValue.decode(#"{"$template":"x ${/theme"}"#)!
+        XCTAssertEqual(resolvePropValue(unterminated, context()), .string("x ${/theme"))
+    }
+
     func testComputedExpression() {
         let functions: [String: ComputedFunction] = [
             "concat": { args in

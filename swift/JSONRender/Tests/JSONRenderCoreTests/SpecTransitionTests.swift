@@ -50,4 +50,90 @@ final class SpecTransitionTests: XCTestCase {
 
         XCTAssertEqual(next, .object([:]))
     }
+
+    func testChangedSpecKeepsEditsToUnchangedInitialState() {
+        let previous = Spec(
+            root: "a",
+            elements: ["a": UIElement(type: "Text", props: ["text": .string("first")])],
+            state: ["name": .string("Ada"), "count": .number(1)]
+        )
+        // Same state, a different prop: a streaming patch, not a new spec.
+        let next = Spec(
+            root: "a",
+            elements: ["a": UIElement(type: "Text", props: ["text": .string("changed")])],
+            state: ["name": .string("Ada"), "count": .number(1)]
+        )
+
+        let result = stateAfterSpecChange(
+            previous: previous,
+            next: next,
+            current: .object(["name": .string("Edited"), "count": .number(3)])
+        )
+
+        XCTAssertEqual(result, .object(["name": .string("Edited"), "count": .number(3)]))
+    }
+
+    func testChangedSpecUpdatesOnlyChangedInitialStateKeys() {
+        let previous = Spec(
+            root: "a",
+            elements: ["a": UIElement(type: "Text", props: [:])],
+            state: ["name": .string("Ada"), "count": .number(1)]
+        )
+        let next = Spec(
+            root: "a",
+            elements: ["a": UIElement(type: "Text", props: ["text": .string("changed")])],
+            state: ["name": .string("Ada"), "count": .number(2)]
+        )
+
+        let result = stateAfterSpecChange(
+            previous: previous,
+            next: next,
+            current: .object(["name": .string("Edited"), "count": .number(3)])
+        )
+
+        XCTAssertEqual(result, .object(["name": .string("Edited"), "count": .number(2)]))
+    }
+
+    func testChangedSpecComparesNestedStateKeysSeparately() {
+        let previous = Spec(
+            root: "a",
+            elements: ["a": UIElement(type: "Text", props: [:])],
+            state: ["user": .object(["name": .string("Ada"), "age": .number(36)])]
+        )
+        let next = Spec(
+            root: "a",
+            elements: ["a": UIElement(type: "Text", props: ["text": .string("changed")])],
+            state: ["user": .object(["name": .string("Ada"), "age": .number(37)])]
+        )
+
+        let result = stateAfterSpecChange(
+            previous: previous,
+            next: next,
+            current: .object(["user": .object(["name": .string("Edited"), "age": .number(36)])])
+        )
+
+        XCTAssertEqual(
+            result,
+            .object(["user": .object(["name": .string("Edited"), "age": .number(37)])])
+        )
+    }
+
+    func testChangedSpecAddsNewInitialStateKeys() {
+        let next = Spec(
+            root: "a",
+            elements: ["a": UIElement(type: "Text", props: ["text": .string("changed")])],
+            state: ["name": .string("Ada"), "count": .number(1), "draft": .string("")]
+        )
+
+        let result = stateAfterSpecChange(
+            previous: first,
+            next: next,
+            current: .object(["name": .string("Edited"), "count": .number(1)])
+        )
+
+        XCTAssertEqual(
+            result,
+            .object(["name": .string("Edited"), "count": .number(1), "draft": .string("")])
+        )
+    }
 }

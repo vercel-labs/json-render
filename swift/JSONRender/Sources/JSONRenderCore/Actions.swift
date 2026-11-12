@@ -48,7 +48,7 @@ public func resolveDynamicValue(_ value: DynamicValue, stateModel: JSONValue) ->
 }
 
 /// Resolves every `$state` expression in a JSON value, leaving other values
-/// alone. The `pushState` built-in uses this for the object it appends.
+/// alone.
 public func deepResolveDynamicValue(_ value: JSONValue, stateModel: JSONValue) -> JSONValue {
     switch value {
     case .object(let object):
@@ -63,23 +63,64 @@ public func deepResolveDynamicValue(_ value: JSONValue, stateModel: JSONValue) -
     }
 }
 
+/// Resolves the `pushState` value, which also expands the `$id` token.
+///
+/// `"$id"` and `{ "$id": true }` become a generated unique ID, and
+/// `{ "$state": "/path" }` reads state, the way the React action provider
+/// resolves a pushed value. The core prompt tells models to use `"$id"` for
+/// new list items.
+public func deepResolvePushValue(_ value: JSONValue, stateModel: JSONValue) -> JSONValue {
+    switch value {
+    case .string("$id"):
+        return .string(UniqueID.next())
+    case .object(let object):
+        if object.count == 1, let path = object["$state"]?.stringValue {
+            return getByPath(stateModel, path) ?? .null
+        }
+        if object.count == 1, object["$id"] != nil {
+            return .string(UniqueID.next())
+        }
+        return .object(object.mapValues { deepResolvePushValue($0, stateModel: stateModel) })
+    case .array(let values):
+        return .array(values.map { deepResolvePushValue($0, stateModel: stateModel) })
+    default:
+        return value
+    }
+}
+
+/// IDs for `$id`, in the form the React renderer uses: the current time in
+/// milliseconds plus a counter, so two IDs generated in the same millisecond
+/// still differ.
+enum UniqueID {
+    private static let lock = NSLock()
+    private static var counter = 0
+
+    static func next() -> String {
+        lock.lock()
+        defer { lock.unlock() }
+        counter += 1
+        let milliseconds = Int(Date().timeIntervalSince1970 * 1000)
+        return "\(milliseconds)-\(counter)"
+    }
+}
+
 /// Interpolates `${path}` expressions in a title or message.
 public func interpolateState(_ template: String, stateModel: JSONValue) -> String {
-    var result = ""
-    var remainder = Substring(template)
-    while let start = remainder.range(of: "${") {
-        result += remainder[..<start.lowerBound]
-        let afterStart = remainder[start.upperBound...]
-        guard let end = afterStart.firstIndex(of: "}") else {
-            result += remainder[start.lowerBound...]
-            return result
-        }
-        let path = String(afterStart[..<end])
-        result += getByPath(stateModel, path)?.displayString ?? ""
-        remainder = afterStart[afterStart.index(after: end)...]
+    interpolatePaths(template) { path in
+        getByPath(stateModel, path)?.displayString ?? ""
     }
-    result += remainder
-    return result
+}
+
+/// Runs a host callback on the main thread.
+///
+/// Action handlers run on the cooperative pool, so a host that updates SwiftUI
+/// state from `navigate` would otherwise do it in the background.
+func runOnMainThread(_ work: @escaping @Sendable () -> Void) {
+    if Thread.isMainThread {
+        work()
+    } else {
+        DispatchQueue.main.async(execute: work)
+    }
 }
 
 /// An action binding with dynamic values resolved.
@@ -176,6 +217,12 @@ public func executeAction(_ context: ActionExecutionContext) async throws {
 public final class ActionDispatcher: @unchecked Sendable {
     public private(set) var handlers: [String: ActionHandler]
     public var navigate: ((String) -> Void)?
+    /// Delivers `navigate` to the host. Actions run on the cooperative pool, so
+    /// the default hops to the main thread before calling a host closure that
+    /// may update UI. A host without a main loop can replace it.
+    public var deliverToHost: (@Sendable (@escaping @Sendable () -> Void) -> Void) = { work in
+        runOnMainThread(work)
+    }
     /// Called when a binding carries a `confirm` block. Returning false cancels
     /// the action. When nil, the action runs without a prompt.
     public var requestConfirmation: ((ActionConfirm) async -> Bool)?
@@ -225,7 +272,11 @@ public final class ActionDispatcher: @unchecked Sendable {
             action: resolved,
             handler: handler,
             setState: { [store] path, value in store.set(path, value) },
-            navigate: navigate,
+            navigate: navigate.map { navigate in
+                { [deliver = self.deliverToHost] path in
+                    deliver { navigate(path) }
+                }
+            },
             executeAction: { [weak self] binding in
                 await self?.dispatch(binding)
             }
@@ -248,7 +299,7 @@ public final class ActionDispatcher: @unchecked Sendable {
 
         case "pushState":
             guard let statePath = resolved.params["statePath"]?.stringValue else { return true }
-            let value = deepResolveDynamicValue(resolved.params["value"] ?? .null, stateModel: store.snapshot)
+            let value = deepResolvePushValue(resolved.params["value"] ?? .null, stateModel: store.snapshot)
             var array = store.get(statePath)?.arrayValue ?? []
             array.append(value)
             store.set(statePath, .array(array))

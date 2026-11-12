@@ -68,10 +68,12 @@ public enum JSONValue: Codable, Equatable, Sendable {
         return nil
     }
 
-    /// The value as an integer when it is a whole number, or `nil` otherwise.
+    /// The value as an integer when it is a whole number that fits in `Int`,
+    /// or `nil` otherwise. `Int(exactly:)` returns nil instead of trapping for
+    /// values past `Int.max`, such as `1e19` in a spec.
     public var intValue: Int? {
-        guard case .number(let value) = self, value.rounded() == value else { return nil }
-        return Int(value)
+        guard case .number(let value) = self else { return nil }
+        return Int(exactly: value)
     }
 
     /// The value as a Boolean, or `nil` for other JSON types.
@@ -119,7 +121,11 @@ public enum JSONValue: Codable, Equatable, Sendable {
         case .null: return ""
         case .string(let value): return value
         case .number(let value):
-            return value.rounded() == value ? String(Int(value)) : String(value)
+            // A whole number prints without a decimal point. Values past
+            // `Int.max` cannot be converted, so they print in Swift's form
+            // instead of trapping.
+            if let integer = Int(exactly: value) { return String(integer) }
+            return String(value)
         case .bool(let value): return value ? "true" : "false"
         case .array, .object:
             return JSONValue.encodedString(self) ?? ""
@@ -145,6 +151,20 @@ public enum JSONValue: Codable, Equatable, Sendable {
     public func decoded<T: Decodable>(as type: T.Type) -> T? {
         guard let data = try? JSONEncoder().encode(self) else { return nil }
         return try? JSONDecoder().decode(T.self, from: data)
+    }
+}
+
+extension Double {
+    /// The value rounded to a whole number and clamped to `range`.
+    ///
+    /// `Int(_:)` traps for a value past `Int.max`, which a spec-supplied
+    /// number can reach, so clamping happens in `Double` first. A value that
+    /// is not finite yields `fallback`.
+    public func clampedInt(to range: ClosedRange<Int>, fallback: Int) -> Int {
+        guard isFinite else { return fallback }
+        let lower = Double(range.lowerBound)
+        let upper = Double(range.upperBound)
+        return Int(min(upper, max(lower, rounded())))
     }
 }
 
