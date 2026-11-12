@@ -69,7 +69,7 @@ export const spec: NextAppSpec = {
 import { createNextApp } from "@json-render/next/server";
 import { spec } from "./spec";
 
-export const { Page, generateMetadata, generateStaticParams } = createNextApp({
+export const { getPageData, generateMetadata, generateStaticParams } = createNextApp({
   spec,
   loaders: {
     // Server-side data loaders (optional)
@@ -85,26 +85,40 @@ export const { Page, generateMetadata, generateStaticParams } = createNextApp({
 
 ```tsx
 // app/[[...slug]]/page.tsx
-export { Page as default, generateMetadata, generateStaticParams } from "@/lib/app";
+import { notFound } from "next/navigation";
+import { PageRenderer } from "@json-render/next";
+import { getPageData, generateMetadata, generateStaticParams } from "@/lib/app";
+
+export { generateMetadata, generateStaticParams };
+
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ slug?: string[] }>;
+}) {
+  const data = await getPageData({ params });
+  if (!data) notFound();
+  return <PageRenderer {...data} />;
+}
 ```
 
 ```tsx
 // app/[[...slug]]/layout.tsx
+"use client";
+
 import { NextAppProvider } from "@json-render/next";
 import { registry, handlers } from "@/lib/registry";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body>
-        <NextAppProvider registry={registry} handlers={handlers}>
-          {children}
-        </NextAppProvider>
-      </body>
-    </html>
+    <NextAppProvider registry={registry} handlers={handlers}>
+      {children}
+    </NextAppProvider>
   );
 }
 ```
+
+The layout is a Client Component because `registry` holds functions. Keep `<html>` and `<body>` in your root `app/layout.tsx`.
 
 ## Key Concepts
 
@@ -161,12 +175,7 @@ createNextApp({
 
 ### SSR
 
-Pages are server-rendered automatically. The `createNextApp` `Page` component is an async Server Component that:
-
-1. Matches the route from the spec
-2. Runs server-side data loaders
-3. Generates metadata
-4. Passes the resolved spec to the client renderer for hydration
+`getPageData` matches the route, runs the loader and merges state. `page.tsx` is an async Server Component that calls it and renders `PageRenderer`; only resolved page data crosses to the client.
 
 ### Entry Points
 
@@ -177,7 +186,7 @@ Pages are server-rendered automatically. The `createNextApp` `Page` component is
 
 ### Server Exports (`@json-render/next/server`)
 
-- `createNextApp(options)` -- Create Page, generateMetadata, generateStaticParams
+- `createNextApp(options)` -- Create getPageData, generateMetadata, generateStaticParams
 - `schema` -- Custom schema for Next.js apps (for AI catalog generation)
 - `matchRoute(spec, pathname)` -- Match a URL to a route spec
 - `resolveMetadata(spec, route)` -- Resolve metadata for a route

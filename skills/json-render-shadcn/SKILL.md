@@ -1,5 +1,5 @@
 ---
-name: shadcn
+name: json-render-shadcn
 description: Pre-built shadcn/ui components for json-render. Use when working with @json-render/shadcn, adding standard UI components to a catalog, or building web UIs with Radix UI + Tailwind CSS components.
 ---
 

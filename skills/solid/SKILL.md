@@ -162,21 +162,20 @@ Supported expression forms include:
 Use `useBoundProp` in components for writable bound values:
 
 ```tsx
-import { useBoundProp } from "@json-render/solid";
+import { useBoundProp, type BaseComponentProps } from "@json-render/solid";
 
 function Input(props: BaseComponentProps<{ value?: string }>) {
-  const [value, setValue] = useBoundProp(
-    props.props.value,
-    props.bindings?.value,
-  );
+  const [, setValue] = useBoundProp(props.props.value, props.bindings?.value);
   return (
     <input
-      value={String(value() ?? "")}
+      value={String(props.props.value ?? "")}
       onInput={(e) => setValue(e.currentTarget.value)}
     />
   );
 }
 ```
+
+`useBoundProp` returns a scalar value and a write-back setter. Read the resolved prop inside JSX so later state updates remain reactive.
 
 `useStateValue`, `useStateBinding`, and the `state` / `errors` / `isValid` fields from `useFieldValidation` are reactive accessors in Solid. Call them as functions inside JSX, `createMemo`, or `createEffect`.
 

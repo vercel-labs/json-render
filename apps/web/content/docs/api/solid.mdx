@@ -119,7 +119,7 @@ const { registry, handlers, executeAction } = defineRegistry(catalog, {
     Card: (renderProps) => <div>{renderProps.children}</div>,
     Button: (renderProps) => (
       <button onClick={() => renderProps.emit("press")}>
-        {renderProps.element.props.label as string}
+        {renderProps.props.label}
       </button>
     ),
   },
@@ -162,7 +162,7 @@ const AppRenderer = createRenderer(catalog, {
 - `useActions()` / `useAction(binding)`
 - `useValidation()` / `useOptionalValidation()`
 - `useFieldValidation(path, config)` - returns accessor-backed `state`, `errors`, and `isValid`
-- `useBoundProp(value, bindingPath)`
+- `useBoundProp(value, bindingPath)` - returns `[value, setValue]`, where `value` is the resolved prop and not an accessor
 - `useUIStream(options)`
 - `useChatUI(options)`
 

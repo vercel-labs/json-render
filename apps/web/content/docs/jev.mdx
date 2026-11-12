@@ -3,7 +3,7 @@ title: "Jev (Experimental)"
 ---
 **Experimental:** `experimental_composeSpec` and `experimental_createEvaluator` are reusable APIs in `@json-render/core`. Like AI SDK's experimental APIs, names prefixed with `experimental_` or `Experimental_` may change in any release. Pin exact package versions (no `^` or `~`) and review release notes before upgrading.
 
-**Availability:** these APIs are unreleased. You can try the source build below before they appear in a published npm version.
+**Availability:** these APIs are included in `@json-render/core` starting with v0.21.0.
 
 Open the [playground](/playground), select **jev** in the **default / jev** toggle, and send a request. Hover or focus the Jev option with its info icon for details about the experiment. Or use your own catalog in your app. [Share feedback](https://github.com/vercel-labs/json-render/issues/new) with your catalog, candidates, request, resulting spec, and expected behavior. Remove private data from reproductions.
 
@@ -23,7 +23,14 @@ UI composition and data can stay separate: bind candidate props to `initialState
 
 ## Try it in your app
 
-From a checkout containing this feature, build and pack core:
+Install matching, exact versions of core and your renderer. For the React example below:
+
+```sh
+pnpm add --save-exact @json-render/core@0.21.1 @json-render/react@0.21.1
+pnpm add zod
+```
+
+To evaluate changes that have not been released yet, build and pack core from a checkout:
 
 ```sh
 pnpm install --frozen-lockfile

@@ -398,6 +398,43 @@ describe("removeByPath", () => {
 // applySpecStreamPatch - RFC 6902 operations
 // =============================================================================
 
+describe("path helpers on untrusted paths", () => {
+  it("never writes to, reads from or deletes from Object.prototype", () => {
+    const obj: Record<string, unknown> = {};
+    setByPath(obj, "/__proto__/polluted", true);
+    addByPath(obj, "/__proto__/polluted", true);
+    removeByPath(obj, "/__proto__/toString");
+    applySpecStreamPatch(obj, {
+      op: "move",
+      from: "/__proto__",
+      path: "/alias",
+    });
+    applySpecStreamPatch(obj, {
+      op: "add",
+      path: "/alias/polluted",
+      value: true,
+    });
+    expect(({} as Record<string, unknown>).polluted).toBeUndefined();
+    expect(typeof Object.prototype.toString).toBe("function");
+  });
+
+  it("ignores array indexes past the end instead of leaving holes", () => {
+    const obj: Record<string, unknown> = { a: [0, {}, []] };
+    setByPath(obj, "/a/9", 1);
+    addByPath(obj, "a/1000000000/x", 1);
+    addByPath(obj, "/a/-/1000000000/x", 1);
+    applySpecStreamPatch(obj, {
+      op: "move",
+      from: "/a/0",
+      path: "/a/1/1000000000/x",
+    });
+    expect((obj.a as unknown[]).length).toBe(2);
+    expect((obj.a as unknown[])[1]).toEqual([]);
+    addByPath(obj, "/a/2", "end");
+    expect(obj.a).toEqual([{}, [], "end"]);
+  });
+});
+
 describe("applySpecStreamPatch", () => {
   describe("add operation", () => {
     it("adds a new object property", () => {
@@ -702,6 +739,16 @@ describe("createSpecStreamCompiler", () => {
     compiler.push('{"op":"remove","path":"/y"}\n');
     const result = compiler.getResult();
     expect(result).toEqual({ z: 1, w: 2 });
+  });
+
+  it("applies identical add-to-array lines twice", () => {
+    const compiler = createSpecStreamCompiler();
+    compiler.push('{"op":"add","path":"/items","value":[]}\n');
+    const line = '{"op":"add","path":"/items/-","value":"apple"}\n';
+    compiler.push(line);
+    compiler.push(line);
+    expect(compiler.getResult()).toEqual({ items: ["apple", "apple"] });
+    expect(compiler.getPatches()).toHaveLength(3);
   });
 });
 
@@ -1042,8 +1089,7 @@ describe("nestedToFlat", () => {
 // =============================================================================
 
 describe("createJsonRenderTransform", () => {
-  /** Helper: push text-delta chunks through the transform and collect output */
-  async function transformText(text: string): Promise<StreamChunk[]> {
+  async function transformChunks(input: StreamChunk[]): Promise<StreamChunk[]> {
     const transform = createJsonRenderTransform();
     const writer = transform.writable.getWriter();
     const reader = transform.readable.getReader();
@@ -1059,13 +1105,19 @@ describe("createJsonRenderTransform", () => {
       }
     })();
 
-    await writer.write({ type: "text-start", id: "t1" });
-    await writer.write({ type: "text-delta", id: "t1", delta: text });
-    await writer.write({ type: "text-end", id: "t1" });
+    for (const chunk of input) await writer.write(chunk);
     await writer.close();
 
     await readAll;
     return chunks;
+  }
+
+  function transformText(text: string): Promise<StreamChunk[]> {
+    return transformChunks([
+      { type: "text-start", id: "t1" },
+      { type: "text-delta", id: "t1", delta: text },
+      { type: "text-end", id: "t1" },
+    ]);
   }
 
   it("passes prose text through as text-delta", async () => {
@@ -1116,6 +1168,82 @@ describe("createJsonRenderTransform", () => {
     expect(text).toContain("Done!");
     // Fence delimiters should NOT appear in text
     expect(text).not.toContain("```spec");
+  });
+
+  it.each(["text-end", "text-start", "start-step", "error", "abort"])(
+    "resets an open spec fence at %s",
+    async (boundary) => {
+      const boundaryChunk: StreamChunk =
+        boundary === "text-start"
+          ? { type: "text-start", id: "t2" }
+          : ({ type: boundary, id: "t1" } as StreamChunk);
+      const input: StreamChunk[] = [
+        { type: "text-start", id: "t1" },
+        {
+          type: "text-delta",
+          id: "t1",
+          delta:
+            "```spec\n" +
+            JSON.stringify({ op: "add", path: "/root", value: "main" }),
+        },
+        boundaryChunk,
+      ];
+
+      if (boundary !== "text-start") {
+        input.push({ type: "text-start", id: "t2" });
+      }
+      input.push(
+        { type: "text-delta", id: "t2", delta: "Plain prose.\n" },
+        { type: "text-end", id: "t2" },
+      );
+
+      const chunks = await transformChunks(input);
+      const specChunks = chunks.filter(
+        (chunk) => chunk.type === SPEC_DATA_PART_TYPE,
+      );
+      const text = chunks
+        .filter((chunk) => chunk.type === "text-delta")
+        .map((chunk) => (chunk as { delta: string }).delta)
+        .join("");
+
+      expect(specChunks).toHaveLength(1);
+      expect((specChunks[0] as { data: { type: string } }).data.type).toBe(
+        "patch",
+      );
+      expect(text).toBe("Plain prose.\n");
+    },
+  );
+
+  it("keeps an open fence across deltas within one block", async () => {
+    const chunks = await transformChunks([
+      { type: "text-start", id: "t1" },
+      { type: "text-delta", id: "t1", delta: "``" },
+      { type: "text-delta", id: "t1", delta: "`spec\nHidden prose\n" },
+      {
+        type: "text-delta",
+        id: "t1",
+        delta: '{"op":"add","path":"/root",',
+      },
+      {
+        type: "text-delta",
+        id: "t1",
+        delta: '"value":"main"}\n```\nDone.',
+      },
+      { type: "text-end", id: "t1" },
+    ]);
+    const specChunks = chunks.filter(
+      (chunk) => chunk.type === SPEC_DATA_PART_TYPE,
+    );
+    const text = chunks
+      .filter((chunk) => chunk.type === "text-delta")
+      .map((chunk) => (chunk as { delta: string }).delta)
+      .join("");
+
+    expect(specChunks).toHaveLength(1);
+    expect((specChunks[0] as { data: { type: string } }).data.type).toBe(
+      "patch",
+    );
+    expect(text).toBe("Done.");
   });
 
   it("handles mixed text + heuristic patches in single stream", async () => {

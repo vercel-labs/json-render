@@ -7,14 +7,14 @@ interface InputProps {
 }
 
 export function Input(renderProps: BaseComponentProps<InputProps>) {
-  const [value, setValue] = useBoundProp<string>(
+  const [, setValue] = useBoundProp<string>(
     renderProps.props.value,
     renderProps.bindings?.value,
   );
 
   return (
     <input
-      value={String(value ?? "")}
+      value={String(renderProps.props.value ?? "")}
       onInput={(e) => setValue(e.currentTarget.value)}
       placeholder={renderProps.props.placeholder ?? ""}
       style={{

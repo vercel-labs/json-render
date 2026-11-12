@@ -4,6 +4,66 @@ title: "Changelog"
 
 Notable changes and updates to json-render.
 
+## v0.22.0
+
+November 4, 2026
+
+### New: Chat SDK Renderer
+
+Added `@json-render/chat` to render specs as Chat SDK cards. One catalog posts native messages on Slack, Teams, and the other Chat SDK platforms. `streamCard` streams a card into a thread and edits it as elements arrive, and `toCard` validates specs against per-component schemas and optional platform limits before posting.
+
+See the [Chat SDK API reference](/docs/api/chat) for setup, streaming, and limits.
+
+### New: Chat SDK Example
+
+Added an example playground that previews generated messages as Slack renders them, with a Teams Adaptive Card view and a copy button for Block Kit Builder.
+
+---
+
+## v0.21.4
+
+October 30, 2026
+
+### Improved: Examples
+
+Added the eve TanStack Agent example with links to its source repository and Vercel template.
+
+### Improved: Documentation
+
+Added shared technical writing guidance for documentation changes.
+
+---
+
+## v0.21.3
+
+October 24, 2026
+
+### Fixed: YAML Patch State
+
+Move and copy operations now update the working spec used by later YAML edits. Copied and emitted values are isolated, and copy growth is bounded.
+
+### Fixed: JSON Pointer Paths
+
+Path helpers now follow own properties and preserve dense arrays, ignoring inherited paths and out-of-range array indexes.
+
+### Fixed: Repeated Stream Operations
+
+Every SpecStream JSONL line is now applied, including repeated append operations.
+
+### Fixed: Chat Example Styling
+
+Corrected Tailwind source paths so chat examples include Streamdown and shadcn styles.
+
+### Fixed: shadcn Skill Installation
+
+The skill is now named `json-render-shadcn` so installing it does not replace the official shadcn skill.
+
+### Improved: Documentation
+
+Corrected Solid registry and reactive input examples, documented mixed message part ordering and `useJsonRenderMessage` aggregation, and updated Jev composition setup to use published npm packages.
+
+---
+
 ## v0.21.2
 
 October 23, 2026

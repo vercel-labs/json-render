@@ -131,9 +131,9 @@
       "title": "AI SDK Integration",
       "metadataTitle": "AI SDK Integration | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/ai-sdk\")\n\n# AI SDK Integration\n",
-      "sourceSha256": "29a693954de5c57001bb2d715143fe4ec95744e5b55897866782de01a9e6d927",
-      "bodySha256": "d3a76b778dc7cb2fdfea9b12d963152885212b8e918285443c6b09cdfa17ff62",
-      "markdownSha256": "8fd68001f93eb735cc00db4c3efcd053311eee576e32ef6783d1295cd819a089",
+      "sourceSha256": "cba59b7589464649bf7fd851996eed45d2452b44abf0a0f8152633fa9667f9f2",
+      "bodySha256": "09763e85eb633ce011711bb1ea3f8d5fabc71ca0e1431475dc012c5063f0fdc8",
+      "markdownSha256": "564872db36fe70a98cc385160b17a5e3f4c4727d1ff25a0e675c120412ac71f0",
       "headings": [
         {
           "title": "Installation",
@@ -186,14 +186,50 @@
       ]
     },
     {
+      "path": "/docs/api/chat",
+      "file": "content/docs/api/chat.mdx",
+      "title": "@json-render/chat",
+      "metadataTitle": "@json-render/chat API | json-render",
+      "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/chat\")\n\n# @json-render/chat\n",
+      "sourceSha256": "e4c727360fe598b2f8bb3435bc184d4936625045d4fffc39dce7950ebf75f917",
+      "bodySha256": "81250149f008c60473251a9b833c9bd6c90ac36b50fbbb03c17be6152ffdd161",
+      "markdownSha256": "0e1e1935eb8e952be1c1c14c2295523ef54d5ff5b6db63847ff4af5e55e7c8eb",
+      "headings": [
+        {
+          "title": "Install",
+          "id": "install"
+        },
+        {
+          "title": "schema",
+          "id": "schema"
+        },
+        {
+          "title": "streamCard",
+          "id": "streamcard"
+        },
+        {
+          "title": "toCard",
+          "id": "tocard"
+        },
+        {
+          "title": "State and repeat",
+          "id": "state-and-repeat"
+        },
+        {
+          "title": "Validation and limits",
+          "id": "validation-and-limits"
+        }
+      ]
+    },
+    {
       "path": "/docs/api/codegen",
       "file": "content/docs/api/codegen.mdx",
       "title": "@json-render/codegen",
       "metadataTitle": "@json-render/codegen API | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/codegen\")\n\n# @json-render/codegen\n",
-      "sourceSha256": "ffe7c5b39084d393a6706d18cf40c8b5b0fa654d46bc89771f6e6a3a79102be5",
-      "bodySha256": "89f627bc21e5fafae1e498d9e9369a93b30f9b24eb4539dac5d69ac03e61b180",
-      "markdownSha256": "3ecfc1393d0538ac49c34e0daf5c95aa716238f0dad4b711871d6f82fefe66eb",
+      "sourceSha256": "93f839b115c34b5579839fa41ddf213e4686d67e24848f441b3f207e5d06aa2e",
+      "bodySha256": "2cf9c68336610d0172ba0861d4a1be2c4135eafb2eaa443c95145a7641d4d6de",
+      "markdownSha256": "0339143131892d7312249f256afc6f4b3a290ec7e0e6a209438d90d6b9d351ad",
       "headings": [
         {
           "title": "Tree Traversal",
@@ -255,9 +291,9 @@
       "title": "@json-render/core",
       "metadataTitle": "@json-render/core API | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/core\")\n\n# @json-render/core\n",
-      "sourceSha256": "8e60fe155ab5560268825b97943a60552501e91254ce5e759f73298ef7ee60b5",
-      "bodySha256": "b9d697444597ada2ce4651b972783e44991025c420c5d4aebdf8038153ba4039",
-      "markdownSha256": "603ac2e07ab869faa46f71cc13ba05992055316492f2f99849c8bd16637752f3",
+      "sourceSha256": "526eb0ca589bb317b2924f3145e0161d4e14ad4183a2a8145a26b300335e6d5e",
+      "bodySha256": "101701e7ee8f7ffe95367f04dbabb981c24b8be89501a71ea227f11f0a44163b",
+      "markdownSha256": "e3f637b4e7d8f8f27d686f9ea5e0a9feda1b719aaefdea4cfff6f892a4386ac9",
       "headings": [
         {
           "title": "experimental_composeSpec",
@@ -963,9 +999,9 @@
       "title": "@json-render/next",
       "metadataTitle": "@json-render/next API | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/next\")\n\n# @json-render/next\n",
-      "sourceSha256": "fcb2b5aac8a6849e3c744d008eca96e196f68683dd0e7b35a8fa3b405561e5cd",
-      "bodySha256": "47e1c83be544eb7fcfa821721f4068c04bab23a17ef2fc52066378eef018967d",
-      "markdownSha256": "5ebc68fd21f16599a5b5331013af4c8ba00f0461b1ce03ac047589d2a84f6d19",
+      "sourceSha256": "104cb9c60b856fda51cc2fc292cc54a5043ff6563f26765c7d162f8dc83faa72",
+      "bodySha256": "1e11e6117f18a21ddf801858b39d74ef498a8351e6d33437963fc31b811d2e6b",
+      "markdownSha256": "aec28d2c95a96b3956354468c47ab58492712199fce4deacd71ebbddff51dd97",
       "headings": [
         {
           "title": "Installation",
@@ -1043,9 +1079,9 @@
       "title": "@json-render/react",
       "metadataTitle": "@json-render/react API | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/react\")\n\n# @json-render/react\n",
-      "sourceSha256": "bac613efe7bbebe6c00606489a0ae21d367deb6753d15e334693b43b0f132ef3",
-      "bodySha256": "cd0213ad5a970a305d6a361ea802d469dd1ae079fcaac6d658ae3eef43902360",
-      "markdownSha256": "c45348165d2e6d1e6cd5e6104ea5fa58b187373fd1664866d4bcfde3361cf4c8",
+      "sourceSha256": "ff4c6f3db3b9d4f0771647b959ddcc393abf6d34c0d2e3c30659039e310ca80b",
+      "bodySha256": "56447f94b4178bc0d84953990438e2368f5495ce8b793b3511653f243258e0ed",
+      "markdownSha256": "8b4641f020565475af8274cbd7e4a040a5c69c60311165d92d0966f34beaa982",
       "headings": [
         {
           "title": "Providers",
@@ -1699,9 +1735,9 @@
       "title": "@json-render/solid",
       "metadataTitle": "@json-render/solid API | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\";\nexport const metadata = pageMetadata(\"docs/api/solid\");\n\n# @json-render/solid\n",
-      "sourceSha256": "1efd8c84c9840a7ab9dba2f2e6ccde4923910c11c34b5a7e8abe7b218ddb057a",
-      "bodySha256": "9a3e72fe0df40bda69fcaf50478fc944f38e12029bb1fe5ecb6ab5c66feb1b4c",
-      "markdownSha256": "383082dd3154a0294e33ace4bd85b84d9ec65fd58ae8324c789cc977af112a12",
+      "sourceSha256": "c22fce4f22ada453ae47f7074f5ec0357a682a0216736b06d3c79d0f6c9c415a",
+      "bodySha256": "a95464b9079ce11528ae7fef9b61e1e1d3229cd7f13b9ccd874831aa240bf2a1",
+      "markdownSha256": "e7b1369756c6cade4dec10c8431364f1506443b44ca0463d298cabaa5d34f586",
       "headings": [
         {
           "title": "Installation",
@@ -2007,9 +2043,9 @@
       "title": "@json-render/yaml",
       "metadataTitle": "@json-render/yaml API | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/yaml\")\n\n# @json-render/yaml\n",
-      "sourceSha256": "94df2604b54bc051507ad9558bdbe0b7a8f9996d49393c31e3efbd5954b1af60",
-      "bodySha256": "284a9e520ebf01b0cf7ac54fb3cf05cca138b65ac63382243df02a291117ed34",
-      "markdownSha256": "caa78d90340912995e4cdde4c3c32e610d9f417bd4294f63c4253a5c7d1928f1",
+      "sourceSha256": "797f552427da1e0107be781341999e68741bd65fe9620216a5046d920475be1f",
+      "bodySha256": "f0bca6f7befb66c5397c2facaa00851e2ef98a0773138a858d67b8b2afdacb8f",
+      "markdownSha256": "a61124ef0f2b75b68a5a5666cfdd90382f3fec5e672b3262b0c92ad5e24918c4",
       "headings": [
         {
           "title": "Prompt Generation",
@@ -2139,9 +2175,9 @@
       "title": "Changelog",
       "metadataTitle": "Changelog | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/changelog\")\n\n# Changelog\n",
-      "sourceSha256": "48f0ddc1e79df3d675aaea3bdc866d706c419ea992f0df41a284ab62598f22eb",
-      "bodySha256": "8cbb452e1fe941de7f1c1f3b3af06476467d0532f13451d01fc279640ab4d1f5",
-      "markdownSha256": "5ae26d140490a612a74a2ef963a4a26f31ea2270b32bfca40641dd30a36bbff7",
+      "sourceSha256": "9daa4f520e7e6b3bb7ba7a61c8a59da57025ffb4ce7b18a8473d0c0701147d9c",
+      "bodySha256": "3685a93fc98281fbf41743c5a1c3ce53a7f4e37076212f8d215cd0c5865376bd",
+      "markdownSha256": "2c7312a3b832c194494f72d40a547bb7468c9061c7d6b90846afaf8ead91e69a",
       "headings": [
         {
           "title": "v0.21.0",
@@ -2583,9 +2619,9 @@
       "title": "Code Export",
       "metadataTitle": "Code Export | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/code-export\")\n\n# Code Export\n",
-      "sourceSha256": "c88b4f674179a1b726453b2769d309cdf55d567e9821d9c542737cbbb8320da7",
-      "bodySha256": "deff258ad189742aa53a43477c719dff4e5128735ae015d382c3fd77abff2f82",
-      "markdownSha256": "8cd8e759040c6bc140f18192a2dfb0a98f50050eb0ac6dc816c1f5efb348997c",
+      "sourceSha256": "5c74a30a9ab260c0f3c775bef4654ce7138ee66ef03c6e9bf40266dab69d3f8a",
+      "bodySha256": "6934c117bb7cd5d40689df9aa82525761ed2f9b99c5956dbbe97341047b2f074",
+      "markdownSha256": "c9ece58d351eb98b6ef9b83adda0c65f229f8a9f34d0d591990d1c79713da4fe",
       "headings": [
         {
           "title": "Overview",
@@ -2867,9 +2903,9 @@
       "title": "Jev (Experimental)",
       "metadataTitle": "Jev (Experimental) | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/jev\")\n\n# Jev (Experimental)\n",
-      "sourceSha256": "c6314d7655a9f090ee246b661ae73f4e6017966827220f547f93fd8dc2186a98",
-      "bodySha256": "f28e9140d94b4f33e69a46a85dc2d5885b5a35cdfdf628134c07b2ee299d04de",
-      "markdownSha256": "31542130bbaf5ae5cd417b1759c86dedab2e968a7177ba6f06109b5599788f2b",
+      "sourceSha256": "d3edbf07c488dd5b57b5f6d58db15b5de0cc71b70c511bf802dee5e825af7006",
+      "bodySha256": "6ea6471dc05d51306ac6bb5161cebcb1b539183c68dce5016279ed5f38d77b72",
+      "markdownSha256": "d5581af3ef7809dd759f6873bd4d0b4177b199ee8ac5b79322d410de5b9be3b3",
       "headings": [
         {
           "title": "Why use it?",
@@ -2959,9 +2995,9 @@
       "title": "Generation Modes",
       "metadataTitle": "Generation Modes | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/generation-modes\")\n\n# Generation Modes\n",
-      "sourceSha256": "f74a61660fb3794501215efabf837524e6cf135ec4b48994b7668fd8bea28587",
-      "bodySha256": "dd177fe6eb3e8eff9b76bcc36368416725f0b1bdc604b2dd48f5ca1eced73699",
-      "markdownSha256": "7082d16b441f27b278751364f77afef27b6782cb47390690f787d8e2a0bc7dad",
+      "sourceSha256": "8ee1dcf6d1070041aa0b7f2509cdf67dcab2f3d7fd104b9ee610415f39e295f7",
+      "bodySha256": "f08f71873ad51037bdc5c59489a0cbd5937aefa6f6d694a48ee0d87f20931f10",
+      "markdownSha256": "5e507344531458d2f61e41831563d3ca36c611287354a71e7b07d28fad5fe048",
       "headings": [
         {
           "title": "Standalone Mode",
@@ -3011,9 +3047,9 @@
       "title": "Installation",
       "metadataTitle": "Installation | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/installation\")\n\n# Installation\n",
-      "sourceSha256": "937bfb315b619c999082fac5253c2609db1e68d736ca0bf011c7eded9ec93593",
-      "bodySha256": "13b1b9d4c4f7de99ed2493358608eabb4565a956db8750f458efd437ffc6c8d1",
-      "markdownSha256": "08bbe2a46b41b4354feeb3538416a85f6d5cf9b5343d4dbf524e21ae8d56b46f",
+      "sourceSha256": "e9407bb86673995018de809c0284796d965a10e8b70ab09909ea0d4c2f54d5c2",
+      "bodySha256": "a57e094241cfd94489405bf4f8bd92f1a724525e18e1909a55289d8e2e28df46",
+      "markdownSha256": "b4463509817b54e3a8a73eedde9e7f97ae7190481a565604b0b75df228e0b23e",
       "headings": [
         {
           "title": "For React UI",
@@ -3042,6 +3078,10 @@
         {
           "title": "For React Email",
           "id": "for-react-email"
+        },
+        {
+          "title": "For Chat SDK",
+          "id": "for-chat-sdk"
         },
         {
           "title": "For External State Management (Optional)",
@@ -3295,9 +3335,9 @@
       "title": "Renderers",
       "metadataTitle": "Renderers | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\";\nexport const metadata = pageMetadata(\"docs/renderers\");\n\n# Renderers\n",
-      "sourceSha256": "05ddf37d2fe0f5d75cc8240e6363e68d3e26c9170c0de5cdde5da84174b22351",
-      "bodySha256": "d3a7220e4ce39b41f6218f062ed9a57658b96b5bb3b210a0c4dc9c2436c39417",
-      "markdownSha256": "79011088fe6f256ae139cabd0be5ac6c7669de0bc9b07b0d2786e48c26d68da2",
+      "sourceSha256": "316613936dd01db8cd41b5a94e9ba05326e48fa501c5432b4f47eca08463cb49",
+      "bodySha256": "c23123510fca30acf67c29a2a6417be3394b9e826e18571b4acfc00989cd8a62",
+      "markdownSha256": "c5c8f6b5aeb2ae9d09728f8d8ef107dc7cb7c7a19b274e325dc4a43482fc3e3e",
       "headings": [
         {
           "title": "React",
@@ -3407,9 +3447,9 @@
       "title": "Skills",
       "metadataTitle": "Skills | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\";\n\nexport const metadata = pageMetadata(\"docs/skills\");\n\n# Skills\n",
-      "sourceSha256": "e42a91ef21f7ef975c8deb847c98fd58ce254d24e87d3e9a7940ca4fb177baf1",
-      "bodySha256": "5cc03b937129b9ea9870ed88693cea3caa2e527efdea75a75e68deac72bfa6d9",
-      "markdownSha256": "2ab0dd06dea702b9e1770ec6c1791229df5c6fc4e7887498249644d762e8accd",
+      "sourceSha256": "c4aaf807f007aa103b9b2d3f4e7682ccc01ac24beb8af2706485ce242ef8b57d",
+      "bodySha256": "89947454b49942483e8c9b1df67e100b1b785a90a204c133498ee4301f362ebe",
+      "markdownSha256": "34d6f9fefc5b49965f5e31c2b525fbe077cdbc94325e1d314035bab283f5fa32",
       "headings": [
         {
           "title": "Available Skills",
@@ -3458,6 +3498,10 @@
         {
           "title": "react-email",
           "id": "react-email"
+        },
+        {
+          "title": "chat",
+          "id": "chat"
         },
         {
           "title": "react-native",
@@ -3651,9 +3695,9 @@
       "title": "Validation",
       "metadataTitle": "Validation | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/validation\")\n\n# Validation\n",
-      "sourceSha256": "c7da03734043cd1c1a8dd1d8c499b3c503ba628aca6d797ffa73a7dabe49ff4a",
-      "bodySha256": "fb027182f36341a16ca21244fc45e4d2eee1aad81b617475eb8934260fa48492",
-      "markdownSha256": "f56dd473c50cde356d69faa11534bf95a2e035c09f31979bdab1472a1f3d060d",
+      "sourceSha256": "2bd16fcfd1a49c0444306f6d6cdb72db88b569f251f6bc12ed45e9ae862e6898",
+      "bodySha256": "6a172538e9fc48aae4332661feec4c61afedff77c930eaf1013d763e8cbdd98a",
+      "markdownSha256": "6323cabcf093d5aa4005522d6b61913c84a238984fde978f8938daab0931a327",
       "headings": [
         {
           "title": "Built-in Validators",

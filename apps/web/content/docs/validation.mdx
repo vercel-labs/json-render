@@ -9,7 +9,7 @@ Validate form inputs with built-in and custom functions.
 json-render includes common validation functions:
 
 - `required` — Value must be non-empty
-- `email` — Valid email format
+- `email` — Valid email format; leading and trailing whitespace is ignored
 - `minLength` — Minimum string length (args: `{ "min": N }`)
 - `maxLength` — Maximum string length (args: `{ "max": N }`)
 - `pattern` — Match a regex pattern (args: `{ "pattern": "regex" }`)

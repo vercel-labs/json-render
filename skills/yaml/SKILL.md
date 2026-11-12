@@ -66,7 +66,7 @@ The transform recognizes four fence types:
 
 - `yaml-spec` — Full spec, parsed progressively line-by-line
 - `yaml-edit` — Partial YAML deep-merged with current spec (RFC 7396)
-- `yaml-patch` — RFC 6902 JSON Patch lines
+- `yaml-patch` — RFC 6902 JSON Patch lines; applied to the working spec, so later `yaml-edit` fences see them
 - `diff` — Unified diff applied to serialized spec
 
 ## Streaming Parser (Low-Level)

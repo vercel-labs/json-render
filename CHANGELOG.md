@@ -1,8 +1,60 @@
 # Changelog
 
-## 0.21.2
+## 0.22.0
 
 <!-- release:start -->
+
+### New Features
+
+- **Chat SDK renderer:** Added `@json-render/chat` to render specs as Chat SDK cards, so one catalog posts natively on Slack, Teams, and the other Chat SDK platforms. `streamCard` streams a card into a thread and edits it as elements arrive, and `toCard` validates specs against per-component schemas and optional platform limits. State expressions, `visible`, and `repeat` resolve against `spec.state` (#451)
+- **Chat SDK example:** Added a playground that previews generated messages as Slack renders them, with a Teams Adaptive Card view and a copy button for Block Kit Builder (#451)
+
+### Contributors
+
+- @Railly
+
+<!-- release:end -->
+
+## 0.21.4
+
+### Documentation
+
+- Added the **eve TanStack Agent template** to the examples page, with links to its source repository and Vercel template (#442)
+- Added shared **technical writing guidance** for documentation changes (#441)
+
+### Contributors
+
+- @bensabic
+
+
+## 0.21.3
+
+### Bug Fixes
+
+- **YAML patch state:** Keep move and copy operations in sync with later YAML edits, isolate copied and emitted values, and bound copy growth (#411)
+- **JSON Pointer paths:** Keep path helpers on own properties and dense arrays, ignoring inherited paths and out-of-range array indexes (#411)
+- **Repeated stream operations:** Apply every SpecStream JSONL line, including repeated append operations (#414)
+- **Chat example styling:** Correct Tailwind source paths so chat examples include Streamdown and shadcn styles (#415)
+- **shadcn skill installation:** Rename the skill to `json-render-shadcn` to avoid replacing the official shadcn skill (#417)
+
+### Documentation
+
+- Correct **Solid registry and reactive input examples** across guides, API references, and package documentation (#413)
+- Document **mixed message part ordering** and the aggregation behavior of `useJsonRenderMessage` (#416)
+- Document **published Jev composition APIs** with exact-version npm installation instructions (#418)
+
+### Contributors
+
+- @lahfir
+- @dajiaohuang
+- @Jassi2004
+- @xiehuanyi
+- @kevin9327
+- @adhamali450
+- @monsterlag
+- @Bortlesboat
+
+## 0.21.2
 
 ### Bug Fixes
 
@@ -19,8 +71,6 @@
 - @xiehuanyi
 - @peter-cynomi
 - @Yi-111-a
-
-<!-- release:end -->
 
 ## 0.21.1
 
