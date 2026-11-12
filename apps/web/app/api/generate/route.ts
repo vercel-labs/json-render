@@ -121,7 +121,6 @@ export async function POST(req: Request) {
       },
     ],
     prompt: userPrompt,
-    temperature: 0.7,
   });
 
   const encoder = new TextEncoder();
