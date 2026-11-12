@@ -7,18 +7,17 @@
     "./*": "./src/*.tsx"
   },
   "scripts": {
-    "lint": "eslint . --max-warnings 0",
+    "lint": "oxlint --deny-warnings",
     "generate:component": "turbo gen react-component",
     "check-types": "tsc --noEmit"
   },
   "devDependencies": {
-    "@internal/eslint-config": "workspace:*",
     "@internal/typescript-config": "workspace:*",
     "@types/node": "^22.15.3",
     "@types/react": "19.2.3",
     "@types/react-dom": "19.2.3",
-    "eslint": "^9.39.1",
-    "typescript": "5.9.2"
+    "oxlint": "^1.91.0",
+    "typescript": "7.0.2"
   },
   "dependencies": {
     "react": "19.2.3",

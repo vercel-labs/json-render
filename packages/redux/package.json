@@ -36,7 +36,7 @@
   ],
   "scripts": {
     "build": "tsup",
-    "dev": "tsup --watch",
+    "dev": "tsup --watch src",
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
@@ -59,6 +59,6 @@
     "@internal/typescript-config": "workspace:*",
     "redux": "^5.0.1",
     "tsup": "^8.0.2",
-    "typescript": "^5.4.5"
+    "typescript": "^7.0.2"
   }
 }
