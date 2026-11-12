@@ -15,6 +15,8 @@
 
 <a
   href={props.href ?? "#"}
+  target={props.target ?? undefined}
+  rel={props.target === "_blank" ? "noopener noreferrer" : undefined}
   class="text-primary text-sm font-medium underline-offset-4 hover:underline"
   onclick={handleClick}
 >

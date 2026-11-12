@@ -4,6 +4,7 @@ import ButtonHarness from "./test-fixtures/ButtonHarness.test.svelte";
 import InputStateHarness from "./test-fixtures/InputStateHarness.test.svelte";
 import InputValidationHarness from "./test-fixtures/InputValidationHarness.test.svelte";
 import DialogHarness from "./test-fixtures/DialogHarness.test.svelte";
+import LinkHarness from "./test-fixtures/LinkHarness.test.svelte";
 
 describe("shadcn-svelte component behavior", () => {
   it("emits press for Button", async () => {
@@ -12,6 +13,14 @@ describe("shadcn-svelte component behavior", () => {
 
     await fireEvent.click(screen.getByRole("button", { name: "Submit" }));
     expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it("opens Link in a new tab without exposing the opener", () => {
+    render(LinkHarness);
+
+    const link = screen.getByRole("link", { name: "Docs" });
+    expect(link.getAttribute("target")).toBe("_blank");
+    expect(link.getAttribute("rel")).toBe("noopener noreferrer");
   });
 
   it("writes bound Input value to state path", async () => {

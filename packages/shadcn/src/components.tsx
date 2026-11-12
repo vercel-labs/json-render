@@ -1024,6 +1024,8 @@ export const shadcnComponents = {
     return (
       <a
         href={props.href ?? "#"}
+        target={props.target ?? undefined}
+        rel={props.target === "_blank" ? "noopener noreferrer" : undefined}
         className="text-primary underline-offset-4 hover:underline text-sm font-medium"
         onClick={(e) => {
           const press = on("press");
