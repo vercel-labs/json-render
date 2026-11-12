@@ -1,6 +1,11 @@
 import { createSpecStreamCompiler, type Spec } from "@json-render/core";
 import type { CardElement } from "chat";
-import { toCard, toPartialCard, type ToCardOptions } from "./render";
+import {
+  CardSpecError,
+  toCard,
+  toPartialCard,
+  type ToCardOptions,
+} from "./render";
 
 /** Anything with Chat SDK's post and edit shape, such as a Thread or Channel. */
 export interface CardTarget {
@@ -29,7 +34,8 @@ export interface StreamCardResult {
  * Stream a model's spec into a chat message. Posts the card as soon as its
  * root exists, edits it as elements arrive, and finishes with a validated
  * card. Throws CardSpecError if the final spec is invalid, after the partial
- * message is already visible, so callers can retry or edit it with an error.
+ * message is already visible. The error's postedMessage is that message, so
+ * callers can retry or edit it.
  */
 export async function streamCard(
   target: CardTarget,
@@ -67,7 +73,14 @@ export async function streamCard(
   }
 
   const spec = compiler.getResult();
-  const card = toCard(spec, options);
+  let card: CardElement;
+  try {
+    card = toCard(spec, options);
+  } catch (error) {
+    // The partial card is already visible, so hand the caller its message.
+    if (error instanceof CardSpecError) error.postedMessage = message;
+    throw error;
+  }
   await flush(card);
   return { spec, card, message: message! };
 }

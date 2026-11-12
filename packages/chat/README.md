@@ -45,7 +45,7 @@ chat.onNewMention(async (thread, message) => {
 
 ## Validation and limits
 
-`toCard` validates the props of every element and the structure of the spec, and throws `CardSpecError` with one issue per problem, so you can send the issues back to the model.
+`toCard` validates the props of every element and the structure of the spec, and throws `CardSpecError` with one issue per problem, so you can send the issues back to the model. When `streamCard` throws it, the partial card is already in the thread and `error.postedMessage` is that message. Edit it with the corrected card instead of posting a new one.
 
 Platforms cap what a message can hold, and Chat SDK adapters degrade content past those caps. Pass `limits` to reject the spec instead:
 
