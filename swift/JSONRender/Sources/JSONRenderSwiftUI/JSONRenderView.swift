@@ -35,6 +35,9 @@ public struct JSONRenderView: View {
     ///   - animation: Animates layout changes caused by state updates, such as
     ///     an element that a visibility condition shows or hides. When nil,
     ///     state changes apply without animation.
+    ///   - limits: Bounds for each rendered-tree build. A spec that exceeds a
+    ///     limit is not rendered and logs one warning. Raise the limits for
+    ///     specs that legitimately render more nodes.
     public init(
         spec: Spec,
         registry: RendererRegistry<AnyView>,
@@ -42,7 +45,8 @@ public struct JSONRenderView: View {
         navigate: ((String) -> Void)? = nil,
         confirm: ((ActionConfirm) async -> Bool)? = nil,
         loading: Bool = false,
-        animation: Animation? = nil
+        animation: Animation? = nil,
+        limits: RenderTreeLimits = .default
     ) {
         self.spec = spec
         self.loading = loading
@@ -54,7 +58,8 @@ public struct JSONRenderView: View {
                 navigate: navigate,
                 confirm: confirm,
                 loading: loading,
-                animation: animation
+                animation: animation,
+                limits: limits
             )
         )
     }
@@ -96,6 +101,9 @@ public final class JSONRenderModel: ObservableObject {
     /// tree with this flag so missing children do not warn mid-stream.
     public var loading = false
 
+    /// Bounds for each rendered-tree build.
+    public let limits: RenderTreeLimits
+
     private let watchTracker = WatchTracker()
     private var subscription: StateSubscription?
 
@@ -109,12 +117,14 @@ public final class JSONRenderModel: ObservableObject {
         navigate: ((String) -> Void)? = nil,
         confirm: ((ActionConfirm) async -> Bool)? = nil,
         loading: Bool = false,
-        animation: Animation? = nil
+        animation: Animation? = nil,
+        limits: RenderTreeLimits = .default
     ) {
         self.spec = spec
         self.registry = registry
         self.loading = loading
         self.animation = animation
+        self.limits = limits
         self.store = StateStore(initialState ?? spec.state ?? [:])
         self.dispatcher = ActionDispatcher(
             store: store,
@@ -158,7 +168,8 @@ public final class JSONRenderModel: ObservableObject {
             registry: registry,
             store: store,
             dispatcher: dispatcher,
-            loading: loading
+            loading: loading,
+            limits: limits
         )
     }
 

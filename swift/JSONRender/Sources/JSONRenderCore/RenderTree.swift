@@ -54,18 +54,23 @@ public struct RenderedElement<Render> {
 /// warn and leave a gap, matching the React renderer.
 ///
 /// `ancestors` guards against a spec whose children form a cycle, which would
-/// otherwise recurse forever.
+/// otherwise recurse forever. Shared `limits` guard against a spec whose
+/// elements reference the same children, which would otherwise expand
+/// exponentially. A build that reaches a limit stops, warns once, and renders
+/// nothing, matching the other spec problems that leave nothing to render.
 public func buildRenderTree<Render>(
     spec: Spec,
     registry: RendererRegistry<Render>,
     store: StateStore,
     dispatcher: ActionDispatcher? = nil,
-    loading: Bool = false
+    loading: Bool = false,
+    limits: RenderTreeLimits = .default
 ) -> RenderedElement<Render>? {
     guard !spec.root.isEmpty else { return nil }
     guard spec.elements[spec.root] != nil else { return nil }
 
-    return buildElement(
+    let budget = RenderTreeBudget(limits: limits)
+    let tree = buildElement(
         key: spec.root,
         spec: spec,
         registry: registry,
@@ -73,8 +78,14 @@ public func buildRenderTree<Render>(
         dispatcher: dispatcher,
         loading: loading,
         scope: nil,
-        ancestors: []
+        depth: 1,
+        ancestors: [],
+        budget: budget
     )
+
+    // A partial tree is not a valid rendering of the spec. When a limit stops
+    // the build, drop whatever was built and let the caller render nothing.
+    return budget.isExhausted ? nil : tree
 }
 
 private func buildElement<Render>(
@@ -85,8 +96,12 @@ private func buildElement<Render>(
     dispatcher: ActionDispatcher?,
     loading: Bool,
     scope: RepeatScope?,
-    ancestors: Set<String>
+    depth: Int,
+    ancestors: Set<String>,
+    budget: RenderTreeBudget
 ) -> RenderedElement<Render>? {
+    guard budget.visit(depth: depth) else { return nil }
+
     guard let element = spec.elements[key] else {
         if !loading {
             JSONRenderLog.warn(
@@ -146,7 +161,9 @@ private func buildElement<Render>(
             scope: scope,
             itemFilter: itemFilter,
             state: state,
-            ancestors: nextAncestors
+            depth: depth + 1,
+            ancestors: nextAncestors,
+            budget: budget
         )
     } else {
         children = buildChildKeys(
@@ -157,7 +174,9 @@ private func buildElement<Render>(
             dispatcher: dispatcher,
             loading: loading,
             scope: scope,
-            ancestors: nextAncestors
+            depth: depth + 1,
+            ancestors: nextAncestors,
+            budget: budget
         )
     }
 
@@ -176,9 +195,13 @@ private func buildElement<Render>(
             dispatcher: dispatcher,
             loading: loading,
             scope: scope,
-            ancestors: nextAncestors
+            depth: depth + 1,
+            ancestors: nextAncestors,
+            budget: budget
         )
     }
+
+    guard budget.renderNode() else { return nil }
 
     let emit = makeEmit(element: element, scope: scope, store: store, dispatcher: dispatcher, registry: registry)
 
@@ -235,10 +258,14 @@ private func buildChildKeys<Render>(
     dispatcher: ActionDispatcher?,
     loading: Bool,
     scope: RepeatScope?,
-    ancestors: Set<String>
+    depth: Int,
+    ancestors: Set<String>,
+    budget: RenderTreeBudget
 ) -> [RenderedElement<Render>] {
-    childKeys.compactMap { childKey in
-        buildElement(
+    var rendered: [RenderedElement<Render>] = []
+    for childKey in childKeys {
+        guard !budget.isExhausted else { break }
+        if let child = buildElement(
             key: childKey,
             spec: spec,
             registry: registry,
@@ -246,9 +273,14 @@ private func buildChildKeys<Render>(
             dispatcher: dispatcher,
             loading: loading,
             scope: scope,
-            ancestors: ancestors
-        )
+            depth: depth,
+            ancestors: ancestors,
+            budget: budget
+        ) {
+            rendered.append(child)
+        }
     }
+    return rendered
 }
 
 private func buildRepeatChildren<Render>(
@@ -261,7 +293,9 @@ private func buildRepeatChildren<Render>(
     scope: RepeatScope?,
     itemFilter: VisibilityCondition?,
     state: JSONValue,
-    ancestors: Set<String>
+    depth: Int,
+    ancestors: Set<String>,
+    budget: RenderTreeBudget
 ) -> [RenderedElement<Render>] {
     guard let repeatConfig = element.repeat else { return [] }
 
@@ -274,6 +308,7 @@ private func buildRepeatChildren<Render>(
 
     var rendered: [RenderedElement<Render>] = []
     for (index, item) in items.enumerated() {
+        guard !budget.isExhausted else { break }
         if let itemFilter {
             let filterContext = VisibilityContext(
                 stateModel: state,
@@ -297,7 +332,9 @@ private func buildRepeatChildren<Render>(
             dispatcher: dispatcher,
             loading: loading,
             scope: itemScope,
-            ancestors: ancestors
+            depth: depth,
+            ancestors: ancestors,
+            budget: budget
         ))
     }
     return rendered

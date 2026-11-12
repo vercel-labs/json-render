@@ -87,6 +87,18 @@ let registry = BuiltInComponents.registry(
 
 A definition receives a `ComponentRenderContext` with resolved `props`, rendered `children` (with a stable identity for each in `childIDs`) and `slots`, state bindings, the repeat scope, and `on` and `emit` event helpers. To render a component type that has no registered view, set `fallback` on the `RendererRegistry`. Without a fallback, the element and its subtree are dropped with a warning, matching the React renderer.
 
+## Render tree limits
+
+A spec's `elements` map can reference the same element from several parents, so a small spec can describe an exponentially large tree. `buildRenderTree` shares one budget across each build and stops when any limit is reached:
+
+| Limit | Default | Counts |
+| --- | --- | --- |
+| `maxDepth` | 100 | Nesting levels, with the root at depth 1 |
+| `maxRenderedNodes` | 10000 | Rendered elements, including the root |
+| `maxWork` | 50000 | Elements visited, including missing, hidden, and unknown ones |
+
+A build that reaches a limit logs one warning and renders nothing, like other structural spec problems that leave nothing to render. Pass `RenderTreeLimits` to `JSONRenderView` or `buildRenderTree` to raise the limits for a spec that legitimately renders more nodes.
+
 ## Built-in components
 
 `BuiltInComponents.registry()` provides Text, Stack, Row, Column, Button, Image, List, and Input.
@@ -161,6 +173,7 @@ While `loading` is true, children that have not arrived yet are skipped without 
 - Actions: custom handlers, the built-in `setState`, `pushState`, and `removeState` actions, `on` bindings, `watch` bindings, and action confirmation.
 - An observable state store with path reads and writes.
 - Unknown component and action handling that matches the React renderer.
+- Shared render tree limits that stop a spec from expanding exponentially.
 
 ## Not yet supported
 
