@@ -563,3 +563,7 @@ Nested lists can set `repeat.statePath` to `{ "$item": "field" }` to iterate an 
 | `SetState`           | State setter type                                           |
 | `StateModel`         | State model type                                            |
 | `StateStore`         | Interface for plugging in external state management         |
+
+## Compact streaming
+
+Use `createCompactGeneration(catalog.data)` from `@json-render/core` with a compatible structured-output provider. Pipe the decoded model text through `generation.createTransform()` on the server; the existing streaming hooks consume its standard JSONL output without new options. See the [streaming guide](https://json-render.dev/docs/streaming#compact-streaming).

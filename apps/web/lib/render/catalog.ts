@@ -16,10 +16,10 @@ export const playgroundCatalog = defineCatalog(schema, {
     // ── Layout ──────────────────────────────────────────────────────────
     Card: {
       props: z.object({
-        title: z.string().nullable(),
-        description: z.string().nullable(),
-        maxWidth: z.enum(["sm", "md", "lg", "full"]).nullable(),
-        centered: z.boolean().nullable(),
+        title: z.string().nullish(),
+        description: z.string().nullish(),
+        maxWidth: z.enum(["sm", "md", "lg", "full"]).nullish(),
+        centered: z.boolean().nullish(),
       }),
       slots: ["default"],
       description:
@@ -29,12 +29,12 @@ export const playgroundCatalog = defineCatalog(schema, {
 
     Stack: {
       props: z.object({
-        direction: z.enum(["horizontal", "vertical"]).nullable(),
-        gap: z.enum(["none", "sm", "md", "lg"]).nullable(),
-        align: z.enum(["start", "center", "end", "stretch"]).nullable(),
+        direction: z.enum(["horizontal", "vertical"]).nullish(),
+        gap: z.enum(["none", "sm", "md", "lg"]).nullish(),
+        align: z.enum(["start", "center", "end", "stretch"]).nullish(),
         justify: z
           .enum(["start", "center", "end", "between", "around"])
-          .nullable(),
+          .nullish(),
       }),
       slots: ["default"],
       description: "Flex container for layouts",
@@ -43,8 +43,8 @@ export const playgroundCatalog = defineCatalog(schema, {
 
     Grid: {
       props: z.object({
-        columns: z.number().nullable(),
-        gap: z.enum(["sm", "md", "lg"]).nullable(),
+        columns: z.number().nullish(),
+        gap: z.enum(["sm", "md", "lg"]).nullish(),
       }),
       slots: ["default"],
       description: "Grid layout (1-6 columns)",
@@ -53,7 +53,7 @@ export const playgroundCatalog = defineCatalog(schema, {
 
     Separator: {
       props: z.object({
-        orientation: z.enum(["horizontal", "vertical"]).nullable(),
+        orientation: z.enum(["horizontal", "vertical"]).nullish(),
       }),
       description: "Visual separator line",
     },
@@ -66,8 +66,8 @@ export const playgroundCatalog = defineCatalog(schema, {
             value: z.string(),
           }),
         ),
-        defaultValue: z.string().nullable(),
-        value: z.string().nullable(),
+        defaultValue: z.string().nullish(),
+        value: z.string().nullish(),
       }),
       events: ["change"],
       description:
@@ -82,7 +82,7 @@ export const playgroundCatalog = defineCatalog(schema, {
             content: z.string(),
           }),
         ),
-        type: z.enum(["single", "multiple"]).nullable(),
+        type: z.enum(["single", "multiple"]).nullish(),
       }),
       description:
         "Collapsible sections. Items as [{title, content}]. Type 'single' (default) or 'multiple'.",
@@ -91,7 +91,7 @@ export const playgroundCatalog = defineCatalog(schema, {
     Collapsible: {
       props: z.object({
         title: z.string(),
-        defaultOpen: z.boolean().nullable(),
+        defaultOpen: z.boolean().nullish(),
       }),
       slots: ["default"],
       description: "Collapsible section with trigger. Children render inside.",
@@ -100,7 +100,7 @@ export const playgroundCatalog = defineCatalog(schema, {
     Dialog: {
       props: z.object({
         title: z.string(),
-        description: z.string().nullable(),
+        description: z.string().nullish(),
         openPath: z.string(),
       }),
       slots: ["default"],
@@ -111,7 +111,7 @@ export const playgroundCatalog = defineCatalog(schema, {
     Drawer: {
       props: z.object({
         title: z.string(),
-        description: z.string().nullable(),
+        description: z.string().nullish(),
         openPath: z.string(),
       }),
       slots: ["default"],
@@ -123,8 +123,8 @@ export const playgroundCatalog = defineCatalog(schema, {
       props: z.object({
         items: z.array(
           z.object({
-            title: z.string().nullable(),
-            description: z.string().nullable(),
+            title: z.string().nullish(),
+            description: z.string().nullish(),
           }),
         ),
       }),
@@ -136,7 +136,7 @@ export const playgroundCatalog = defineCatalog(schema, {
       props: z.object({
         columns: z.array(z.string()),
         rows: z.array(z.array(z.string())),
-        caption: z.string().nullable(),
+        caption: z.string().nullish(),
       }),
       description:
         'Data table. columns: header labels. rows: 2D array of cell strings, e.g. [["Alice","admin"],["Bob","user"]].',
@@ -152,7 +152,7 @@ export const playgroundCatalog = defineCatalog(schema, {
     Heading: {
       props: z.object({
         text: z.string(),
-        level: z.enum(["h1", "h2", "h3", "h4"]).nullable(),
+        level: z.enum(["h1", "h2", "h3", "h4"]).nullish(),
       }),
       description: "Heading text (h1-h4)",
       example: { text: "Welcome", level: "h1" },
@@ -161,9 +161,7 @@ export const playgroundCatalog = defineCatalog(schema, {
     Text: {
       props: z.object({
         text: z.string(),
-        variant: z
-          .enum(["body", "caption", "muted", "lead", "code"])
-          .nullable(),
+        variant: z.enum(["body", "caption", "muted", "lead", "code"]).nullish(),
       }),
       description:
         'Paragraph text. In repeat scopes, use { "$template": "${field1} ${field2}" } to interpolate item fields.',
@@ -173,8 +171,8 @@ export const playgroundCatalog = defineCatalog(schema, {
     Image: {
       props: z.object({
         alt: z.string(),
-        width: z.number().nullable(),
-        height: z.number().nullable(),
+        width: z.number().nullish(),
+        height: z.number().nullish(),
       }),
       description: "Placeholder image (displays alt text in a styled box)",
     },
@@ -182,10 +180,10 @@ export const playgroundCatalog = defineCatalog(schema, {
     Icon: {
       props: z.object({
         name: z.string(),
-        size: z.enum(["sm", "md", "lg"]).nullable(),
+        size: z.enum(["sm", "md", "lg"]).nullish(),
         color: z
           .enum(["default", "muted", "primary", "success", "warning", "danger"])
-          .nullable(),
+          .nullish(),
       }),
       description:
         "Lucide icon by name. PascalCase: MapPin, Mail, Globe, Calendar, Star, Heart, Check, X, ArrowRight, Phone, Building, Clock, Shield, Zap, Users, Eye, Download, Upload, Search, Filter, Settings, Bell, ChevronRight, ExternalLink, Info, AlertTriangle, CheckCircle, XCircle. Use in horizontal Stacks with Text for icon+label patterns. Never use emoji — always use Icon.",
@@ -193,9 +191,9 @@ export const playgroundCatalog = defineCatalog(schema, {
 
     Avatar: {
       props: z.object({
-        src: z.string().nullable(),
+        src: z.string().nullish(),
         name: z.string(),
-        size: z.enum(["sm", "md", "lg"]).nullable(),
+        size: z.enum(["sm", "md", "lg"]).nullish(),
       }),
       description: "User avatar with fallback initials",
       example: { name: "Jane Doe", size: "md" },
@@ -204,7 +202,7 @@ export const playgroundCatalog = defineCatalog(schema, {
     Badge: {
       props: z.object({
         text: z.string(),
-        variant: z.enum(["default", "success", "warning", "danger"]).nullable(),
+        variant: z.enum(["default", "success", "warning", "danger"]).nullish(),
       }),
       description: "Status badge",
       example: { text: "Active", variant: "success" },
@@ -213,8 +211,8 @@ export const playgroundCatalog = defineCatalog(schema, {
     Alert: {
       props: z.object({
         title: z.string(),
-        message: z.string().nullable(),
-        type: z.enum(["info", "success", "warning", "error"]).nullable(),
+        message: z.string().nullish(),
+        type: z.enum(["info", "success", "warning", "error"]).nullish(),
       }),
       description: "Alert banner",
       example: {
@@ -227,8 +225,8 @@ export const playgroundCatalog = defineCatalog(schema, {
     Progress: {
       props: z.object({
         value: z.number(),
-        max: z.number().nullable(),
-        label: z.string().nullable(),
+        max: z.number().nullish(),
+        label: z.string().nullish(),
       }),
       description: "Progress bar (value 0-100)",
       example: { value: 65, max: 100, label: "Upload progress" },
@@ -236,17 +234,17 @@ export const playgroundCatalog = defineCatalog(schema, {
 
     Skeleton: {
       props: z.object({
-        width: z.string().nullable(),
-        height: z.string().nullable(),
-        rounded: z.boolean().nullable(),
+        width: z.string().nullish(),
+        height: z.string().nullish(),
+        rounded: z.boolean().nullish(),
       }),
       description: "Loading placeholder skeleton",
     },
 
     Spinner: {
       props: z.object({
-        size: z.enum(["sm", "md", "lg"]).nullable(),
-        label: z.string().nullable(),
+        size: z.enum(["sm", "md", "lg"]).nullish(),
+        label: z.string().nullish(),
       }),
       description: "Loading spinner indicator",
     },
@@ -270,9 +268,9 @@ export const playgroundCatalog = defineCatalog(schema, {
     Rating: {
       props: z.object({
         value: z.number(),
-        max: z.number().nullable(),
-        label: z.string().nullable(),
-        interactive: z.boolean().nullable(),
+        max: z.number().nullish(),
+        label: z.string().nullish(),
+        interactive: z.boolean().nullish(),
       }),
       events: ["change"],
       description:
@@ -284,10 +282,10 @@ export const playgroundCatalog = defineCatalog(schema, {
       props: z.object({
         label: z.string(),
         value: z.string(),
-        change: z.string().nullable(),
-        changeType: z.enum(["positive", "negative", "neutral"]).nullable(),
-        prefix: z.string().nullable(),
-        suffix: z.string().nullable(),
+        change: z.string().nullish(),
+        changeType: z.enum(["positive", "negative", "neutral"]).nullish(),
+        prefix: z.string().nullish(),
+        suffix: z.string().nullish(),
       }),
       description:
         "Key metric / stat display. Shows a large value with label and optional change indicator. Use for dashboard KPIs.",
@@ -303,7 +301,7 @@ export const playgroundCatalog = defineCatalog(schema, {
     // ── Charts ──────────────────────────────────────────────────────────
     BarGraph: {
       props: z.object({
-        title: z.string().nullable(),
+        title: z.string().nullish(),
         data: z.array(
           z.object({
             label: z.string(),
@@ -316,7 +314,7 @@ export const playgroundCatalog = defineCatalog(schema, {
 
     LineGraph: {
       props: z.object({
-        title: z.string().nullable(),
+        title: z.string().nullish(),
         data: z.array(
           z.object({
             label: z.string(),
@@ -332,9 +330,9 @@ export const playgroundCatalog = defineCatalog(schema, {
       props: z.object({
         label: z.string(),
         name: z.string(),
-        type: z.enum(["text", "email", "password", "number"]).nullable(),
-        placeholder: z.string().nullable(),
-        value: z.string().nullable(),
+        type: z.enum(["text", "email", "password", "number"]).nullish(),
+        placeholder: z.string().nullish(),
+        value: z.string().nullish(),
         checks: z
           .array(
             z.object({
@@ -343,7 +341,7 @@ export const playgroundCatalog = defineCatalog(schema, {
               args: z.record(z.string(), z.unknown()).optional(),
             }),
           )
-          .nullable(),
+          .nullish(),
       }),
       events: ["submit", "focus", "blur"],
       description:
@@ -360,9 +358,9 @@ export const playgroundCatalog = defineCatalog(schema, {
       props: z.object({
         label: z.string(),
         name: z.string(),
-        placeholder: z.string().nullable(),
-        rows: z.number().nullable(),
-        value: z.string().nullable(),
+        placeholder: z.string().nullish(),
+        rows: z.number().nullish(),
+        value: z.string().nullish(),
         checks: z
           .array(
             z.object({
@@ -371,7 +369,7 @@ export const playgroundCatalog = defineCatalog(schema, {
               args: z.record(z.string(), z.unknown()).optional(),
             }),
           )
-          .nullable(),
+          .nullish(),
       }),
       description:
         "Multi-line text input. Use { $bindState } on value for binding. Use checks for validation.",
@@ -382,8 +380,8 @@ export const playgroundCatalog = defineCatalog(schema, {
         label: z.string(),
         name: z.string(),
         options: z.array(z.string()),
-        placeholder: z.string().nullable(),
-        value: z.string().nullable(),
+        placeholder: z.string().nullish(),
+        value: z.string().nullish(),
         checks: z
           .array(
             z.object({
@@ -392,7 +390,7 @@ export const playgroundCatalog = defineCatalog(schema, {
               args: z.record(z.string(), z.unknown()).optional(),
             }),
           )
-          .nullable(),
+          .nullish(),
       }),
       events: ["change"],
       description:
@@ -403,7 +401,7 @@ export const playgroundCatalog = defineCatalog(schema, {
       props: z.object({
         label: z.string(),
         name: z.string(),
-        checked: z.boolean().nullable(),
+        checked: z.boolean().nullish(),
       }),
       events: ["change"],
       description: "Checkbox input. Use { $bindState } on checked for binding.",
@@ -414,7 +412,7 @@ export const playgroundCatalog = defineCatalog(schema, {
         label: z.string(),
         name: z.string(),
         options: z.array(z.string()),
-        value: z.string().nullable(),
+        value: z.string().nullish(),
       }),
       events: ["change"],
       description:
@@ -425,7 +423,7 @@ export const playgroundCatalog = defineCatalog(schema, {
       props: z.object({
         label: z.string(),
         name: z.string(),
-        checked: z.boolean().nullable(),
+        checked: z.boolean().nullish(),
       }),
       events: ["change"],
       description: "Toggle switch. Use { $bindState } on checked for binding.",
@@ -433,11 +431,11 @@ export const playgroundCatalog = defineCatalog(schema, {
 
     Slider: {
       props: z.object({
-        label: z.string().nullable(),
-        min: z.number().nullable(),
-        max: z.number().nullable(),
-        step: z.number().nullable(),
-        value: z.number().nullable(),
+        label: z.string().nullish(),
+        min: z.number().nullish(),
+        max: z.number().nullish(),
+        step: z.number().nullish(),
+        value: z.number().nullish(),
       }),
       events: ["change"],
       description:
@@ -450,8 +448,8 @@ export const playgroundCatalog = defineCatalog(schema, {
         label: z.string(),
         variant: z
           .enum(["primary", "secondary", "outline", "danger"])
-          .nullable(),
-        disabled: z.boolean().nullable(),
+          .nullish(),
+        disabled: z.boolean().nullish(),
       }),
       events: ["press"],
       description:
@@ -485,8 +483,8 @@ export const playgroundCatalog = defineCatalog(schema, {
     Toggle: {
       props: z.object({
         label: z.string(),
-        pressed: z.boolean().nullable(),
-        variant: z.enum(["default", "outline"]).nullable(),
+        pressed: z.boolean().nullish(),
+        variant: z.enum(["default", "outline"]).nullish(),
       }),
       events: ["change"],
       description:
@@ -501,8 +499,8 @@ export const playgroundCatalog = defineCatalog(schema, {
             value: z.string(),
           }),
         ),
-        type: z.enum(["single", "multiple"]).nullable(),
-        value: z.string().nullable(),
+        type: z.enum(["single", "multiple"]).nullish(),
+        value: z.string().nullish(),
       }),
       events: ["change"],
       description:
@@ -517,7 +515,7 @@ export const playgroundCatalog = defineCatalog(schema, {
             value: z.string(),
           }),
         ),
-        selected: z.string().nullable(),
+        selected: z.string().nullish(),
       }),
       events: ["change"],
       description:
@@ -527,7 +525,7 @@ export const playgroundCatalog = defineCatalog(schema, {
     Pagination: {
       props: z.object({
         totalPages: z.number(),
-        page: z.number().nullable(),
+        page: z.number().nullish(),
       }),
       events: ["change"],
       description:
