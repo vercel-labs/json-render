@@ -1,0 +1,384 @@
+{
+  "at": "2026-10-27T22:34:20.323139+00:00",
+  "method": "Six fixed public briefs per model, one response per encoding, no retries, reasoning none, temperature0.7,8192 output cap. Original OpenUI replies reused. o200k output counts include failed/limited attempts. Structural success is upstream validation, not visual/semantic correctness. No holdout. Nonstreaming durations include provider processing; noTTFT.",
+  "groups": [
+    {
+      "model": "deepseek/deepseek-v4.1-flash-1017-fast",
+      "before": {
+        "scheduled": 6,
+        "attempted": 6,
+        "responses": 6,
+        "complete": 5,
+        "renderable": 6,
+        "meanTokens": 2304,
+        "meanDurationMs": 12206.220499833333,
+        "medianDurationMs": 9798.872979
+      },
+      "candidate": {
+        "scheduled": 6,
+        "attempted": 6,
+        "responses": 6,
+        "complete": 6,
+        "renderable": 6,
+        "meanTokens": 1541.5,
+        "meanDurationMs": 10239.677507000002,
+        "medianDurationMs": 9729.10572900001
+      },
+      "openui": {
+        "scheduled": 6,
+        "attempted": 6,
+        "responses": 6,
+        "complete": 6,
+        "renderable": 6,
+        "meanTokens": 1040.6666666666667,
+        "meanDurationMs": 5319.426507166666,
+        "medianDurationMs": 4416.892250000001
+      },
+      "candidateVsOpenuiPercent": 48.126201153106976
+    },
+    {
+      "model": "openai/gpt-6-luna-fast",
+      "before": {
+        "scheduled": 6,
+        "attempted": 6,
+        "responses": 6,
+        "complete": 4,
+        "renderable": 6,
+        "meanTokens": 1799.3333333333333,
+        "meanDurationMs": 13247.129166833338,
+        "medianDurationMs": 12690.997771000002
+      },
+      "candidate": {
+        "scheduled": 6,
+        "attempted": 6,
+        "responses": 6,
+        "complete": 4,
+        "renderable": 6,
+        "meanTokens": 595.8333333333334,
+        "meanDurationMs": 5192.701576499993,
+        "medianDurationMs": 4898.150749999986
+      },
+      "openui": {
+        "scheduled": 6,
+        "attempted": 6,
+        "responses": 6,
+        "complete": 2,
+        "renderable": 4,
+        "meanTokens": 819.8333333333334,
+        "meanDurationMs": 4868.034250166665,
+        "medianDurationMs": 4835.274854499992
+      },
+      "candidateVsOpenuiPercent": -27.322626550111806
+    },
+    {
+      "model": "openai/gpt-6.1-terra",
+      "before": {
+        "scheduled": 6,
+        "attempted": 6,
+        "responses": 6,
+        "complete": 6,
+        "renderable": 6,
+        "meanTokens": 2288.1666666666665,
+        "meanDurationMs": 33001.69345833336,
+        "medianDurationMs": 29862.217375000022
+      },
+      "candidate": {
+        "scheduled": 6,
+        "attempted": 6,
+        "responses": 6,
+        "complete": 6,
+        "renderable": 6,
+        "meanTokens": 744.3333333333334,
+        "meanDurationMs": 11280.753743166666,
+        "medianDurationMs": 9418.2358125
+      },
+      "openui": {
+        "scheduled": 6,
+        "attempted": 6,
+        "responses": 6,
+        "complete": 6,
+        "renderable": 6,
+        "meanTokens": 609,
+        "meanDurationMs": 7922.428825999993,
+        "medianDurationMs": 8256.650166000007
+      },
+      "candidateVsOpenuiPercent": 22.222222222222232
+    }
+  ],
+  "pooled": {
+    "before": {
+      "scheduled": 18,
+      "attempted": 18,
+      "responses": 18,
+      "complete": 15,
+      "renderable": 18,
+      "meanTokens": 2130.5,
+      "meanDurationMs": 19485.01437500001,
+      "medianDurationMs": 15541.161563000001
+    },
+    "candidate": {
+      "scheduled": 18,
+      "attempted": 18,
+      "responses": 18,
+      "complete": 16,
+      "renderable": 18,
+      "meanTokens": 960.5555555555555,
+      "meanDurationMs": 8904.377608888888,
+      "medianDurationMs": 7099.878062500005
+    },
+    "openui": {
+      "scheduled": 18,
+      "attempted": 18,
+      "responses": 18,
+      "complete": 14,
+      "renderable": 16,
+      "meanTokens": 823.1666666666666,
+      "meanDurationMs": 6036.629861111108,
+      "medianDurationMs": 5402.760999500002
+    }
+  },
+  "regressions": [],
+  "conditioning": {
+    "beforePrompt": 3906,
+    "beforeSchema": 28113,
+    "candidatePrompt": 2753,
+    "candidateSchema": 17518,
+    "openuiPrompt": 5017
+  },
+  "outputRatio": 1.166902881824931,
+  "target": 0.98,
+  "budget": {
+    "requests": 71,
+    "accountedUpperUSD": 1.4327789400000002,
+    "reportedGatewayUSD": 0.154623826
+  },
+  "replay": {
+    "method": "Identical saved content; one warm replay and five interleaved32-character-chunk runs per encoding. Means of per-case medians. Empty declared child/slot containers normalized; state,props,metadata,presence remain exact. Local decoder wall time and first-root token position, not network TTFT/browser paint.",
+    "rows": [
+      {
+        "id": "00",
+        "beforeTokens": 676,
+        "afterTokens": 199,
+        "beforeMedianMs": 8.048709000000144,
+        "afterMedianMs": 1.7921250000000555,
+        "beforeFirstRootPrefixTokens": 37,
+        "afterFirstRootPrefixTokens": 10,
+        "rootsPublishedBeforeEnd": true,
+        "canonicalEqual": true
+      },
+      {
+        "id": "02",
+        "beforeTokens": 979,
+        "afterTokens": 277,
+        "beforeMedianMs": 10.165083999999979,
+        "afterMedianMs": 2.460125000000062,
+        "beforeFirstRootPrefixTokens": 37,
+        "afterFirstRootPrefixTokens": 10,
+        "rootsPublishedBeforeEnd": true,
+        "canonicalEqual": true
+      },
+      {
+        "id": "04",
+        "beforeTokens": 1624,
+        "afterTokens": 482,
+        "beforeMedianMs": 16.594333000000006,
+        "afterMedianMs": 4.645874999999933,
+        "beforeFirstRootPrefixTokens": 47,
+        "afterFirstRootPrefixTokens": 21,
+        "rootsPublishedBeforeEnd": true,
+        "canonicalEqual": true
+      },
+      {
+        "id": "06",
+        "beforeTokens": 2437,
+        "afterTokens": 901,
+        "beforeMedianMs": 23.819375000000036,
+        "afterMedianMs": 5.777915999999777,
+        "beforeFirstRootPrefixTokens": 69,
+        "afterFirstRootPrefixTokens": 37,
+        "rootsPublishedBeforeEnd": true,
+        "canonicalEqual": true
+      },
+      {
+        "id": "08",
+        "beforeTokens": 3388,
+        "afterTokens": 1259,
+        "beforeMedianMs": 30.543208999999933,
+        "afterMedianMs": 8.322541999999885,
+        "beforeFirstRootPrefixTokens": 356,
+        "afterFirstRootPrefixTokens": 255,
+        "rootsPublishedBeforeEnd": true,
+        "canonicalEqual": true
+      },
+      {
+        "id": "10",
+        "beforeTokens": 4720,
+        "afterTokens": 1393,
+        "beforeMedianMs": 47.89520800000014,
+        "afterMedianMs": 13.474042000000281,
+        "beforeFirstRootPrefixTokens": 116,
+        "afterFirstRootPrefixTokens": 78,
+        "rootsPublishedBeforeEnd": true,
+        "canonicalEqual": true
+      },
+      {
+        "id": "12",
+        "beforeTokens": 401,
+        "afterTokens": 108,
+        "beforeMedianMs": 3.4850830000000315,
+        "afterMedianMs": 0.8780420000002778,
+        "beforeFirstRootPrefixTokens": 37,
+        "afterFirstRootPrefixTokens": 10,
+        "rootsPublishedBeforeEnd": true,
+        "canonicalEqual": true
+      },
+      {
+        "id": "14",
+        "beforeTokens": 758,
+        "afterTokens": 223,
+        "beforeMedianMs": 7.157959000000119,
+        "afterMedianMs": 1.7185420000000704,
+        "beforeFirstRootPrefixTokens": 37,
+        "afterFirstRootPrefixTokens": 10,
+        "rootsPublishedBeforeEnd": true,
+        "canonicalEqual": true
+      },
+      {
+        "id": "16",
+        "beforeTokens": 1128,
+        "afterTokens": 361,
+        "beforeMedianMs": 11.201542000000245,
+        "afterMedianMs": 2.455333000000337,
+        "beforeFirstRootPrefixTokens": 47,
+        "afterFirstRootPrefixTokens": 21,
+        "rootsPublishedBeforeEnd": true,
+        "canonicalEqual": true
+      },
+      {
+        "id": "18",
+        "beforeTokens": 2633,
+        "afterTokens": 949,
+        "beforeMedianMs": 26.084249999999884,
+        "afterMedianMs": 6.42837499999996,
+        "beforeFirstRootPrefixTokens": 87,
+        "afterFirstRootPrefixTokens": 47,
+        "rootsPublishedBeforeEnd": true,
+        "canonicalEqual": true
+      },
+      {
+        "id": "20",
+        "beforeTokens": 2757,
+        "afterTokens": 908,
+        "beforeMedianMs": 27.367416999999932,
+        "afterMedianMs": 6.22649999999976,
+        "beforeFirstRootPrefixTokens": 44,
+        "afterFirstRootPrefixTokens": 20,
+        "rootsPublishedBeforeEnd": true,
+        "canonicalEqual": true
+      },
+      {
+        "id": "22",
+        "beforeTokens": 3119,
+        "afterTokens": 1068,
+        "beforeMedianMs": 30.512624999999844,
+        "afterMedianMs": 7.208459000000403,
+        "beforeFirstRootPrefixTokens": 63,
+        "afterFirstRootPrefixTokens": 30,
+        "rootsPublishedBeforeEnd": true,
+        "canonicalEqual": true
+      },
+      {
+        "id": "24",
+        "beforeTokens": 504,
+        "afterTokens": 133,
+        "beforeMedianMs": 6.14712499999996,
+        "afterMedianMs": 1.3269169999998667,
+        "beforeFirstRootPrefixTokens": 44,
+        "afterFirstRootPrefixTokens": 20,
+        "rootsPublishedBeforeEnd": true,
+        "canonicalEqual": true
+      },
+      {
+        "id": "26",
+        "beforeTokens": 1370,
+        "afterTokens": 579,
+        "beforeMedianMs": 10.243167000000085,
+        "afterMedianMs": 2.5087499999999636,
+        "beforeFirstRootPrefixTokens": 55,
+        "afterFirstRootPrefixTokens": 21,
+        "rootsPublishedBeforeEnd": true,
+        "canonicalEqual": true
+      },
+      {
+        "id": "28",
+        "beforeTokens": 1185,
+        "afterTokens": 411,
+        "beforeMedianMs": 10.96683400000029,
+        "afterMedianMs": 2.5671250000000327,
+        "beforeFirstRootPrefixTokens": 55,
+        "afterFirstRootPrefixTokens": 21,
+        "rootsPublishedBeforeEnd": true,
+        "canonicalEqual": true
+      },
+      {
+        "id": "30",
+        "beforeTokens": 2736,
+        "afterTokens": 1036,
+        "beforeMedianMs": 25.044167000000016,
+        "afterMedianMs": 6.348042000000078,
+        "beforeFirstRootPrefixTokens": 70,
+        "afterFirstRootPrefixTokens": 28,
+        "rootsPublishedBeforeEnd": true,
+        "canonicalEqual": true
+      },
+      {
+        "id": "32",
+        "beforeTokens": 3858,
+        "afterTokens": 1472,
+        "beforeMedianMs": 35.121916000000056,
+        "afterMedianMs": 8.927500000000236,
+        "beforeFirstRootPrefixTokens": 55,
+        "afterFirstRootPrefixTokens": 22,
+        "rootsPublishedBeforeEnd": true,
+        "canonicalEqual": true
+      },
+      {
+        "id": "34",
+        "beforeTokens": 4076,
+        "afterTokens": 1186,
+        "beforeMedianMs": 38.14712499999996,
+        "afterMedianMs": 9.551708999999846,
+        "beforeFirstRootPrefixTokens": 55,
+        "afterFirstRootPrefixTokens": 21,
+        "rootsPublishedBeforeEnd": true,
+        "canonicalEqual": true
+      }
+    ],
+    "means": {
+      "beforeMedianMs": 20.47472933333337,
+      "afterMedianMs": 5.14543994444449,
+      "beforeFirstRootPrefixTokens": 72.83333333333333,
+      "afterFirstRootPrefixTokens": 37.888888888888886
+    }
+  },
+  "lossless": [
+    {
+      "sourceFormat": "compact",
+      "verified": 15,
+      "rawTokens": 30036,
+      "baselineEncodedTokens": 30054,
+      "candidateTokens": 10068,
+      "measuredTokens": 10108,
+      "matchesMeasuredCounts": false
+    },
+    {
+      "sourceFormat": "openui",
+      "verified": 14,
+      "rawTokens": 10304,
+      "baselineEncodedTokens": 25350,
+      "candidateTokens": 8494,
+      "measuredTokens": 8494,
+      "matchesMeasuredCounts": true
+    }
+  ]
+}
