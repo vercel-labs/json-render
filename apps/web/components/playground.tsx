@@ -291,6 +291,7 @@ const EXAMPLE_PROMPTS = [
   "Build a pricing page",
   "Design a user profile card",
   "Make a contact form",
+  "Driving route from San Francisco to Lake Tahoe",
 ];
 
 const JEV_EXAMPLE_PROMPTS = [
