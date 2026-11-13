@@ -195,6 +195,76 @@ Any prop value can be a dynamic expression resolved at render time:
 
 See [@json-render/core](../core/README.md) for full expression syntax.
 
+### Computed functions
+
+Register named functions through `JSONUIProvider` or a component returned by `createRenderer` to resolve `$computed` expressions:
+
+```tsx
+<JSONUIProvider
+  functions={{ fullName: (args) => `${args.first} ${args.last}` }}
+>
+  <Renderer spec={spec} />
+</JSONUIProvider>
+```
+
+### Custom directives
+
+Register custom directives through `JSONUIProvider` or a component returned by `createRenderer` to resolve user-defined `$`-prefixed values in component props:
+
+```tsx
+import { defineDirective, resolvePropValue } from "@json-render/core";
+import { z } from "zod";
+
+const math = defineDirective({
+  name: "$math",
+  schema: z.object({
+    $math: z.literal("multiply"),
+    a: z.unknown(),
+    b: z.unknown(),
+  }),
+  resolve(value, ctx) {
+    return Number(resolvePropValue(value.a, ctx)) *
+      Number(resolvePropValue(value.b, ctx));
+  },
+});
+
+const format = defineDirective({
+  name: "$format",
+  schema: z.object({
+    $format: z.literal("currency"),
+    value: z.unknown(),
+    currency: z.string(),
+  }),
+  resolve(value, ctx) {
+    const amount = Number(resolvePropValue(value.value, ctx));
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: value.currency,
+    }).format(amount);
+  },
+});
+
+<JSONUIProvider directives={[math, format]}>
+  <Renderer spec={spec} />
+</JSONUIProvider>;
+```
+
+The directives compose in props, so `$format` can format a `$math` result that reads its operands from state:
+
+```json
+{
+  "$format": "currency",
+  "value": {
+    "$math": "multiply",
+    "a": { "$state": "/price" },
+    "b": { "$state": "/qty" }
+  },
+  "currency": "USD"
+}
+```
+
+See the [directives documentation](https://json-render.dev/docs/directives) for more details.
+
 ## Tab Navigation Pattern
 
 Combine `Pressable`, `setState`, visibility conditions, and dynamic props for functional tabs:
