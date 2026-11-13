@@ -91,13 +91,14 @@ func applySpecStreamPatch(
     case .move:
         guard let from = patch.from else { return }
         let moved = getByPath(root, from) ?? .null
-        try budget.release(valueAtSegments(root, JSONPointer.parse(from)))
-        // The destination is not credited even when it already holds a value.
-        // The source removal above can take that value with it, so leaving the
-        // charge in place can only make the budget stricter.
+        let sourced = valueAtSegments(root, JSONPointer.parse(from))
         let segments = JSONPointer.parse(patch.path)
-        if !isBlockedWrite(segments) {
-            try budget.reserve(moved, pathDepth: segments.count, replacing: nil)
+        if isBlockedWrite(segments) {
+            // The source removal still happens; only the destination write is
+            // skipped, so the source is released on its own.
+            try budget.release(sourced)
+        } else {
+            try budget.move(moved, pathDepth: segments.count, releasing: sourced)
         }
         root = removeByPath(root, from)
         root = addByPath(root, patch.path, moved)

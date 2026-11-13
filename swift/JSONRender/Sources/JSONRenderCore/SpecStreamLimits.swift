@@ -139,7 +139,31 @@ struct SpecStreamBudget {
     mutating func reserve(_ value: JSONValue, pathDepth: Int, replacing replaced: JSONValue?) throws {
         let added = try measure(value)
         let removed = try replaced.map { try measure($0) } ?? .zero
+        try commit(added: added, removed: removed, pathDepth: pathDepth)
+    }
 
+    /// Checks a move that removes `source` and writes `value` at a path
+    /// `pathDepth` levels below the root.
+    ///
+    /// The destination is not credited even when it already holds a value. The
+    /// source removal can take that value with it, so leaving the charge in
+    /// place can only make the budget stricter. Both sides are measured and
+    /// checked before either is recorded, so a rejected move leaves the budget
+    /// as it was.
+    mutating func move(_ value: JSONValue, pathDepth: Int, releasing source: JSONValue?) throws {
+        let added = try measure(value)
+        let removed = try source.map { try measure($0) } ?? .zero
+        try commit(added: added, removed: removed, pathDepth: pathDepth)
+    }
+
+    /// Records a write once all of its measurements are taken. Every check
+    /// runs before any of the counts change, so a thrown error leaves them
+    /// untouched.
+    private mutating func commit(
+        added: JSONValueSize,
+        removed: JSONValueSize,
+        pathDepth: Int
+    ) throws {
         guard pathDepth + added.depth <= limits.maxDepth else {
             throw SpecStreamError(
                 message: "Stream patch exceeds the spec depth limit of \(limits.maxDepth)."

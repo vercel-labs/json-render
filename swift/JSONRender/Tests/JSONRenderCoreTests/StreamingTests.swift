@@ -154,6 +154,31 @@ final class StreamingTests: XCTestCase {
         XCTAssertEqual(compiler.getResult()["c"], .number(1))
     }
 
+    func testRejectedMoveDoesNotReleaseItsSourceFromTheBudget() {
+        let limits = SpecStreamLimits(
+            maxDepth: 4,
+            maxNodes: 10,
+            maxBytes: 1_000,
+            maxWork: 10_000
+        )
+        let compiler = SpecStreamCompiler(limits: limits)
+        _ = compiler.push(#"{"op":"add","path":"/a","value":[1,2]}"# + "\n")
+        _ = compiler.push(#"{"op":"add","path":"/b","value":[3,4]}"# + "\n")
+
+        // The move would nest the array three levels down, past the depth
+        // limit, so it is dropped and the source stays where it was.
+        _ = compiler.push(#"{"op":"move","from":"/a","path":"/b/0/0"}"# + "\n")
+        XCTAssertEqual(compiler.getResult()["a"], .array([.number(1), .number(2)]))
+
+        // The source still counts toward the budget, so this write would take
+        // the document to 11 values and is rejected. Releasing the source in
+        // the dropped move would wrongly leave room for it.
+        _ = compiler.push(#"{"op":"add","path":"/c","value":[5,6,7]}"# + "\n")
+
+        XCTAssertNil(compiler.getResult()["c"])
+        XCTAssertLessThanOrEqual(nodeCount(compiler.getResult()), limits.maxNodes)
+    }
+
     func testPatchBeyondByteBudgetIsRejectedAndStreamContinues() {
         let limits = SpecStreamLimits(
             maxDepth: 100,
