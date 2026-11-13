@@ -1,7 +1,9 @@
 import { describe, it, expect } from "vitest";
 import React from "react";
 import { render, screen } from "@testing-library/react";
+import { z } from "zod";
 import type { Spec } from "@json-render/core";
+import { defineDirective, resolvePropValue } from "@json-render/core";
 import {
   JSONUIProvider,
   Renderer,
@@ -158,6 +160,49 @@ describe("mixed container/item visibility on repeat containers", () => {
   it("filters items when the $state gate is true", () => {
     mount(mixedSpec(true));
     expect(screen.getAllByTestId("stack")).toHaveLength(1);
+    const texts = screen.getAllByTestId("text").map((n) => n.textContent);
+    expect(texts).toEqual(["Auth flow", "Dark mode"]);
+  });
+});
+
+describe("repeat container filter with $value", () => {
+  it("resolves custom directives that read $item", () => {
+    const lowerDirective = defineDirective({
+      name: "$lower",
+      schema: z.object({ $lower: z.unknown() }),
+      resolve(value, ctx) {
+        return String(resolvePropValue(value.$lower, ctx)).toLowerCase();
+      },
+    });
+    const spec: Spec = {
+      root: "column",
+      state: {
+        tasks: tasks.map((t) => ({ ...t, status: t.status.toUpperCase() })),
+      },
+      elements: {
+        column: {
+          type: "Stack",
+          props: {},
+          repeat: { statePath: "/tasks", key: "id" },
+          visible: { $value: { $lower: { $item: "status" } }, eq: "todo" },
+          children: ["card"],
+        },
+        card: {
+          type: "Text",
+          props: { text: { $item: "title" } },
+          children: [],
+        },
+      },
+    };
+    render(
+      <JSONUIProvider
+        registry={registry}
+        initialState={spec.state ?? {}}
+        directives={[lowerDirective]}
+      >
+        <Renderer spec={spec} registry={registry} />
+      </JSONUIProvider>,
+    );
     const texts = screen.getAllByTestId("text").map((n) => n.textContent);
     expect(texts).toEqual(["Auth flow", "Dark mode"]);
   });
