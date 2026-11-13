@@ -563,6 +563,15 @@ final class WatchCollector {
 /// the host's CPU or memory that way. The budget refills when a state change
 /// arrives that the tracker's own actions did not cause, such as user input or
 /// a streamed spec update.
+///
+/// The renderer schedules a pass for every state change, and an action can
+/// change state before it suspends, so the next pass can arrive while the
+/// current one is still awaiting that action. Passes run one at a time: a pass
+/// that arrives during another replaces the waiting one and returns, and the
+/// running pass takes it next. Running both at once would compare the store
+/// against a version the running pass has not recorded yet, and the newer pass
+/// would mistake the running pass's own writes for an external change and
+/// refill the budget.
 public final class WatchTracker {
     /// The default number of watch actions one chain of state changes may run.
     public static let defaultMaxCascadeDispatches = 64
@@ -579,6 +588,19 @@ public final class WatchTracker {
     private var hasSnapshot = false
     private let functions: [String: ComputedFunction]
     private let directives: [String: Directive]
+
+    /// One pass waiting to run.
+    private struct QueuedPass {
+        let records: [WatchRecord]
+        let dispatcher: ActionDispatcher
+        let store: StateStore
+    }
+
+    /// Guards the pass queue so a caller on another thread cannot start a
+    /// second pass. Only the pass that sets `isProcessing` runs the queue.
+    private let queueLock = NSLock()
+    private var queuedPass: QueuedPass?
+    private var isProcessing = false
 
     /// - Parameters:
     ///   - functions: Named functions for `$computed` parameters, from the
@@ -611,11 +633,45 @@ public final class WatchTracker {
         expectedVersion = nil
     }
 
+    /// Runs a watch pass for the given records.
+    ///
+    /// Only one pass runs at a time. If a pass is already running, this call
+    /// replaces any pass that is waiting and returns, and the running pass
+    /// picks up the newest records when it finishes. The renderer builds one
+    /// pass per state change and does not await these calls, so the latest
+    /// records are the ones that matter.
     public func process(
         _ records: [WatchRecord],
         dispatcher: ActionDispatcher,
         store: StateStore
     ) async {
+        queueLock.lock()
+        queuedPass = QueuedPass(records: records, dispatcher: dispatcher, store: store)
+        if isProcessing {
+            queueLock.unlock()
+            return
+        }
+        isProcessing = true
+        queueLock.unlock()
+
+        while true {
+            queueLock.lock()
+            guard let pass = queuedPass else {
+                isProcessing = false
+                queueLock.unlock()
+                return
+            }
+            queuedPass = nil
+            queueLock.unlock()
+            await runPass(pass)
+        }
+    }
+
+    private func runPass(_ pass: QueuedPass) async {
+        let records = pass.records
+        let dispatcher = pass.dispatcher
+        let store = pass.store
+
         defer { expectedVersion = store.version }
 
         if expectedVersion != store.version {

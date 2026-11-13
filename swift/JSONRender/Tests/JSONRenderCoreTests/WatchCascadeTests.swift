@@ -92,4 +92,77 @@ final class WatchCascadeTests: XCTestCase {
             "An external change refills the budget for three more appends"
         )
     }
+
+    func testPassArrivingDuringSuspendedActionDoesNotRefillBudget() async throws {
+        let spec = Spec.decodePartial(
+            JSONValue.decode(
+                #"{"root":"t","state":{"items":[]},"elements":{"t":{"type":"Text","props":{},"watch":{"/items":{"action":"appendThenWait"}}}}}"#
+            )!
+        )
+        let store = StateStore(spec: spec)
+        let dispatcher = ActionDispatcher(store: store)
+        let tracker = WatchTracker(maxCascadeDispatches: 1)
+        let appends = TestCounter()
+
+        dispatcher.register("appendThenWait") { _ in
+            let count = appends.increment()
+            var items = store.get("/items")?.arrayValue ?? []
+            items.append(.string("item\(count)"))
+            store.set("/items", .array(items))
+            if count == 1 {
+                // The renderer schedules the next pass from this write. Call it
+                // here, so it starts while this pass is still awaiting the
+                // action, as it would from the store listener.
+                await tracker.process(
+                    buildRenderTreeWithWatches(
+                        spec: spec,
+                        registry: Fixtures.recordingRegistry(),
+                        store: store,
+                        dispatcher: dispatcher
+                    ).watches,
+                    dispatcher: dispatcher,
+                    store: store
+                )
+            }
+        }
+
+        tracker.snapshot(watches(spec, store, dispatcher))
+        store.set("/items", .array([.string("seed")]))
+        await tracker.process(
+            watches(spec, store, dispatcher),
+            dispatcher: dispatcher,
+            store: store
+        )
+
+        XCTAssertEqual(
+            appends.value,
+            1,
+            "A pass that arrives during a suspended action must not refill the budget"
+        )
+        XCTAssertEqual(
+            store.get("/items")?.arrayValue?.count,
+            2,
+            "The seed plus the one append the budget allows"
+        )
+    }
+}
+
+/// Counts calls from concurrent action handlers.
+private final class TestCounter: @unchecked Sendable {
+    private let lock = NSLock()
+    private var count = 0
+
+    @discardableResult
+    func increment() -> Int {
+        lock.lock()
+        defer { lock.unlock() }
+        count += 1
+        return count
+    }
+
+    var value: Int {
+        lock.lock()
+        defer { lock.unlock() }
+        return count
+    }
 }
