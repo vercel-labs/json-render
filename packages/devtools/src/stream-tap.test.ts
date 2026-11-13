@@ -107,4 +107,14 @@ describe("extractSpecFromParts replay", () => {
     expect(second?.state?.posts).toEqual([{ id: "1" }, { id: "2" }]);
     expect(second?.elements.main?.children).toEqual(["child"]);
   });
+
+  it("skips malformed spec parts instead of throwing", () => {
+    const parts = [
+      { type: SPEC_DATA_PART_TYPE, data: { type: "flat" } },
+      { type: SPEC_DATA_PART_TYPE, data: { type: "nested" } },
+    ];
+
+    expect(() => extractSpecFromParts(parts)).not.toThrow();
+    expect(extractSpecFromParts(parts)).toBeNull();
+  });
 });
