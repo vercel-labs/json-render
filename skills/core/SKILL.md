@@ -96,6 +96,8 @@ const { result, newPatches } = compiler.push(chunk);
 const finalSpec = compiler.getResult();
 ```
 
+For mixed prose and JSONL streams, use `createJsonRenderTransform()` or `pipeJsonRender()`. Leading whitespace on JSONL patch lines and `spec` fence delimiters is removed with those lines; indentation and blank lines in ordinary text are preserved across chunks.
+
 ## Form Values in Action Handlers
 
 Use `findFormValue("email", params, state)` to read a direct parameter, a dotted parameter key (such as `"form.email"`), a matching flat state key, or a slash-delimited path (such as `"/form/email"`) in nested state. Parameter values are literal, so emails and URLs containing dots are preserved. For action bindings that read nested state, use `{ $state: "/form/email" }`; the resolver passes that value to the handler. A bare `"email"` field name does not search nested `state.form.email`.
