@@ -6,6 +6,11 @@ import {
   findDirective,
 } from "./directives";
 import { resolvePropValue } from "./props";
+import {
+  evaluateVisibility,
+  VisibilityConditionSchema,
+  VisibilityConditionStrictSchema,
+} from "./visibility";
 import type { PropResolutionContext } from "./props";
 
 describe("defineDirective", () => {
@@ -210,5 +215,85 @@ describe("resolvePropValue with custom directives", () => {
     const ctx: PropResolutionContext = { stateModel: { x: 1 } };
     expect(resolvePropValue({ $state: "/x" }, ctx)).toBe(1);
     expect(resolvePropValue({ foo: "bar" }, ctx)).toEqual({ foo: "bar" });
+  });
+});
+
+describe("custom directives in visibility conditions", () => {
+  const countDirective = defineDirective({
+    name: "$count",
+    schema: z.object({ $count: z.unknown() }),
+    resolve(value, ctx) {
+      const resolved = resolvePropValue(
+        (value as { $count: unknown }).$count,
+        ctx,
+      );
+      return Array.isArray(resolved) ? resolved.length : 0;
+    },
+  });
+  const registry = createDirectiveRegistry([countDirective]);
+  const stateModel = { cart: { items: ["a", "b"] }, limit: 2, min: 3 };
+
+  it("resolves a directive on the right-hand side of a comparison", () => {
+    const ctx: PropResolutionContext = { stateModel, directives: registry };
+    expect(
+      evaluateVisibility(
+        { $state: "/limit", eq: { $count: { $state: "/cart/items" } } },
+        ctx,
+      ),
+    ).toBe(true);
+    expect(
+      evaluateVisibility(
+        { $state: "/min", lte: { $count: { $state: "/cart/items" } } },
+        ctx,
+      ),
+    ).toBe(false);
+  });
+
+  it("resolves a directive inside $cond in props", () => {
+    const ctx: PropResolutionContext = { stateModel, directives: registry };
+    expect(
+      resolvePropValue(
+        {
+          $cond: {
+            $state: "/limit",
+            gte: { $count: { $state: "/cart/items" } },
+          },
+          $then: "full",
+          $else: "room",
+        },
+        ctx,
+      ),
+    ).toBe("full");
+  });
+
+  it("compares the raw object when no registry is present", () => {
+    expect(
+      evaluateVisibility(
+        { $state: "/limit", eq: { $count: { $state: "/cart/items" } } },
+        { stateModel },
+      ),
+    ).toBe(false);
+  });
+});
+
+describe("directive operands in visibility schemas", () => {
+  it("accepts a directive as a numeric comparison operand", () => {
+    const condition = {
+      $state: "/limit",
+      lte: { $count: { $state: "/cart/items" } },
+    };
+    expect(VisibilityConditionSchema.safeParse(condition).success).toBe(true);
+    expect(VisibilityConditionStrictSchema.safeParse(condition).success).toBe(
+      true,
+    );
+  });
+
+  it("still rejects a non-directive object operand", () => {
+    expect(
+      VisibilityConditionStrictSchema.safeParse({
+        $state: "/limit",
+        lte: { count: 2 },
+      }).success,
+    ).toBe(false);
   });
 });
