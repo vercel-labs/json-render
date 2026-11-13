@@ -300,6 +300,35 @@ describe("buildSpecFromParts", () => {
     expect(spec?.root).toBe("replaced");
   });
 
+  it("replays a flat part followed by patches without mutating the part", () => {
+    const parts = [
+      {
+        type: SPEC_DATA_PART_TYPE,
+        data: {
+          type: "flat",
+          spec: {
+            root: "main",
+            elements: { main: { type: "Card", props: {}, children: [] } },
+            state: { posts: [{ id: "1" }] },
+          },
+        } satisfies SpecDataPart,
+      },
+      {
+        type: SPEC_DATA_PART_TYPE,
+        data: {
+          type: "patch",
+          patch: { op: "add", path: "/state/posts/1", value: { id: "2" } },
+        } satisfies SpecDataPart,
+      },
+    ];
+
+    const first = buildSpecFromParts(parts);
+    const second = buildSpecFromParts(parts);
+
+    expect(second).toEqual(first);
+    expect(second?.state?.posts).toEqual([{ id: "1" }, { id: "2" }]);
+  });
+
   it("returns empty elements map from empty parts list", () => {
     const spec = buildSpecFromParts([]);
 

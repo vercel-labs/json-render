@@ -97,11 +97,14 @@ export function buildSpecFromParts(
         );
       } else if (payload.type === "flat") {
         hasSpec = true;
-        Object.assign(spec, payload.spec);
+        Object.assign(
+          spec,
+          snapshot ? $state.snapshot(payload.spec) : payload.spec,
+        );
       } else if (payload.type === "nested") {
         hasSpec = true;
-        const flat = nestedToFlat(payload.spec);
-        Object.assign(spec, flat);
+        const nested = snapshot ? $state.snapshot(payload.spec) : payload.spec;
+        Object.assign(spec, nestedToFlat(nested));
       }
     }
   }
