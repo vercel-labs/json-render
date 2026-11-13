@@ -246,14 +246,21 @@ struct ColumnsLayout: Layout {
     var spacing: CGFloat
     var minColumnWidth: CGFloat
 
-    private func columnCount(width: CGFloat, count: Int) -> Int {
+    init(columns: Int, spacing: CGFloat, minColumnWidth: CGFloat) {
+        self.columns = max(1, columns)
+        // A negative or non-finite gap would make the column count's divisor
+        // zero or the count itself infinite, and the conversion to `Int` traps.
+        // The grid reads this value from the spec, so clamp it here as well as
+        // where the prop is parsed.
+        self.spacing = spacing.isFinite ? max(0, spacing) : 0
+        self.minColumnWidth = minColumnWidth.isFinite ? max(1, minColumnWidth) : 1
+    }
+
+    func columnCount(width: CGFloat, count: Int) -> Int {
         guard width.isFinite, count > 0 else { return max(1, columns) }
-        let fit = max(1, min(columns, Int((width + spacing) / (minColumnWidth + spacing))))
-        guard fit < columns, count > fit else { return fit }
-        for candidate in stride(from: fit, to: 1, by: -1) where count % candidate == 0 {
-            return candidate
-        }
-        return fit
+        let fit = ((width + spacing) / (minColumnWidth + spacing)).rounded(.down)
+        guard fit.isFinite else { return max(1, columns) }
+        return max(1, min(columns, Int(min(fit, CGFloat(columns)))))
     }
 
     private func rows(_ subviews: Subviews, width: CGFloat) -> (columnWidth: CGFloat, columns: Int, heights: [CGFloat]) {

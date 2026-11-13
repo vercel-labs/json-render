@@ -47,7 +47,7 @@ let package = Package(
         // Linux and the macOS job is what runs these tests.
         .testTarget(
             name: "JSONRenderSwiftUITests",
-            dependencies: ["JSONRenderCore", "JSONRenderSwiftUI"]
+            dependencies: ["JSONRenderCore", "JSONRenderSwiftUI", "JSONRenderCatalog"]
         ),
     ]
 )

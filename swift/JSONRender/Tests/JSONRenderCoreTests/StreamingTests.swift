@@ -112,4 +112,95 @@ final class StreamingTests: XCTestCase {
         XCTAssertEqual(compiler.getPatches().count, 0)
         XCTAssertEqual(compiler.getResult(), .object([:]))
     }
+
+    func testCopiesBeyondNodeBudgetAreRejected() {
+        // Each patch copies the growing array into itself at index zero, so the
+        // document doubles for a few dozen bytes of stream. The budget must
+        // stop it well before the array holds millions of values.
+        let limits = SpecStreamLimits(
+            maxDepth: 100,
+            maxNodes: 200,
+            maxBytes: 1_000_000,
+            maxWork: 10_000
+        )
+        let compiler = SpecStreamCompiler(limits: limits)
+        _ = compiler.push(#"{"op":"add","path":"/a","value":[1,2,3,4]}"# + "\n")
+        for _ in 0..<20 {
+            _ = compiler.push(#"{"op":"copy","from":"/a","path":"/a/0"}"# + "\n")
+        }
+
+        XCTAssertLessThanOrEqual(nodeCount(compiler.getResult()), limits.maxNodes)
+        XCTAssertLessThan(compiler.getPatches().count, 21)
+    }
+
+    func testCopiesBeyondDepthBudgetAreRejected() {
+        let limits = SpecStreamLimits(
+            maxDepth: 6,
+            maxNodes: 10_000,
+            maxBytes: 100_000,
+            maxWork: 10_000
+        )
+        let compiler = SpecStreamCompiler(limits: limits)
+        _ = compiler.push(#"{"op":"add","path":"/a","value":{"b":1}}"# + "\n")
+        for _ in 0..<6 {
+            _ = compiler.push(#"{"op":"copy","from":"/a","path":"/a/b"}"# + "\n")
+        }
+
+        // A rejected patch does not wedge the compiler: a shallow write after
+        // it still applies.
+        _ = compiler.push(#"{"op":"add","path":"/c","value":1}"# + "\n")
+
+        XCTAssertLessThan(compiler.getPatches().count, 7)
+        XCTAssertEqual(compiler.getResult()["c"], .number(1))
+    }
+
+    func testPatchBeyondByteBudgetIsRejectedAndStreamContinues() {
+        let limits = SpecStreamLimits(
+            maxDepth: 100,
+            maxNodes: 1_000,
+            maxBytes: 40,
+            maxWork: 10_000
+        )
+        let compiler = SpecStreamCompiler(limits: limits)
+        let long = String(repeating: "x", count: 100)
+        _ = compiler.push(#"{"op":"add","path":"/long","value":"\#(long)"}"# + "\n")
+        _ = compiler.push(#"{"op":"add","path":"/ok","value":1}"# + "\n")
+
+        XCTAssertEqual(compiler.getPatches().count, 1)
+        XCTAssertEqual(compiler.getResult()["ok"], .number(1))
+        XCTAssertNil(compiler.getResult()["long"])
+    }
+
+    func testDecodePartialSkipsElementBeyondLimits() {
+        let json = JSONValue.decode(
+            #"""
+            {"root":"small","elements":{
+              "small":{"type":"Text","props":{"text":"hi"}},
+              "big":{"type":"List","props":{"values":[1,2,3,4,5,6,7,8,9,10]}}
+            }}
+            """#
+        )!
+        let limits = SpecStreamLimits(
+            maxDepth: 10,
+            maxNodes: 8,
+            maxBytes: 1_000,
+            maxWork: 1_000
+        )
+
+        let spec = Spec.decodePartial(json, limits: limits)
+
+        XCTAssertNotNil(spec.elements["small"])
+        XCTAssertNil(spec.elements["big"])
+    }
+
+    private func nodeCount(_ value: JSONValue) -> Int {
+        switch value {
+        case .array(let items):
+            return 1 + items.reduce(0) { $0 + nodeCount($1) }
+        case .object(let object):
+            return 1 + object.values.reduce(0) { $0 + nodeCount($1) }
+        default:
+            return 1
+        }
+    }
 }

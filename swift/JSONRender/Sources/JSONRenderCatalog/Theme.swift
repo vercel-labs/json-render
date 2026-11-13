@@ -37,9 +37,18 @@ enum CatalogTheme {
         }
     }
 
+    /// The largest gap, in points, that a spec can request.
+    static let maximumGap: Double = 400
+
     /// Spacing tokens from the catalog's `gap` prop.
+    ///
+    /// The number comes from the spec, so it is clamped to a finite,
+    /// non-negative range before any layout math sees it. A negative gap would
+    /// otherwise make the grid's column calculation divide by zero.
     static func gap(_ value: JSONValue?, fallback: CGFloat) -> CGFloat {
-        if let number = value?.doubleValue { return CGFloat(number) }
+        if let number = value?.doubleValue {
+            return CGFloat(number.clampedFinite(to: 0...maximumGap, fallback: Double(fallback)))
+        }
         switch value?.stringValue {
         case "none": return 0
         case "xs": return 4

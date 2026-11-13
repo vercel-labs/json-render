@@ -38,4 +38,15 @@ final class JSONValueTests: XCTestCase {
         XCTAssertEqual(Double.infinity.clampedInt(to: 1...6, fallback: 2), 2)
         XCTAssertEqual(Double.nan.clampedInt(to: 1...6, fallback: 2), 2)
     }
+
+    func testClampedFiniteClampsSpecNumbers() {
+        // A spec gap can be negative, infinite, or far past a usable range.
+        XCTAssertEqual((-140.0).clampedFinite(to: 0...400, fallback: 12), 0)
+        XCTAssertEqual((-0.5).clampedFinite(to: 0...400, fallback: 12), 0)
+        XCTAssertEqual(8.0.clampedFinite(to: 0...400, fallback: 12), 8)
+        XCTAssertEqual(1e19.clampedFinite(to: 0...400, fallback: 12), 400)
+        XCTAssertEqual(Double.infinity.clampedFinite(to: 0...400, fallback: 12), 12)
+        XCTAssertEqual((-Double.infinity).clampedFinite(to: 0...400, fallback: 12), 12)
+        XCTAssertEqual(Double.nan.clampedFinite(to: 0...400, fallback: 12), 12)
+    }
 }

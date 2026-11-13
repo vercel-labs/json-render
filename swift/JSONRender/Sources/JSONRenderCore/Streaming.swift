@@ -49,6 +49,121 @@ public func applySpecStreamPatch(_ root: inout JSONValue, _ patch: JsonPatch) th
     }
 }
 
+/// Applies an RFC 6902 patch while charging the write to `budget`.
+///
+/// The write is measured before `root` changes, so a patch that would pass a
+/// limit leaves the document as it was. A `copy` charges the copied subtree in
+/// full even though the copy shares storage with its source, which stops a
+/// stream from describing a document far larger than its patches.
+func applySpecStreamPatch(
+    _ root: inout JSONValue,
+    _ patch: JsonPatch,
+    budget: inout SpecStreamBudget
+) throws {
+    switch patch.op {
+    case .add:
+        let value = patch.value ?? .null
+        let segments = JSONPointer.parse(patch.path)
+        guard !isBlockedWrite(segments) else { return }
+        try budget.reserve(
+            value,
+            pathDepth: segments.count,
+            replacing: valueReplacedByAdd(root, segments: segments)
+        )
+        root = addByPath(root, patch.path, value)
+
+    case .replace:
+        let value = patch.value ?? .null
+        let segments = JSONPointer.parse(patch.path)
+        guard !isBlockedWrite(segments) else { return }
+        try budget.reserve(
+            value,
+            pathDepth: segments.count,
+            replacing: valueAtSegments(root, segments)
+        )
+        root = setByPath(root, patch.path, value)
+
+    case .remove:
+        let segments = JSONPointer.parse(patch.path)
+        try budget.release(valueAtSegments(root, segments))
+        root = removeByPath(root, patch.path)
+
+    case .move:
+        guard let from = patch.from else { return }
+        let moved = getByPath(root, from) ?? .null
+        try budget.release(valueAtSegments(root, JSONPointer.parse(from)))
+        // The destination is not credited even when it already holds a value.
+        // The source removal above can take that value with it, so leaving the
+        // charge in place can only make the budget stricter.
+        let segments = JSONPointer.parse(patch.path)
+        if !isBlockedWrite(segments) {
+            try budget.reserve(moved, pathDepth: segments.count, replacing: nil)
+        }
+        root = removeByPath(root, from)
+        root = addByPath(root, patch.path, moved)
+
+    case .copy:
+        guard let from = patch.from else { return }
+        let copied = getByPath(root, from) ?? .null
+        let segments = JSONPointer.parse(patch.path)
+        if !isBlockedWrite(segments) {
+            try budget.reserve(
+                copied,
+                pathDepth: segments.count,
+                replacing: valueReplacedByAdd(root, segments: segments)
+            )
+        }
+        root = addByPath(root, patch.path, copied)
+
+    case .test:
+        let actual = getByPath(root, patch.path)
+        guard actual == patch.value else {
+            throw SpecStreamError(
+                message: "Test operation failed: value at \"\(patch.path)\" does not match"
+            )
+        }
+    }
+}
+
+/// Reads the value at already-parsed pointer segments.
+///
+/// Unlike `getByPath`, "/" is read as the member with an empty key, matching
+/// what `addByPath`, `setByPath`, and `removeByPath` do with the same path.
+private func valueAtSegments(_ root: JSONValue, _ segments: [String]) -> JSONValue? {
+    var current = root
+    for segment in segments {
+        switch current {
+        case .array(let array):
+            guard let index = Int(segment), array.indices.contains(index) else { return nil }
+            current = array[index]
+        case .object(let object):
+            guard let next = object[segment] else { return nil }
+            current = next
+        default:
+            return nil
+        }
+    }
+    return current
+}
+
+/// Whether the path writer refuses the write, which leaves the document and
+/// the budget unchanged. `writeByPath` skips paths with a `__proto__` segment.
+private func isBlockedWrite(_ segments: [String]) -> Bool {
+    segments.contains("__proto__")
+}
+
+/// The value an `add` removes, when the destination is an object member.
+/// Arrays insert instead of replacing, and a missing or scalar parent is
+/// replaced without the budget being credited for it.
+private func valueReplacedByAdd(_ root: JSONValue, segments: [String]) -> JSONValue? {
+    guard !segments.isEmpty else { return nil }
+    let parent = segments.count == 1
+        ? root
+        : valueAtSegments(root, Array(segments.dropLast()))
+    guard case .object = parent else { return nil }
+    return valueAtSegments(root, segments)
+}
+
 /// Applies a patch to a decoded spec by round-tripping through JSON.
 ///
 /// The result goes through `decodePartial`, which drops an element that is
@@ -58,23 +173,30 @@ public func applySpecStreamPatch(_ root: inout JSONValue, _ patch: JsonPatch) th
 /// several steps.
 public func applySpecPatch(_ spec: inout Spec, _ patch: JsonPatch) throws {
     var root = spec.jsonValue
-    try applySpecStreamPatch(&root, patch)
+    var budget = SpecStreamBudget(limits: .default, initial: root)
+    try applySpecStreamPatch(&root, patch, budget: &budget)
     spec = Spec.decodePartial(root)
 }
 
 /// Builds a spec from a stream of JSONL patches, buffering partial lines the
 /// way core's `createSpecStreamCompiler` does.
 public final class SpecStreamCompiler {
+    /// The limits every patch in this stream is checked against.
+    public let limits: SpecStreamLimits
+
     private var result: JSONValue
+    private var budget: SpecStreamBudget
     private var buffer = ""
     private var appliedPatches: [JsonPatch] = []
 
-    public init(initial: JSONValue = .object([:])) {
+    public init(initial: JSONValue = .object([:]), limits: SpecStreamLimits = .default) {
+        self.limits = limits
         self.result = initial
+        self.budget = SpecStreamBudget(limits: limits, initial: initial)
     }
 
-    public convenience init(initial: Spec) {
-        self.init(initial: initial.jsonValue)
+    public convenience init(initial: Spec, limits: SpecStreamLimits = .default) {
+        self.init(initial: initial.jsonValue, limits: limits)
     }
 
     /// Appends a chunk of text and applies every complete line.
@@ -89,7 +211,7 @@ public final class SpecStreamCompiler {
         for line in lines {
             guard let patch = parseSpecStreamLine(line) else { continue }
             do {
-                try applySpecStreamPatch(&result, patch)
+                try applySpecStreamPatch(&result, patch, budget: &budget)
             } catch {
                 JSONRenderLog.warn("Dropped stream patch: \(error)")
                 continue
@@ -105,7 +227,7 @@ public final class SpecStreamCompiler {
     public func getResult() -> JSONValue {
         if let patch = parseSpecStreamLine(buffer) {
             do {
-                try applySpecStreamPatch(&result, patch)
+                try applySpecStreamPatch(&result, patch, budget: &budget)
                 appliedPatches.append(patch)
             } catch {
                 JSONRenderLog.warn("Dropped stream patch: \(error)")
@@ -123,6 +245,7 @@ public final class SpecStreamCompiler {
     /// Clears the buffer, patch log, and result.
     public func reset(initial: JSONValue = .object([:])) {
         result = initial
+        budget = SpecStreamBudget(limits: limits, initial: initial)
         buffer = ""
         appliedPatches.removeAll()
     }
@@ -137,7 +260,15 @@ extension Spec {
     /// `elements` become `""` and `[:]`, and elements that fail to decode are
     /// skipped with a warning, so a half-written element does not blank the
     /// whole screen.
-    public static func decodePartial(_ json: JSONValue) -> Spec {
+    ///
+    /// An element that is larger than `limits` allows is skipped before it is
+    /// serialized. A stream cannot build such an element, but a decoded
+    /// document can arrive from elsewhere, and the same limits keep
+    /// serialization from expanding beyond what the stream budget allows.
+    public static func decodePartial(
+        _ json: JSONValue,
+        limits: SpecStreamLimits = .default
+    ) -> Spec {
         guard case .object(let object) = json else {
             return Spec(root: "", elements: [:])
         }
@@ -148,6 +279,10 @@ extension Spec {
         var elements: [String: UIElement] = [:]
         if let rawElements = object["elements"]?.objectValue {
             for (key, value) in rawElements {
+                guard isWithinLimits(value, limits) else {
+                    JSONRenderLog.warn("Skipped element \"\(key)\": exceeds the spec expansion limits")
+                    continue
+                }
                 if let element = decodeElement(value) {
                     elements[key] = element
                 } else {
@@ -160,9 +295,17 @@ extension Spec {
     }
 
     /// Decodes a spec from a JSON string, tolerating partial documents.
-    public static func decodePartial(_ string: String) -> Spec? {
+    public static func decodePartial(
+        _ string: String,
+        limits: SpecStreamLimits = .default
+    ) -> Spec? {
         guard let json = JSONValue.decode(string) else { return nil }
-        return decodePartial(json)
+        return decodePartial(json, limits: limits)
+    }
+
+    private static func isWithinLimits(_ value: JSONValue, _ limits: SpecStreamLimits) -> Bool {
+        guard let size = measureJSONValue(value, maxDepth: limits.maxDepth) else { return false }
+        return size.nodes <= limits.maxNodes && size.bytes <= limits.maxBytes
     }
 
     private static func decodeElement(_ value: JSONValue) -> UIElement? {

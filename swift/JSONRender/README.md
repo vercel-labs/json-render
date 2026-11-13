@@ -99,6 +99,19 @@ A spec's `elements` map can reference the same element from several parents, so 
 
 A build that reaches a limit logs one warning and renders nothing, like other structural spec problems that leave nothing to render. Pass `RenderTreeLimits` to `JSONRenderView` or `buildRenderTree` to raise the limits for a spec that legitimately renders more nodes.
 
+## Stream limits
+
+A stream can describe a much larger document than its text. A `copy` patch repeats a subtree, and each copy counts in full even though the copies share storage, so a few dozen short lines can describe billions of values. `SpecStreamCompiler` shares one budget across every patch it applies and drops a patch that would pass a limit before the document changes:
+
+| Limit | Default | Counts |
+| --- | --- | --- |
+| `maxDepth` | 100 | Nesting levels, with the document root at depth 1 |
+| `maxNodes` | 50000 | Values, counting every object member and array element |
+| `maxBytes` | 4000000 | Bytes of keys and scalar values |
+| `maxWork` | 200000 | Values measured while checking patches |
+
+The same limits apply to `Spec.decodePartial`, which skips an element that exceeds them before serializing it. Pass `SpecStreamLimits` to `SpecStreamCompiler(initial:limits:)` or `Spec.decodePartial(_:limits:)` to raise the limits for a spec that legitimately holds more.
+
 ## Watch cascades
 
 `watch` bindings run after a state change. A watch that writes the value it watches, such as a `pushState` on the same array, would otherwise keep running: every write is another state change, and the renderer runs another pass for it. The tracker shares one budget across a chain of watch-driven state changes, 64 actions by default, and stops the chain with a warning when the budget is spent. A state change the watch did not cause, such as a user action or a streamed spec update, starts a new chain. Pass `watchCascadeLimit` to `JSONRenderView` (or `maxCascadeDispatches` to `WatchTracker`) to change the budget.
@@ -177,7 +190,7 @@ While `loading` is true, children that have not arrived yet are skipped without 
 - Actions: custom handlers, the built-in `setState`, `pushState` (which expands `"$id"` and `{ "$id": true }` to a generated id), and `removeState` actions, `on` bindings, `watch` bindings, and action confirmation.
 - An observable state store with path reads and writes.
 - Unknown component and action handling that matches the React renderer.
-- Shared render tree limits that stop a spec from expanding exponentially.
+- Shared render tree limits that stop a spec from expanding exponentially, and stream limits that bound the document a patch stream can build.
 
 ## Not yet supported
 

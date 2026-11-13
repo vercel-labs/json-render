@@ -166,6 +166,16 @@ extension Double {
         let upper = Double(range.upperBound)
         return Int(min(upper, max(lower, rounded())))
     }
+
+    /// The value clamped to `range`, or `fallback` when it is not finite.
+    ///
+    /// A spec supplies numbers to layouts, so they can be negative, infinite,
+    /// or far past what a layout can use. Clamping in `Double` gives the
+    /// layout a finite value inside a range it can divide and convert safely.
+    public func clampedFinite(to range: ClosedRange<Double>, fallback: Double) -> Double {
+        guard isFinite else { return fallback }
+        return min(range.upperBound, max(range.lowerBound, self))
+    }
 }
 
 extension JSONValue: ExpressibleByStringLiteral {
