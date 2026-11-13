@@ -95,6 +95,19 @@ Comparison values can be literals or state references:
 }
 ```
 
+## Conditions on Computed Values
+
+Use `$value` when the value you want to check is not a plain state path. `$value` takes any prop expression -- a [directive](/docs/directives), [`$computed`](/docs/computed-values), a nested `$state`, or a literal -- and resolves it the same way props are resolved before applying the operator:
+
+```json
+{
+  "type": "CheckoutButton",
+  "visible": { "$value": { "$count": { "$state": "/cart/items" } }, "gt": 0 }
+}
+```
+
+Visible when the cart has at least one item. All comparison operators and `not` work the same as with `$state`. Use exactly one source (`$state`, `$item`, `$index`, or `$value`) per condition.
+
 ## Combining Conditions (AND)
 
 Place multiple conditions in an array for implicit AND:
@@ -275,6 +288,10 @@ Filtered lists are currently implemented by the React renderer; other renderers 
       <tr>
         <td>Less or equal</td>
         <td><code>{'{ "$state": "/path", "lte": number }'}</code></td>
+      </tr>
+      <tr>
+        <td>Computed value</td>
+        <td><code>{'{ "$value": expression, "gt": 0 }'}</code></td>
       </tr>
       <tr>
         <td>Item field (repeat)</td>
