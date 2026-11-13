@@ -167,7 +167,7 @@ export function validateSpec(
     ) {
       issues.push({
         severity: "error",
-        message: `Element "${key}" has an invalid "visible" condition: ${JSON.stringify(element.visible)}. Valid forms: true, false, {"$state":"/path","eq":value}, {"$item":"field","eq":value}, {"$index":true,"eq":n}, an array of those (AND), or {"$and":[...]} / {"$or":[...]}. Use exactly one of $state, $item, or $index per condition object.`,
+        message: `Element "${key}" has an invalid "visible" condition: ${JSON.stringify(element.visible)}. Valid forms: true, false, {"$state":"/path","eq":value}, {"$item":"field","eq":value}, {"$index":true,"eq":n}, {"$value":expression,"gt":n}, an array of those (AND), or {"$and":[...]} / {"$or":[...]}. Use exactly one of $state, $item, $index, or $value per condition object.`,
         elementKey: key,
         code: "invalid_visible",
       });
