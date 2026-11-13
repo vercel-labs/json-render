@@ -8,6 +8,17 @@ Pre-built [shadcn/ui](https://ui.shadcn.com/) components for json-render. Drop-i
 npm install @json-render/shadcn @json-render/core @json-render/react zod
 ```
 
+The package includes `radix-ui` as a dependency.
+
+In your Tailwind CSS v4 stylesheet, add an `@source` directive so Tailwind generates styles for the installed components. This example assumes your stylesheet is at `src/index.css`.
+
+```css
+@import "tailwindcss";
+@source "../node_modules/@json-render/shadcn/dist";
+```
+
+The `@source` path is relative to the stylesheet. If your app doesn't already have a shadcn/ui theme, follow the [shadcn/ui theming guide](https://ui.shadcn.com/docs/theming) to define CSS variables such as `--primary` and `--border` and map them to Tailwind utilities.
+
 ## Quick Start
 
 ### 1. Create a Catalog
