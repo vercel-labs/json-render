@@ -8,6 +8,9 @@ public enum SpecIssueSeverity: String, Codable, Sendable, CaseIterable {
 
 /// Machine-readable spec issue codes, matching `@json-render/core`'s
 /// `SpecIssue["code"]` union.
+///
+/// `specTooComplex` is the one code the Swift validator adds on its own: it
+/// reports that the walk stopped at a limit instead of finishing.
 public enum SpecIssueCode: String, Codable, Sendable, CaseIterable {
     case missingRoot = "missing_root"
     case rootNotFound = "root_not_found"
@@ -22,6 +25,7 @@ public enum SpecIssueCode: String, Codable, Sendable, CaseIterable {
     case onInProps = "on_in_props"
     case repeatInProps = "repeat_in_props"
     case watchInProps = "watch_in_props"
+    case specTooComplex = "spec_too_complex"
 }
 
 /// One structural problem in a spec.
@@ -55,13 +59,78 @@ public struct SpecValidationResult: Equatable, Sendable {
     }
 }
 
+/// Limits that bound one validation walk.
+///
+/// The walk follows repeat scopes down the tree, and each layer can give every
+/// branch a fresh context when its repeat path is relative to the item. A
+/// small spec can then describe far more distinct contexts than elements, so
+/// the walk needs the same kind of budget the rendered tree build uses. When a
+/// limit is reached the walk stops and the result reports that part of the
+/// spec was not validated.
+public struct ValidateSpecLimits: Equatable, Sendable {
+    /// The deepest element nesting the walk follows.
+    public var maxDepth: Int
+    /// The most element visits the walk makes.
+    public var maxVisits: Int
+    /// The most distinct repeat contexts the walk tracks.
+    public var maxContexts: Int
+
+    /// The limits the validator uses when none are given.
+    public static let `default` = ValidateSpecLimits()
+
+    public init(maxDepth: Int = 100, maxVisits: Int = 20_000, maxContexts: Int = 4_000) {
+        self.maxDepth = max(1, maxDepth)
+        self.maxVisits = max(1, maxVisits)
+        self.maxContexts = max(1, maxContexts)
+    }
+}
+
 /// Options for `validateSpec`.
 public struct ValidateSpecOptions: Sendable {
     /// Also report elements that the root cannot reach.
     public var checkOrphans: Bool
+    /// Bounds for the walk over repeat scopes.
+    public var limits: ValidateSpecLimits
 
-    public init(checkOrphans: Bool = false) {
+    public init(checkOrphans: Bool = false, limits: ValidateSpecLimits = .default) {
         self.checkOrphans = checkOrphans
+        self.limits = limits
+    }
+}
+
+/// Tracks one validation walk's use of `ValidateSpecLimits`.
+private final class ValidationBudget {
+    let limits: ValidateSpecLimits
+    private(set) var visits = 0
+    private(set) var contexts = 0
+    /// Whether the walk stopped because it reached a limit.
+    private(set) var stopped = false
+
+    init(limits: ValidateSpecLimits) {
+        self.limits = limits
+    }
+
+    /// Counts a visit at `depth`, and reports whether the walk may continue.
+    func visit(depth: Int) -> Bool {
+        guard !stopped else { return false }
+        guard depth <= limits.maxDepth, visits < limits.maxVisits else {
+            stopped = true
+            return false
+        }
+        visits += 1
+        return true
+    }
+
+    /// Counts one new repeat context, and reports whether the walk may
+    /// continue.
+    func takeContext() -> Bool {
+        guard !stopped else { return false }
+        guard contexts < limits.maxContexts else {
+            stopped = true
+            return false
+        }
+        contexts += 1
+        return true
     }
 }
 
@@ -195,18 +264,22 @@ public func validateSpecJSON(
     // 4. Repeat paths, following repeat scopes down the tree
     var validatedKeys: Set<String> = []
     var validatedContexts: Set<String> = []
+    let budget = ValidationBudget(limits: options.limits)
 
     func validateRepeatPaths(
         _ key: String,
         repeatBasePath: String?,
         sampleAvailable: Bool,
-        ancestors: Set<String>
+        ancestors: Set<String>,
+        depth: Int
     ) {
+        guard budget.visit(depth: depth) else { return }
         guard !ancestors.contains(key), let element = elementsJSON[key]?.objectValue else { return }
         validatedKeys.insert(key)
 
         let contextKey = "\(key)\u{0}\(repeatBasePath ?? "")\u{0}\(sampleAvailable)"
         guard !validatedContexts.contains(contextKey) else { return }
+        guard budget.takeContext() else { return }
         validatedContexts.insert(contextKey)
 
         var childBasePath = repeatBasePath
@@ -242,10 +315,22 @@ public func validateSpecJSON(
                 childSampleAvailable = false
                 let nextAncestors = ancestors.union([key])
                 for childKey in childKeys(of: element) {
-                    validateRepeatPaths(childKey, repeatBasePath: nil, sampleAvailable: false, ancestors: nextAncestors)
+                    validateRepeatPaths(
+                        childKey,
+                        repeatBasePath: nil,
+                        sampleAvailable: false,
+                        ancestors: nextAncestors,
+                        depth: depth + 1
+                    )
                 }
                 for slotChildKey in slotChildKeys(of: element) {
-                    validateRepeatPaths(slotChildKey, repeatBasePath: repeatBasePath, sampleAvailable: sampleAvailable, ancestors: nextAncestors)
+                    validateRepeatPaths(
+                        slotChildKey,
+                        repeatBasePath: repeatBasePath,
+                        sampleAvailable: sampleAvailable,
+                        ancestors: nextAncestors,
+                        depth: depth + 1
+                    )
                 }
                 return
             }
@@ -276,7 +361,8 @@ public func validateSpecJSON(
                 childKey,
                 repeatBasePath: childBasePath,
                 sampleAvailable: childSampleAvailable,
-                ancestors: nextAncestors
+                ancestors: nextAncestors,
+                depth: depth + 1
             )
         }
         for slotChildKey in slotChildKeys(of: element) {
@@ -284,29 +370,44 @@ public func validateSpecJSON(
                 slotChildKey,
                 repeatBasePath: repeatBasePath,
                 sampleAvailable: sampleAvailable,
-                ancestors: nextAncestors
+                ancestors: nextAncestors,
+                depth: depth + 1
             )
         }
     }
 
     if elementsJSON[root] != nil {
-        validateRepeatPaths(root, repeatBasePath: nil, sampleAvailable: true, ancestors: [])
+        validateRepeatPaths(root, repeatBasePath: nil, sampleAvailable: true, ancestors: [], depth: 1)
     }
     for key in elementsJSON.keys.sorted() where !validatedKeys.contains(key) {
-        validateRepeatPaths(key, repeatBasePath: nil, sampleAvailable: true, ancestors: [])
+        validateRepeatPaths(key, repeatBasePath: nil, sampleAvailable: true, ancestors: [], depth: 1)
+    }
+
+    if budget.stopped {
+        JSONRenderLog.warn(
+            "Spec validation stopped at its depth or visit limit; part of the spec was not validated."
+        )
+        issues.append(
+            SpecIssue(
+                severity: .error,
+                message: "Spec is too large to validate: the walk stopped at its depth, visit, or repeat-context limit.",
+                code: .specTooComplex
+            )
+        )
     }
 
     // 5. Orphans
     if options.checkOrphans {
         var reachable: Set<String> = []
-        func walk(_ key: String) {
+        func walk(_ key: String, depth: Int) {
+            guard depth <= options.limits.maxDepth else { return }
             guard elementsJSON[key] != nil, !reachable.contains(key) else { return }
             reachable.insert(key)
             let element = elementsJSON[key]?.objectValue ?? [:]
-            for childKey in childKeys(of: element) { walk(childKey) }
-            for slotChildKey in slotChildKeys(of: element) { walk(slotChildKey) }
+            for childKey in childKeys(of: element) { walk(childKey, depth: depth + 1) }
+            for slotChildKey in slotChildKeys(of: element) { walk(slotChildKey, depth: depth + 1) }
         }
-        if elementsJSON[root] != nil { walk(root) }
+        if elementsJSON[root] != nil { walk(root, depth: 1) }
 
         for key in elementsJSON.keys.sorted() where !reachable.contains(key) {
             issues.append(

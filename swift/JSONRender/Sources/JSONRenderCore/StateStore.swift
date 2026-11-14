@@ -59,6 +59,28 @@ public final class StateStore: @unchecked Sendable {
         for callback in callbacks { callback() }
     }
 
+    /// Writes a value derived from the current one at `path` as one step.
+    ///
+    /// The read and the write happen under the same lock, so two writers
+    /// cannot overwrite each other's change the way a separate `get` and `set`
+    /// can. `transform` receives the current value, or nil when the path holds
+    /// nothing, and returns the value to store; nil leaves the state as it is.
+    /// It runs while the store is locked, so it must not call back into the
+    /// store.
+    func modify(_ path: String, _ transform: (JSONValue?) -> JSONValue?) {
+        lock.lock()
+        let previous = getByPath(state, path)
+        guard let next = transform(previous), !strictEquals(previous, next) else {
+            lock.unlock()
+            return
+        }
+        state = setByPath(state, path, next)
+        changeCount &+= 1
+        let callbacks = Array(listeners.values)
+        lock.unlock()
+        for callback in callbacks { callback() }
+    }
+
     /// Writes several paths and notifies listeners once if any value changed.
     public func update(_ updates: [String: JSONValue]) {
         lock.lock()

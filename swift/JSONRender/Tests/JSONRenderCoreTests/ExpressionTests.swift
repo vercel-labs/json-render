@@ -138,6 +138,41 @@ final class ExpressionTests: XCTestCase {
         )
     }
 
+    func testTemplateLimitCountsUnicodeScalars() {
+        // A run of combining marks is a single character, so a character count
+        // would let a template repeat it far past the limit.
+        let marks = String(repeating: "\u{0301}", count: 1_000)
+        XCTAssertEqual(marks.count, 1)
+        XCTAssertEqual(marks.unicodeScalars.count, 1_000)
+
+        let result = interpolatePaths("${/x}${/x}", limit: 100) { _ in marks }
+        XCTAssertEqual(result.unicodeScalars.count, 100)
+    }
+
+    func testTemplateExpansionsShareOneBudget() {
+        // The props of one element can hold many templates. They share what the
+        // build has left, so one element cannot expand each of them to the
+        // whole budget before its props are measured.
+        let budget = ResolutionBudget(limit: 2_500)
+        var context = PropResolutionContext(
+            stateModel: .object(["source": .string(String(repeating: "x", count: 1_000))])
+        )
+        context.expansionBudget = budget
+        let template = JSONValue.object(["$template": .string("${/source}${/source}")])
+
+        XCTAssertEqual(resolvePropValue(template, context)?.stringValue?.count, 2_000)
+        XCTAssertEqual(
+            resolvePropValue(template, context)?.stringValue?.count,
+            500,
+            "The next expansion is cut to what the budget has left"
+        )
+        XCTAssertEqual(
+            resolvePropValue(template, context)?.stringValue?.count,
+            0,
+            "A spent budget produces nothing"
+        )
+    }
+
     func testComputedExpression() {
         let functions: [String: ComputedFunction] = [
             "concat": { args in

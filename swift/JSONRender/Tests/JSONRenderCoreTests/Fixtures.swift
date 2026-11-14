@@ -2,6 +2,10 @@ import Foundation
 import XCTest
 @testable import JSONRenderCore
 
+#if canImport(Glibc)
+import Glibc
+#endif
+
 enum Fixtures {
     static let directory = URL(fileURLWithPath: #filePath)
         .deletingLastPathComponent()
@@ -76,4 +80,20 @@ final class WarningRecorder {
             print("[json-render] \(message)")
         }
     }
+}
+
+/// The process's resident memory in bytes, so a test can bound an allocation
+/// spike. Returns 0 where the platform has no cheap reading.
+func residentMemoryBytes() -> Int {
+    #if os(Linux)
+    guard let contents = try? String(contentsOfFile: "/proc/self/statm", encoding: .utf8) else {
+        return 0
+    }
+    // Fields: total size, resident pages, shared pages, ...
+    let fields = contents.split(separator: " ")
+    guard fields.count > 1, let pages = Int(fields[1]) else { return 0 }
+    return pages * Int(getpagesize())
+    #else
+    return 0
+    #endif
 }

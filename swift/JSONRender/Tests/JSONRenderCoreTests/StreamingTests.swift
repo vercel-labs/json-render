@@ -253,6 +253,25 @@ final class StreamingTests: XCTestCase {
         XCTAssertNil(spec.elements["big"])
     }
 
+    func testContainersCountTowardTheMeasuredSize() {
+        // Without a size of their own, a tree of empty containers measures as
+        // nothing and a byte limit never stops it.
+        let nested = JSONValue.array([.array([.array([])])])
+        let size = measureJSONValue(nested, maxDepth: 10)
+        XCTAssertEqual(size?.nodes, 3)
+        XCTAssertEqual(size?.bytes, 6, "Each container adds its two brackets")
+    }
+
+    func testMeasureStopsAtItsByteAndNodeLimits() {
+        let big = JSONValue.array((0..<100_000).map { .number(Double($0)) })
+
+        XCTAssertNil(measureJSONValue(big, maxDepth: 10, maxBytes: 1_000))
+        XCTAssertNil(measureJSONValue(big, maxDepth: 10, maxNodes: 100))
+        XCTAssertNotNil(
+            measureJSONValue(big, maxDepth: 10, maxNodes: 200_000, maxBytes: 10_000_000)
+        )
+    }
+
     private func nodeCount(_ value: JSONValue) -> Int {
         switch value {
         case .array(let items):

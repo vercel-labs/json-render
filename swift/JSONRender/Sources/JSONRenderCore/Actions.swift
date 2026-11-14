@@ -233,9 +233,16 @@ public final class ActionDispatcher: @unchecked Sendable {
     ///
     /// A `$template` can turn a small write into a large one, and a watch that
     /// writes the result back to the path it watches repeats that on every
-    /// pass. A write past the limit is dropped and warns once, so the state
-    /// cannot grow past it from a spec alone.
+    /// pass. The value a write would leave at the path is measured, so a list
+    /// that keeps growing is refused once it reaches the limit. A write past
+    /// the limit is dropped and warns, so the state cannot grow past it from a
+    /// spec alone.
     public var maxStateWriteBytes = 4_000_000
+    /// The most values an action may write to state.
+    ///
+    /// A tree of empty arrays or objects has almost no bytes, so a byte limit
+    /// alone would let one double until the app runs out of memory.
+    public var maxStateWriteNodes = 100_000
     /// The deepest nesting a state write may have. A value nested deeper is
     /// dropped with the byte limit's warning.
     public var maxStateWriteDepth = 100
@@ -304,20 +311,36 @@ public final class ActionDispatcher: @unchecked Sendable {
         }
     }
 
-    /// Whether a spec-driven write may go into state.
+    /// Whether a value fits the state write limits.
     ///
-    /// Measures the written value, not the whole document, so appending to a
-    /// list a host already filled stays allowed while one oversized value does
-    /// not enter the state.
+    /// The measure stops as soon as a limit is passed, so a value that
+    /// resolves from a small spec form to something huge costs only the part
+    /// the check had to read.
+    private func stateValueFits(_ value: JSONValue) -> Bool {
+        guard let size = measureJSONValue(
+            value,
+            maxDepth: maxStateWriteDepth,
+            maxNodes: maxStateWriteNodes,
+            maxBytes: maxStateWriteBytes
+        ) else {
+            return false
+        }
+        return size.nodes <= maxStateWriteNodes && size.bytes <= maxStateWriteBytes
+    }
+
+    /// Drops a value that does not fit and says so.
     private func stateWriteFits(_ value: JSONValue, path: String) -> Bool {
-        guard let size = measureJSONValue(value, maxDepth: maxStateWriteDepth),
-              size.bytes <= maxStateWriteBytes else {
-            JSONRenderLog.warn(
-                "Dropped the state write to \"\(path)\": the value exceeds the state write limit of \(maxStateWriteBytes) bytes."
-            )
+        guard stateValueFits(value) else {
+            warnStateWriteDropped(path)
             return false
         }
         return true
+    }
+
+    private func warnStateWriteDropped(_ path: String) {
+        JSONRenderLog.warn(
+            "Dropped the state write to \"\(path)\": the value exceeds the state write limits of \(maxStateWriteBytes) bytes, \(maxStateWriteNodes) values at \(maxStateWriteDepth) levels."
+        )
     }
 
     /// Returns true when the action was one of the built-ins.
@@ -332,11 +355,30 @@ public final class ActionDispatcher: @unchecked Sendable {
 
         case "pushState":
             guard let statePath = resolved.params["statePath"]?.stringValue else { return true }
-            let value = deepResolvePushValue(resolved.params["value"] ?? .null, stateModel: store.snapshot)
+            let rawValue = resolved.params["value"] ?? .null
+            // The spec form of a value can be much smaller than what it
+            // resolves to, and resolving it can walk a lot of state, so refuse
+            // an oversized form before resolving anything.
+            guard stateWriteFits(rawValue, path: statePath) else { return true }
+            let value = deepResolvePushValue(rawValue, stateModel: store.snapshot)
             guard stateWriteFits(value, path: statePath) else { return true }
-            var array = store.get(statePath)?.arrayValue ?? []
-            array.append(value)
-            store.set(statePath, .array(array))
+            var dropped = false
+            // The append is one step with the read, so a concurrent push from
+            // another watch cannot overwrite it with a list built from the
+            // value before this one.
+            store.modify(statePath) { current in
+                var array = current?.arrayValue ?? []
+                array.append(value)
+                let next = JSONValue.array(array)
+                // The list as a whole is what grows, so a chain of pushes that
+                // each fit is still refused once the list is over the limit.
+                guard stateValueFits(next) else {
+                    dropped = true
+                    return nil
+                }
+                return next
+            }
+            if dropped { warnStateWriteDropped(statePath) }
             if let clearPath = resolved.params["clearStatePath"]?.stringValue {
                 store.set(clearPath, .string(""))
             }
@@ -345,10 +387,15 @@ public final class ActionDispatcher: @unchecked Sendable {
         case "removeState":
             guard let statePath = resolved.params["statePath"]?.stringValue else { return true }
             guard let index = resolved.params["index"]?.intValue else { return true }
-            guard var array = store.get(statePath)?.arrayValue else { return true }
-            guard array.indices.contains(index) else { return true }
-            array.remove(at: index)
-            store.set(statePath, .array(array))
+            // One step with the read, so a concurrent push is not lost when
+            // the removal writes back the list it read.
+            store.modify(statePath) { current in
+                guard var array = current?.arrayValue, array.indices.contains(index) else {
+                    return nil
+                }
+                array.remove(at: index)
+                return .array(array)
+            }
             return true
 
         default:

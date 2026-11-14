@@ -176,13 +176,19 @@ private func buildElement<Render>(
     let containerVisibility = split ? splitRepeatVisibility(element.visible).container : element.visible
     let itemFilter = split ? splitRepeatVisibility(element.visible).itemFilter : nil
 
-    let baseContext = PropResolutionContext(
+    var baseContext = PropResolutionContext(
         stateModel: state,
         repeatItem: scope?.item,
         repeatIndex: scope?.index,
         repeatBasePath: scope?.basePath,
         functions: registry.functions,
         directives: registry.directives
+    )
+    // The templates of one element share what the build has left, so they
+    // cannot each expand to the whole remaining prop budget before the
+    // element's props are measured.
+    baseContext.expansionBudget = ResolutionBudget(
+        limit: budget.remainingResolvedPropBytes
     )
 
     guard evaluateVisibility(containerVisibility, baseContext.visibility) else {
@@ -195,6 +201,9 @@ private func buildElement<Render>(
     }
 
     let props = resolveElementProps(element.props, baseContext)
+    // Props can hold values expanded from state, so count them against the
+    // build's shared budget before the element is kept.
+    guard budget.chargeProps(props) else { return nil }
     let bindings = resolveBindings(element.props, baseContext)
 
     var nextAncestors = ancestors
@@ -746,6 +755,17 @@ public final class WatchTracker: @unchecked Sendable {
                 if running.insert(record.id).inserted {
                     started.append(item)
                 }
+            }
+
+            // A watch that is no longer in the build has unmounted. React
+            // discards an unmounted element's effect state, so the first value
+            // after it mounts again must not fire. Dropping the id here keeps
+            // `known` and `baselines` from growing forever too.
+            let present = Set(records.map(\.id))
+            if known.count != present.count || !known.isSubset(of: present) {
+                baselines = baselines.filter { present.contains($0.key) }
+                known.formIntersection(present)
+                pending = pending.filter { present.contains($0.key) }
             }
             return true
         }

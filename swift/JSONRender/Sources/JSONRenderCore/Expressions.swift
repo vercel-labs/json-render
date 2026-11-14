@@ -3,13 +3,40 @@ import Foundation
 /// Names for `$computed` expressions.
 public typealias ComputedFunction = @Sendable ([String: JSONValue]) -> JSONValue
 
-/// The most characters a `$template` expands to by default.
+/// The most Unicode scalars a `$template` expands to by default.
 ///
 /// A template can repeat a state value, as `"${/x}${/x}"` does, and a watch
 /// that writes the result back to the path it watches doubles it on every
 /// pass. Bounding the output keeps one template from growing the state until
-/// the app runs out of memory.
+/// the app runs out of memory. Scalars are counted rather than characters,
+/// because a long run of combining marks is a single character but can still
+/// be megabytes.
 public let defaultTemplateOutputLimit = 1_000_000
+
+/// Bounds the bytes a group of template expansions may produce.
+///
+/// The renderer gives one of these to an element's prop resolution, so the
+/// templates of that element cannot each expand to the whole remaining prop
+/// budget. Access is not synchronized: a budget belongs to one synchronous
+/// resolution pass.
+final class ResolutionBudget: @unchecked Sendable {
+    private let limit: Int
+    private var used = 0
+
+    init(limit: Int) {
+        self.limit = max(0, limit)
+    }
+
+    /// The bytes the next expansion may produce.
+    var remaining: Int {
+        max(0, limit - used)
+    }
+
+    /// Counts what one expansion produced.
+    func charge(bytes: Int) {
+        used += max(0, bytes)
+    }
+}
 
 /// A custom `$`-prefixed prop expression. Built-in expression keys always take
 /// precedence, matching core's `defineDirective` rules.
@@ -36,8 +63,11 @@ public struct PropResolutionContext: Sendable {
     public var functions: [String: ComputedFunction]
     /// Custom directives by name.
     public var directives: [String: Directive]
-    /// The most characters a `$template` may expand to.
+    /// The most Unicode scalars a `$template` may expand to.
     public var templateOutputLimit: Int
+    /// The shared budget this context's templates expand within, when a caller
+    /// has one. The renderer sets it so the props of one build stay bounded.
+    var expansionBudget: ResolutionBudget?
 
     public init(
         visibility: VisibilityContext,
@@ -183,9 +213,23 @@ private func findDirective(
 }
 
 private func interpolateTemplate(_ template: String, _ context: PropResolutionContext) -> String {
-    interpolatePaths(template, limit: context.templateOutputLimit) { path in
+    guard let budget = context.expansionBudget else {
+        return interpolatePaths(template, limit: context.templateOutputLimit) { path in
+            templateValue(path, context)
+        }
+    }
+    // A template cannot take more than the shared budget has left, and what it
+    // produces is charged before the next one starts.
+    let remaining = budget.remaining
+    guard remaining > 0 else { return "" }
+    let result = interpolatePaths(
+        template,
+        limit: min(context.templateOutputLimit, remaining)
+    ) { path in
         templateValue(path, context)
     }
+    budget.charge(bytes: result.utf8.count)
+    return result
 }
 
 /// Replaces each `${path}` in a string with `value(path)`.
@@ -194,10 +238,12 @@ private func interpolateTemplate(_ template: String, _ context: PropResolutionCo
 /// between the braces, so `${}` and an unterminated `${` stay as written. Prop
 /// templates and confirm titles share this loop so the two stay in step.
 ///
-/// The result stops at `limit` characters and warns when it is cut short.
-/// Without a limit, a template that repeats a state value grows the string on
-/// every expansion, and a watch that writes the result back to that path turns
-/// that into an unbounded loop.
+/// The result stops at `limit` Unicode scalars and warns when it is cut
+/// short. Counting scalars rather than characters keeps the bound meaningful:
+/// a long run of combining marks is one character but many scalars, so a
+/// character count would let it through. Without a limit, a template that
+/// repeats a state value grows the string on every expansion, and a watch that
+/// writes the result back to that path turns that into an unbounded loop.
 func interpolatePaths(
     _ template: String,
     limit: Int = defaultTemplateOutputLimit,
@@ -214,11 +260,12 @@ func interpolatePaths(
             truncated = true
             return
         }
-        if text.count <= remaining {
+        let scalars = text.unicodeScalars
+        if scalars.count <= remaining {
             result += text
-            length += text.count
+            length += scalars.count
         } else {
-            result += text.prefix(remaining)
+            result += String(scalars.prefix(remaining))
             length = limit
             truncated = true
         }
@@ -249,7 +296,7 @@ func interpolatePaths(
 
     if truncated {
         JSONRenderLog.warn(
-            "Template output stopped at the \(limit)-character limit. The rest of the template was dropped."
+            "Template output stopped at the \(limit)-scalar limit. The rest of the template was dropped."
         )
     }
     return result

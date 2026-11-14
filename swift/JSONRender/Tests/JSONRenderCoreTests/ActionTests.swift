@@ -333,6 +333,101 @@ final class ActionTests: XCTestCase {
         XCTAssertNotEqual(id, "$id")
     }
 
+    func testDeepStatePathIsDroppedInsteadOfOverflowing() async throws {
+        // The path writer recurses once per segment, so a path with thousands
+        // of segments would overflow the stack without a limit.
+        let recorder = WarningRecorder()
+        let (dispatcher, store) = makeDispatcher(state: ["keep": .string("x")])
+        let deep = "/" + (0..<5_000).map { "n\($0)" }.joined(separator: "/")
+
+        await dispatcher.dispatch(
+            ActionBinding(
+                action: "setState",
+                params: [
+                    "statePath": .value(.string(deep)),
+                    "value": .value(.string("x")),
+                ]
+            )
+        )
+
+        XCTAssertEqual(store.snapshot, .object(["keep": .string("x")]))
+        XCTAssertTrue(recorder.messages.contains { $0.contains("levels deep") })
+    }
+
+    func testOversizedResolvedPushIsRejectedWithoutWalkingItAll() async throws {
+        // The spec form of the value is small, but it resolves to thousands of
+        // copies of a large array. The check has to stop at its limit instead
+        // of measuring every copy.
+        let (dispatcher, store) = makeDispatcher(state: [
+            "big": .array((0..<50_000).map { .number(Double($0)) }),
+        ])
+        let raw = JSONValue.array(
+            (0..<10_000).map { _ in .object(["$state": .string("/big")]) }
+        )
+
+        let start = Date()
+        await dispatcher.dispatch(
+            ActionBinding(
+                action: "pushState",
+                params: [
+                    "statePath": .value(.string("/list")),
+                    "value": .value(raw),
+                ]
+            )
+        )
+        let elapsed = Date().timeIntervalSince(start)
+
+        let wrote = store.get("/list") != nil
+        XCTAssertFalse(wrote, "The oversized push is dropped")
+        XCTAssertLessThan(elapsed, 1, "The check stops at its limit")
+    }
+
+    func testConcurrentPushesToTheSameListAreNotLost() async throws {
+        // Two watches push to the same list at the same time. Reading the list
+        // and writing it back as separate steps lets one push overwrite the
+        // other, so each push has to be one step with its read.
+        let spec = Spec.decodePartial(
+            JSONValue.decode(
+                #"""
+                {"root":"col","state":{"ta":0,"tb":0,"list":[]},"elements":{
+                  "col":{"type":"Column","props":{},"children":["a","b"]},
+                  "a":{"type":"Text","props":{},"watch":{"/ta":{"action":"pushState","params":{"statePath":"/list","value":"a"}}}},
+                  "b":{"type":"Text","props":{},"watch":{"/tb":{"action":"pushState","params":{"statePath":"/list","value":"b"}}}}
+                }}
+                """#
+            )!
+        )
+        var registry = Fixtures.recordingRegistry()
+        registry.components["Column"] = ComponentDefinition { _ in "Column" }
+
+        var losses = 0
+        for _ in 0..<200 {
+            let state = StateStore(spec: spec)
+            let dispatcher = ActionDispatcher(store: state)
+            let tracker = WatchTracker()
+
+            func records() -> [WatchRecord] {
+                buildRenderTreeWithWatches(
+                    spec: spec,
+                    registry: registry,
+                    store: state,
+                    dispatcher: dispatcher
+                ).watches
+            }
+
+            tracker.snapshot(records())
+            state.set("/ta", .number(1))
+            state.set("/tb", .number(1))
+            await tracker.process(records(), dispatcher: dispatcher, store: state)
+
+            if state.get("/list")?.arrayValue?.count != 2 {
+                losses += 1
+            }
+        }
+
+        XCTAssertEqual(losses, 0, "Every push reaches the list")
+    }
+
     func testResolveActionInterpolatesConfirmation() {
         let resolved = resolveAction(
             ActionBinding(

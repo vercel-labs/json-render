@@ -1,10 +1,6 @@
 import XCTest
 @testable import JSONRenderCore
 
-#if canImport(Glibc)
-import Glibc
-#endif
-
 final class SpecTransitionTests: XCTestCase {
     private let first = Spec(
         root: "a",
@@ -247,9 +243,9 @@ final class SpecTransitionTests: XCTestCase {
             state: [key: .object(changedLeaves)]
         )
 
-        let before = residentBytes()
+        let before = residentMemoryBytes()
         let result = stateAfterSpecChange(previous: previous, next: next, current: .object([:]))
-        let after = residentBytes()
+        let after = residentMemoryBytes()
 
         XCTAssertEqual(
             getByPath(result, "/\(key)/leaf0"),
@@ -296,20 +292,4 @@ final class SpecTransitionTests: XCTestCase {
 
         XCTAssertEqual(result, .object(["settings": .string("compact")]))
     }
-}
-
-/// The process's resident memory in bytes, so a test can bound an allocation
-/// spike. Returns 0 where the platform has no cheap reading.
-private func residentBytes() -> Int {
-    #if os(Linux)
-    guard let contents = try? String(contentsOfFile: "/proc/self/statm", encoding: .utf8) else {
-        return 0
-    }
-    // Fields: total size, resident pages, shared pages, ...
-    let fields = contents.split(separator: " ")
-    guard fields.count > 1, let pages = Int(fields[1]) else { return 0 }
-    return pages * Int(getpagesize())
-    #else
-    return 0
-    #endif
 }

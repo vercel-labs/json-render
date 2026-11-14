@@ -459,6 +459,108 @@ final class RenderTreeTests: XCTestCase {
         )
     }
 
+    func testResolvedPropsStayWithinTheBuildBudget() throws {
+        // A binary tree of elements whose leaves each expand the same state
+        // value into a large prop stays under the depth, node, and work
+        // limits, but without a shared prop budget it would hold hundreds of
+        // megabytes of strings.
+        let source = String(repeating: "x", count: 1_024)
+        let template = String(repeating: "${/source}", count: 900)
+        let levels = 8
+        var elements: [String: JSONValue] = [:]
+        for level in 0..<levels {
+            let children: [JSONValue] = level + 1 < levels
+                ? [.string("level\(level + 1)"), .string("level\(level + 1)")]
+                : [.string("leaf"), .string("leaf")]
+            elements["level\(level)"] = .object([
+                "type": .string("Column"),
+                "props": .object([:]),
+                "children": .array(children),
+            ])
+        }
+        elements["leaf"] = .object([
+            "type": .string("Text"),
+            "props": .object([
+                "text": .object(["$template": .string(template)]),
+            ]),
+        ])
+        let json = JSONValue.object([
+            "root": .string("level0"),
+            "elements": .object(elements),
+            "state": .object(["source": .string(source)]),
+        ])
+        let spec = Spec.decodePartial(json)
+        let state = StateStore(spec: spec)
+        let limits = RenderTreeLimits(
+            maxDepth: 100,
+            maxRenderedNodes: 10_000,
+            maxWork: 50_000,
+            maxResolvedPropBytes: 8_000_000
+        )
+
+        let recorder = WarningRecorder()
+        let before = residentMemoryBytes()
+        let tree = buildRenderTree(
+            spec: spec,
+            registry: Fixtures.recordingRegistry(),
+            store: state,
+            limits: limits
+        )
+        let after = residentMemoryBytes()
+
+        let rendered = tree != nil
+        XCTAssertFalse(rendered, "The build stops when its prop budget is spent")
+        XCTAssertTrue(
+            recorder.messages.contains { $0.contains("resolved prop size limit") },
+            "Stopping at the prop budget warns"
+        )
+        #if os(Linux)
+        XCTAssertLessThan(
+            after - before,
+            32 * 1024 * 1024,
+            "Props do not accumulate past the shared budget"
+        )
+        #endif
+    }
+
+    func testWatchThatRemountsStartsFromItsCurrentValue() async throws {
+        // A row's watch goes away when the row does. When it mounts again it
+        // starts over, the way React discards an unmounted element's effect
+        // state, so the value it missed in between does not fire.
+        let spec = Spec.decodePartial(
+            JSONValue.decode(
+                #"{"root":"list","state":{"items":[{"id":"a"}],"value":"x"},"elements":{"list":{"type":"List","props":{},"repeat":{"statePath":"/items","key":"id"},"children":["row"]},"row":{"type":"Text","props":{},"watch":{"/value":{"action":"record"}}}}}"#
+            )!
+        )
+        let state = StateStore(spec: spec)
+        let calls = Box<Int>(0)
+        let dispatcher = ActionDispatcher(store: state)
+        dispatcher.register("record") { _ in calls.value += 1 }
+
+        func records() -> [WatchRecord] {
+            buildRenderTreeWithWatches(
+                spec: spec,
+                registry: Fixtures.recordingRegistry(),
+                store: state,
+                dispatcher: dispatcher
+            ).watches
+        }
+
+        let tracker = WatchTracker()
+        tracker.snapshot(records())
+        XCTAssertEqual(records().count, 1)
+
+        // The row goes away, the value changes, and the row comes back.
+        state.set("/items", .array([]))
+        await tracker.process(records(), dispatcher: dispatcher, store: state)
+        state.set("/value", .string("y"))
+        await tracker.process(records(), dispatcher: dispatcher, store: state)
+        state.set("/items", .array([.object(["id": .string("a")])]))
+        await tracker.process(records(), dispatcher: dispatcher, store: state)
+
+        XCTAssertEqual(calls.value, 0, "A remounted watch does not fire for a value it missed")
+    }
+
     func testWatchOnHiddenElementFires() async throws {
         var registry = Fixtures.recordingRegistry()
         registry.components["Column"] = ComponentDefinition { _ in "Column" }

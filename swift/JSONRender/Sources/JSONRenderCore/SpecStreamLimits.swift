@@ -50,7 +50,9 @@ public struct SpecStreamLimits: Equatable, Sendable {
 ///
 /// Values are counted one at a time, so a subtree that shares storage with
 /// another subtree still adds its full size to the document. That is what
-/// makes repeated copies visible to a budget.
+/// makes repeated copies visible to a budget. `bytes` counts each scalar and
+/// key plus two bytes per container, which approximates the serialized size
+/// and gives a tree of empty containers a size of its own.
 struct JSONValueSize: Equatable {
     var nodes = 0
     var bytes = 0
@@ -63,12 +65,27 @@ struct JSONValueSize: Equatable {
 
 /// Measures `value` from the top of the document it is written into.
 ///
-/// Returns nil when the value nests deeper than `maxDepth`, so a caller can
-/// reject it without walking the rest. The walk is recursive but stops at
-/// `maxDepth`, which keeps the stack bounded by the limit.
-func measureJSONValue(_ value: JSONValue, maxDepth: Int) -> JSONValueSize? {
+/// Returns nil when the value nests deeper than `maxDepth`, holds more values
+/// than `maxNodes`, or takes more bytes than `maxBytes`. Any of the three stops
+/// the walk as soon as it is reached, so a value built to be larger than a
+/// limit costs only the part the walk had to read to find out.
+func measureJSONValue(
+    _ value: JSONValue,
+    maxDepth: Int,
+    maxNodes: Int = .max,
+    maxBytes: Int = .max
+) -> JSONValueSize? {
     var size = JSONValueSize()
-    guard measureJSONValue(value, depth: 1, maxDepth: maxDepth, into: &size) else { return nil }
+    guard measureJSONValue(
+        value,
+        depth: 1,
+        maxDepth: maxDepth,
+        maxNodes: maxNodes,
+        maxBytes: maxBytes,
+        into: &size
+    ) else {
+        return nil
+    }
     return size
 }
 
@@ -76,10 +93,13 @@ private func measureJSONValue(
     _ value: JSONValue,
     depth: Int,
     maxDepth: Int,
+    maxNodes: Int,
+    maxBytes: Int,
     into size: inout JSONValueSize
 ) -> Bool {
     guard depth <= maxDepth else { return false }
     size.nodes += 1
+    guard size.nodes <= maxNodes else { return false }
     size.depth = max(size.depth, depth)
 
     switch value {
@@ -92,20 +112,42 @@ private func measureJSONValue(
     case .string(let string):
         size.bytes += string.utf8.count + 2
     case .array(let items):
+        // The brackets count, so a tree of empty containers has a size
+        // instead of measuring as nothing at all.
+        size.bytes += 2
         for item in items {
-            guard measureJSONValue(item, depth: depth + 1, maxDepth: maxDepth, into: &size) else {
+            guard size.bytes <= maxBytes,
+                  measureJSONValue(
+                    item,
+                    depth: depth + 1,
+                    maxDepth: maxDepth,
+                    maxNodes: maxNodes,
+                    maxBytes: maxBytes,
+                    into: &size
+                  )
+            else {
                 return false
             }
         }
     case .object(let object):
+        size.bytes += 2
         for (key, child) in object {
             size.bytes += key.utf8.count + 3
-            guard measureJSONValue(child, depth: depth + 1, maxDepth: maxDepth, into: &size) else {
+            guard size.bytes <= maxBytes,
+                  measureJSONValue(
+                    child,
+                    depth: depth + 1,
+                    maxDepth: maxDepth,
+                    maxNodes: maxNodes,
+                    maxBytes: maxBytes,
+                    into: &size
+                  )
+            else {
                 return false
             }
         }
     }
-    return true
+    return size.bytes <= maxBytes
 }
 
 /// Tracks one document's use of `SpecStreamLimits` across patches.

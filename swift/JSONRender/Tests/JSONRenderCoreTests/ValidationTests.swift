@@ -129,6 +129,53 @@ final class ValidationTests: XCTestCase {
         XCTAssertTrue(codes.contains(.watchInProps))
     }
 
+    func testLayeredRelativeRepeatsStayWithinTheValidationBudget() {
+        // Each layer repeats over a different `$item` path, so every branch
+        // gets its own repeat scope and the walk doubles per layer while the
+        // spec stays a few kilobytes.
+        let layers = 16
+        var elements: [String: JSONValue] = [:]
+        elements["root"] = .object([
+            "type": .string("List"),
+            "props": .object([:]),
+            "repeat": .object(["statePath": .string("/items")]),
+            "children": .array([.string("l0a"), .string("l0b")]),
+        ])
+        for level in 0..<layers {
+            for side in ["a", "b"] {
+                let children: [JSONValue] = level + 1 < layers
+                    ? [.string("l\(level + 1)a"), .string("l\(level + 1)b")]
+                    : [.string("leaf")]
+                elements["l\(level)\(side)"] = .object([
+                    "type": .string("List"),
+                    "props": .object([:]),
+                    "repeat": .object([
+                        "statePath": .object(["$item": .string(side)]),
+                    ]),
+                    "children": .array(children),
+                ])
+            }
+        }
+        elements["leaf"] = .object(["type": .string("Text"), "props": .object([:])])
+
+        let json = JSONValue.object([
+            "root": .string("root"),
+            "elements": .object(elements),
+        ])
+
+        let start = Date()
+        let result = validateSpecJSON(json)
+        XCTAssertLessThan(
+            Date().timeIntervalSince(start),
+            5,
+            "The walk stops at its budget instead of doubling with each layer"
+        )
+        XCTAssertTrue(
+            result.issues.contains { $0.code == .specTooComplex },
+            "Stopping early is reported instead of passing as fully validated"
+        )
+    }
+
     func testOrphanedElement() {
         let json = #"{"root":"a","elements":{"a":{"type":"Text","props":{}},"orphan":{"type":"Text","props":{}}}}"#
 

@@ -137,6 +137,62 @@ final class WatchCascadeTests: XCTestCase {
         XCTAssertLessThan(total, 100, "One chain's budget stops both watches")
     }
 
+    func testWatchPushingToItsOwnListStaysWithinTheStateWriteLimit() async throws {
+        // Each push is small enough on its own, so a per-value check alone
+        // lets the list grow without bound. The list after the push is what
+        // the limit has to cover.
+        let recorder = WarningRecorder()
+        let item = String(repeating: "x", count: 1_000)
+        let spec = Spec.decodePartial(
+            JSONValue.decode(
+                #"{"root":"t","state":{"list":[]},"elements":{"t":{"type":"Text","props":{},"watch":{"/list":{"action":"pushState","params":{"statePath":"/list","value":"\#(item)"}}}}}}"#
+            )!
+        )
+        let store = StateStore(spec: spec)
+        let dispatcher = ActionDispatcher(store: store)
+        dispatcher.maxStateWriteBytes = 4_096
+        let tracker = WatchTracker()
+        tracker.snapshot(watches(spec, store, dispatcher))
+
+        store.set("/list", .array([.string("seed")]))
+        for _ in 0..<20 {
+            await tracker.process(watches(spec, store, dispatcher), dispatcher: dispatcher, store: store)
+        }
+
+        let list = try XCTUnwrap(store.get("/list")?.arrayValue)
+        let bytes = measureJSONValue(.array(list), maxDepth: 100)?.bytes ?? .max
+        XCTAssertLessThanOrEqual(bytes, 4_096, "The list stops growing at the limit")
+        XCTAssertTrue(
+            recorder.messages.contains { $0.contains("state write limits") },
+            "Dropping the push warns"
+        )
+    }
+
+    func testWatchCopyingItsOwnArrayStopsAtTheNodeLimit() async throws {
+        // A copy of the array holds only containers, so it adds almost no
+        // bytes. Without a value count the byte limit never trips and the
+        // array doubles until the app runs out of memory.
+        let spec = Spec.decodePartial(
+            JSONValue.decode(
+                #"{"root":"t","state":{"a":[]},"elements":{"t":{"type":"Text","props":{},"watch":{"/a":{"action":"pushState","params":{"statePath":"/a","value":{"$state":"/a"}}}}}}}"#
+            )!
+        )
+        let store = StateStore(spec: spec)
+        let dispatcher = ActionDispatcher(store: store)
+        dispatcher.maxStateWriteNodes = 2_000
+        let tracker = WatchTracker()
+        tracker.snapshot(watches(spec, store, dispatcher))
+
+        store.set("/a", .array([.string("seed")]))
+        for _ in 0..<16 {
+            await tracker.process(watches(spec, store, dispatcher), dispatcher: dispatcher, store: store)
+        }
+
+        let value = try XCTUnwrap(store.get("/a"))
+        let nodes = measureJSONValue(value, maxDepth: 1_000)?.nodes ?? .max
+        XCTAssertLessThanOrEqual(nodes, 2_000, "The array stops doubling at the value limit")
+    }
+
     func testCascadeBudgetCountsDispatchesAndRefillsOnExternalChange() async throws {
         let spec = selfAppendingSpec()
         let store = StateStore(spec: spec)

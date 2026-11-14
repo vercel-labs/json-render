@@ -55,7 +55,26 @@ public func addByPath(_ root: JSONValue, _ path: String, _ value: JSONValue) -> 
 public func removeByPath(_ root: JSONValue, _ path: String) -> JSONValue {
     let segments = JSONPointer.parse(path)
     guard !segments.isEmpty else { return root }
+    guard segments.count <= maxStatePathDepth else {
+        warnPathTooDeep(segments.count)
+        return root
+    }
     return removeValue(root, segments)
+}
+
+/// The deepest state path a write may use.
+///
+/// Both writers recurse once per path segment, so an unbounded path would
+/// overflow the stack on a host with a capped or smaller stack. A write to a
+/// deeper path is dropped and the document is returned unchanged. Every write
+/// goes through these functions, including prop and item bindings and action
+/// state writes.
+let maxStatePathDepth = 100
+
+private func warnPathTooDeep(_ depth: Int) {
+    JSONRenderLog.warn(
+        "Dropped the state write to a path \(depth) levels deep; the limit is \(maxStatePathDepth)."
+    )
 }
 
 /// Resolves a `repeat.statePath`, which may be an absolute path or an
@@ -94,6 +113,10 @@ private func writeByPath(
     mode: PathWriteMode
 ) -> JSONValue {
     guard !segments.isEmpty, !segments.contains("__proto__") else { return root }
+    guard segments.count <= maxStatePathDepth else {
+        warnPathTooDeep(segments.count)
+        return root
+    }
     return writeValue(root, segments, value, mode: mode)
 }
 
