@@ -175,10 +175,12 @@ public final class JSONRenderModel: ObservableObject {
         spec = newSpec
         hasWatches = newSpec.hasWatches
         // A watch that appears with the new spec records its current value as
-        // its baseline, the way a watch does when its element first mounts, so
-        // the state merge below can still fire it.
+        // its baseline, the way a watch does when its element first mounts.
+        // Only new ids get a baseline: resetting the others would overwrite the
+        // value a pending watch pass still has to compare against, and a user
+        // edit made since would never fire.
         if hasWatches {
-            watchTracker.snapshot(buildWatches())
+            watchTracker.addBaselines(buildWatches())
         }
         if nextState != currentState {
             store.replace(nextState)

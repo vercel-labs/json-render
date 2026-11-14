@@ -7,11 +7,19 @@ public struct RepeatScope: Equatable, Sendable {
     public let index: Int
     /// Absolute state path of the item, for example `/todos/0`.
     public let basePath: String
+    /// The item's stable identity for `ForEach`.
+    ///
+    /// It is the value of `repeat.key` on the item when the repeat declares a
+    /// key, and otherwise the item's state path, which follows the index. A
+    /// keyed identity keeps a row's view state and focus on the item when an
+    /// earlier row is removed, the way React keys a repeated element.
+    public let identity: String
 
-    public init(item: JSONValue, index: Int, basePath: String) {
+    public init(item: JSONValue, index: Int, basePath: String, identity: String? = nil) {
         self.item = item
         self.index = index
         self.basePath = basePath
+        self.identity = identity ?? basePath
     }
 }
 

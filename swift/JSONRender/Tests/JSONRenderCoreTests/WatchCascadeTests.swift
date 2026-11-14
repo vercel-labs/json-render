@@ -56,6 +56,87 @@ final class WatchCascadeTests: XCTestCase {
         )
     }
 
+    func testSelfDoublingTemplateStopsAtTheOutputLimit() async throws {
+        // A watch whose setState value repeats the path it watches doubles that
+        // value on every pass. Without a limit the template reaches a gigabyte
+        // in about thirty passes, well inside the cascade budget.
+        let recorder = WarningRecorder()
+        let spec = Spec.decodePartial(
+            JSONValue.decode(
+                #"{"root":"t","state":{},"elements":{"t":{"type":"Text","props":{},"watch":{"/x":{"action":"setState","params":{"statePath":"/x","value":{"$template":"${/x}${/x}"}}}}}}}"#
+            )!
+        )
+        let store = StateStore(spec: spec)
+        let dispatcher = ActionDispatcher(store: store)
+        let tracker = WatchTracker()
+        tracker.snapshot(watches(spec, store, dispatcher))
+
+        // The stream fills `/x` in, which starts the chain.
+        store.set("/x", .string("x"))
+        for _ in 0..<22 {
+            await tracker.process(
+                watches(spec, store, dispatcher),
+                dispatcher: dispatcher,
+                store: store
+            )
+        }
+
+        let text = try XCTUnwrap(store.get("/x")?.stringValue)
+        XCTAssertLessThanOrEqual(
+            text.count,
+            defaultTemplateOutputLimit,
+            "The template output stops at the limit instead of doubling without bound"
+        )
+        XCTAssertGreaterThan(text.count, defaultTemplateOutputLimit / 2, "The chain ran")
+        XCTAssertTrue(
+            recorder.messages.contains { $0.contains("Template output stopped") },
+            "Cutting a template short warns"
+        )
+    }
+
+    func testWatchesWritingEachOtherStayOnOneBudget() async throws {
+        // Two records, each writing the array the other watches: neither write
+        // is the chain's own trigger, so a budget that refilled per record
+        // would let them feed each other forever.
+        let spec = Spec.decodePartial(
+            JSONValue.decode(
+                #"""
+                {"root":"col","state":{"a":[],"b":[]},"elements":{
+                  "col":{"type":"Column","props":{},"children":["ta","tb"]},
+                  "ta":{"type":"Text","props":{},"watch":{"/a":{"action":"pushState","params":{"statePath":"/b","value":"x"}}}},
+                  "tb":{"type":"Text","props":{},"watch":{"/b":{"action":"pushState","params":{"statePath":"/a","value":"x"}}}}
+                }}
+                """#
+            )!
+        )
+        var registry = Fixtures.recordingRegistry()
+        registry.components["Column"] = ComponentDefinition { _ in "Column" }
+        let store = StateStore(spec: spec)
+        let dispatcher = ActionDispatcher(store: store)
+        let tracker = WatchTracker()
+
+        func watches() -> [WatchRecord] {
+            buildRenderTreeWithWatches(
+                spec: spec,
+                registry: registry,
+                store: store,
+                dispatcher: dispatcher
+            ).watches
+        }
+
+        tracker.snapshot(watches())
+        store.set("/a", .array([.string("seed")]))
+
+        for _ in 0..<300 {
+            await tracker.process(watches(), dispatcher: dispatcher, store: store)
+        }
+
+        let total = (store.get("/a")?.arrayValue?.count ?? 0)
+            + (store.get("/b")?.arrayValue?.count ?? 0)
+        XCTAssertGreaterThan(total, 2, "The watches ran")
+        XCTAssertLessThan(total, 100, "One chain's budget stops both watches")
+    }
+
     func testCascadeBudgetCountsDispatchesAndRefillsOnExternalChange() async throws {
         let spec = selfAppendingSpec()
         let store = StateStore(spec: spec)

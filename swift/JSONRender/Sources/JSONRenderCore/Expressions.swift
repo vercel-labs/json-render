@@ -3,6 +3,14 @@ import Foundation
 /// Names for `$computed` expressions.
 public typealias ComputedFunction = @Sendable ([String: JSONValue]) -> JSONValue
 
+/// The most characters a `$template` expands to by default.
+///
+/// A template can repeat a state value, as `"${/x}${/x}"` does, and a watch
+/// that writes the result back to the path it watches doubles it on every
+/// pass. Bounding the output keeps one template from growing the state until
+/// the app runs out of memory.
+public let defaultTemplateOutputLimit = 1_000_000
+
 /// A custom `$`-prefixed prop expression. Built-in expression keys always take
 /// precedence, matching core's `defineDirective` rules.
 public struct Directive: Sendable {
@@ -28,17 +36,21 @@ public struct PropResolutionContext: Sendable {
     public var functions: [String: ComputedFunction]
     /// Custom directives by name.
     public var directives: [String: Directive]
+    /// The most characters a `$template` may expand to.
+    public var templateOutputLimit: Int
 
     public init(
         visibility: VisibilityContext,
         repeatBasePath: String? = nil,
         functions: [String: ComputedFunction] = [:],
-        directives: [String: Directive] = [:]
+        directives: [String: Directive] = [:],
+        templateOutputLimit: Int = defaultTemplateOutputLimit
     ) {
         self.visibility = visibility
         self.repeatBasePath = repeatBasePath
         self.functions = functions
         self.directives = directives
+        self.templateOutputLimit = templateOutputLimit
     }
 
     public init(
@@ -47,7 +59,8 @@ public struct PropResolutionContext: Sendable {
         repeatIndex: Int? = nil,
         repeatBasePath: String? = nil,
         functions: [String: ComputedFunction] = [:],
-        directives: [String: Directive] = [:]
+        directives: [String: Directive] = [:],
+        templateOutputLimit: Int = defaultTemplateOutputLimit
     ) {
         self.init(
             visibility: VisibilityContext(
@@ -57,7 +70,8 @@ public struct PropResolutionContext: Sendable {
             ),
             repeatBasePath: repeatBasePath,
             functions: functions,
-            directives: directives
+            directives: directives,
+            templateOutputLimit: templateOutputLimit
         )
     }
 
@@ -169,7 +183,9 @@ private func findDirective(
 }
 
 private func interpolateTemplate(_ template: String, _ context: PropResolutionContext) -> String {
-    interpolatePaths(template) { path in templateValue(path, context) }
+    interpolatePaths(template, limit: context.templateOutputLimit) { path in
+        templateValue(path, context)
+    }
 }
 
 /// Replaces each `${path}` in a string with `value(path)`.
@@ -177,26 +193,65 @@ private func interpolateTemplate(_ template: String, _ context: PropResolutionCo
 /// Matches core's `/\$\{([^}]+)\}/g`: a reference needs at least one character
 /// between the braces, so `${}` and an unterminated `${` stay as written. Prop
 /// templates and confirm titles share this loop so the two stay in step.
-func interpolatePaths(_ template: String, value: (String) -> String) -> String {
+///
+/// The result stops at `limit` characters and warns when it is cut short.
+/// Without a limit, a template that repeats a state value grows the string on
+/// every expansion, and a watch that writes the result back to that path turns
+/// that into an unbounded loop.
+func interpolatePaths(
+    _ template: String,
+    limit: Int = defaultTemplateOutputLimit,
+    value: (String) -> String
+) -> String {
     var result = ""
+    var length = 0
+    var truncated = false
+
+    func append(_ text: Substring) {
+        guard !truncated else { return }
+        let remaining = limit - length
+        guard remaining > 0 else {
+            truncated = true
+            return
+        }
+        if text.count <= remaining {
+            result += text
+            length += text.count
+        } else {
+            result += text.prefix(remaining)
+            length = limit
+            truncated = true
+        }
+    }
+
     var remainder = Substring(template)
-    while let start = remainder.range(of: "${") {
-        result += remainder[..<start.lowerBound]
+    // Stop reading references once the output fills, so a template past the
+    // limit does not keep resolving values it will discard.
+    search: while !truncated, let start = remainder.range(of: "${") {
+        append(remainder[..<start.lowerBound])
         let afterStart = remainder[start.upperBound...]
         guard let end = afterStart.firstIndex(of: "}") else {
-            result += remainder[start.lowerBound...]
-            return result
+            // An unterminated reference stays as written.
+            append(remainder[start.lowerBound...])
+            remainder = afterStart[afterStart.endIndex...]
+            break search
         }
         if end == afterStart.startIndex {
             // `${}` is not a reference; keep it and keep scanning.
-            result += "${}"
+            append(Substring("${}"))
             remainder = afterStart[afterStart.index(after: end)...]
             continue
         }
-        result += value(String(afterStart[..<end]))
+        append(Substring(value(String(afterStart[..<end]))))
         remainder = afterStart[afterStart.index(after: end)...]
     }
-    result += remainder
+    append(remainder)
+
+    if truncated {
+        JSONRenderLog.warn(
+            "Template output stopped at the \(limit)-character limit. The rest of the template was dropped."
+        )
+    }
     return result
 }
 

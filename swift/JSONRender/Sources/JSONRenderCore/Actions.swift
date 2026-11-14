@@ -228,6 +228,17 @@ public final class ActionDispatcher: @unchecked Sendable {
     public var requestConfirmation: ((ActionConfirm) async -> Bool)?
     /// Called before an action runs, for logging and devtools.
     public var onDispatch: ((ResolvedAction) -> Void)?
+    /// The largest value an action may write to state, in the same byte measure
+    /// the stream limits use.
+    ///
+    /// A `$template` can turn a small write into a large one, and a watch that
+    /// writes the result back to the path it watches repeats that on every
+    /// pass. A write past the limit is dropped and warns once, so the state
+    /// cannot grow past it from a spec alone.
+    public var maxStateWriteBytes = 4_000_000
+    /// The deepest nesting a state write may have. A value nested deeper is
+    /// dropped with the byte limit's warning.
+    public var maxStateWriteDepth = 100
 
     private let store: StateStore
 
@@ -271,7 +282,11 @@ public final class ActionDispatcher: @unchecked Sendable {
         let context = ActionExecutionContext(
             action: resolved,
             handler: handler,
-            setState: { [store] path, value in store.set(path, value) },
+            setState: { [weak self, store] path, value in
+                guard let self else { return }
+                guard self.stateWriteFits(value, path: path) else { return }
+                store.set(path, value)
+            },
             navigate: navigate.map { navigate in
                 { [deliver = self.deliverToHost] path in
                     deliver { navigate(path) }
@@ -289,17 +304,36 @@ public final class ActionDispatcher: @unchecked Sendable {
         }
     }
 
+    /// Whether a spec-driven write may go into state.
+    ///
+    /// Measures the written value, not the whole document, so appending to a
+    /// list a host already filled stays allowed while one oversized value does
+    /// not enter the state.
+    private func stateWriteFits(_ value: JSONValue, path: String) -> Bool {
+        guard let size = measureJSONValue(value, maxDepth: maxStateWriteDepth),
+              size.bytes <= maxStateWriteBytes else {
+            JSONRenderLog.warn(
+                "Dropped the state write to \"\(path)\": the value exceeds the state write limit of \(maxStateWriteBytes) bytes."
+            )
+            return false
+        }
+        return true
+    }
+
     /// Returns true when the action was one of the built-ins.
     private func runBuiltIn(_ resolved: ResolvedAction) -> Bool {
         switch resolved.action {
         case "setState":
             guard let statePath = resolved.params["statePath"]?.stringValue else { return true }
-            store.set(statePath, resolved.params["value"] ?? .null)
+            let value = resolved.params["value"] ?? .null
+            guard stateWriteFits(value, path: statePath) else { return true }
+            store.set(statePath, value)
             return true
 
         case "pushState":
             guard let statePath = resolved.params["statePath"]?.stringValue else { return true }
             let value = deepResolvePushValue(resolved.params["value"] ?? .null, stateModel: store.snapshot)
+            guard stateWriteFits(value, path: statePath) else { return true }
             var array = store.get(statePath)?.arrayValue ?? []
             array.append(value)
             store.set(statePath, .array(array))

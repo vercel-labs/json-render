@@ -179,6 +179,41 @@ final class StreamingTests: XCTestCase {
         XCTAssertLessThanOrEqual(nodeCount(compiler.getResult()), limits.maxNodes)
     }
 
+    func testSkippedIndexWriteDoesNotReleaseBudgetForACopy() {
+        // `+0` is an index to `Int(_:)` but not to the path writer, which reads
+        // plain digits only, so `replace /arr/+0` leaves the document alone. A
+        // budget that credited the value at `arr[0]` would let the following
+        // copy of `arr[0]` grow the document for free, past `maxBytes`.
+        let limits = SpecStreamLimits(
+            maxDepth: 100,
+            maxNodes: 10_000,
+            maxBytes: 1_000,
+            maxWork: 100_000
+        )
+        let compiler = SpecStreamCompiler(limits: limits)
+        let item = String(repeating: "x", count: 200)
+        _ = compiler.push(#"{"op":"add","path":"/arr","value":["\#(item)"]}"# + "\n")
+
+        for _ in 0..<20 {
+            _ = compiler.push(#"{"op":"replace","path":"/arr/+0","value":null}"# + "\n")
+            _ = compiler.push(#"{"op":"copy","from":"/arr/0","path":"/arr/-"}"# + "\n")
+        }
+
+        let result = compiler.getResult()
+        XCTAssertEqual(
+            result["arr"]?.arrayValue?.first,
+            .string(item),
+            "The writer skips the non-digit index, so the replace changes nothing"
+        )
+        let bytes = measureJSONValue(result, maxDepth: 100)?.bytes ?? .max
+        XCTAssertLessThanOrEqual(bytes, limits.maxBytes)
+        XCTAssertLessThanOrEqual(
+            result["arr"]?.arrayValue?.count ?? 0,
+            4,
+            "Copies stop once the budget is spent"
+        )
+    }
+
     func testPatchBeyondByteBudgetIsRejectedAndStreamContinues() {
         let limits = SpecStreamLimits(
             maxDepth: 100,

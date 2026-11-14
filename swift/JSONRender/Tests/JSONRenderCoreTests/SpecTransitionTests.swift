@@ -1,6 +1,10 @@
 import XCTest
 @testable import JSONRenderCore
 
+#if canImport(Glibc)
+import Glibc
+#endif
+
 final class SpecTransitionTests: XCTestCase {
     private let first = Spec(
         root: "a",
@@ -173,6 +177,105 @@ final class SpecTransitionTests: XCTestCase {
         XCTAssertEqual(result, .object(expected))
     }
 
+
+    func testDeepInitialStateBeyondTheDiffDepthIsOneLeafValue() {
+        // Core's flatten stops descending at depth 20, so everything below is
+        // compared and written as one value. The extra key the current state
+        // holds there has to go with that value.
+        let deepPath = "/" + (0...20).map { "n\($0)" }.joined(separator: "/")
+        let previous = Spec(
+            root: "a",
+            elements: ["a": UIElement(type: "Text", props: [:])],
+            state: nestedState(["value": .number(1)], levels: 21)
+        )
+        let next = Spec(
+            root: "a",
+            elements: ["a": UIElement(type: "Text", props: ["text": .string("changed")])],
+            state: nestedState(["value": .number(2)], levels: 21)
+        )
+        let current = setByPath(
+            JSONValue.object([:]),
+            deepPath,
+            .object(["value": .number(1), "keep": .string("kept")])
+        )
+
+        let result = stateAfterSpecChange(previous: previous, next: next, current: current)
+
+        XCTAssertEqual(getByPath(result, deepPath), .object(["value": .number(2)]))
+    }
+
+    func testKeysWithPointerCharactersKeepTheirShape() {
+        // The diff now carries path segments and builds the pointer for a
+        // changed value, so a key holding `/` or `~` has to be escaped rather
+        // than turn into another level of nesting.
+        let previous = Spec(
+            root: "a",
+            elements: ["a": UIElement(type: "Text", props: [:])],
+            state: ["a/b": .string("old"), "a~b": .string("old")]
+        )
+        let next = Spec(
+            root: "a",
+            elements: ["a": UIElement(type: "Text", props: ["text": .string("changed")])],
+            state: ["a/b": .string("new"), "a~b": .string("new")]
+        )
+
+        let result = stateAfterSpecChange(previous: previous, next: next, current: .object([:]))
+
+        XCTAssertEqual(result, next.state.map { JSONValue.object($0) })
+    }
+
+    func testLongKeyOverManyLeavesDoesNotBuildAPointerPerLeaf() throws {
+        // A 20 KB key over 10k leaves is about 150 KB of state. Flattening
+        // each side into pointer strings allocates the key once per leaf, which
+        // is hundreds of megabytes on every streamed spec update.
+        let key = String(repeating: "k", count: 20_000)
+        var leaves: [String: JSONValue] = [:]
+        for index in 0..<10_000 {
+            leaves["leaf\(index)"] = .number(Double(index))
+        }
+        var changedLeaves = leaves
+        changedLeaves["leaf0"] = .number(-1)
+        let previous = Spec(
+            root: "a",
+            elements: ["a": UIElement(type: "Text", props: [:])],
+            state: [key: .object(leaves)]
+        )
+        // Same state, one prop different: a streaming patch, not a new spec.
+        let next = Spec(
+            root: "a",
+            elements: ["a": UIElement(type: "Text", props: ["text": .string("changed")])],
+            state: [key: .object(changedLeaves)]
+        )
+
+        let before = residentBytes()
+        let result = stateAfterSpecChange(previous: previous, next: next, current: .object([:]))
+        let after = residentBytes()
+
+        XCTAssertEqual(
+            getByPath(result, "/\(key)/leaf0"),
+            .number(-1),
+            "Only the changed leaf is written"
+        )
+        XCTAssertNil(getByPath(result, "/\(key)/leaf1"), "Equal leaves are not written")
+        #if os(Linux)
+        XCTAssertLessThan(
+            after - before,
+            64 * 1024 * 1024,
+            "The diff does not allocate a full pointer per leaf"
+        )
+        #endif
+    }
+
+    /// Wraps `value` in `levels` plain objects, so the value sits that many
+    /// levels below the state root.
+    private func nestedState(_ value: [String: JSONValue], levels: Int) -> [String: JSONValue] {
+        var current = JSONValue.object(value)
+        for level in stride(from: levels - 1, through: 0, by: -1) {
+            current = .object(["n\(level)": current])
+        }
+        return current.objectValue ?? [:]
+    }
+
     func testChangedSpecReplacesObjectsWithScalars() {
         let previous = Spec(
             root: "a",
@@ -193,4 +296,20 @@ final class SpecTransitionTests: XCTestCase {
 
         XCTAssertEqual(result, .object(["settings": .string("compact")]))
     }
+}
+
+/// The process's resident memory in bytes, so a test can bound an allocation
+/// spike. Returns 0 where the platform has no cheap reading.
+private func residentBytes() -> Int {
+    #if os(Linux)
+    guard let contents = try? String(contentsOfFile: "/proc/self/statm", encoding: .utf8) else {
+        return 0
+    }
+    // Fields: total size, resident pages, shared pages, ...
+    let fields = contents.split(separator: " ")
+    guard fields.count > 1, let pages = Int(fields[1]) else { return 0 }
+    return pages * Int(getpagesize())
+    #else
+    return 0
+    #endif
 }

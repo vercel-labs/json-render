@@ -118,6 +118,26 @@ final class ExpressionTests: XCTestCase {
         XCTAssertEqual(resolvePropValue(unterminated, context()), .string("x ${/theme"))
     }
 
+    func testTemplateOutputStopsAtTheLimit() {
+        let recorder = WarningRecorder()
+        XCTAssertEqual(
+            interpolatePaths("ab${/x}cd", limit: 4) { _ in "WV" },
+            "abWV",
+            "The output fills up and the rest is dropped"
+        )
+        XCTAssertTrue(recorder.messages.contains { $0.contains("Template output stopped") })
+
+        let limited = PropResolutionContext(stateModel: state, templateOutputLimit: 8)
+        XCTAssertEqual(
+            resolvePropValue(
+                .object(["$template": "${/theme}${/theme}${/theme}"]),
+                limited
+            ),
+            .string("darkdark"),
+            "A context limit bounds the resolved template"
+        )
+    }
+
     func testComputedExpression() {
         let functions: [String: ComputedFunction] = [
             "concat": { args in

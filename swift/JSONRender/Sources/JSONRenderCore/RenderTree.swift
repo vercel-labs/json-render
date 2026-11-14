@@ -39,10 +39,14 @@ public struct RenderedElement<Render> {
     public let content: Render
 
     /// A stable identity for the element within its parent: the element key,
-    /// plus the item path for elements rendered by a repeat.
+    /// plus the repeated item's identity for elements rendered by a repeat.
+    ///
+    /// The repeated identity is `repeat.key`'s value on the item when the spec
+    /// declares a key, so removing one row does not shift the identities of
+    /// the rows after it.
     public var id: String {
         guard let scope else { return key }
-        return "\(key)@\(scope.basePath)"
+        return "\(key)@\(scope.identity)"
     }
 }
 
@@ -371,10 +375,12 @@ private func buildRepeatChildren<Render>(
             guard evaluateVisibility(itemFilter, filterContext) else { continue }
         }
 
+        let basePath = resolveRepeatItemStatePath(statePath, index: index)
         let itemScope = RepeatScope(
             item: item,
             index: index,
-            basePath: resolveRepeatItemStatePath(statePath, index: index)
+            basePath: basePath,
+            identity: repeatItemIdentity(repeatConfig.key, item: item, index: index, basePath: basePath)
         )
 
         rendered.append(contentsOf: buildChildKeys(
@@ -392,6 +398,25 @@ private func buildRepeatChildren<Render>(
         ))
     }
     return rendered
+}
+
+/// The identity one repeated row gets in its parent's `ForEach`.
+///
+/// Mirrors React's `repeat.key` rule: when the item is an object with a
+/// non-null value under the key, that value identifies the row, so removing an
+/// earlier item does not hand its identity to a later one. An item without the
+/// key, and an unkeyed repeat, keep the index-based state path.
+private func repeatItemIdentity(
+    _ key: String?,
+    item: JSONValue,
+    index: Int,
+    basePath: String
+) -> String {
+    guard let key, !key.isEmpty, let object = item.objectValue,
+          let value = object[key], !value.isNull else {
+        return basePath
+    }
+    return value.displayString
 }
 
 private func makeEmit<Render>(
@@ -558,49 +583,64 @@ final class WatchCollector {
 ///
 /// A watch that writes the path it watches, such as `pushState` on its own
 /// array, would otherwise dispatch forever: every append changes the watched
-/// value, which starts another pass. Each pass can dispatch only from a budget
-/// that is shared by the whole chain of state changes, so a spec cannot exhaust
+/// value, which starts another pass. Every action can dispatch only from a
+/// budget shared by the whole chain of state changes, so a spec cannot exhaust
 /// the host's CPU or memory that way. The budget refills when a state change
 /// arrives that the tracker's own actions did not cause, such as user input or
 /// a streamed spec update.
 ///
-/// The renderer schedules a pass for every state change, and an action can
-/// change state before it suspends, so the next pass can arrive while the
-/// current one is still awaiting that action. Passes run one at a time: a pass
-/// that arrives during another replaces the waiting one and returns, and the
-/// running pass takes it next. Running both at once would compare the store
-/// against a version the running pass has not recorded yet, and the newer pass
-/// would mistake the running pass's own writes for an external change and
-/// refill the budget.
-public final class WatchTracker {
+/// Each watch record runs its own actions, the way React runs each element's
+/// watch effect on its own. One record waiting on a slow handler or a confirm
+/// dialog does not hold up the others, and a change that arrives meanwhile is
+/// kept as that record's next value instead of being merged away. Only the
+/// records that change run, and only one run of a record's actions is in
+/// flight at a time.
+///
+/// All of the tracker's state is guarded by one lock: the renderer can call
+/// `snapshot(_:)` or `addBaselines(_:)` from the main thread while a record's
+/// actions run on another.
+public final class WatchTracker: @unchecked Sendable {
     /// The default number of watch actions one chain of state changes may run.
     public static let defaultMaxCascadeDispatches = 64
 
     /// The most actions one chain of watch-driven state changes may dispatch.
     public let maxCascadeDispatches: Int
 
-    private var remainingCascadeDispatches: Int
-    private var warnedAboutCascade = false
-    /// The store version left by the previous pass, so the next pass can tell
-    /// whether its change came from an action this tracker dispatched.
-    private var expectedVersion: Int?
-    private var previous: [String: JSONValue?] = [:]
-    private var hasSnapshot = false
     private let functions: [String: ComputedFunction]
     private let directives: [String: Directive]
 
-    /// One pass waiting to run.
-    private struct QueuedPass {
-        let records: [WatchRecord]
+    /// One record with the tools its actions run against.
+    private struct PendingRecord {
+        let record: WatchRecord
         let dispatcher: ActionDispatcher
         let store: StateStore
     }
 
-    /// Guards the pass queue so a caller on another thread cannot start a
-    /// second pass. Only the pass that sets `isProcessing` runs the queue.
-    private let queueLock = NSLock()
-    private var queuedPass: QueuedPass?
-    private var isProcessing = false
+    /// Guards every mutable field below.
+    private let lock = NSLock()
+
+    /// The value each watch id ran with last, and the ids that have a baseline.
+    /// A missing value in the dictionary is a path that held nothing, which is
+    /// different from an id that has never run.
+    private var baselines: [String: JSONValue?] = [:]
+    private var known: Set<String> = []
+    private var hasSnapshot = false
+
+    /// The newest record waiting for each watch id, and the ids whose actions
+    /// are running. A change for an id that is already running replaces its
+    /// waiting record; it does not start a second run of that id.
+    private var pending: [String: PendingRecord] = [:]
+    private var running: Set<String> = []
+
+    private var remainingCascadeDispatches: Int
+    private var warnedAboutCascade = false
+    /// The store version left by the tracker's own actions. A newer version
+    /// seen while no action is running came from outside the chain and starts
+    /// a new one.
+    private var lastOwnWriteVersion: Int?
+    /// The number of record actions in flight. A change seen while one is in
+    /// flight may be that action's own write, so it cannot refill the budget.
+    private var activeDispatches = 0
 
     /// - Parameters:
     ///   - functions: Named functions for `$computed` parameters, from the
@@ -626,112 +666,181 @@ public final class WatchTracker {
         for record in records {
             next[record.id] = record.value
         }
-        previous = next
+        lock.lock()
+        defer { lock.unlock() }
+        baselines = next
+        known = Set(records.map(\.id))
         hasSnapshot = true
         remainingCascadeDispatches = maxCascadeDispatches
         warnedAboutCascade = false
-        expectedVersion = nil
+        lastOwnWriteVersion = nil
     }
 
-    /// Runs a watch pass for the given records.
+    /// Adds a baseline for watch ids that do not have one yet.
     ///
-    /// Only one pass runs at a time. If a pass is already running, this call
-    /// replaces any pass that is waiting and returns, and the running pass
-    /// picks up the newest records when it finishes. The renderer builds one
-    /// pass per state change and does not await these calls, so the latest
-    /// records are the ones that matter.
+    /// A spec that arrives after the view was created uses this for its new
+    /// watches: a new watch starts from its current value without firing,
+    /// while an existing watch keeps the baseline it has not fired against
+    /// yet. Resetting every baseline instead would hide a user edit whose
+    /// watch pass has not run.
+    public func addBaselines(_ records: [WatchRecord]) {
+        lock.lock()
+        defer { lock.unlock() }
+        for record in records where !known.contains(record.id) {
+            baselines[record.id] = record.value
+            known.insert(record.id)
+        }
+        hasSnapshot = true
+    }
+
+    /// Records the values from one build and runs the actions of every watch
+    /// whose value changed.
+    ///
+    /// Records run independently: the call awaits the actions of the records it
+    /// starts, and returns without waiting for a record another call is
+    /// already running. The renderer builds one call per state change and does
+    /// not await it, so the latest records are the ones that matter.
     public func process(
         _ records: [WatchRecord],
         dispatcher: ActionDispatcher,
         store: StateStore
     ) async {
-        queueLock.lock()
-        queuedPass = QueuedPass(records: records, dispatcher: dispatcher, store: store)
-        if isProcessing {
-            queueLock.unlock()
-            return
-        }
-        isProcessing = true
-        queueLock.unlock()
-
-        while true {
-            queueLock.lock()
-            guard let pass = queuedPass else {
-                isProcessing = false
-                queueLock.unlock()
-                return
+        var started: [PendingRecord] = []
+        let isReady = withLock { () -> Bool in
+            if !hasSnapshot {
+                // The first update only records the values of the initial
+                // render.
+                for record in records where !known.contains(record.id) {
+                    baselines[record.id] = record.value
+                    known.insert(record.id)
+                }
+                hasSnapshot = true
+                return false
             }
-            queuedPass = nil
-            queueLock.unlock()
-            await runPass(pass)
+
+            for record in records {
+                if !known.contains(record.id) {
+                    // A watch that appears after the snapshot starts from its
+                    // current value, like a watch that just mounted.
+                    baselines[record.id] = record.value
+                    known.insert(record.id)
+                    continue
+                }
+                let baseline = baselines[record.id] ?? nil
+                // Values are compared structurally: a write to an unrelated
+                // path does not change the value at this path, and an action
+                // that writes an equal object back does not fire the watch
+                // again.
+                guard baseline != record.value else {
+                    // The value is back where this id last ran, so a record
+                    // that is still waiting has nothing to fire for.
+                    pending.removeValue(forKey: record.id)
+                    continue
+                }
+                let item = PendingRecord(
+                    record: record,
+                    dispatcher: dispatcher,
+                    store: store
+                )
+                pending[record.id] = item
+                if running.insert(record.id).inserted {
+                    started.append(item)
+                }
+            }
+            return true
         }
-    }
 
-    private func runPass(_ pass: QueuedPass) async {
-        let records = pass.records
-        let dispatcher = pass.dispatcher
-        let store = pass.store
-
-        defer { expectedVersion = store.version }
-
-        if expectedVersion != store.version {
-            // The change that triggered this pass did not come from an action
-            // this tracker dispatched, so it starts a new chain and a full
-            // budget.
-            remainingCascadeDispatches = maxCascadeDispatches
-            warnedAboutCascade = false
-        }
-
-        var next: [String: JSONValue?] = [:]
-
-        // Record this pass's values before running the actions, so a state
-        // change that lands while a slow action waits compares against them
-        // instead of the values from before this pass.
-        for record in records {
-            next[record.id] = record.value
-        }
-        let wasSnapshot = hasSnapshot
-        let prior = previous
-        previous = next
-        hasSnapshot = true
-        guard wasSnapshot else { return }
-
-        for record in records {
-            // Values are compared structurally: a write to an unrelated path
-            // does not change the value at this path, and an action that
-            // writes an equal object back does not fire the watch again.
-            guard let previousValue = prior[record.id], previousValue != record.value else { continue }
-
-            let context = PropResolutionContext(
-                stateModel: store.snapshot,
-                repeatItem: record.scope?.item,
-                repeatIndex: record.scope?.index,
-                repeatBasePath: record.scope?.basePath,
-                functions: functions,
-                directives: directives
-            )
-
-            for list in record.bindings {
-                for binding in list.bindings {
-                    guard consumeCascadeDispatch() else { return }
-                    var resolved: [String: JSONValue] = [:]
-                    for (key, value) in binding.params ?? [:] {
-                        if let value = resolveActionParam(value.jsonValue, context) {
-                            resolved[key] = value
-                        }
-                    }
-                    await dispatcher.dispatch(
-                        binding,
-                        resolvedParams: binding.params == nil ? nil : resolved
-                    )
+        guard isReady, !started.isEmpty else { return }
+        await withTaskGroup(of: Void.self) { group in
+            for item in started {
+                group.addTask { [self] in
+                    await drain(item.record.id)
                 }
             }
         }
     }
 
+    /// Runs the waiting values of one watch id until it has none left.
+    ///
+    /// Only one drain runs per id, so that id's actions never overlap. Other
+    /// ids drain on their own, so a slow action in one record does not delay
+    /// another record's watch.
+    private func drain(_ id: String) async {
+        while true {
+            let step = withLock { takeStep(id) }
+            switch step {
+            case .finish:
+                return
+            case .skip:
+                continue
+            case .run(let item):
+                if await runBindings(item) {
+                    withLock {
+                        pending.removeValue(forKey: id)
+                        running.remove(id)
+                    }
+                    return
+                }
+            }
+        }
+    }
+
+    /// The next thing a drain should do for its watch id.
+    private enum DrainStep {
+        /// The id has no waiting value, so its drain is done.
+        case finish
+        /// The waiting value is the one the id last ran with.
+        case skip
+        /// The id has a new value whose actions should run.
+        case run(PendingRecord)
+    }
+
+    /// Takes the next waiting value for `id`, recording it as the value its
+    /// actions run against. A change that lands while a slow action waits then
+    /// compares against this value instead of the one from before the run.
+    private func takeStep(_ id: String) -> DrainStep {
+        guard let item = pending.removeValue(forKey: id) else {
+            running.remove(id)
+            return .finish
+        }
+        let baseline = baselines[id] ?? nil
+        guard baseline != item.record.value else { return .skip }
+        baselines[id] = item.record.value
+        return .run(item)
+    }
+
+    /// Runs one record's bindings in order. Returns true when the cascade
+    /// budget ran out.
+    private func runBindings(_ item: PendingRecord) async -> Bool {
+        for list in item.record.bindings {
+            for binding in list.bindings {
+                guard beginDispatch(item) else { return true }
+                await dispatch(item, binding)
+                endDispatch(item)
+            }
+        }
+        return false
+    }
+
+    /// Runs a synchronous critical section.
+    private func withLock<Result>(_ body: () -> Result) -> Result {
+        lock.lock()
+        defer { lock.unlock() }
+        return body()
+    }
+
     /// Takes one dispatch from the budget shared by the current chain of state
     /// changes, and warns once when the chain has spent it.
-    private func consumeCascadeDispatch() -> Bool {
+    private func beginDispatch(_ item: PendingRecord) -> Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        if activeDispatches == 0, lastOwnWriteVersion != item.store.version {
+            // The change that led here did not come from an action this
+            // tracker dispatched, so it starts a new chain and a full budget.
+            remainingCascadeDispatches = maxCascadeDispatches
+            warnedAboutCascade = false
+            lastOwnWriteVersion = item.store.version
+        }
         guard remainingCascadeDispatches > 0 else {
             if !warnedAboutCascade {
                 warnedAboutCascade = true
@@ -742,6 +851,41 @@ public final class WatchTracker {
             return false
         }
         remainingCascadeDispatches -= 1
+        activeDispatches += 1
         return true
+    }
+
+    /// Finishes one dispatch and records the store version it left behind.
+    private func endDispatch(_ item: PendingRecord) {
+        lock.lock()
+        activeDispatches -= 1
+        lastOwnWriteVersion = item.store.version
+        lock.unlock()
+    }
+
+    /// Resolves one binding against live state and runs it.
+    ///
+    /// The context is built per binding, so a later binding reads the value an
+    /// earlier one wrote, the way an event's bindings and React's watch effects
+    /// do.
+    private func dispatch(_ item: PendingRecord, _ binding: ActionBinding) async {
+        let context = PropResolutionContext(
+            stateModel: item.store.snapshot,
+            repeatItem: item.record.scope?.item,
+            repeatIndex: item.record.scope?.index,
+            repeatBasePath: item.record.scope?.basePath,
+            functions: functions,
+            directives: directives
+        )
+        var resolved: [String: JSONValue] = [:]
+        for (key, value) in binding.params ?? [:] {
+            if let value = resolveActionParam(value.jsonValue, context) {
+                resolved[key] = value
+            }
+        }
+        await item.dispatcher.dispatch(
+            binding,
+            resolvedParams: binding.params == nil ? nil : resolved
+        )
     }
 }

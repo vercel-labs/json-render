@@ -79,7 +79,7 @@ func applySpecStreamPatch(
         try budget.reserve(
             value,
             pathDepth: segments.count,
-            replacing: valueAtSegments(root, segments)
+            replacing: valueAtSegments(root, segments, dense: true)
         )
         root = setByPath(root, patch.path, value)
 
@@ -130,12 +130,28 @@ func applySpecStreamPatch(
 ///
 /// Unlike `getByPath`, "/" is read as the member with an empty key, matching
 /// what `addByPath`, `setByPath`, and `removeByPath` do with the same path.
-private func valueAtSegments(_ root: JSONValue, _ segments: [String]) -> JSONValue? {
+///
+/// With `dense`, array indexes are read the way the path writer reads them,
+/// which accepts only plain digits. A budget that read `/arr/+0` as `arr[0]`
+/// would credit the write for a replace the writer skips, letting a stream
+/// repeat that replace to spend budget it never used. Removals keep the
+/// lenient index so their release matches the value `removeByPath` takes out.
+private func valueAtSegments(
+    _ root: JSONValue,
+    _ segments: [String],
+    dense: Bool = false
+) -> JSONValue? {
     var current = root
     for segment in segments {
         switch current {
         case .array(let array):
-            guard let index = Int(segment), array.indices.contains(index) else { return nil }
+            let index: Int?
+            if dense {
+                index = isNumericIndex(segment) ? Int(segment) : nil
+            } else {
+                index = Int(segment)
+            }
+            guard let index, array.indices.contains(index) else { return nil }
             current = array[index]
         case .object(let object):
             guard let next = object[segment] else { return nil }
@@ -160,9 +176,9 @@ private func valueReplacedByAdd(_ root: JSONValue, segments: [String]) -> JSONVa
     guard !segments.isEmpty else { return nil }
     let parent = segments.count == 1
         ? root
-        : valueAtSegments(root, Array(segments.dropLast()))
+        : valueAtSegments(root, Array(segments.dropLast()), dense: true)
     guard case .object = parent else { return nil }
-    return valueAtSegments(root, segments)
+    return valueAtSegments(root, segments, dense: true)
 }
 
 /// Applies a patch to a decoded spec by round-tripping through JSON.

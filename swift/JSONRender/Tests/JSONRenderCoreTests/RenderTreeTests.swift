@@ -336,6 +336,129 @@ final class RenderTreeTests: XCTestCase {
         XCTAssertEqual(calls.value, 1)
     }
 
+    func testWatchBindingsReadLiveStatePerBinding() async throws {
+        // The second binding reads `/value` after the first one writes it, the
+        // way an event's bindings resolve against live state.
+        let spec = Spec.decodePartial(
+            JSONValue.decode(
+                #"{"root":"t","state":{"trigger":0,"value":""},"elements":{"t":{"type":"Text","props":{},"watch":{"/trigger":[{"action":"setState","params":{"statePath":"/value","value":"new"}},{"action":"capture","params":{"seen":{"$state":"/value"}}}]}}}}"#
+            )!
+        )
+        let state = StateStore(spec: spec)
+        let seen = Box<JSONValue?>(nil)
+        let dispatcher = ActionDispatcher(store: state)
+        dispatcher.register("capture") { params in seen.value = params["seen"] }
+
+        let tracker = WatchTracker()
+        tracker.snapshot(records(spec, state))
+        state.set("/trigger", .number(1))
+        await tracker.process(records(spec, state), dispatcher: dispatcher, store: state)
+
+        XCTAssertEqual(seen.value, .string("new"), "The second binding sees the first one's write")
+    }
+
+    func testSlowWatchDoesNotHoldUpAnotherWatch() async throws {
+        // Each element's watch runs on its own, the way React runs each
+        // element's effect. One record waiting on a slow handler must not delay
+        // another record's watch.
+        var registry = Fixtures.recordingRegistry()
+        registry.components["Column"] = ComponentDefinition { _ in "Column" }
+        let spec = Spec.decodePartial(
+            JSONValue.decode(
+                #"{"root":"col","state":{"a":0,"b":0},"elements":{"col":{"type":"Column","props":{},"children":["wa","wb"]},"wa":{"type":"Text","props":{},"watch":{"/a":{"action":"slow"}}},"wb":{"type":"Text","props":{},"watch":{"/b":{"action":"fast"}}}}}"#
+            )!
+        )
+        let state = StateStore(spec: spec)
+        let gate = AsyncGate()
+        let slowCalls = Box<Int>(0)
+        let fastCalls = Box<Int>(0)
+        let dispatcher = ActionDispatcher(store: state)
+        dispatcher.register("slow") { _ in
+            slowCalls.value += 1
+            await gate.wait()
+        }
+        dispatcher.register("fast") { _ in fastCalls.value += 1 }
+
+        func records() -> [WatchRecord] {
+            buildRenderTreeWithWatches(
+                spec: spec,
+                registry: registry,
+                store: state,
+                dispatcher: dispatcher
+            ).watches
+        }
+
+        let tracker = WatchTracker()
+        tracker.snapshot(records())
+
+        state.set("/a", .number(1))
+        let slowPass = Task {
+            await tracker.process(records(), dispatcher: dispatcher, store: state)
+        }
+        var spins = 0
+        while slowCalls.value == 0 && spins < 100_000 {
+            await Task.yield()
+            spins += 1
+        }
+        XCTAssertEqual(slowCalls.value, 1)
+
+        state.set("/b", .number(1))
+        await tracker.process(records(), dispatcher: dispatcher, store: state)
+        XCTAssertEqual(fastCalls.value, 1, "The other watch runs while the slow action waits")
+
+        await gate.open()
+        await slowPass.value
+        XCTAssertEqual(fastCalls.value, 1, "The slow action's completion does not fire it again")
+    }
+
+    func testAddingBaselinesKeepsAPendingWatchChange() async throws {
+        // `update(spec:)` adds baselines for watches it has not seen. It must
+        // not reset the baseline of a watch whose pass has not run yet, or the
+        // user edit it was waiting on never fires.
+        let spec = makeWatchSpec(watch: #""/value":{"action":"record"}"#)
+        let state = StateStore(spec: spec)
+        let calls = Box<Int>(0)
+        let dispatcher = ActionDispatcher(store: state)
+        dispatcher.register("record") { _ in calls.value += 1 }
+
+        let tracker = WatchTracker()
+        tracker.snapshot(records(spec, state))
+
+        state.set("/value", .string("b"))
+        // A changed spec arrives before the watch pass, as the model's
+        // `update(spec:)` does for a new spec.
+        tracker.addBaselines(records(spec, state))
+
+        await tracker.process(records(spec, state), dispatcher: dispatcher, store: state)
+        XCTAssertEqual(calls.value, 1, "The unseen edit still fires")
+    }
+
+    func testRepeatRowsKeepTheirKeyWhenAnEarlierItemIsRemoved() throws {
+        let spec = Spec.decodePartial(
+            JSONValue.decode(
+                #"{"root":"list","state":{"items":[{"id":"a"},{"id":"b"}]},"elements":{"list":{"type":"List","props":{},"repeat":{"statePath":"/items","key":"id"},"children":["row"]},"row":{"type":"Text","props":{"label":{"$item":"id"}}}}}"#
+            )!
+        )
+        let state = StateStore(spec: spec)
+
+        func rowIDs() throws -> [String] {
+            try XCTUnwrap(
+                buildRenderTree(spec: spec, registry: Fixtures.recordingRegistry(), store: state)
+            ).children.map(\.id)
+        }
+
+        let before = try rowIDs()
+        XCTAssertEqual(before.count, 2)
+
+        state.set("/items", .array([.object(["id": .string("b")])]))
+
+        XCTAssertEqual(
+            try rowIDs(),
+            [before[1]],
+            "Removing an earlier row does not hand its identity to the one after it"
+        )
+    }
+
     func testWatchOnHiddenElementFires() async throws {
         var registry = Fixtures.recordingRegistry()
         registry.components["Column"] = ComponentDefinition { _ in "Column" }

@@ -296,6 +296,43 @@ final class ActionTests: XCTestCase {
         XCTAssertNil(todos.first?["id"]?.objectValue)
     }
 
+    func testOversizedStateWriteIsDropped() async throws {
+        let recorder = WarningRecorder()
+        let (dispatcher, store) = makeDispatcher(state: ["value": .string("keep")])
+        dispatcher.maxStateWriteBytes = 32
+
+        await dispatcher.dispatch(
+            ActionBinding(
+                action: "setState",
+                params: [
+                    "statePath": .value(.string("/value")),
+                    "value": .value(.string(String(repeating: "x", count: 64))),
+                ]
+            )
+        )
+
+        XCTAssertEqual(store.get("/value"), .string("keep"), "The oversized write is dropped")
+        XCTAssertTrue(recorder.messages.contains { $0.contains("state write limit") })
+    }
+
+    func testPushStateExpandsTheIDTokenInsideANestedValue() async throws {
+        let (dispatcher, store) = makeDispatcher(state: ["todos": .array([])])
+
+        await dispatcher.dispatch(
+            ActionBinding(
+                action: "pushState",
+                params: [
+                    "statePath": .value(.string("/todos")),
+                    "value": .value(.object(["todo": .object(["id": .string("$id")])])),
+                ]
+            )
+        )
+
+        let todos = try XCTUnwrap(store.get("/todos")?.arrayValue)
+        let id = try XCTUnwrap(todos.first?["todo"]?["id"]?.stringValue)
+        XCTAssertNotEqual(id, "$id")
+    }
+
     func testResolveActionInterpolatesConfirmation() {
         let resolved = resolveAction(
             ActionBinding(

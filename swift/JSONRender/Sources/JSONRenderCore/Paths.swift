@@ -213,7 +213,13 @@ extension JSONValue {
     }
 }
 
-private func isNumericIndex(_ value: String) -> Bool {
+/// Whether a path segment is a plain array index, which is what the path
+/// writer accepts.
+///
+/// The writer is stricter than `Int(_:)`, which also reads a leading sign or
+/// whitespace. Anything else keeps the segment from being an array index, so a
+/// path such as `/arr/+0` leaves the array untouched.
+func isNumericIndex(_ value: String) -> Bool {
     !value.isEmpty && value.allSatisfy(\.isNumber)
 }
 
