@@ -1,0 +1,115 @@
+{
+  "component": "Card",
+  "props": {
+    "title": "Account Settings",
+    "description": "Manage your preferences",
+    "maxWidth": "md",
+    "centered": null
+  },
+  "children": [
+    {
+      "component": "Stack",
+      "props": {
+        "direction": "vertical",
+        "gap": "md",
+        "align": null,
+        "justify": null
+      },
+      "children": [
+        {
+          "component": "Input",
+          "props": {
+            "label": "Full Name",
+            "name": "name",
+            "type": "text",
+            "placeholder": "Your name",
+            "value": "Ada Lovelace",
+            "checks": null
+          }
+        },
+        {
+          "component": "Input",
+          "props": {
+            "label": "Email",
+            "name": "email",
+            "type": "email",
+            "placeholder": "you@example.com",
+            "value": "ada@example.com",
+            "checks": null
+          }
+        },
+        {
+          "component": "Select",
+          "props": {
+            "label": "Role",
+            "name": "role",
+            "options": [
+              "Engineer",
+              "Designer",
+              "Product Manager",
+              "Data Scientist"
+            ],
+            "placeholder": "Choose a role",
+            "value": "Engineer",
+            "checks": null
+          }
+        },
+        {
+          "component": "Separator",
+          "props": {
+            "orientation": null
+          }
+        },
+        {
+          "component": "Switch",
+          "props": {
+            "label": "Email notifications",
+            "name": "notifications",
+            "checked": true
+          }
+        },
+        {
+          "component": "Switch",
+          "props": {
+            "label": "Dark mode",
+            "name": "darkMode",
+            "checked": false
+          }
+        },
+        {
+          "component": "Separator",
+          "props": {
+            "orientation": null
+          }
+        },
+        {
+          "component": "Stack",
+          "props": {
+            "direction": "horizontal",
+            "gap": "sm",
+            "align": null,
+            "justify": "end"
+          },
+          "children": [
+            {
+              "component": "Button",
+              "props": {
+                "label": "Cancel",
+                "variant": "secondary",
+                "disabled": null
+              }
+            },
+            {
+              "component": "Button",
+              "props": {
+                "label": "Save Changes",
+                "variant": "primary",
+                "disabled": null
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

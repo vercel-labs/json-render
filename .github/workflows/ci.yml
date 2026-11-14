@@ -52,6 +52,38 @@ jobs:
       - name: Build packages
         run: pnpm turbo run build --filter='./packages/*'
       - run: pnpm test
+      - name: Check generated Swift spec model
+        run: node swift/JSONRender/Scripts/generate-spec-model.mjs --check
+      - name: Check React conformance fixtures
+        run: node swift/JSONRender/Tools/conformance/render-fixtures.mjs --check
+
+  swift:
+    name: Swift (Linux, core)
+    runs-on: ubuntu-latest
+    container: swift:6.1
+    steps:
+      - uses: actions/checkout@v4
+      # The SwiftUI, catalog, and example sources are behind
+      # `#if canImport(SwiftUI)`, so on Linux this target builds and tests
+      # JSONRenderCore only. The macOS job below compiles the rest.
+      - name: Build
+        working-directory: swift/JSONRender
+        run: swift build
+      - name: Test
+        working-directory: swift/JSONRender
+        run: swift test
+
+  swift-macos:
+    name: Swift (macOS)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        working-directory: swift/JSONRender
+        run: swift build
+      - name: Test
+        working-directory: swift/JSONRender
+        run: swift test
 
   docs:
     name: Docs (${{ matrix.environment }})

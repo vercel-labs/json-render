@@ -1,0 +1,55 @@
+{
+  "root": "root",
+  "state": {
+    "user": { "name": "Ada", "premium": true, "tags": ["math", "code"] },
+    "count": 3,
+    "theme": "dark"
+  },
+  "elements": {
+    "root": {
+      "type": "Column",
+      "props": { "gap": 8 },
+      "children": ["name", "status", "greeting", "nested", "arr"]
+    },
+    "name": {
+      "type": "Text",
+      "props": {
+        "text": { "$state": "/user/name" },
+        "size": { "$state": "/missing" }
+      }
+    },
+    "status": {
+      "type": "Text",
+      "props": {
+        "text": {
+          "$cond": { "$state": "/user/premium", "eq": true },
+          "$then": "Premium",
+          "$else": "Free"
+        }
+      }
+    },
+    "greeting": {
+      "type": "Text",
+      "props": {
+        "text": { "$template": "Hello ${/user/name}, you have ${count} items" }
+      }
+    },
+    "nested": {
+      "type": "Badge",
+      "props": {
+        "meta": {
+          "theme": { "$state": "/theme" },
+          "literal": "x",
+          "bind": { "$bindState": "/theme" }
+        },
+        "tags": { "$state": "/user/tags" }
+      }
+    },
+    "arr": {
+      "type": "Text",
+      "props": {
+        "items": [{ "$state": "/user/name" }, "static", { "$index": true }]
+      }
+    }
+  }
+}

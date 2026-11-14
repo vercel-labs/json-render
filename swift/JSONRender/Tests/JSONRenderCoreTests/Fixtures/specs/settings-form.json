@@ -1,0 +1,110 @@
+{
+  "root": "card",
+  "state": {
+    "name": "Ada Lovelace",
+    "email": "ada@example.com",
+    "role": "Engineer",
+    "notifications": true,
+    "darkMode": false
+  },
+  "elements": {
+    "card": {
+      "type": "Card",
+      "props": {
+        "title": "Account Settings",
+        "description": "Manage your preferences",
+        "maxWidth": "md",
+        "centered": null
+      },
+      "children": ["form"]
+    },
+    "form": {
+      "type": "Stack",
+      "props": {
+        "direction": "vertical",
+        "gap": "md",
+        "align": null,
+        "justify": null
+      },
+      "children": [
+        "nameInput",
+        "emailInput",
+        "roleSelect",
+        "sep",
+        "notifSwitch",
+        "darkSwitch",
+        "sep2",
+        "actions"
+      ]
+    },
+    "nameInput": {
+      "type": "Input",
+      "props": {
+        "label": "Full Name",
+        "name": "name",
+        "type": "text",
+        "placeholder": "Your name",
+        "value": { "$bindState": "/name" },
+        "checks": null
+      }
+    },
+    "emailInput": {
+      "type": "Input",
+      "props": {
+        "label": "Email",
+        "name": "email",
+        "type": "email",
+        "placeholder": "you@example.com",
+        "value": { "$bindState": "/email" },
+        "checks": null
+      }
+    },
+    "roleSelect": {
+      "type": "Select",
+      "props": {
+        "label": "Role",
+        "name": "role",
+        "options": ["Engineer", "Designer", "Product Manager", "Data Scientist"],
+        "placeholder": "Choose a role",
+        "value": { "$bindState": "/role" },
+        "checks": null
+      }
+    },
+    "sep": { "type": "Separator", "props": { "orientation": null } },
+    "notifSwitch": {
+      "type": "Switch",
+      "props": {
+        "label": "Email notifications",
+        "name": "notifications",
+        "checked": { "$bindState": "/notifications" }
+      }
+    },
+    "darkSwitch": {
+      "type": "Switch",
+      "props": {
+        "label": "Dark mode",
+        "name": "darkMode",
+        "checked": { "$bindState": "/darkMode" }
+      }
+    },
+    "sep2": { "type": "Separator", "props": { "orientation": null } },
+    "actions": {
+      "type": "Stack",
+      "props": {
+        "direction": "horizontal",
+        "gap": "sm",
+        "align": null,
+        "justify": "end"
+      },
+      "children": ["cancelBtn", "saveBtn"]
+    },
+    "cancelBtn": {
+      "type": "Button",
+      "props": { "label": "Cancel", "variant": "secondary", "disabled": null }
+    },
+    "saveBtn": {
+      "type": "Button",
+      "props": { "label": "Save Changes", "variant": "primary", "disabled": null }
+    }
+  }
+}
