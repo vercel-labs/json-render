@@ -704,21 +704,39 @@ public final class WatchTracker: @unchecked Sendable {
         lastOwnWriteVersion = nil
     }
 
-    /// Adds a baseline for watch ids that do not have one yet.
+    /// Reconciles the tracker with the watches a new build mounted.
     ///
-    /// A spec that arrives after the view was created uses this for its new
+    /// A spec that arrives after the view was created uses this for its
     /// watches: a new watch starts from its current value without firing,
     /// while an existing watch keeps the baseline it has not fired against
     /// yet. Resetting every baseline instead would hide a user edit whose
     /// watch pass has not run.
+    ///
+    /// Watches that are no longer in `records` are released, including a value
+    /// that is still waiting to run. A stream that keeps replacing the watched
+    /// elements therefore cannot leave a baseline behind for every generation.
     public func addBaselines(_ records: [WatchRecord]) {
         lock.lock()
         defer { lock.unlock() }
+        let present = Set(records.map(\.id))
+        if known.count != present.count || !known.isSubset(of: present) {
+            baselines = baselines.filter { present.contains($0.key) }
+            known.formIntersection(present)
+            pending = pending.filter { present.contains($0.key) }
+        }
         for record in records where !known.contains(record.id) {
             baselines[record.id] = record.value
             known.insert(record.id)
         }
         hasSnapshot = true
+    }
+
+    /// The number of watch ids the tracker holds a baseline for.
+    ///
+    /// Internal so a test can check that a watch that is no longer mounted
+    /// releases its baseline.
+    var trackedWatchCount: Int {
+        withLock { known.count }
     }
 
     /// Records the values from one build and runs the actions of every watch
@@ -842,6 +860,8 @@ public final class WatchTracker: @unchecked Sendable {
             running.remove(id)
             return .finish
         }
+        // A value that was queued before the watch went away does not run.
+        guard known.contains(id) else { return .skip }
         let baseline = baselines[id] ?? nil
         guard baseline != item.record.value else { return .skip }
         baselines[id] = item.record.value

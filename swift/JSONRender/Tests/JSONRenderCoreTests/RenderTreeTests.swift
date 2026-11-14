@@ -761,6 +761,112 @@ final class RenderTreeTests: XCTestCase {
         XCTAssertTrue(rendered, "A shared state prop does not spend the prop budget")
     }
 
+    func testStreamedSpecUpdatesReleaseRemovedWatchBaselines() {
+        // A stream can replace the watched element with a fresh key in every
+        // update. A baseline kept for each generation would hold that
+        // generation's watched value.
+        let tracker = WatchTracker()
+        tracker.snapshot([watchRecord(id: "e0#/value", value: .string("v0"))])
+        let before = peakResidentBytes()
+        for index in 1...100 {
+            let value = JSONValue.array(
+                (0..<50_000).map { .number(Double($0 + index)) }
+            )
+            tracker.addBaselines([watchRecord(id: "e\(index)#/value", value: value)])
+        }
+        let after = peakResidentBytes()
+
+        XCTAssertEqual(
+            tracker.trackedWatchCount,
+            1,
+            "Only the mounted watch keeps a baseline"
+        )
+        #if os(Linux)
+        XCTAssertLessThan(
+            after - before,
+            32 * 1024 * 1024,
+            "Baselines for removed generations are released"
+        )
+        #endif
+    }
+
+    func testRemovedWatchDoesNotRunAQueuedAction() async throws {
+        // A value queued while an action was still running must not run after
+        // the element unmounts.
+        let spec = makeWatchSpec(watch: #""/value":{"action":"record"}"#)
+        let state = StateStore(spec: spec)
+        let calls = Box<Int>(0)
+        let gate = AsyncGate()
+        let dispatcher = ActionDispatcher(store: state)
+        dispatcher.register("record") { _ in
+            calls.value += 1
+            if calls.value == 1 { await gate.wait() }
+        }
+
+        let tracker = WatchTracker()
+        tracker.snapshot(records(spec, state))
+
+        state.set("/value", .string("b"))
+        let running = Task {
+            await tracker.process(records(spec, state), dispatcher: dispatcher, store: state)
+        }
+        var spins = 0
+        while calls.value == 0 && spins < 100_000 {
+            await Task.yield()
+            spins += 1
+        }
+        XCTAssertEqual(calls.value, 1)
+
+        // The value changes again while the action waits, then the element
+        // goes away before the queued run starts.
+        state.set("/value", .string("c"))
+        await tracker.process(records(spec, state), dispatcher: dispatcher, store: state)
+        tracker.addBaselines([])
+        XCTAssertEqual(tracker.trackedWatchCount, 0)
+
+        await gate.open()
+        await running.value
+        XCTAssertEqual(calls.value, 1, "The queued run does not start after the watch went away")
+    }
+
+    func testManySharedStatePropsRender() throws {
+        // Ten thousand references to one state value share that value, so
+        // props resolution must not walk or count it per reference.
+        let data = JSONValue.array((0..<20_000).map { .number(Double($0)) })
+        var props: [String: JSONValue] = [:]
+        for index in 0..<10_000 {
+            props["p\(index)"] = .object(["$state": .string("/data")])
+        }
+        let json = JSONValue.object([
+            "root": .string("t"),
+            "elements": .object([
+                "t": .object([
+                    "type": .string("Text"),
+                    "props": .object(props),
+                ]),
+            ]),
+            "state": .object(["data": data]),
+        ])
+        let spec = Spec.decodePartial(json)
+        let state = StateStore(spec: spec)
+
+        let start = Date()
+        let tree = buildRenderTree(
+            spec: spec,
+            registry: Fixtures.recordingRegistry(),
+            store: state
+        )
+        let elapsed = Date().timeIntervalSince(start)
+
+        let rendered = tree != nil
+        XCTAssertTrue(rendered, "Shared props do not stop the build")
+        XCTAssertLessThan(elapsed, 5, "Shared props are not walked per reference")
+    }
+
+    private func watchRecord(id: String, value: JSONValue) -> WatchRecord {
+        WatchRecord(id: id, path: "/value", value: value, bindings: [], scope: nil)
+    }
+
     func testWatchOnHiddenElementFires() async throws {
         var registry = Fixtures.recordingRegistry()
         registry.components["Column"] = ComponentDefinition { _ in "Column" }
