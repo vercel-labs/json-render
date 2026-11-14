@@ -21,13 +21,22 @@ public struct RenderTreeLimits: Equatable, Sendable {
     /// because they are missing, hidden, or have no renderer.
     public var maxWork: Int
 
-    /// The most bytes the resolved props of one build may hold.
+    /// The most bytes the templates of one build may expand to.
     ///
     /// A template is bounded on its own, but a spec can repeat many of them:
     /// thousands of elements that each expand a state value into a large prop
-    /// stay under the node limits and still take gigabytes. The build measures
-    /// the props of every element it resolves and stops at this total.
+    /// stay under the node limits and still take gigabytes. Every expansion in
+    /// the build draws from this budget and stops at it. Only template output
+    /// counts: a `$state` or `$item` value is shared with the state it comes
+    /// from, not copied, so binding a large value into props costs nothing.
     public var maxResolvedPropBytes: Int
+
+    /// The most bytes the watch ids of one build may hold.
+    ///
+    /// A watch id copies the element key, the repeat path, and the watch path
+    /// into a new string. An element with a long watch path that is listed
+    /// many times as a child would otherwise hold that text once per visit.
+    public var maxWatchIDBytes: Int
 
     /// The limits the renderer uses when none are given.
     ///
@@ -37,19 +46,22 @@ public struct RenderTreeLimits: Equatable, Sendable {
         maxDepth: 100,
         maxRenderedNodes: 10_000,
         maxWork: 50_000,
-        maxResolvedPropBytes: 32_000_000
+        maxResolvedPropBytes: 32_000_000,
+        maxWatchIDBytes: 4_000_000
     )
 
     public init(
         maxDepth: Int = 100,
         maxRenderedNodes: Int = 10_000,
         maxWork: Int = 50_000,
-        maxResolvedPropBytes: Int = 32_000_000
+        maxResolvedPropBytes: Int = 32_000_000,
+        maxWatchIDBytes: Int = 4_000_000
     ) {
         self.maxDepth = maxDepth
         self.maxRenderedNodes = maxRenderedNodes
         self.maxWork = maxWork
         self.maxResolvedPropBytes = max(1, maxResolvedPropBytes)
+        self.maxWatchIDBytes = max(1, maxWatchIDBytes)
     }
 }
 
@@ -59,43 +71,39 @@ public struct RenderTreeLimits: Equatable, Sendable {
 /// counts. Once a limit is reached the build stops and the first limit is
 /// reported once, like the renderer's other recoverable spec problems.
 final class RenderTreeBudget {
-    /// The deepest prop nesting the build measures before treating the value
-    /// as past the prop budget.
-    private static let maxPropDepth = 1_000
-
     private let limits: RenderTreeLimits
     private var work = 0
     private var renderedNodes = 0
-    private var resolvedPropBytes = 0
+    private var watchIDBytes = 0
 
     /// Whether the build has stopped because it reached a limit.
     private(set) var isExhausted = false
 
+    /// The budget every template expansion in the build draws from.
+    let resolutionBudget: ResolutionBudget
+
     init(limits: RenderTreeLimits) {
         self.limits = limits
+        self.resolutionBudget = ResolutionBudget(limit: limits.maxResolvedPropBytes)
     }
 
-    /// The prop bytes the build may still resolve.
-    ///
-    /// A template is limited to this, so one expansion cannot go past what the
-    /// whole build has left.
-    var remainingResolvedPropBytes: Int {
-        max(0, limits.maxResolvedPropBytes - resolvedPropBytes)
-    }
-
-    /// Counts one element's resolved props against the build's prop budget.
-    /// Returns false when the build must stop.
-    func chargeProps(_ props: [String: JSONValue]) -> Bool {
+    /// Stops the build when a template was cut short by the resolution budget.
+    func resolutionFits() -> Bool {
         guard !isExhausted else { return false }
-        guard let size = measureJSONValue(.object(props), maxDepth: Self.maxPropDepth) else {
+        guard resolutionBudget.isSpent else { return true }
+        return stop(
+            "Spec exceeds the resolved prop size limit of \(limits.maxResolvedPropBytes) bytes. The spec was not rendered."
+        )
+    }
+
+    /// Counts the watch ids an element would create, before they are built.
+    /// Returns false when the build must stop.
+    func chargeWatchIDs(_ bytes: Int) -> Bool {
+        guard !isExhausted else { return false }
+        watchIDBytes += bytes
+        guard watchIDBytes <= limits.maxWatchIDBytes else {
             return stop(
-                "Spec exceeds the resolved prop depth limit of \(Self.maxPropDepth). The spec was not rendered."
-            )
-        }
-        resolvedPropBytes += size.bytes
-        guard resolvedPropBytes <= limits.maxResolvedPropBytes else {
-            return stop(
-                "Spec exceeds the resolved prop size limit of \(limits.maxResolvedPropBytes) bytes. The spec was not rendered."
+                "Spec exceeds the watch id size limit of \(limits.maxWatchIDBytes) bytes. The spec was not rendered."
             )
         }
         return true

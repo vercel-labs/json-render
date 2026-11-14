@@ -236,6 +236,19 @@ extension JSONValue {
     }
 }
 
+/// Builds a JSON Pointer from unescaped segments, escaping each one.
+func encodePointer(_ segments: [String]) -> String {
+    var result = ""
+    result.reserveCapacity(segments.reduce(0) { $0 + $1.utf8.count + 1 })
+    for segment in segments {
+        result += "/"
+        result += segment
+            .replacingOccurrences(of: "~", with: "~0")
+            .replacingOccurrences(of: "/", with: "~1")
+    }
+    return result
+}
+
 /// Whether a path segment is a plain array index, which is what the path
 /// writer accepts.
 ///

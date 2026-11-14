@@ -72,16 +72,23 @@ public struct ValidateSpecLimits: Equatable, Sendable {
     public var maxDepth: Int
     /// The most element visits the walk makes.
     public var maxVisits: Int
-    /// The most distinct repeat contexts the walk tracks.
-    public var maxContexts: Int
+    /// The most bytes the repeat context keys may hold, counted as they are
+    /// built. The key holds the repeat base path, which grows by the `$item`
+    /// name at every layer, so a long name repeated down a deep tree would
+    /// otherwise allocate a large key per visit.
+    public var maxContextKeyBytes: Int
 
     /// The limits the validator uses when none are given.
     public static let `default` = ValidateSpecLimits()
 
-    public init(maxDepth: Int = 100, maxVisits: Int = 20_000, maxContexts: Int = 4_000) {
+    public init(
+        maxDepth: Int = 100,
+        maxVisits: Int = 20_000,
+        maxContextKeyBytes: Int = 8_000_000
+    ) {
         self.maxDepth = max(1, maxDepth)
         self.maxVisits = max(1, maxVisits)
-        self.maxContexts = max(1, maxContexts)
+        self.maxContextKeyBytes = max(1, maxContextKeyBytes)
     }
 }
 
@@ -102,7 +109,7 @@ public struct ValidateSpecOptions: Sendable {
 private final class ValidationBudget {
     let limits: ValidateSpecLimits
     private(set) var visits = 0
-    private(set) var contexts = 0
+    private(set) var contextKeyBytes = 0
     /// Whether the walk stopped because it reached a limit.
     private(set) var stopped = false
 
@@ -121,15 +128,15 @@ private final class ValidationBudget {
         return true
     }
 
-    /// Counts one new repeat context, and reports whether the walk may
-    /// continue.
-    func takeContext() -> Bool {
+    /// Counts the size of a context key before it is built, and reports
+    /// whether the walk may continue.
+    func takeContextKey(bytes: Int) -> Bool {
         guard !stopped else { return false }
-        guard contexts < limits.maxContexts else {
+        contextKeyBytes += bytes
+        guard contextKeyBytes <= limits.maxContextKeyBytes else {
             stopped = true
             return false
         }
-        contexts += 1
         return true
     }
 }
@@ -277,9 +284,12 @@ public func validateSpecJSON(
         guard !ancestors.contains(key), let element = elementsJSON[key]?.objectValue else { return }
         validatedKeys.insert(key)
 
+        // Charge the key before building it: it copies the whole repeat base
+        // path, which grows at every layer.
+        let keyBytes = key.utf8.count + (repeatBasePath?.utf8.count ?? 0) + 2
+        guard budget.takeContextKey(bytes: keyBytes) else { return }
         let contextKey = "\(key)\u{0}\(repeatBasePath ?? "")\u{0}\(sampleAvailable)"
         guard !validatedContexts.contains(contextKey) else { return }
-        guard budget.takeContext() else { return }
         validatedContexts.insert(contextKey)
 
         var childBasePath = repeatBasePath
@@ -385,12 +395,12 @@ public func validateSpecJSON(
 
     if budget.stopped {
         JSONRenderLog.warn(
-            "Spec validation stopped at its depth or visit limit; part of the spec was not validated."
+            "Spec validation stopped at a limit; part of the spec was not validated."
         )
         issues.append(
             SpecIssue(
                 severity: .error,
-                message: "Spec is too large to validate: the walk stopped at its depth, visit, or repeat-context limit.",
+                message: "Spec is too large to validate: the walk stopped at its depth, visit, or context size limit.",
                 code: .specTooComplex
             )
         )

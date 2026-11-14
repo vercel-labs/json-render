@@ -176,6 +176,82 @@ final class ValidationTests: XCTestCase {
         )
     }
 
+    func testManyElementsWithoutRepeatsAreValid() {
+        // Every element records one context, which is not a reason to reject
+        // a spec the renderer can build.
+        let childCount = 4_001
+        var elements: [String: JSONValue] = [
+            "root": .object([
+                "type": .string("Column"),
+                "props": .object([:]),
+                "children": .array((0..<childCount).map { .string("t\($0)") }),
+            ]),
+        ]
+        for index in 0..<childCount {
+            elements["t\(index)"] = .object([
+                "type": .string("Text"),
+                "props": .object([:]),
+            ])
+        }
+        let json = JSONValue.object([
+            "root": .string("root"),
+            "elements": .object(elements),
+        ])
+
+        let result = validateSpecJSON(json)
+
+        XCTAssertTrue(result.valid)
+        XCTAssertFalse(result.issues.contains { $0.code == .specTooComplex })
+    }
+
+    func testLongRepeatItemNamesStayWithinTheValidationBudget() {
+        // Each layer's repeat path is a long `$item` name, so every context
+        // key copies a base path that grows by that name per layer.
+        let name = String(repeating: "a", count: 4_000)
+        let layers = 20
+        var elements: [String: JSONValue] = [
+            "root": .object([
+                "type": .string("List"),
+                "props": .object([:]),
+                "repeat": .object(["statePath": .string("/items")]),
+                "children": .array([.string("l0a"), .string("l0b")]),
+            ]),
+        ]
+        for level in 0..<layers {
+            for side in ["a", "b"] {
+                let children: [JSONValue] = level + 1 < layers
+                    ? [.string("l\(level + 1)a"), .string("l\(level + 1)b")]
+                    : [.string("leaf")]
+                elements["l\(level)\(side)"] = .object([
+                    "type": .string("List"),
+                    "props": .object([:]),
+                    "repeat": .object([
+                        "statePath": .object(["$item": .string(name + side)]),
+                    ]),
+                    "children": .array(children),
+                ])
+            }
+        }
+        elements["leaf"] = .object(["type": .string("Text"), "props": .object([:])])
+        let json = JSONValue.object([
+            "root": .string("root"),
+            "elements": .object(elements),
+        ])
+
+        let before = peakResidentBytes()
+        let result = validateSpecJSON(json)
+        let after = peakResidentBytes()
+
+        XCTAssertTrue(result.issues.contains { $0.code == .specTooComplex })
+        #if os(Linux)
+        XCTAssertLessThan(
+            after - before,
+            64 * 1024 * 1024,
+            "Context keys stay within their byte budget"
+        )
+        #endif
+    }
+
     func testOrphanedElement() {
         let json = #"{"root":"a","elements":{"a":{"type":"Text","props":{}},"orphan":{"type":"Text","props":{}}}}"#
 

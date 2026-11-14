@@ -165,6 +165,18 @@ private func buildElement<Render>(
 
     let state = store.snapshot
 
+    // Charge the ids the watch collector would build before it builds them:
+    // each id copies the element key, repeat path, and watch path, and an
+    // element listed many times would otherwise hold that text once per visit.
+    if let watch = element.watch, !watch.isEmpty {
+        let scopeBytes = scope?.basePath.utf8.count ?? 0
+        var idBytes = 0
+        for path in watch.keys {
+            idBytes += key.utf8.count + scopeBytes + path.utf8.count + 2
+        }
+        guard budget.chargeWatchIDs(idBytes) else { return nil }
+    }
+
     // Collect the watch before the visibility check: the React renderer runs
     // the watch effect of a hidden element too.
     watches.collect(key: key, element: element, scope: scope, state: state)
@@ -184,12 +196,9 @@ private func buildElement<Render>(
         functions: registry.functions,
         directives: registry.directives
     )
-    // The templates of one element share what the build has left, so they
-    // cannot each expand to the whole remaining prop budget before the
-    // element's props are measured.
-    baseContext.expansionBudget = ResolutionBudget(
-        limit: budget.remainingResolvedPropBytes
-    )
+    // Every template in the build draws from the same budget, so repeated
+    // expansions cannot each take the whole prop limit.
+    baseContext.expansionBudget = budget.resolutionBudget
 
     guard evaluateVisibility(containerVisibility, baseContext.visibility) else {
         return nil
@@ -201,9 +210,9 @@ private func buildElement<Render>(
     }
 
     let props = resolveElementProps(element.props, baseContext)
-    // Props can hold values expanded from state, so count them against the
-    // build's shared budget before the element is kept.
-    guard budget.chargeProps(props) else { return nil }
+    // A template that the build's budget cut short means the props are
+    // incomplete, so the spec is not rendered.
+    guard budget.resolutionFits() else { return nil }
     let bindings = resolveBindings(element.props, baseContext)
 
     var nextAncestors = ancestors
@@ -448,7 +457,7 @@ private func makeEmit<Render>(
             }
             // Resolve against live state so a later action sees the writes from
             // an earlier one.
-            let liveContext = PropResolutionContext(
+            var liveContext = PropResolutionContext(
                 stateModel: store.snapshot,
                 repeatItem: scope?.item,
                 repeatIndex: scope?.index,
@@ -456,11 +465,21 @@ private func makeEmit<Render>(
                 functions: registry.functions,
                 directives: registry.directives
             )
+            // The params of one binding share one budget, so a press carrying
+            // thousands of templates cannot expand each of them in full.
+            let budget = ResolutionBudget(limit: dispatcher.maxStateWriteBytes)
+            liveContext.expansionBudget = budget
             var resolved: [String: JSONValue] = [:]
             for (key, value) in params {
                 if let value = resolveActionParam(value.jsonValue, liveContext) {
                     resolved[key] = value
                 }
+            }
+            guard !budget.isSpent else {
+                JSONRenderLog.warn(
+                    "Dropped action \"\(binding.action)\": its params expanded past the limit of \(dispatcher.maxStateWriteBytes) bytes."
+                )
+                continue
             }
             await dispatcher.dispatch(binding, resolvedParams: resolved)
         }
@@ -889,7 +908,7 @@ public final class WatchTracker: @unchecked Sendable {
     /// earlier one wrote, the way an event's bindings and React's watch effects
     /// do.
     private func dispatch(_ item: PendingRecord, _ binding: ActionBinding) async {
-        let context = PropResolutionContext(
+        var context = PropResolutionContext(
             stateModel: item.store.snapshot,
             repeatItem: item.record.scope?.item,
             repeatIndex: item.record.scope?.index,
@@ -897,11 +916,20 @@ public final class WatchTracker: @unchecked Sendable {
             functions: functions,
             directives: directives
         )
+        // The params of one binding share one budget, the same as an event's.
+        let budget = ResolutionBudget(limit: item.dispatcher.maxStateWriteBytes)
+        context.expansionBudget = budget
         var resolved: [String: JSONValue] = [:]
         for (key, value) in binding.params ?? [:] {
             if let value = resolveActionParam(value.jsonValue, context) {
                 resolved[key] = value
             }
+        }
+        guard !budget.isSpent else {
+            JSONRenderLog.warn(
+                "Dropped watch action \"\(binding.action)\": its params expanded past the limit of \(item.dispatcher.maxStateWriteBytes) bytes."
+            )
+            return
         }
         await item.dispatcher.dispatch(
             binding,

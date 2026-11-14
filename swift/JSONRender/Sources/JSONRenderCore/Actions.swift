@@ -289,10 +289,8 @@ public final class ActionDispatcher: @unchecked Sendable {
         let context = ActionExecutionContext(
             action: resolved,
             handler: handler,
-            setState: { [weak self, store] path, value in
-                guard let self else { return }
-                guard self.stateWriteFits(value, path: path) else { return }
-                store.set(path, value)
+            setState: { [weak self] path, value in
+                self?.writeState(path, value)
             },
             navigate: navigate.map { navigate in
                 { [deliver = self.deliverToHost] path in
@@ -343,14 +341,33 @@ public final class ActionDispatcher: @unchecked Sendable {
         )
     }
 
+    /// Writes a value, checking the value the write leaves in the container it
+    /// lands in.
+    ///
+    /// A write to `/list/-` adds to an array, so the list it leaves is what is
+    /// measured; a write to a member is measured as the value itself.
+    private func writeState(_ path: String, _ value: JSONValue) {
+        guard stateValueFits(value) else {
+            warnStateWriteDropped(path)
+            return
+        }
+        var rejected = false
+        store.setIfFits(path, value) { checked in
+            guard stateValueFits(checked) else {
+                rejected = true
+                return false
+            }
+            return true
+        }
+        if rejected { warnStateWriteDropped(path) }
+    }
+
     /// Returns true when the action was one of the built-ins.
     private func runBuiltIn(_ resolved: ResolvedAction) -> Bool {
         switch resolved.action {
         case "setState":
             guard let statePath = resolved.params["statePath"]?.stringValue else { return true }
-            let value = resolved.params["value"] ?? .null
-            guard stateWriteFits(value, path: statePath) else { return true }
-            store.set(statePath, value)
+            writeState(statePath, resolved.params["value"] ?? .null)
             return true
 
         case "pushState":
@@ -366,7 +383,7 @@ public final class ActionDispatcher: @unchecked Sendable {
             // The append is one step with the read, so a concurrent push from
             // another watch cannot overwrite it with a list built from the
             // value before this one.
-            store.modify(statePath) { current in
+            let appended = store.modify(statePath) { current in
                 var array = current?.arrayValue ?? []
                 array.append(value)
                 let next = JSONValue.array(array)
@@ -379,7 +396,9 @@ public final class ActionDispatcher: @unchecked Sendable {
                 return next
             }
             if dropped { warnStateWriteDropped(statePath) }
-            if let clearPath = resolved.params["clearStatePath"]?.stringValue {
+            // The input is only cleared when the append happened: clearing it
+            // after a dropped push would lose what the user typed.
+            if appended, let clearPath = resolved.params["clearStatePath"]?.stringValue {
                 store.set(clearPath, .string(""))
             }
             return true

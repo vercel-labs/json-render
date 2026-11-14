@@ -428,6 +428,80 @@ final class ActionTests: XCTestCase {
         XCTAssertEqual(losses, 0, "Every push reaches the list")
     }
 
+    func testDroppedPushKeepsTheInput() async throws {
+        // When the append is dropped, clearing the input would lose what the
+        // user typed.
+        let recorder = WarningRecorder()
+        let (dispatcher, store) = makeDispatcher(state: [
+            "draft": .string("unsaved"),
+            "list": .array([]),
+        ])
+        dispatcher.maxStateWriteBytes = 2_000
+        store.set(
+            "/list",
+            .array((0..<3).map { _ in .string(String(repeating: "x", count: 900)) })
+        )
+
+        await dispatcher.dispatch(
+            ActionBinding(
+                action: "pushState",
+                params: [
+                    "statePath": .value(.string("/list")),
+                    "value": .value(.string("new")),
+                    "clearStatePath": .value(.string("/draft")),
+                ]
+            )
+        )
+
+        XCTAssertEqual(store.get("/list")?.arrayValue?.count, 3, "The append is dropped")
+        XCTAssertEqual(store.get("/draft"), .string("unsaved"), "The input is kept")
+        XCTAssertTrue(recorder.messages.contains { $0.contains("state write limits") })
+    }
+
+    func testSetStateAppendStaysWithinTheStateWriteLimit() async throws {
+        // `setState /list/-` appends, so the list it leaves is what the limit
+        // has to cover, not just the value being written.
+        let (dispatcher, store) = makeDispatcher(state: ["list": .array([])])
+        let chunk = String(repeating: "x", count: 100_000)
+
+        for _ in 0..<60 {
+            await dispatcher.dispatch(
+                ActionBinding(
+                    action: "setState",
+                    params: [
+                        "statePath": .value(.string("/list/-")),
+                        "value": .value(.string(chunk)),
+                    ]
+                )
+            )
+        }
+
+        let list = try XCTUnwrap(store.get("/list")?.arrayValue)
+        let bytes = measureJSONValue(.array(list), maxDepth: 100)?.bytes ?? .max
+        XCTAssertLessThanOrEqual(bytes, 4_000_000, "The list stops growing at the limit")
+        XCTAssertLessThan(list.count, 60, "Some appends were dropped")
+    }
+
+    func testOnSuccessSetAppendStaysWithinTheStateWriteLimit() async throws {
+        // The handler's setState closure takes the same check.
+        let (dispatcher, store) = makeDispatcher(handlers: ["noop": { _ in }])
+        let chunk = String(repeating: "x", count: 100_000)
+
+        for _ in 0..<60 {
+            await dispatcher.dispatch(
+                ActionBinding(
+                    action: "noop",
+                    onSuccess: .set(["/list/-": .string(chunk)])
+                )
+            )
+        }
+
+        let list = try XCTUnwrap(store.get("/list")?.arrayValue)
+        let bytes = measureJSONValue(.array(list), maxDepth: 100)?.bytes ?? .max
+        XCTAssertLessThanOrEqual(bytes, 4_000_000)
+        XCTAssertLessThan(list.count, 60)
+    }
+
     func testResolveActionInterpolatesConfirmation() {
         let resolved = resolveAction(
             ActionBinding(

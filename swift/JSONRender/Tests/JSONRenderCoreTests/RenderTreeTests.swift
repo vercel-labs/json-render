@@ -561,6 +561,206 @@ final class RenderTreeTests: XCTestCase {
         XCTAssertEqual(calls.value, 0, "A remounted watch does not fire for a value it missed")
     }
 
+    func testPressParamsShareOneTemplateBudget() async throws {
+        // A press carrying many template params would otherwise expand each of
+        // them to its own limit before any state write check runs.
+        let source = String(repeating: "x", count: 1_024 * 1_024)
+        var params: [String: JSONValue] = [
+            "statePath": .string("/out"),
+            "value": .object(["$template": .string("${/source}")]),
+        ]
+        for index in 0..<100 {
+            params["p\(index)"] = .object(["$template": .string("${/source}")])
+        }
+        let elements: [String: JSONValue] = [
+            "b": .object([
+                "type": .string("Button"),
+                "props": .object([:]),
+                "on": .object([
+                    "press": .object([
+                        "action": .string("setState"),
+                        "params": .object(params),
+                    ]),
+                ]),
+            ]),
+        ]
+        let spec = Spec.decodePartial(
+            JSONValue.object([
+                "root": .string("b"),
+                "elements": .object(elements),
+                "state": .object(["source": .string(source)]),
+            ])
+        )
+        let store = StateStore(spec: spec)
+        let dispatcher = ActionDispatcher(store: store)
+        var captured: ComponentRenderContext<String>?
+        var registry = Fixtures.recordingRegistry()
+        registry.components["Button"] = ComponentDefinition { context in
+            captured = context
+            return "Button"
+        }
+        _ = buildRenderTree(
+            spec: spec,
+            registry: registry,
+            store: store,
+            dispatcher: dispatcher
+        )
+        let context = try XCTUnwrap(captured)
+
+        let before = residentMemoryBytes()
+        await context.emit("press")
+        let after = residentMemoryBytes()
+
+        let wrote = store.get("/out") != nil
+        XCTAssertFalse(wrote, "The action is dropped instead of using partial params")
+        #if os(Linux)
+        XCTAssertLessThan(
+            after - before,
+            32 * 1024 * 1024,
+            "The params share one budget"
+        )
+        #endif
+    }
+
+    func testWatchParamsShareOneTemplateBudget() async throws {
+        let source = String(repeating: "x", count: 1_024 * 1_024)
+        var params: [String: JSONValue] = [:]
+        for index in 0..<100 {
+            params["p\(index)"] = .object(["$template": .string("${/source}")])
+        }
+        let elements: [String: JSONValue] = [
+            "t": .object([
+                "type": .string("Text"),
+                "props": .object([:]),
+                "watch": .object([
+                    "/trigger": .object([
+                        "action": .string("capture"),
+                        "params": .object(params),
+                    ]),
+                ]),
+            ]),
+        ]
+        let spec = Spec.decodePartial(
+            JSONValue.object([
+                "root": .string("t"),
+                "elements": .object(elements),
+                "state": .object(["trigger": .number(0), "source": .string(source)]),
+            ])
+        )
+        let store = StateStore(spec: spec)
+        let calls = Box<Int>(0)
+        let dispatcher = ActionDispatcher(store: store)
+        dispatcher.register("capture") { _ in calls.value += 1 }
+
+        func records() -> [WatchRecord] {
+            buildRenderTreeWithWatches(
+                spec: spec,
+                registry: Fixtures.recordingRegistry(),
+                store: store,
+                dispatcher: dispatcher
+            ).watches
+        }
+
+        let tracker = WatchTracker()
+        tracker.snapshot(records())
+        store.set("/trigger", .number(1))
+
+        let before = residentMemoryBytes()
+        await tracker.process(records(), dispatcher: dispatcher, store: store)
+        let after = residentMemoryBytes()
+
+        XCTAssertEqual(calls.value, 0, "The action is dropped instead of using partial params")
+        #if os(Linux)
+        XCTAssertLessThan(after - before, 32 * 1024 * 1024)
+        #endif
+    }
+
+    func testLongWatchIDsStayWithinTheBuildBudget() throws {
+        // A watch id copies the watch path. A hidden element with a long path
+        // listed many times as a child would hold that text once per visit.
+        let watchPath = "/" + String(repeating: "w", count: 100_000)
+        var elements: [String: JSONValue] = [
+            "root": .object([
+                "type": .string("Column"),
+                "props": .object([:]),
+                "children": .array((0..<500).map { _ in .string("hidden") }),
+            ]),
+            "hidden": .object([
+                "type": .string("Text"),
+                "props": .object([:]),
+                "visible": .bool(false),
+                "watch": .object([
+                    watchPath: .object(["action": .string("record")]),
+                ]),
+            ]),
+        ]
+        let spec = Spec.decodePartial(
+            JSONValue.object([
+                "root": .string("root"),
+                "elements": .object(elements),
+            ])
+        )
+        let state = StateStore(spec: spec)
+        let recorder = WarningRecorder()
+
+        let before = residentMemoryBytes()
+        let build = buildRenderTreeWithWatches(
+            spec: spec,
+            registry: Fixtures.recordingRegistry(),
+            store: state
+        )
+        let after = residentMemoryBytes()
+
+        let rendered = build.tree != nil
+        XCTAssertFalse(rendered, "The build stops when its watch id budget is spent")
+        XCTAssertTrue(
+            recorder.messages.contains { $0.contains("watch id size limit") },
+            "Stopping at the watch id budget warns"
+        )
+        #if os(Linux)
+        XCTAssertLessThan(after - before, 32 * 1024 * 1024)
+        #endif
+    }
+
+    func testSharedStateValuesDoNotCountAgainstThePropBudget() throws {
+        // A `$state` prop shares the state value instead of copying it, so
+        // binding the same large value into several elements allocates
+        // nothing and must not count against the template budget.
+        let data = JSONValue.string(String(repeating: "x", count: 1_000_000))
+        var elements: [String: JSONValue] = [
+            "root": .object([
+                "type": .string("Column"),
+                "props": .object([:]),
+                "children": .array((0..<40).map { .string("c\($0)") }),
+            ]),
+        ]
+        for index in 0..<40 {
+            elements["c\(index)"] = .object([
+                "type": .string("Text"),
+                "props": .object([
+                    "data": .object(["$state": .string("/data")]),
+                ]),
+            ])
+        }
+        let spec = Spec.decodePartial(
+            JSONValue.object([
+                "root": .string("root"),
+                "elements": .object(elements),
+                "state": .object(["data": data]),
+            ])
+        )
+        let state = StateStore(spec: spec)
+
+        let tree = buildRenderTree(
+            spec: spec,
+            registry: Fixtures.recordingRegistry(),
+            store: state
+        )
+
+        let rendered = tree != nil
+        XCTAssertTrue(rendered, "A shared state prop does not spend the prop budget")
+    }
+
     func testWatchOnHiddenElementFires() async throws {
         var registry = Fixtures.recordingRegistry()
         registry.components["Column"] = ComponentDefinition { _ in "Column" }

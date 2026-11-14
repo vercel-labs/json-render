@@ -67,18 +67,65 @@ public final class StateStore: @unchecked Sendable {
     /// nothing, and returns the value to store; nil leaves the state as it is.
     /// It runs while the store is locked, so it must not call back into the
     /// store.
-    func modify(_ path: String, _ transform: (JSONValue?) -> JSONValue?) {
+    @discardableResult
+    func modify(_ path: String, _ transform: (JSONValue?) -> JSONValue?) -> Bool {
         lock.lock()
         let previous = getByPath(state, path)
         guard let next = transform(previous), !strictEquals(previous, next) else {
             lock.unlock()
-            return
+            return false
         }
         state = setByPath(state, path, next)
         changeCount &+= 1
         let callbacks = Array(listeners.values)
         lock.unlock()
         for callback in callbacks { callback() }
+        return true
+    }
+
+    /// Writes `value` at `path` when `fits` accepts the value the write leaves
+    /// in the container it lands in.
+    ///
+    /// `fits` receives the resulting array when the write adds a member to an
+    /// array, such as a write to `/list/-`, and the written value otherwise.
+    /// The read, check, and write happen under one lock, so a concurrent
+    /// writer cannot change what was checked. `fits` runs while the store is
+    /// locked, so it must not call back into the store. Returns false when the
+    /// state is left as it was, either because the write changes nothing or
+    /// because `fits` rejected it.
+    @discardableResult
+    func setIfFits(_ path: String, _ value: JSONValue, _ fits: (JSONValue) -> Bool) -> Bool {
+        lock.lock()
+        let previous = getByPath(state, path)
+        guard !strictEquals(previous, value) else {
+            lock.unlock()
+            return false
+        }
+        let segments = JSONPointer.parse(path)
+        let parentPath = encodePointer(Array(segments.dropLast()))
+        let previousParent = getByPath(state, parentPath)
+        let next = setByPath(state, path, value)
+        let nextParent = getByPath(next, parentPath)
+        let checked: JSONValue
+        if case .array(let before) = previousParent,
+           case .array(let after) = nextParent,
+           after.count > before.count {
+            // The write added to an array, so the list it leaves is what can
+            // grow past a limit.
+            checked = nextParent ?? .null
+        } else {
+            checked = value
+        }
+        guard fits(checked) else {
+            lock.unlock()
+            return false
+        }
+        state = next
+        changeCount &+= 1
+        let callbacks = Array(listeners.values)
+        lock.unlock()
+        for callback in callbacks { callback() }
+        return true
     }
 
     /// Writes several paths and notifies listeners once if any value changed.

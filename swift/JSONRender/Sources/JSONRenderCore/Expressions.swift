@@ -22,6 +22,8 @@ public let defaultTemplateOutputLimit = 1_000_000
 final class ResolutionBudget: @unchecked Sendable {
     private let limit: Int
     private var used = 0
+    /// Whether an expansion was cut short because the budget ran out.
+    private(set) var isSpent = false
 
     init(limit: Int) {
         self.limit = max(0, limit)
@@ -32,9 +34,12 @@ final class ResolutionBudget: @unchecked Sendable {
         max(0, limit - used)
     }
 
-    /// Counts what one expansion produced.
-    func charge(bytes: Int) {
+    /// Counts what one expansion produced. `truncated` reports that the
+    /// expansion was cut short by this budget, so the caller can stop instead
+    /// of using or rendering partial data.
+    func charge(bytes: Int, truncated: Bool) {
         used += max(0, bytes)
+        if truncated { isSpent = true }
     }
 }
 
@@ -221,15 +226,28 @@ private func interpolateTemplate(_ template: String, _ context: PropResolutionCo
     // A template cannot take more than the shared budget has left, and what it
     // produces is charged before the next one starts.
     let remaining = budget.remaining
-    guard remaining > 0 else { return "" }
-    let result = interpolatePaths(
-        template,
-        limit: min(context.templateOutputLimit, remaining)
-    ) { path in
+    guard remaining > 0 else {
+        budget.charge(bytes: 0, truncated: true)
+        return ""
+    }
+    let cap = min(context.templateOutputLimit, remaining)
+    let result = interpolatePathsReporting(template, limit: cap) { path in
         templateValue(path, context)
     }
-    budget.charge(bytes: result.utf8.count)
-    return result
+    // A cut caused by the shared budget is reported once by the caller that
+    // owns the budget; a template that hits its own limit keeps its warning.
+    let cutByBudget = result.truncated && cap < context.templateOutputLimit
+    budget.charge(bytes: result.text.utf8.count, truncated: cutByBudget)
+    if result.truncated && !cutByBudget {
+        warnTemplateTruncated(limit: context.templateOutputLimit)
+    }
+    return result.text
+}
+
+private func warnTemplateTruncated(limit: Int) {
+    JSONRenderLog.warn(
+        "Template output stopped at the \(limit)-scalar limit. The rest of the template was dropped."
+    )
 }
 
 /// Replaces each `${path}` in a string with `value(path)`.
@@ -249,6 +267,28 @@ func interpolatePaths(
     limit: Int = defaultTemplateOutputLimit,
     value: (String) -> String
 ) -> String {
+    let result = interpolatePathsReporting(template, limit: limit, value: value)
+    if result.truncated {
+        warnTemplateTruncated(limit: limit)
+    }
+    return result.text
+}
+
+/// One expanded template, with whether the limit cut it short.
+struct ExpandedTemplate {
+    var text: String
+    var truncated: Bool
+}
+
+/// Replaces each `${path}` in a string with `value(path)`, without warning.
+///
+/// Callers that own a shared budget use the truncation flag to stop instead of
+/// using or rendering partial output.
+func interpolatePathsReporting(
+    _ template: String,
+    limit: Int,
+    value: (String) -> String
+) -> ExpandedTemplate {
     var result = ""
     var length = 0
     var truncated = false
@@ -294,12 +334,7 @@ func interpolatePaths(
     }
     append(remainder)
 
-    if truncated {
-        JSONRenderLog.warn(
-            "Template output stopped at the \(limit)-scalar limit. The rest of the template was dropped."
-        )
-    }
-    return result
+    return ExpandedTemplate(text: result, truncated: truncated)
 }
 
 private func templateValue(_ rawPath: String, _ context: PropResolutionContext) -> String {

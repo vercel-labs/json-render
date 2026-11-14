@@ -38,10 +38,10 @@ public func stateAfterSpecChange(
     // an object has its old leaf removed while its new children are written, so
     // removing the old parent after writing its children would discard them.
     for segments in removals {
-        result = removeByPath(result, pointer(segments))
+        result = removeByPath(result, encodePointer(segments))
     }
     for write in writes {
-        result = setByPath(result, pointer(write.segments), write.value)
+        result = setByPath(result, encodePointer(write.segments), write.value)
     }
     return result
 }
@@ -181,17 +181,4 @@ private func collectWrites(
         }
         path.removeLast()
     }
-}
-
-/// Builds a JSON Pointer from path segments, escaping each one per RFC 6901.
-private func pointer(_ segments: [String]) -> String {
-    var result = ""
-    result.reserveCapacity(segments.reduce(0) { $0 + $1.utf8.count + 1 })
-    for segment in segments {
-        result += "/"
-        result += segment
-            .replacingOccurrences(of: "~", with: "~0")
-            .replacingOccurrences(of: "/", with: "~1")
-    }
-    return result
 }

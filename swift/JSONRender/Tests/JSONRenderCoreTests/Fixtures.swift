@@ -97,3 +97,17 @@ func residentMemoryBytes() -> Int {
     return 0
     #endif
 }
+
+/// The process's peak resident memory in bytes, for tests that need to see a
+/// spike that is freed before the call returns. Returns 0 where the platform
+/// has no cheap reading.
+func peakResidentBytes() -> Int {
+    #if os(Linux)
+    var usage = rusage()
+    guard getrusage(Int32(RUSAGE_SELF.rawValue), &usage) == 0 else { return 0 }
+    // ru_maxrss is kilobytes on Linux.
+    return Int(usage.ru_maxrss) * 1_024
+    #else
+    return 0
+    #endif
+}
