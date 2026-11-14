@@ -173,6 +173,52 @@ final class ExpressionTests: XCTestCase {
         )
     }
 
+    func testResolvedContainersCountAgainstTheBudget() {
+        // Resolving a literal array or object builds a new container on every
+        // visit, so its members draw from the same budget as template output.
+        var arrays = context()
+        let arrayBudget = ResolutionBudget(limit: ResolutionBudget.arrayEntryBytes * 10)
+        arrays.expansionBudget = arrayBudget
+
+        let ten = JSONValue.array((0..<10).map { .number(Double($0)) })
+        XCTAssertEqual(resolvePropValue(ten, arrays), ten, "The first container fits")
+        XCTAssertNil(
+            resolvePropValue(.array([.null]), arrays),
+            "A container past the budget is not built"
+        )
+        XCTAssertTrue(arrayBudget.isSpent)
+
+        var objects = context()
+        let objectBudget = ResolutionBudget(limit: ResolutionBudget.objectEntryBytes * 2)
+        objects.expansionBudget = objectBudget
+        XCTAssertEqual(
+            resolvePropValue(.object(["a": .number(1), "b": .number(2)]), objects),
+            .object(["a": .number(1), "b": .number(2)])
+        )
+        XCTAssertNil(
+            resolvePropValue(.object(["c": .number(3)]), objects),
+            "Object members draw from the same budget"
+        )
+    }
+
+    func testSharedStateValuesDoNotCountAgainstTheBudget() {
+        // `$state` returns the state value itself, so binding a large value
+        // into props allocates and counts nothing, however many elements read
+        // it.
+        let big = JSONValue.array((0..<10_000).map { .number(Double($0)) })
+        var lookups = PropResolutionContext(stateModel: .object(["big": big]))
+        let budget = ResolutionBudget(limit: ResolutionBudget.arrayEntryBytes)
+        lookups.expansionBudget = budget
+
+        for _ in 0..<100 {
+            XCTAssertEqual(
+                resolvePropValue(.object(["$state": .string("/big")]), lookups),
+                big
+            )
+        }
+        XCTAssertFalse(budget.isSpent, "Shared values are not measured")
+    }
+
     func testComputedExpression() {
         let functions: [String: ComputedFunction] = [
             "concat": { args in

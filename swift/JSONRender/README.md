@@ -96,6 +96,8 @@ A spec's `elements` map can reference the same element from several parents, so 
 | `maxDepth` | 100 | Nesting levels, with the root at depth 1 |
 | `maxRenderedNodes` | 10000 | Rendered elements, including the root |
 | `maxWork` | 50000 | Elements visited, including missing, hidden, and unknown ones |
+| `maxResolvedPropBytes` | 32000000 | Resolved prop bytes: template output and the members of arrays and objects resolved for each element |
+| `maxWatchIDBytes` | 4000000 | Watch ids, which copy the element key, repeat path, and watch path |
 
 A build that reaches a limit logs one warning and renders nothing, like other structural spec problems that leave nothing to render. Pass `RenderTreeLimits` to `JSONRenderView` or `buildRenderTree` to raise the limits for a spec that legitimately renders more nodes.
 

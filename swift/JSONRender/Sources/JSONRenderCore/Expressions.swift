@@ -13,16 +13,32 @@ public typealias ComputedFunction = @Sendable ([String: JSONValue]) -> JSONValue
 /// be megabytes.
 public let defaultTemplateOutputLimit = 1_000_000
 
-/// Bounds the bytes a group of template expansions may produce.
+/// Bounds the bytes the resolved props of one build may hold.
 ///
 /// The renderer gives one of these to an element's prop resolution, so the
-/// templates of that element cannot each expand to the whole remaining prop
-/// budget. Access is not synchronized: a budget belongs to one synchronous
-/// resolution pass.
+/// templates and containers of that element cannot each take the whole
+/// remaining prop budget. Access is not synchronized: a budget belongs to one
+/// synchronous resolution pass.
 final class ResolutionBudget: @unchecked Sendable {
+    /// The bytes one member of a newly built array is counted as.
+    ///
+    /// Resolution builds a new array or object for every element that repeats
+    /// a literal prop, and every member occupies one `JSONValue` slot in that
+    /// container. Strings and nested values are shared rather than copied, so
+    /// the slot is what the build allocates per member, and its stride
+    /// measures that space.
+    static let arrayEntryBytes = MemoryLayout<JSONValue>.stride
+
+    /// The bytes one member of a newly built object is counted as.
+    ///
+    /// A dictionary entry holds the key, its hash, and the value, so it takes
+    /// more room than an array slot. Two slots leave room for that overhead
+    /// without counting the key's characters, which are shared with the spec.
+    static let objectEntryBytes = MemoryLayout<JSONValue>.stride * 2
+
     private let limit: Int
     private var used = 0
-    /// Whether an expansion was cut short because the budget ran out.
+    /// Whether the budget stopped an expansion or a container.
     private(set) var isSpent = false
 
     init(limit: Int) {
@@ -40,6 +56,32 @@ final class ResolutionBudget: @unchecked Sendable {
     func charge(bytes: Int, truncated: Bool) {
         used += max(0, bytes)
         if truncated { isSpent = true }
+    }
+
+    /// Counts the members of an array the resolver is about to build.
+    ///
+    /// Returns false when the container does not fit in what the budget has
+    /// left. The caller must then not build it: the props would be incomplete,
+    /// and the build stops rather than rendering them.
+    func claimArray(_ count: Int) -> Bool {
+        claim(entries: count, bytesPerEntry: Self.arrayEntryBytes)
+    }
+
+    /// Counts the members of an object the resolver is about to build.
+    func claimObject(_ count: Int) -> Bool {
+        claim(entries: count, bytesPerEntry: Self.objectEntryBytes)
+    }
+
+    private func claim(entries: Int, bytesPerEntry: Int) -> Bool {
+        guard !isSpent else { return false }
+        guard entries > 0 else { return true }
+        let (bytes, overflow) = entries.multipliedReportingOverflow(by: bytesPerEntry)
+        guard !overflow, bytes <= remaining else {
+            isSpent = true
+            return false
+        }
+        used += bytes
+        return true
     }
 }
 
@@ -116,6 +158,17 @@ public struct PropResolutionContext: Sendable {
     public var repeatItem: JSONValue? { visibility.repeatItem }
     /// The current repeat index.
     public var repeatIndex: Int? { visibility.repeatIndex }
+
+    /// Claims the members of an array this resolution is about to build.
+    /// Without a budget, every container is allowed.
+    func claimArrayEntries(_ count: Int) -> Bool {
+        expansionBudget?.claimArray(count) ?? true
+    }
+
+    /// Claims the members of an object this resolution is about to build.
+    func claimObjectEntries(_ count: Int) -> Bool {
+        expansionBudget?.claimObject(count) ?? true
+    }
 }
 
 /// Built-in prop expression keys. Directives cannot shadow these.
@@ -135,6 +188,10 @@ public func resolvePropValue(_ value: JSONValue, _ context: PropResolutionContex
     case .string, .number, .bool:
         return value
     case .array(let values):
+        // Resolution builds a new array on every visit, so a spec that lists
+        // one element thousands of times copies its literal arrays once per
+        // visit. Claim the members before they are allocated.
+        guard context.claimArrayEntries(values.count) else { return nil }
         return .array(values.map { resolvePropValue($0, context) ?? .null })
     case .object(let object):
         return resolveObjectExpression(object, context)
@@ -176,6 +233,7 @@ private func resolveObjectExpression(
         }
         var resolvedArguments: [String: JSONValue] = [:]
         if let arguments = object["args"]?.objectValue {
+            guard context.claimObjectEntries(arguments.count) else { return nil }
             for (key, argument) in arguments {
                 resolvedArguments[key] = resolvePropValue(argument, context) ?? .null
             }
@@ -190,6 +248,9 @@ private func resolveObjectExpression(
         return directive.resolve(.object(object), context)
     }
 
+    // A plain object is rebuilt with its resolved members, so claim its
+    // entries before the new dictionary is allocated.
+    guard context.claimObjectEntries(object.count) else { return nil }
     var resolved: [String: JSONValue] = [:]
     for (key, value) in object {
         if let value = resolvePropValue(value, context) {
@@ -354,6 +415,9 @@ public func resolveElementProps(
     _ props: [String: JSONValue],
     _ context: PropResolutionContext
 ) -> [String: JSONValue] {
+    // The resolved props are a container of their own, built again for every
+    // element that repeats them.
+    guard context.claimObjectEntries(props.count) else { return [:] }
     var resolved: [String: JSONValue] = [:]
     for (key, value) in props {
         if let value = resolvePropValue(value, context) {

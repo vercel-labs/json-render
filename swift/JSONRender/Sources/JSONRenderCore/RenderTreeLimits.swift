@@ -21,14 +21,18 @@ public struct RenderTreeLimits: Equatable, Sendable {
     /// because they are missing, hidden, or have no renderer.
     public var maxWork: Int
 
-    /// The most bytes the templates of one build may expand to.
+    /// The most bytes the resolved props of one build may hold.
     ///
     /// A template is bounded on its own, but a spec can repeat many of them:
     /// thousands of elements that each expand a state value into a large prop
-    /// stay under the node limits and still take gigabytes. Every expansion in
-    /// the build draws from this budget and stops at it. Only template output
-    /// counts: a `$state` or `$item` value is shared with the state it comes
-    /// from, not copied, so binding a large value into props costs nothing.
+    /// stay under the node limits and still take gigabytes. Resolving props
+    /// also builds new arrays and objects, so an element listed thousands of
+    /// times copies its literal props once per visit. Every template expansion
+    /// and every member of a newly built container draws from the same budget,
+    /// and the build stops before a container that would exceed it is built.
+    /// Values returned directly by `$state` or `$item` are shared with the
+    /// state they come from, not copied, so binding a large value into props
+    /// costs nothing.
     public var maxResolvedPropBytes: Int
 
     /// The most bytes the watch ids of one build may hold.
@@ -79,7 +83,7 @@ final class RenderTreeBudget {
     /// Whether the build has stopped because it reached a limit.
     private(set) var isExhausted = false
 
-    /// The budget every template expansion in the build draws from.
+    /// The budget every prop resolution in the build draws from.
     let resolutionBudget: ResolutionBudget
 
     init(limits: RenderTreeLimits) {
@@ -87,7 +91,8 @@ final class RenderTreeBudget {
         self.resolutionBudget = ResolutionBudget(limit: limits.maxResolvedPropBytes)
     }
 
-    /// Stops the build when a template was cut short by the resolution budget.
+    /// Stops the build when the resolution budget ran out, either because an
+    /// expansion was cut short or because a container did not fit.
     func resolutionFits() -> Bool {
         guard !isExhausted else { return false }
         guard resolutionBudget.isSpent else { return true }

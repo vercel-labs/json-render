@@ -196,8 +196,8 @@ private func buildElement<Render>(
         functions: registry.functions,
         directives: registry.directives
     )
-    // Every template in the build draws from the same budget, so repeated
-    // expansions cannot each take the whole prop limit.
+    // Every template and container in the build draws from the same budget,
+    // so repeated props cannot each take the whole limit.
     baseContext.expansionBudget = budget.resolutionBudget
 
     guard evaluateVisibility(containerVisibility, baseContext.visibility) else {
@@ -210,8 +210,8 @@ private func buildElement<Render>(
     }
 
     let props = resolveElementProps(element.props, baseContext)
-    // A template that the build's budget cut short means the props are
-    // incomplete, so the spec is not rendered.
+    // A template the build's budget cut short, or a container it refused to
+    // build, means the props are incomplete, so the spec is not rendered.
     guard budget.resolutionFits() else { return nil }
     let bindings = resolveBindings(element.props, baseContext)
 
@@ -477,7 +477,7 @@ private func makeEmit<Render>(
             }
             guard !budget.isSpent else {
                 JSONRenderLog.warn(
-                    "Dropped action \"\(binding.action)\": its params expanded past the limit of \(dispatcher.maxStateWriteBytes) bytes."
+                    "Dropped action \"\(binding.action)\": its params resolved past the limit of \(dispatcher.maxStateWriteBytes) bytes."
                 )
                 continue
             }
@@ -947,7 +947,7 @@ public final class WatchTracker: @unchecked Sendable {
         }
         guard !budget.isSpent else {
             JSONRenderLog.warn(
-                "Dropped watch action \"\(binding.action)\": its params expanded past the limit of \(item.dispatcher.maxStateWriteBytes) bytes."
+                "Dropped watch action \"\(binding.action)\": its params resolved past the limit of \(item.dispatcher.maxStateWriteBytes) bytes."
             )
             return
         }

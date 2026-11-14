@@ -523,6 +523,83 @@ final class RenderTreeTests: XCTestCase {
         #endif
     }
 
+    func testRepeatedLiteralPropsStayWithinTheBuildBudget() throws {
+        // Resolving props builds new containers, so an element with a large
+        // literal array costs that array once per visit. Listing the same
+        // element thousands of times stays under the depth, node, and work
+        // limits, but without a budget on those containers it would hold the
+        // array once per visit.
+        let data = JSONValue.array((0..<5_000).map { .number(Double($0)) })
+        let spec = Spec.decodePartial(
+            JSONValue.object([
+                "root": .string("root"),
+                "elements": .object([
+                    "root": .object([
+                        "type": .string("Column"),
+                        "props": .object([:]),
+                        "children": .array((0..<500).map { _ in .string("row") }),
+                    ]),
+                    "row": .object([
+                        "type": .string("Text"),
+                        "props": .object(["data": data]),
+                    ]),
+                ]),
+            ])
+        )
+        let state = StateStore(spec: spec)
+        let recorder = WarningRecorder()
+        let limits = RenderTreeLimits(maxResolvedPropBytes: 1_000_000)
+
+        let before = residentMemoryBytes()
+        let tree = buildRenderTree(
+            spec: spec,
+            registry: Fixtures.recordingRegistry(),
+            store: state,
+            limits: limits
+        )
+        let after = residentMemoryBytes()
+
+        let rendered = tree != nil
+        XCTAssertFalse(rendered, "The build stops when its prop budget is spent")
+        XCTAssertTrue(
+            recorder.messages.contains { $0.contains("resolved prop size limit") },
+            "Stopping at the prop budget warns"
+        )
+        #if os(Linux)
+        XCTAssertLessThan(
+            after - before,
+            16 * 1024 * 1024,
+            "Repeated literal props do not accumulate past the shared budget"
+        )
+        #endif
+    }
+
+    func testLargeLiteralPropsRenderBelowTheBudget() throws {
+        // One element with a large literal array is an ordinary spec, so the
+        // default budget leaves it alone.
+        let data = JSONValue.array((0..<20_000).map { .number(Double($0)) })
+        let spec = Spec.decodePartial(
+            JSONValue.object([
+                "root": .string("root"),
+                "elements": .object([
+                    "root": .object([
+                        "type": .string("Text"),
+                        "props": .object(["data": data]),
+                    ]),
+                ]),
+            ])
+        )
+        let state = StateStore(spec: spec)
+
+        let tree = buildRenderTree(
+            spec: spec,
+            registry: Fixtures.recordingRegistry(),
+            store: state
+        )
+
+        XCTAssertEqual(tree?.props["data"], data)
+    }
+
     func testWatchThatRemountsStartsFromItsCurrentValue() async throws {
         // A row's watch goes away when the row does. When it mounts again it
         // starts over, the way React discards an unmounted element's effect
