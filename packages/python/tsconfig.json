@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "zod": ["../core/node_modules/zod"],
+      "@json-render/core": ["../core/src/index.ts"]
+    }
+  },
+  "include": ["tests/interop.ts", "vitest.config.ts"]
+}
