@@ -5,6 +5,17 @@ import {
   type StateStore,
 } from "./types";
 
+function isNumericIndex(segment: string): boolean {
+  return /^(0|[1-9]\d*)$/.test(segment);
+}
+
+function parseArrayIndex(segment: string): number | undefined {
+  if (!isNumericIndex(segment)) return undefined;
+
+  const index = Number(segment);
+  return Number.isSafeInteger(index) ? index : undefined;
+}
+
 /**
  * Immutably set a value at a JSON Pointer path using structural sharing.
  * Only objects along the path are shallow-cloned; untouched branches keep
@@ -23,16 +34,26 @@ export function immutableSetByPath(
 
   for (let i = 0; i < segments.length - 1; i++) {
     const seg = segments[i]!;
-    const child = current[seg];
-    if (Array.isArray(child)) {
-      current[seg] = [...child];
-    } else if (child !== null && typeof child === "object") {
-      current[seg] = { ...(child as Record<string, unknown>) };
-    } else {
-      const nextSeg = segments[i + 1];
-      current[seg] = nextSeg !== undefined && /^\d+$/.test(nextSeg) ? [] : {};
+    let key: string | number = seg;
+    if (Array.isArray(current)) {
+      const index = parseArrayIndex(seg);
+      if (index === undefined) return root;
+      key = index;
     }
-    current = current[seg] as Record<string, unknown>;
+
+    const nextSeg = segments[i + 1];
+    const nextIndex =
+      nextSeg === undefined ? undefined : parseArrayIndex(nextSeg);
+
+    const child = current[key];
+    if (Array.isArray(child)) {
+      current[key] = [...child];
+    } else if (child !== null && typeof child === "object") {
+      current[key] = { ...(child as Record<string, unknown>) };
+    } else {
+      current[key] = nextIndex !== undefined ? [] : {};
+    }
+    current = current[key] as Record<string, unknown>;
   }
 
   const lastSeg = segments[segments.length - 1]!;
@@ -40,7 +61,9 @@ export function immutableSetByPath(
     if (lastSeg === "-") {
       (current as unknown[]).push(value);
     } else {
-      (current as unknown[])[parseInt(lastSeg, 10)] = value;
+      const index = parseArrayIndex(lastSeg);
+      if (index === undefined) return root;
+      (current as unknown[])[index] = value;
     }
   } else {
     current[lastSeg] = value;
@@ -73,7 +96,9 @@ export function createStateStore(initialState: StateModel = {}): StateStore {
 
     set(path: string, value: unknown): void {
       if (getByPath(state, path) === value) return;
-      state = immutableSetByPath(state, path, value);
+      const next = immutableSetByPath(state, path, value);
+      if (next === state) return;
+      state = next;
       notify();
     },
 
@@ -82,8 +107,11 @@ export function createStateStore(initialState: StateModel = {}): StateStore {
       let next = state;
       for (const [path, value] of Object.entries(updates)) {
         if (getByPath(next, path) !== value) {
-          next = immutableSetByPath(next, path, value);
-          changed = true;
+          const updated = immutableSetByPath(next, path, value);
+          if (updated !== next) {
+            next = updated;
+            changed = true;
+          }
         }
       }
       if (!changed) return;
@@ -139,7 +167,9 @@ export function createStoreAdapter(config: StoreAdapterConfig): StateStore {
     set(path: string, value: unknown): void {
       const current = config.getSnapshot();
       if (getByPath(current, path) === value) return;
-      config.setSnapshot(immutableSetByPath(current, path, value));
+      const next = immutableSetByPath(current, path, value);
+      if (next === current) return;
+      config.setSnapshot(next);
     },
 
     update(updates: Record<string, unknown>): void {
@@ -147,8 +177,11 @@ export function createStoreAdapter(config: StoreAdapterConfig): StateStore {
       let changed = false;
       for (const [path, value] of Object.entries(updates)) {
         if (getByPath(next, path) !== value) {
-          next = immutableSetByPath(next, path, value);
-          changed = true;
+          const updated = immutableSetByPath(next, path, value);
+          if (updated !== next) {
+            next = updated;
+            changed = true;
+          }
         }
       }
       if (!changed) return;
