@@ -1,8 +1,39 @@
 # Changelog
 
-## 0.22.0
+## 0.23.0
 
 <!-- release:start -->
+
+### New Features
+
+- **Swift package and SwiftUI renderer:** Added a `JSONRender` Swift package with a `JSONRenderCore` model for specs, streaming, state, expressions, actions, visibility, and validation, a `JSONRenderSwiftUI` renderer with built-in views, a native catalog, and macOS and streaming example apps. Conformance fixtures compare the Swift render tree with the React renderer, and CI builds and tests the package (#470)
+
+### Bug Fixes
+
+- **Spec replay:** Deep-copy message parts before replaying so repeated replays no longer mutate the parts or duplicate state items and children in React, Vue, Solid, Svelte, and Devtools. Devtools also skips malformed spec parts instead of crashing (#453)
+- **Spec fences:** Reset unfinished spec fences at text block boundaries so prose after an interrupted fence is no longer dropped by the core and YAML transforms (#426)
+- **Code generation:** Emit string props as JSX expressions so quotes, backslashes, and newlines survive code export (#427)
+- **Email validation:** Ignore surrounding whitespace in the email validator, matching the URL and required checks (#430)
+- **Numeric validation:** Accept numeric strings for `min` and `max`, using the same parser and rules as the `numeric` check (#429)
+
+### Documentation
+
+- Corrected the **Next.js quick start** to use `getPageData` from `createNextApp` and to move `NextAppProvider` into a client layout (#428)
+
+### Contributors
+
+- @ctate
+- @Railly
+- @lahfir
+- @kevin9327
+- @ken8203
+- @KennyMcSimpson
+- @WhyTan00
+- @Jassi2004
+
+<!-- release:end -->
+
+## 0.22.0
 
 ### New Features
 
@@ -12,8 +43,6 @@
 ### Contributors
 
 - @Railly
-
-<!-- release:end -->
 
 ## 0.21.4
 
