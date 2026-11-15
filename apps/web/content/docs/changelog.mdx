@@ -4,6 +4,36 @@ title: "Changelog"
 
 Notable changes and updates to json-render.
 
+## v0.23.0
+
+November 15, 2026
+
+### New: Swift Package and SwiftUI Renderer
+
+Added a `JSONRender` Swift package with a `JSONRenderCore` model for specs, streaming, state, expressions, actions, visibility, and validation, plus a `JSONRenderSwiftUI` renderer, a native catalog, and example apps. Conformance fixtures compare the Swift render tree with the React renderer.
+
+### Fixed: Spec Replay
+
+Message parts are copied before replay, so repeated replays no longer duplicate state items or children in the React, Vue, Solid, and Svelte renderers or in Devtools.
+
+### Fixed: Streaming Spec Fences
+
+Unfinished spec fences now close at text block boundaries, so prose after an interrupted fence is no longer dropped.
+
+### Fixed: Code Generation
+
+String props are emitted as JSX expressions, so quotes, backslashes, and newlines survive code export.
+
+### Fixed: Validation
+
+The email validator ignores surrounding whitespace, and `min` and `max` accept numeric strings from text inputs with the same parsing rules as `numeric`.
+
+### Improved: Documentation
+
+Corrected the Next.js quick start to use `getPageData` and a client `NextAppProvider` layout.
+
+---
+
 ## v0.22.0
 
 November 4, 2026
