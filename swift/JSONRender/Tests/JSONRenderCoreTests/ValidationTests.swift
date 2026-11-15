@@ -252,6 +252,42 @@ final class ValidationTests: XCTestCase {
         #endif
     }
 
+    func testManyMissingChildDiagnosticsStayWithinTheBudget() {
+        // A document can give one element a long key and reference a missing
+        // child thousands of times. Each reference is its own diagnostic, so
+        // the messages would otherwise copy the key once per reference.
+        let longKey = String(repeating: "k", count: 1_000_000)
+        let childCount = 5_000
+        let element = JSONValue.object([
+            "type": .string("Column"),
+            "props": .object([:]),
+            "children": .array(Array(repeating: .string("missing"), count: childCount)),
+        ])
+        let json = JSONValue.object([
+            "root": .string(longKey),
+            "elements": .object([longKey: element]),
+        ])
+
+        let result = validateSpecJSON(json)
+
+        let messageBytes = result.issues.reduce(0) { $0 + $1.message.utf8.count }
+        XCTAssertLessThan(result.issues.count, childCount, "The diagnostic count is bounded")
+        XCTAssertLessThan(messageBytes, 2_000_000, "The diagnostic text is bounded")
+        XCTAssertTrue(
+            result.issues.contains { $0.code == .missingChild },
+            "The problem is still reported"
+        )
+        XCTAssertTrue(
+            result.issues.contains { $0.code == .specTooComplex },
+            "The result says that reporting stopped early"
+        )
+        XCTAssertFalse(result.valid)
+        XCTAssertFalse(
+            result.issues.contains { $0.message.contains(longKey) },
+            "A long key is shortened in a message"
+        )
+    }
+
     func testOrphanedElement() {
         let json = #"{"root":"a","elements":{"a":{"type":"Text","props":{}},"orphan":{"type":"Text","props":{}}}}"#
 

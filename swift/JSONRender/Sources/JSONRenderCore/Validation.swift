@@ -10,7 +10,9 @@ public enum SpecIssueSeverity: String, Codable, Sendable, CaseIterable {
 /// `SpecIssue["code"]` union.
 ///
 /// `specTooComplex` is the one code the Swift validator adds on its own: it
-/// reports that the walk stopped at a limit instead of finishing.
+/// reports that a validation walk stopped at a limit instead of finishing,
+/// whether the walk itself or the number and size of its issues ran out of
+/// budget.
 public enum SpecIssueCode: String, Codable, Sendable, CaseIterable {
     case missingRoot = "missing_root"
     case rootNotFound = "root_not_found"
@@ -78,17 +80,36 @@ public struct ValidateSpecLimits: Equatable, Sendable {
     /// otherwise allocate a large key per visit.
     public var maxContextKeyBytes: Int
 
+    /// The most issues the validator reports.
+    ///
+    /// An element may reference one missing child thousands of times, and each
+    /// reference is its own issue, so a small document can describe far more
+    /// problems than a reader can use. When the count is reached the result
+    /// carries one more issue that says the rest were not reported.
+    public var maxIssues: Int
+
+    /// The most bytes the reported issue messages may hold.
+    ///
+    /// Every message quotes text from the document. The names in a message are
+    /// shortened, but a document with many problems still describes more
+    /// message text than it holds itself.
+    public var maxIssueBytes: Int
+
     /// The limits the validator uses when none are given.
     public static let `default` = ValidateSpecLimits()
 
     public init(
         maxDepth: Int = 100,
         maxVisits: Int = 20_000,
-        maxContextKeyBytes: Int = 8_000_000
+        maxContextKeyBytes: Int = 8_000_000,
+        maxIssues: Int = 1_000,
+        maxIssueBytes: Int = 1_000_000
     ) {
         self.maxDepth = max(1, maxDepth)
         self.maxVisits = max(1, maxVisits)
         self.maxContextKeyBytes = max(1, maxContextKeyBytes)
+        self.maxIssues = max(1, maxIssues)
+        self.maxIssueBytes = max(1, maxIssueBytes)
     }
 }
 
@@ -141,6 +162,51 @@ private final class ValidationBudget {
     }
 }
 
+/// Collects the issues of one validation walk while keeping them bounded.
+///
+/// Every diagnostic quotes text from the document, and one element can
+/// reference a missing child thousands of times, so the messages together
+/// would otherwise copy far more text than the document holds. The collector
+/// stops adding issues at a count or byte limit. The result then carries one
+/// final issue that says the rest were not reported, so a shortened result
+/// never reads as a clean spec.
+private struct SpecIssueCollector {
+    private let limits: ValidateSpecLimits
+    private(set) var issues: [SpecIssue] = []
+    private var messageBytes = 0
+    /// Whether an issue was dropped because the walk reached a limit.
+    private(set) var dropped = false
+
+    init(limits: ValidateSpecLimits) {
+        self.limits = limits
+    }
+
+    /// Adds one issue, or drops it when the diagnostics budget is spent.
+    mutating func add(_ issue: SpecIssue) {
+        guard !dropped else { return }
+        let bytes = issue.message.utf8.count
+        guard issues.count < limits.maxIssues, messageBytes + bytes <= limits.maxIssueBytes else {
+            dropped = true
+            return
+        }
+        issues.append(issue)
+        messageBytes += bytes
+    }
+
+    /// The reported issues, with one summary issue when the budget cut them
+    /// short.
+    func finish() -> [SpecIssue] {
+        guard dropped else { return issues }
+        return issues + [
+            SpecIssue(
+                severity: .error,
+                message: "Spec has more problems than the validator reports at once; the remaining issues were not reported.",
+                code: .specTooComplex
+            )
+        ]
+    }
+}
+
 /// Validates a decoded spec. Runs the same checks as core's `validateSpec`.
 public func validateSpec(_ spec: Spec, options: ValidateSpecOptions = ValidateSpecOptions()) -> SpecValidationResult {
     validateSpecJSON(spec.jsonValue, options: options)
@@ -163,22 +229,22 @@ public func validateSpecJSON(
     }
 
     let elementsJSON = rootObject["elements"]?.objectValue ?? [:]
-    var issues: [SpecIssue] = []
+    var issues = SpecIssueCollector(limits: options.limits)
 
     // 1. Root
     let root = rootObject["root"]?.stringValue ?? ""
     if root.isEmpty {
-        issues.append(
+        issues.add(
             SpecIssue(severity: .error, message: "Spec has no root element defined.", code: .missingRoot)
         )
-        return SpecValidationResult(valid: false, issues: issues)
+        return SpecValidationResult(valid: false, issues: issues.finish())
     }
 
     if elementsJSON[root] == nil {
-        issues.append(
+        issues.add(
             SpecIssue(
                 severity: .error,
-                message: "Root element \"\(root)\" not found in elements map.",
+                message: "Root element \"\(diagnosticName(root))\" not found in elements map.",
                 code: .rootNotFound
             )
         )
@@ -186,22 +252,25 @@ public func validateSpecJSON(
 
     // 2. Empty spec
     if elementsJSON.isEmpty {
-        issues.append(
+        issues.add(
             SpecIssue(severity: .error, message: "Spec has no elements.", code: .emptySpec)
         )
-        return SpecValidationResult(valid: false, issues: issues)
+        return SpecValidationResult(valid: false, issues: issues.finish())
     }
 
     // 3. Per-element checks
     for key in elementsJSON.keys.sorted() {
         guard let element = elementsJSON[key]?.objectValue else { continue }
+        // Every message below quotes the key, so shorten it once rather than
+        // once per problem the element has.
+        let displayKey = diagnosticName(key)
 
         if let childKeys = element["children"]?.arrayValue {
             for child in childKeys.compactMap(\.stringValue) where elementsJSON[child] == nil {
-                issues.append(
+                issues.add(
                     SpecIssue(
                         severity: .error,
-                        message: "Element \"\(key)\" references child \"\(child)\" which does not exist in the elements map.",
+                        message: "Element \"\(displayKey)\" references child \"\(diagnosticName(child))\" which does not exist in the elements map.",
                         elementKey: key,
                         code: .missingChild
                     )
@@ -212,10 +281,10 @@ public func validateSpecJSON(
         for slotName in (element["slots"]?.objectValue ?? [:]).keys.sorted() {
             let slotChildKeys = element["slots"]?[slotName]?.arrayValue ?? []
             for child in slotChildKeys.compactMap(\.stringValue) where elementsJSON[child] == nil {
-                issues.append(
+                issues.add(
                     SpecIssue(
                         severity: .error,
-                        message: "Element \"\(key)\" references child \"\(child)\" in slot \"\(slotName)\" which does not exist in the elements map.",
+                        message: "Element \"\(displayKey)\" references child \"\(diagnosticName(child))\" in slot \"\(diagnosticName(slotName))\" which does not exist in the elements map.",
                         elementKey: key,
                         code: .missingChild
                     )
@@ -226,10 +295,10 @@ public func validateSpecJSON(
         if element.keys.contains("repeat") {
             let children = element["children"]?.arrayValue ?? []
             if children.isEmpty {
-                issues.append(
+                issues.add(
                     SpecIssue(
                         severity: .error,
-                        message: "Element \"\(key)\" has \"repeat\" but no children. The repeated template must be a child element: add a child that renders one item (it may read fields with {\"$item\": \"field\"}).",
+                        message: "Element \"\(displayKey)\" has \"repeat\" but no children. The repeated template must be a child element: add a child that renders one item (it may read fields with {\"$item\": \"field\"}).",
                         elementKey: key,
                         code: .repeatWithoutChildren
                     )
@@ -238,10 +307,10 @@ public func validateSpecJSON(
         }
 
         if let visible = element["visible"], !isValidVisibility(visible) {
-            issues.append(
+            issues.add(
                 SpecIssue(
                     severity: .error,
-                    message: "Element \"\(key)\" has an invalid \"visible\" condition: \(JSONValue.encodedString(visible) ?? "null"). Valid forms: true, false, {\"$state\":\"/path\",\"eq\":value}, {\"$item\":\"field\",\"eq\":value}, {\"$index\":true,\"eq\":n}, an array of those (AND), or {\"$and\":[...]} / {\"$or\":[...]}. Use exactly one of $state, $item, or $index per condition object.",
+                    message: "Element \"\(displayKey)\" has an invalid \"visible\" condition: \(diagnosticName(JSONValue.encodedString(visible) ?? "null")). Valid forms: true, false, {\"$state\":\"/path\",\"eq\":value}, {\"$item\":\"field\",\"eq\":value}, {\"$index\":true,\"eq\":n}, an array of those (AND), or {\"$and\":[...]} / {\"$or\":[...]}. Use exactly one of $state, $item, or $index per condition object.",
                     elementKey: key,
                     code: .invalidVisible
                 )
@@ -256,10 +325,10 @@ public func validateSpecJSON(
                 ("watch", .watchInProps),
             ]
             for (field, code) in misplaced where props.keys.contains(field) {
-                issues.append(
+                issues.add(
                     SpecIssue(
                         severity: .error,
-                        message: fieldMessage(field, key: key),
+                        message: fieldMessage(field, key: displayKey),
                         elementKey: key,
                         code: code
                     )
@@ -297,10 +366,6 @@ public func validateSpecJSON(
 
         if let repeatJSON = element["repeat"], let repeatObject = repeatJSON.objectValue {
             let rawStatePath = repeatObject["statePath"]
-            let displayPath = rawStatePath.map { value -> String in
-                if let string = value.stringValue { return "\"\(string)\"" }
-                return JSONValue.encodedString(value) ?? "null"
-            } ?? "null"
 
             var statePath: String?
             var isAbsolutePath = false
@@ -313,10 +378,16 @@ public func validateSpecJSON(
             }
 
             guard let statePath else {
-                issues.append(
+                // The path is quoted in this message only, so the quoted form
+                // is built here and shortened: it comes from the document.
+                let displayPath = rawStatePath.map { value -> String in
+                    if let string = value.stringValue { return "\"\(diagnosticName(string))\"" }
+                    return diagnosticName(JSONValue.encodedString(value) ?? "null")
+                } ?? "null"
+                issues.add(
                     SpecIssue(
                         severity: .error,
-                        message: "Element \"\(key)\" uses relative repeat statePath \(displayPath) outside a repeat scope.",
+                        message: "Element \"\(diagnosticName(key))\" uses relative repeat statePath \(displayPath) outside a repeat scope.",
                         elementKey: key,
                         code: .repeatItemOutsideScope
                     )
@@ -351,10 +422,10 @@ public func validateSpecJSON(
 
             if canCheckSample, value?.arrayValue == nil {
                 let detail = value == nil ? " has no value there" : " has a \(jsTypeName(value)) there"
-                issues.append(
+                issues.add(
                     SpecIssue(
                         severity: .error,
-                        message: "Element \"\(key)\" repeats over \"\(statePath)\" but state\(detail). Repeat statePath must reference an array in state; add sample items to state at that path.",
+                        message: "Element \"\(diagnosticName(key))\" repeats over \"\(diagnosticName(statePath))\" but state\(detail). Repeat statePath must reference an array in state; add sample items to state at that path.",
                         elementKey: key,
                         code: .repeatStateMismatch
                     )
@@ -397,7 +468,7 @@ public func validateSpecJSON(
         JSONRenderLog.warn(
             "Spec validation stopped at a limit; part of the spec was not validated."
         )
-        issues.append(
+        issues.add(
             SpecIssue(
                 severity: .error,
                 message: "Spec is too large to validate: the walk stopped at its depth, visit, or context size limit.",
@@ -420,10 +491,10 @@ public func validateSpecJSON(
         if elementsJSON[root] != nil { walk(root, depth: 1) }
 
         for key in elementsJSON.keys.sorted() where !reachable.contains(key) {
-            issues.append(
+            issues.add(
                 SpecIssue(
                     severity: .warning,
-                    message: "Element \"\(key)\" is not reachable from root \"\(root)\".",
+                    message: "Element \"\(diagnosticName(key))\" is not reachable from root \"\(diagnosticName(root))\".",
                     elementKey: key,
                     code: .orphanedElement
                 )
@@ -431,20 +502,40 @@ public func validateSpecJSON(
         }
     }
 
-    let valid = !issues.contains { $0.severity == .error }
-    return SpecValidationResult(valid: valid, issues: issues)
+    if issues.dropped {
+        JSONRenderLog.warn(
+            "Spec validation stopped reporting issues at its count or size limit; the rest were not reported."
+        )
+    }
+
+    let reported = issues.finish()
+    let valid = !reported.contains { $0.severity == .error }
+    return SpecValidationResult(valid: valid, issues: reported)
 }
 
-private func fieldMessage(_ field: String, key: String) -> String {
+/// The most bytes of a spec-supplied name to quote in a diagnostic.
+///
+/// The keys, paths, and values in a document are arbitrary text, so quoting
+/// one in full would let a document make every diagnostic it describes as
+/// large as that text.
+private let maxDiagnosticNameBytes = 120
+
+/// A spec-supplied name shortened for a diagnostic message.
+private func diagnosticName(_ name: String) -> String {
+    guard name.utf8.count > maxDiagnosticNameBytes else { return name }
+    return String(decoding: name.utf8.prefix(maxDiagnosticNameBytes), as: UTF8.self) + "..."
+}
+
+private func fieldMessage(_ field: String, key displayKey: String) -> String {
     switch field {
     case "visible":
-        return "Element \"\(key)\" has \"visible\" inside \"props\". It should be a top-level field on the element (sibling of type/props/children)."
+        return "Element \"\(displayKey)\" has \"visible\" inside \"props\". It should be a top-level field on the element (sibling of type/props/children)."
     case "on":
-        return "Element \"\(key)\" has \"on\" inside \"props\". It should be a top-level field on the element (sibling of type/props/children)."
+        return "Element \"\(displayKey)\" has \"on\" inside \"props\". It should be a top-level field on the element (sibling of type/props/children)."
     case "repeat":
-        return "Element \"\(key)\" has \"repeat\" inside \"props\". It should be a top-level field on the element (sibling of type/props/children)."
+        return "Element \"\(displayKey)\" has \"repeat\" inside \"props\". It should be a top-level field on the element (sibling of type/props/children)."
     default:
-        return "Element \"\(key)\" has \"watch\" inside \"props\". It should be a top-level field on the element (sibling of type/props/children)."
+        return "Element \"\(displayKey)\" has \"watch\" inside \"props\". It should be a top-level field on the element (sibling of type/props/children)."
     }
 }
 

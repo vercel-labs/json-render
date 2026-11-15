@@ -42,6 +42,15 @@ public struct RenderTreeLimits: Equatable, Sendable {
     /// many times as a child would otherwise hold that text once per visit.
     public var maxWatchIDBytes: Int
 
+    /// The most bytes the child ids of one build may hold.
+    ///
+    /// Every rendered element contributes one id to its parent's `childIDs`.
+    /// Inside a repeat that id also holds the repeated item's identity, which
+    /// is a value from the spec's state when the repeat declares a key. A
+    /// container that lists the same child thousands of times would otherwise
+    /// hold a copy of that value once per child.
+    public var maxChildIDBytes: Int
+
     /// The limits the renderer uses when none are given.
     ///
     /// The defaults allow large lists and deeply nested layouts while stopping
@@ -51,7 +60,8 @@ public struct RenderTreeLimits: Equatable, Sendable {
         maxRenderedNodes: 10_000,
         maxWork: 50_000,
         maxResolvedPropBytes: 32_000_000,
-        maxWatchIDBytes: 4_000_000
+        maxWatchIDBytes: 4_000_000,
+        maxChildIDBytes: 4_000_000
     )
 
     public init(
@@ -59,13 +69,15 @@ public struct RenderTreeLimits: Equatable, Sendable {
         maxRenderedNodes: Int = 10_000,
         maxWork: Int = 50_000,
         maxResolvedPropBytes: Int = 32_000_000,
-        maxWatchIDBytes: Int = 4_000_000
+        maxWatchIDBytes: Int = 4_000_000,
+        maxChildIDBytes: Int = 4_000_000
     ) {
         self.maxDepth = maxDepth
         self.maxRenderedNodes = maxRenderedNodes
         self.maxWork = maxWork
         self.maxResolvedPropBytes = max(1, maxResolvedPropBytes)
         self.maxWatchIDBytes = max(1, maxWatchIDBytes)
+        self.maxChildIDBytes = max(1, maxChildIDBytes)
     }
 }
 
@@ -79,6 +91,7 @@ final class RenderTreeBudget {
     private var work = 0
     private var renderedNodes = 0
     private var watchIDBytes = 0
+    private var childIDBytes = 0
 
     /// Whether the build has stopped because it reached a limit.
     private(set) var isExhausted = false
@@ -109,6 +122,19 @@ final class RenderTreeBudget {
         guard watchIDBytes <= limits.maxWatchIDBytes else {
             return stop(
                 "Spec exceeds the watch id size limit of \(limits.maxWatchIDBytes) bytes. The spec was not rendered."
+            )
+        }
+        return true
+    }
+
+    /// Counts the id a parent builds for an element, before it is built.
+    /// Returns false when the build must stop.
+    func chargeChildIDs(_ bytes: Int) -> Bool {
+        guard !isExhausted else { return false }
+        childIDBytes += bytes
+        guard childIDBytes <= limits.maxChildIDBytes else {
+            return stop(
+                "Spec exceeds the child id size limit of \(limits.maxChildIDBytes) bytes. The spec was not rendered."
             )
         }
         return true

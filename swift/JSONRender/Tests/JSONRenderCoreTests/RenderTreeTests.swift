@@ -799,6 +799,55 @@ final class RenderTreeTests: XCTestCase {
         #endif
     }
 
+    func testLongRepeatIdentitiesStayWithinTheBuildBudget() throws {
+        // A child id copies the repeated item's identity. One row with a long
+        // key value, in a container that lists the same child thousands of
+        // times, would otherwise hold that text once per child.
+        let identity = String(repeating: "i", count: 1_000_000)
+        let spec = Spec.decodePartial(
+            JSONValue.object([
+                "root": .string("root"),
+                "state": .object([
+                    "items": .array([.object(["id": .string(identity)])]),
+                ]),
+                "elements": .object([
+                    "root": .object([
+                        "type": .string("List"),
+                        "props": .object([:]),
+                        "repeat": .object([
+                            "statePath": .string("/items"),
+                            "key": .string("id"),
+                        ]),
+                        "children": .array((0..<5_000).map { _ in .string("row") }),
+                    ]),
+                    "row": .object([
+                        "type": .string("Text"),
+                        "props": .object([:]),
+                    ]),
+                ]),
+            ])
+        )
+        let store = StateStore(spec: spec)
+        let recorder = WarningRecorder()
+
+        let before = residentMemoryBytes()
+        let tree = buildRenderTree(
+            spec: spec,
+            registry: Fixtures.recordingRegistry(),
+            store: store
+        )
+        let after = residentMemoryBytes()
+
+        XCTAssertTrue(tree == nil, "The build stops when its child id budget is spent")
+        XCTAssertTrue(
+            recorder.messages.contains { $0.contains("child id size limit") },
+            "Stopping at the child id budget warns"
+        )
+        #if os(Linux)
+        XCTAssertLessThan(after - before, 32 * 1024 * 1024)
+        #endif
+    }
+
     func testSharedStateValuesDoNotCountAgainstThePropBudget() throws {
         // A `$state` prop shares the state value instead of copying it, so
         // binding the same large value into several elements allocates
