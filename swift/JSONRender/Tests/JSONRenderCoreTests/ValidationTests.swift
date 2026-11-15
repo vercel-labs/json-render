@@ -252,6 +252,42 @@ final class ValidationTests: XCTestCase {
         #endif
     }
 
+    func testManyMissingChildDiagnosticsStayWithinTheBudget() {
+        // A document can give one element a long key and reference a missing
+        // child thousands of times. Each reference is its own diagnostic, so
+        // the messages would otherwise copy the key once per reference.
+        let longKey = String(repeating: "k", count: 1_000_000)
+        let childCount = 5_000
+        let element = JSONValue.object([
+            "type": .string("Column"),
+            "props": .object([:]),
+            "children": .array(Array(repeating: .string("missing"), count: childCount)),
+        ])
+        let json = JSONValue.object([
+            "root": .string(longKey),
+            "elements": .object([longKey: element]),
+        ])
+
+        let result = validateSpecJSON(json)
+
+        let messageBytes = result.issues.reduce(0) { $0 + $1.message.utf8.count }
+        XCTAssertLessThan(result.issues.count, childCount, "The diagnostic count is bounded")
+        XCTAssertLessThan(messageBytes, 2_000_000, "The diagnostic text is bounded")
+        XCTAssertTrue(
+            result.issues.contains { $0.code == .missingChild },
+            "The problem is still reported"
+        )
+        XCTAssertTrue(
+            result.issues.contains { $0.code == .specTooComplex },
+            "The result says that reporting stopped early"
+        )
+        XCTAssertFalse(result.valid)
+        XCTAssertFalse(
+            result.issues.contains { $0.message.contains(longKey) },
+            "A long key is shortened in a message"
+        )
+    }
+
     func testOrphanedElement() {
         let json = #"{"root":"a","elements":{"a":{"type":"Text","props":{}},"orphan":{"type":"Text","props":{}}}}"#
 
@@ -261,6 +297,43 @@ final class ValidationTests: XCTestCase {
         XCTAssertTrue(withOrphans.issues.contains {
             $0.code == .orphanedElement && $0.elementKey == "orphan" && $0.severity == .warning
         })
+    }
+
+    func testDroppedOrphanWarningsLeaveTheSpecValid() {
+        // Orphans are warnings, so a spec whose only issues are unreachable
+        // elements is valid, as core's validateSpec reports. Dropping some of
+        // those warnings at the issue limit must not turn the spec invalid:
+        // the summary takes the severity of the issues it replaces.
+        let orphanCount = 1_001
+        var elements: [String: JSONValue] = [
+            "root": .object(["type": .string("Text"), "props": .object([:])]),
+        ]
+        for index in 0..<orphanCount {
+            elements["orphan\(index)"] = .object([
+                "type": .string("Text"),
+                "props": .object([:]),
+            ])
+        }
+        let json = JSONValue.object([
+            "root": .string("root"),
+            "elements": .object(elements),
+        ])
+
+        let result = validateSpecJSON(json, options: ValidateSpecOptions(checkOrphans: true))
+
+        XCTAssertTrue(result.valid, "Unreachable elements are warnings, not errors")
+        XCTAssertEqual(
+            result.issues.filter { $0.code == .orphanedElement }.count,
+            1_000,
+            "The issue count is bounded"
+        )
+        let summary = result.issues.first { $0.code == .specTooComplex }
+        XCTAssertEqual(
+            summary?.severity,
+            .warning,
+            "The summary follows the severity of the issues it replaced"
+        )
+        XCTAssertEqual(result.issues.last, summary, "The summary comes last")
     }
 
     func testDecodedSpecMatchesRawValidation() throws {

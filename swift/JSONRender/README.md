@@ -118,6 +118,7 @@ A spec's `elements` map can reference the same element from several parents, so 
 | `maxWork` | 50000 | Elements visited, including missing, hidden, and unknown ones |
 | `maxResolvedPropBytes` | 32000000 | Resolved prop bytes: template output and the members of arrays and objects resolved for each element |
 | `maxWatchIDBytes` | 4000000 | Watch ids, which copy the element key, repeat path, and watch path |
+| `maxChildIDBytes` | 4000000 | Child ids, which copy the element key and, inside a repeat, the repeated item's identity |
 
 A build that reaches a limit logs one warning and renders nothing, like other structural spec problems that leave nothing to render. Pass `RenderTreeLimits` to `JSONRenderView` or `buildRenderTree` to raise the limits for a spec that legitimately renders more nodes.
 

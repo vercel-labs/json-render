@@ -273,6 +273,14 @@ private func buildElement<Render>(
         )
     }
 
+    // The parent copies one id per child, and inside a repeat that id holds the
+    // item's identity, which may be a long value from state. Charge it before
+    // the parent builds the ids so that one value cannot be copied once per
+    // child.
+    if let scope {
+        guard budget.chargeChildIDs(key.utf8.count + scope.identity.utf8.count + 1) else { return nil }
+    }
+
     guard budget.renderNode() else { return nil }
 
     let emit = makeEmit(element: element, scope: scope, store: store, dispatcher: dispatcher, registry: registry)
