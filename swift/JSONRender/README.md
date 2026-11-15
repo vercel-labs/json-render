@@ -11,7 +11,27 @@ Swift package renderer for json-render. It decodes the same `{ "root", "elements
 
 ## Installation
 
-The package is in `swift/JSONRender` and does not have a standalone repository or release tag yet, so SwiftPM cannot fetch it by URL. Add the checkout as a local package dependency:
+The repository root is a Swift package, so add it by URL from a release that includes it (0.23.1 or later).
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/vercel-labs/json-render", from: "0.23.1"),
+],
+targets: [
+    .target(
+        name: "App",
+        dependencies: [
+            .product(name: "JSONRenderCore", package: "json-render"),
+            .product(name: "JSONRenderSwiftUI", package: "json-render"),
+            .product(name: "JSONRenderCatalog", package: "json-render"),
+        ]
+    ),
+]
+```
+
+The package identity is the repository name, `json-render`, so the product names refer to that. In Xcode, choose **File > Add Package Dependencies**, paste the repository URL, pick a version rule, and add the `JSONRenderCore` and `JSONRenderSwiftUI` products (`JSONRenderCatalog` is optional) to your target.
+
+To work from a checkout instead, add the nested package at `swift/JSONRender` by path. Its package name is `JSONRender`, so the product references use that name:
 
 ```swift
 dependencies: [
