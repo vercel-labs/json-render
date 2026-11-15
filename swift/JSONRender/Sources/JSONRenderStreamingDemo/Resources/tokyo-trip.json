@@ -1,0 +1,1865 @@
+{
+ "id": "tokyo-trip",
+ "title": "Tokyo trip planner",
+ "prompt": "A trip planner for 3 days in Tokyo",
+ "model": "anthropic/claude-sonnet-5.5",
+ "recordedAt": "2026-11-11T17:38:32.801Z",
+ "chunks": [
+  {
+   "t": 7550,
+   "text": "{\"op\":\""
+  },
+  {
+   "t": 7550,
+   "text": "add\",\"path\":\"/root\",\""
+  },
+  {
+   "t": 7550,
+   "text": "value\":\"main\"}\n{"
+  },
+  {
+   "t": 7740,
+   "text": "\"op\":\"add\",\"path\":"
+  },
+  {
+   "t": 7740,
+   "text": "\"/elements/main\",\"value"
+  },
+  {
+   "t": 7740,
+   "text": "\":{\"type\":\"St"
+  },
+  {
+   "t": 7740,
+   "text": "ack\",\"props\":{\"direction"
+  },
+  {
+   "t": 7740,
+   "text": "\":\"vertical\",\"gap"
+  },
+  {
+   "t": 7826,
+   "text": "\":\"lg\"},\"children"
+  },
+  {
+   "t": 7826,
+   "text": "\":[\"title\",\"sub"
+  },
+  {
+   "t": 7826,
+   "text": "title\",\"met"
+  },
+  {
+   "t": 7947,
+   "text": "rics\",\"controls\",\"bud"
+  },
+  {
+   "t": 7947,
+   "text": "get-card\",\"day1"
+  },
+  {
+   "t": 7947,
+   "text": "-card\",\"day2-card\",\""
+  },
+  {
+   "t": 8053,
+   "text": "day3-card\"]}}"
+  },
+  {
+   "t": 8053,
+   "text": "\n{\"op\":\"add\",\""
+  },
+  {
+   "t": 8053,
+   "text": "path\":\"/elements/title"
+  },
+  {
+   "t": 8053,
+   "text": "\",\"value\":{\"type\":\""
+  },
+  {
+   "t": 8166,
+   "text": "Heading\",\"props\":{\""
+  },
+  {
+   "t": 8166,
+   "text": "text\":\"Tokyo"
+  },
+  {
+   "t": 8166,
+   "text": " in"
+  },
+  {
+   "t": 8259,
+   "text": " 3 Days\",\"level\":"
+  },
+  {
+   "t": 8259,
+   "text": "\"h1\"},\"children\":"
+  },
+  {
+   "t": 8259,
+   "text": "[]}}\n{\"op"
+  },
+  {
+   "t": 8374,
+   "text": "\":\"add\",\"path\":\"/"
+  },
+  {
+   "t": 8374,
+   "text": "elements/subtitle\",\""
+  },
+  {
+   "t": 8374,
+   "text": "value\":{\"type\":\""
+  },
+  {
+   "t": 8472,
+   "text": "Text\",\"props\":{\"text\":"
+  },
+  {
+   "t": 8472,
+   "text": "\"Tem"
+  },
+  {
+   "t": 8472,
+   "text": "ples, food"
+  },
+  {
+   "t": 8612,
+   "text": ", and ne"
+  },
+  {
+   "t": 8612,
+   "text": "on n"
+  },
+  {
+   "t": 8612,
+   "text": "ights\",\"variant\":\"muted"
+  },
+  {
+   "t": 8612,
+   "text": "\"},\"children\":[]}"
+  },
+  {
+   "t": 8612,
+   "text": "}\n{\"op\":\"add"
+  },
+  {
+   "t": 8939,
+   "text": "\",\"path\":\"/elements/"
+  },
+  {
+   "t": 8939,
+   "text": "metrics\",\"value\":{\""
+  },
+  {
+   "t": 8939,
+   "text": "type\":\"Grid\",\"props"
+  },
+  {
+   "t": 8939,
+   "text": "\":{\"columns\":2,"
+  },
+  {
+   "t": 8939,
+   "text": "\"gap\":\"md\"},"
+  },
+  {
+   "t": 8939,
+   "text": "\"children\":[\"m-"
+  },
+  {
+   "t": 8939,
+   "text": "flight\",\"m-hotel"
+  },
+  {
+   "t": 8939,
+   "text": "\",\"m-budget\",\"m-"
+  },
+  {
+   "t": 8939,
+   "text": "ste"
+  },
+  {
+   "t": 9052,
+   "text": "ps\"]}}\n{\""
+  },
+  {
+   "t": 9052,
+   "text": "op\":\"add\",\"path\":\""
+  },
+  {
+   "t": 9052,
+   "text": "/elements/m-flight"
+  },
+  {
+   "t": 9052,
+   "text": "\",\"value\":{\"type\":\""
+  },
+  {
+   "t": 9182,
+   "text": "Metric\",\"props\":{\""
+  },
+  {
+   "t": 9182,
+   "text": "label\":\"Flight\",\"value"
+  },
+  {
+   "t": 9182,
+   "text": "\":\"11"
+  },
+  {
+   "t": 9182,
+   "text": "h 40m\",\"detail\":"
+  },
+  {
+   "t": 9285,
+   "text": "\"S"
+  },
+  {
+   "t": 9285,
+   "text": "FO to H"
+  },
+  {
+   "t": 9285,
+   "text": "ND"
+  },
+  {
+   "t": 9432,
+   "text": "\",\"tr"
+  },
+  {
+   "t": 9432,
+   "text": "end\":\"neutral\",\"ic"
+  },
+  {
+   "t": 9432,
+   "text": "on\":\"airplane\",\"t"
+  },
+  {
+   "t": 9432,
+   "text": "int\":\"blue\"},\""
+  },
+  {
+   "t": 9517,
+   "text": "children\":[]}}\n{"
+  },
+  {
+   "t": 9517,
+   "text": "\"op\":\"add\",\"path\":"
+  },
+  {
+   "t": 9517,
+   "text": "\"/elements/m-h"
+  },
+  {
+   "t": 9679,
+   "text": "otel\",\"value\":{\"type"
+  },
+  {
+   "t": 9679,
+   "text": "\":\"Metric\",\"props\":"
+  },
+  {
+   "t": 9679,
+   "text": "{\"label\":\"Hot"
+  },
+  {
+   "t": 9679,
+   "text": "el\",\"value\":\"$"
+  },
+  {
+   "t": 9715,
+   "text": "620\",\"detail\":\"3 "
+  },
+  {
+   "t": 9800,
+   "text": "nights, Shinju"
+  },
+  {
+   "t": 9800,
+   "text": "ku\",\"trend\":\"ne"
+  },
+  {
+   "t": 9800,
+   "text": "utral\",\"icon\":\"b"
+  },
+  {
+   "t": 9938,
+   "text": "ed.double"
+  },
+  {
+   "t": 9938,
+   "text": ".fill\",\"tint\":\""
+  },
+  {
+   "t": 9938,
+   "text": "indigo\"},\"children\":"
+  },
+  {
+   "t": 9938,
+   "text": "[]}}\n{\"op"
+  },
+  {
+   "t": 10043,
+   "text": "\":\"add\",\"path\":\"/"
+  },
+  {
+   "t": 10043,
+   "text": "elements/m-budget\",\""
+  },
+  {
+   "t": 10043,
+   "text": "value\":{\"type\":\""
+  },
+  {
+   "t": 10152,
+   "text": "Metric\",\"props\":{\"label"
+  },
+  {
+   "t": 10152,
+   "text": "\":\"Total"
+  },
+  {
+   "t": 10152,
+   "text": " bud"
+  },
+  {
+   "t": 10152,
+   "text": "get\",\"value\":\"$1,"
+  },
+  {
+   "t": 10231,
+   "text": "480"
+  },
+  {
+   "t": 10231,
+   "text": "\",\"detail\":\"Under"
+  },
+  {
+   "t": 10274,
+   "text": " by"
+  },
+  {
+   "t": 10438,
+   "text": " "
+  },
+  {
+   "t": 10438,
+   "text": "6"
+  },
+  {
+   "t": 10438,
+   "text": "%\",\"trend\":\"down\",\""
+  },
+  {
+   "t": 10438,
+   "text": "icon\":\"y"
+  },
+  {
+   "t": 10438,
+   "text": "ens"
+  },
+  {
+   "t": 10495,
+   "text": "ign"
+  },
+  {
+   "t": 10495,
+   "text": ".circ"
+  },
+  {
+   "t": 10577,
+   "text": "le.fill\",\"tint\":"
+  },
+  {
+   "t": 10577,
+   "text": "\"green\"},\"children\":["
+  },
+  {
+   "t": 10671,
+   "text": "]}}\n{\"op\":"
+  },
+  {
+   "t": 10671,
+   "text": "\"add\",\"path\":\"/el"
+  },
+  {
+   "t": 10671,
+   "text": "ements/m-steps\",\"value"
+  },
+  {
+   "t": 10762,
+   "text": "\":{\"type\":\"Met"
+  },
+  {
+   "t": 10762,
+   "text": "ric\",\"props\":{\"label\":"
+  },
+  {
+   "t": 10762,
+   "text": "\"Walking\",\"value\":\""
+  },
+  {
+   "t": 10869,
+   "text": "38"
+  },
+  {
+   "t": 10869,
+   "text": "k\",\""
+  },
+  {
+   "t": 10869,
+   "text": "detail\":\"Ste"
+  },
+  {
+   "t": 11003,
+   "text": "ps per day\",\"trend\":\""
+  },
+  {
+   "t": 11003,
+   "text": "up\",\"icon\":\"figure"
+  },
+  {
+   "t": 11003,
+   "text": ".wal"
+  },
+  {
+   "t": 11003,
+   "text": "k\",\"tint\":\"orange"
+  },
+  {
+   "t": 11057,
+   "text": "\"},\"children\":[]}"
+  },
+  {
+   "t": 11057,
+   "text": "}\n{\"op\":\"add"
+  },
+  {
+   "t": 11206,
+   "text": "\",\"path\":\"/elements/"
+  },
+  {
+   "t": 11206,
+   "text": "controls\",\"value\":{\"type"
+  },
+  {
+   "t": 11206,
+   "text": "\":\"Card\",\"props\":{"
+  },
+  {
+   "t": 11206,
+   "text": "\"title\":\"Trip status"
+  },
+  {
+   "t": 11276,
+   "text": "\",\"icon\":\"checkm"
+  },
+  {
+   "t": 11276,
+   "text": "ark.se"
+  },
+  {
+   "t": 11422,
+   "text": "al.fill\",\"tint\":"
+  },
+  {
+   "t": 11422,
+   "text": "\"teal\"},\"children\":"
+  },
+  {
+   "t": 11422,
+   "text": "[\"controls-stack\"]"
+  },
+  {
+   "t": 11422,
+   "text": "}}\n{\"op\":\""
+  },
+  {
+   "t": 11422,
+   "text": "add\",\"path\":\"/elements"
+  },
+  {
+   "t": 11529,
+   "text": "/controls-stack\",\"value"
+  },
+  {
+   "t": 11529,
+   "text": "\":{\"type\":\"St"
+  },
+  {
+   "t": 11649,
+   "text": "ack\",\"props\":{\"direction"
+  },
+  {
+   "t": 11649,
+   "text": "\":\"vertical\",\"gap"
+  },
+  {
+   "t": 11649,
+   "text": "\":\"md\"},\"children\":"
+  },
+  {
+   "t": 11649,
+   "text": "[\"status"
+  },
+  {
+   "t": 11649,
+   "text": "-row\",\"swit"
+  },
+  {
+   "t": 11773,
+   "text": "ch-"
+  },
+  {
+   "t": 11820,
+   "text": "budget\",\"plan-progress"
+  },
+  {
+   "t": 11820,
+   "text": "\"]}}\n{\"op"
+  },
+  {
+   "t": 11820,
+   "text": "\":\"add\",\"path\":\"/"
+  },
+  {
+   "t": 11915,
+   "text": "elements/status-row\",\"value"
+  },
+  {
+   "t": 11915,
+   "text": "\":{\"type\":\"St"
+  },
+  {
+   "t": 11915,
+   "text": "ack\",\"props\":{\"direction"
+  },
+  {
+   "t": 12037,
+   "text": "\":\"horizontal\",\"g"
+  },
+  {
+   "t": 12037,
+   "text": "ap\":\"md"
+  },
+  {
+   "t": 12037,
+   "text": "\",\"align\":\"center\",\"justify"
+  },
+  {
+   "t": 12037,
+   "text": "\":\"between\"},\"children\":"
+  },
+  {
+   "t": 12131,
+   "text": "[\"status"
+  },
+  {
+   "t": 12131,
+   "text": "-badge\",\"confirm-"
+  },
+  {
+   "t": 12131,
+   "text": "btn\"]}}\n{"
+  },
+  {
+   "t": 12298,
+   "text": "\"op\":\"add\",\"path\":"
+  },
+  {
+   "t": 12298,
+   "text": "\"/elements/status-bad"
+  },
+  {
+   "t": 12298,
+   "text": "ge\",\"value\":{\"type\":"
+  },
+  {
+   "t": 12298,
+   "text": "\"Badge\",\"props\":{"
+  },
+  {
+   "t": 12298,
+   "text": "\"text\":{\"$cond"
+  },
+  {
+   "t": 12417,
+   "text": "\":{\"$state\":\"/"
+  },
+  {
+   "t": 12417,
+   "text": "booked\",\"eq\":true},"
+  },
+  {
+   "t": 12417,
+   "text": "\"$then\":\"Conf"
+  },
+  {
+   "t": 12417,
+   "text": "irmed\",\"$else\":\""
+  },
+  {
+   "t": 12536,
+   "text": "Draft\"},\"variant"
+  },
+  {
+   "t": 12536,
+   "text": "\":{\"$cond\":{"
+  },
+  {
+   "t": 12536,
+   "text": "\"$state\":\"/booked"
+  },
+  {
+   "t": 12672,
+   "text": "\",\"eq\":true},\"$"
+  },
+  {
+   "t": 12672,
+   "text": "then\":\"success\",\"$else\":"
+  },
+  {
+   "t": 12672,
+   "text": "\"warning\"}},\"children"
+  },
+  {
+   "t": 12672,
+   "text": "\":[]}}\n{\""
+  },
+  {
+   "t": 12794,
+   "text": "op\":\"add\",\"path\":\""
+  },
+  {
+   "t": 12794,
+   "text": "/elements/confirm-"
+  },
+  {
+   "t": 12794,
+   "text": "btn\",\"value\":{\"type"
+  },
+  {
+   "t": 12794,
+   "text": "\":\"Button\",\"props\":{"
+  },
+  {
+   "t": 12901,
+   "text": "\"label\":\"Confirm"
+  },
+  {
+   "t": 12901,
+   "text": " trip\",\"variant\":\"prim"
+  },
+  {
+   "t": 12901,
+   "text": "ary\",\"icon\":\"check"
+  },
+  {
+   "t": 12977,
+   "text": "mark.circle.fill"
+  },
+  {
+   "t": 12977,
+   "text": "\"},\"on\":{\"press"
+  },
+  {
+   "t": 13079,
+   "text": "\":{\"action\":\"setState"
+  },
+  {
+   "t": 13079,
+   "text": "\",\"params\":{\"statePath"
+  },
+  {
+   "t": 13079,
+   "text": "\":\"/booked\",\"value\":"
+  },
+  {
+   "t": 13156,
+   "text": "true}}},\"watch\":"
+  },
+  {
+   "t": 13156,
+   "text": "{\"/booked\":{\""
+  },
+  {
+   "t": 13156,
+   "text": "action\":\"toast\",\"params\":"
+  },
+  {
+   "t": 13281,
+   "text": "{\"message\":\"T"
+  },
+  {
+   "t": 13281,
+   "text": "okyo trip confirm"
+  },
+  {
+   "t": 13281,
+   "text": "ed!\"}}},\"children"
+  },
+  {
+   "t": 13393,
+   "text": "\":[]}}\n{\""
+  },
+  {
+   "t": 13393,
+   "text": "op\":\"add\",\"path"
+  },
+  {
+   "t": 13393,
+   "text": "\":\"/elements/switch"
+  },
+  {
+   "t": 13393,
+   "text": "-budget\",\"value\":{\""
+  },
+  {
+   "t": 13545,
+   "text": "type\":\"Switch\",\"props"
+  },
+  {
+   "t": 13545,
+   "text": "\":{\"label\":\"Show"
+  },
+  {
+   "t": 13545,
+   "text": " budget bre"
+  },
+  {
+   "t": 13545,
+   "text": "akdown\",\"description\":\""
+  },
+  {
+   "t": 13639,
+   "text": "Da"
+  },
+  {
+   "t": 13639,
+   "text": "ily spending"
+  },
+  {
+   "t": 13639,
+   "text": " chart\",\"checked\":{\""
+  },
+  {
+   "t": 13766,
+   "text": "$bindState\":\"/show"
+  },
+  {
+   "t": 13766,
+   "text": "Budget\"}},\"children"
+  },
+  {
+   "t": 13766,
+   "text": "\":[]}}\n{\""
+  },
+  {
+   "t": 13766,
+   "text": "op\":\"add\",\"path\":\""
+  },
+  {
+   "t": 13879,
+   "text": "/elements/plan-prog"
+  },
+  {
+   "t": 13879,
+   "text": "ress\",\"value\":{\"type\":"
+  },
+  {
+   "t": 13879,
+   "text": "\"Progress\",\"props\":{"
+  },
+  {
+   "t": 13974,
+   "text": "\"value\":70"
+  },
+  {
+   "t": 13974,
+   "text": ",\"max\":100"
+  },
+  {
+   "t": 13974,
+   "text": ",\"label\":\"Plan"
+  },
+  {
+   "t": 14066,
+   "text": "ning compl"
+  },
+  {
+   "t": 14066,
+   "text": "ete\",\"tint\":\"teal"
+  },
+  {
+   "t": 14066,
+   "text": "\"},\"children\":[]}"
+  },
+  {
+   "t": 14190,
+   "text": "}\n{\"op\":\"add"
+  },
+  {
+   "t": 14190,
+   "text": "\",\"path\":\"/state/"
+  },
+  {
+   "t": 14190,
+   "text": "booked\",\"value\":false}"
+  },
+  {
+   "t": 14191,
+   "text": "\n{\"op\":\"add\",\"path"
+  },
+  {
+   "t": 14264,
+   "text": "\":\"/state/showBud"
+  },
+  {
+   "t": 14264,
+   "text": "get\",\"value\":true}\n{"
+  },
+  {
+   "t": 14341,
+   "text": "\"op\":\"add\",\"path\":"
+  },
+  {
+   "t": 14341,
+   "text": "\"/elements/budget-"
+  },
+  {
+   "t": 14441,
+   "text": "card\",\"value\":{\"type\":"
+  },
+  {
+   "t": 14441,
+   "text": "\"Card\",\"props\":{\""
+  },
+  {
+   "t": 14441,
+   "text": "title\":\"Daily spending"
+  },
+  {
+   "t": 14587,
+   "text": "\",\"icon\":\"ch"
+  },
+  {
+   "t": 14587,
+   "text": "art.bar.fill\",\""
+  },
+  {
+   "t": 14587,
+   "text": "tint\":\"green\"},\""
+  },
+  {
+   "t": 14587,
+   "text": "visible\":{\"$state\":"
+  },
+  {
+   "t": 14587,
+   "text": "\"/showBudget\""
+  },
+  {
+   "t": 14715,
+   "text": "},\"children\":[\"budget-"
+  },
+  {
+   "t": 14715,
+   "text": "chart\"]}}\n{"
+  },
+  {
+   "t": 14715,
+   "text": "\"op\":\"add\",\"path\":"
+  },
+  {
+   "t": 14715,
+   "text": "\"/elements/budget-"
+  },
+  {
+   "t": 14802,
+   "text": "chart\",\"value\":{\"type"
+  },
+  {
+   "t": 14802,
+   "text": "\":\"BarChart\",\"props"
+  },
+  {
+   "t": 14881,
+   "text": "\":{\"data"
+  },
+  {
+   "t": 14881,
+   "text": "\":{\"$state\":\"/"
+  },
+  {
+   "t": 15031,
+   "text": "budget\"},\"xKey"
+  },
+  {
+   "t": 15031,
+   "text": "\":\"day\",\"yKey\":"
+  },
+  {
+   "t": 15031,
+   "text": "\"us"
+  },
+  {
+   "t": 15031,
+   "text": "d\",\"tint\":\"green\",\""
+  },
+  {
+   "t": 15031,
+   "text": "height\":160"
+  },
+  {
+   "t": 15119,
+   "text": "},\"children\":[]}}"
+  },
+  {
+   "t": 15119,
+   "text": "\n{\"op\":\"add\",\""
+  },
+  {
+   "t": 15119,
+   "text": "path\":\"/state/budget"
+  },
+  {
+   "t": 15210,
+   "text": "\",\"value\":[]}\n{"
+  },
+  {
+   "t": 15210,
+   "text": "\"op\":\"add\",\"path\":"
+  },
+  {
+   "t": 15297,
+   "text": "\"/state/budget/0"
+  },
+  {
+   "t": 15297,
+   "text": "\",\"value\":{\"day\":\""
+  },
+  {
+   "t": 15297,
+   "text": "Day 1\",\"usd\":"
+  },
+  {
+   "t": 15435,
+   "text": "180}}\n{\"op\":"
+  },
+  {
+   "t": 15435,
+   "text": "\"add\",\"path\":\"/state"
+  },
+  {
+   "t": 15435,
+   "text": "/budget/1\",\"value\":"
+  },
+  {
+   "t": 15435,
+   "text": "{\"day\":\"Day "
+  },
+  {
+   "t": 15525,
+   "text": "2\",\"usd\":240"
+  },
+  {
+   "t": 15525,
+   "text": "}}\n{\"op\":\""
+  },
+  {
+   "t": 15525,
+   "text": "add\",\"path\":\"/state/"
+  },
+  {
+   "t": 15677,
+   "text": "budget/2\",\"value\":{"
+  },
+  {
+   "t": 15677,
+   "text": "\"day\":\"Day 3"
+  },
+  {
+   "t": 15677,
+   "text": "\",\"usd\":160"
+  },
+  {
+   "t": 15677,
+   "text": "}}\n{\"op\":\""
+  },
+  {
+   "t": 15823,
+   "text": "add\",\"path\":\"/elements"
+  },
+  {
+   "t": 15823,
+   "text": "/day1-card\",\"value\":"
+  },
+  {
+   "t": 15823,
+   "text": "{\"type\":\"Card\",\""
+  },
+  {
+   "t": 15823,
+   "text": "props\":{\"title\":\""
+  },
+  {
+   "t": 15823,
+   "text": "Day 1: Old"
+  },
+  {
+   "t": 15971,
+   "text": " Tokyo\",\"icon"
+  },
+  {
+   "t": 15971,
+   "text": "\":\"building"
+  },
+  {
+   "t": 15971,
+   "text": ".colum"
+  },
+  {
+   "t": 15971,
+   "text": "ns.fill\",\"tint\":"
+  },
+  {
+   "t": 16029,
+   "text": "\"red\"},\"children\":[\""
+  },
+  {
+   "t": 16029,
+   "text": "day1-list\"]}}"
+  },
+  {
+   "t": 16188,
+   "text": "\n{\"op\":\"add\",\""
+  },
+  {
+   "t": 16188,
+   "text": "path\":\"/elements/day"
+  },
+  {
+   "t": 16188,
+   "text": "1-list\",\"value\":{\""
+  },
+  {
+   "t": 16188,
+   "text": "type\":\"List\",\"props\":{"
+  },
+  {
+   "t": 16188,
+   "text": "},\"repeat\":{\""
+  },
+  {
+   "t": 16237,
+   "text": "statePath\":\"/day1"
+  },
+  {
+   "t": 16260,
+   "text": "\",\"key\":\"id\"},\""
+  },
+  {
+   "t": 16442,
+   "text": "children\":[\"day1"
+  },
+  {
+   "t": 16442,
+   "text": "-item\"]}}\n{"
+  },
+  {
+   "t": 16442,
+   "text": "\"op\":\"add\",\"path\":"
+  },
+  {
+   "t": 16442,
+   "text": "\"/elements/day1-"
+  },
+  {
+   "t": 16442,
+   "text": "item\",\"value\":{\"type\":"
+  },
+  {
+   "t": 16505,
+   "text": "\"ListItem\",\"props\":"
+  },
+  {
+   "t": 16505,
+   "text": "{\"title\":{\"$item"
+  },
+  {
+   "t": 16660,
+   "text": "\":\"title\"},\"subt"
+  },
+  {
+   "t": 16660,
+   "text": "itle\":{\"$item\":"
+  },
+  {
+   "t": 16660,
+   "text": "\"subtitle\"},\""
+  },
+  {
+   "t": 16660,
+   "text": "icon\":{\"$item\":"
+  },
+  {
+   "t": 16660,
+   "text": "\"icon\"},\"tint"
+  },
+  {
+   "t": 16735,
+   "text": "\":{\"$item\":\"t"
+  },
+  {
+   "t": 16735,
+   "text": "int\"},\"trailing\":"
+  },
+  {
+   "t": 16870,
+   "text": "{\"$item\":\"time\""
+  },
+  {
+   "t": 16870,
+   "text": "}},\"children\":[]}"
+  },
+  {
+   "t": 16870,
+   "text": "}\n{\"op\":\"add"
+  },
+  {
+   "t": 16958,
+   "text": "\",\"path\":\"/state/day"
+  },
+  {
+   "t": 16958,
+   "text": "1\",\"value\":[]}"
+  },
+  {
+   "t": 16958,
+   "text": "\n{\"op\":\"add\",\"path"
+  },
+  {
+   "t": 17092,
+   "text": "\":\"/state/day1/"
+  },
+  {
+   "t": 17092,
+   "text": "0\",\"value\":{\"id\":"
+  },
+  {
+   "t": 17092,
+   "text": "\"a1\",\"title\":\""
+  },
+  {
+   "t": 17092,
+   "text": "Sen"
+  },
+  {
+   "t": 17092,
+   "text": "so-"
+  },
+  {
+   "t": 17125,
+   "text": "ji Temple\",\"subt"
+  },
+  {
+   "t": 17158,
+   "text": "itle\":\"Asakus"
+  },
+  {
+   "t": 17186,
+   "text": "a\",\"icon\":\"building"
+  },
+  {
+   "t": 17215,
+   "text": ".colum"
+  },
+  {
+   "t": 17248,
+   "text": "ns.fill\",\"tint\":"
+  },
+  {
+   "t": 17282,
+   "text": "\"red\",\"time\":\"9:"
+  },
+  {
+   "t": 17324,
+   "text": "00\""
+  },
+  {
+   "t": 17350,
+   "text": "}}\n{\"op\":\""
+  },
+  {
+   "t": 17382,
+   "text": "add\",\"path\":\"/state/"
+  },
+  {
+   "t": 17418,
+   "text": "day1/1\",\"value\":{"
+  },
+  {
+   "t": 17454,
+   "text": "\"id\":\"a2\",\"title"
+  },
+  {
+   "t": 17481,
+   "text": "\":\"S"
+  },
+  {
+   "t": 17514,
+   "text": "ushi l"
+  },
+  {
+   "t": 17556,
+   "text": "unch\",\"subtitle\":"
+  },
+  {
+   "t": 17583,
+   "text": "\"Tsukiji"
+  },
+  {
+   "t": 17619,
+   "text": " Outer Market\",\"icon\":"
+  },
+  {
+   "t": 17648,
+   "text": "\"fork.knife\",\"t"
+  },
+  {
+   "t": 17682,
+   "text": "int\":\"orange\",\""
+  },
+  {
+   "t": 17715,
+   "text": "time\":\"12:30\"}"
+  },
+  {
+   "t": 17749,
+   "text": "}\n{\"op\":\"add"
+  },
+  {
+   "t": 17784,
+   "text": "\",\"path\":\"/state/day"
+  },
+  {
+   "t": 17814,
+   "text": "1/2\",\"value\":{\""
+  },
+  {
+   "t": 17849,
+   "text": "id\":\"a3\",\"title\":"
+  },
+  {
+   "t": 17881,
+   "text": "\"Ueno"
+  },
+  {
+   "t": 17918,
+   "text": " Park\",\"subtitle\":"
+  },
+  {
+   "t": 17962,
+   "text": "\"Stroll and muse"
+  },
+  {
+   "t": 17983,
+   "text": "ums\",\"icon\":\"lea"
+  },
+  {
+   "t": 18016,
+   "text": "f.fill\",\"tint\":"
+  },
+  {
+   "t": 18061,
+   "text": "\"green\",\"time\":\"15:"
+  },
+  {
+   "t": 18091,
+   "text": "00\"}}\n{\"op"
+  },
+  {
+   "t": 18121,
+   "text": "\":\"add\",\"path\":\"/"
+  },
+  {
+   "t": 18154,
+   "text": "elements/day2-card\",\""
+  },
+  {
+   "t": 18183,
+   "text": "value\":{\"type\":\""
+  },
+  {
+   "t": 18215,
+   "text": "Card\",\"props\":{\"title\":"
+  },
+  {
+   "t": 18252,
+   "text": "\"Day 2: Mod"
+  },
+  {
+   "t": 18283,
+   "text": "ern Tokyo\",\"ic"
+  },
+  {
+   "t": 18317,
+   "text": "on\":\"sparkles\",\""
+  },
+  {
+   "t": 18348,
+   "text": "tint\":\"purple\"},"
+  },
+  {
+   "t": 18382,
+   "text": "\"children\":[\"day2-list"
+  },
+  {
+   "t": 18416,
+   "text": "\"]}}\n{\"op"
+  },
+  {
+   "t": 18454,
+   "text": "\":\"add\",\"path\":\"/"
+  },
+  {
+   "t": 18482,
+   "text": "elements/day2-list\",\""
+  },
+  {
+   "t": 18524,
+   "text": "value\":{\"type\":\"List"
+  },
+  {
+   "t": 18552,
+   "text": "\",\"props\":{},\"repe"
+  },
+  {
+   "t": 18590,
+   "text": "at\":{\"statePath\":"
+  },
+  {
+   "t": 18619,
+   "text": "\"/day2\",\"key\":\""
+  },
+  {
+   "t": 18649,
+   "text": "id\"},\"children\":[\"day"
+  },
+  {
+   "t": 18682,
+   "text": "2-item\"]}}"
+  },
+  {
+   "t": 18715,
+   "text": "\n{\"op\":\"add\",\"path"
+  },
+  {
+   "t": 18756,
+   "text": "\":\"/elements/day2"
+  },
+  {
+   "t": 18783,
+   "text": "-item\",\"value\":{\"type"
+  },
+  {
+   "t": 18815,
+   "text": "\":\"ListItem\",\"props"
+  },
+  {
+   "t": 18849,
+   "text": "\":{\"title\":{\"$"
+  },
+  {
+   "t": 18884,
+   "text": "item\":\"title\"},\"sub"
+  },
+  {
+   "t": 18915,
+   "text": "title\":{\"$item"
+  },
+  {
+   "t": 18949,
+   "text": "\":\"subtitle\"},"
+  },
+  {
+   "t": 18982,
+   "text": "\"icon\":{\"$item"
+  },
+  {
+   "t": 19015,
+   "text": "\":\"icon\"},\"t"
+  },
+  {
+   "t": 19048,
+   "text": "int\":{\"$item\":\""
+  },
+  {
+   "t": 19083,
+   "text": "tint\"},\"trailing"
+  },
+  {
+   "t": 19115,
+   "text": "\":{\"$item\":\"time"
+  },
+  {
+   "t": 19148,
+   "text": "\"}},\"children\":[]"
+  },
+  {
+   "t": 19182,
+   "text": "}}\n{\"op\":\""
+  },
+  {
+   "t": 19216,
+   "text": "add\",\"path\":\"/state/"
+  },
+  {
+   "t": 19249,
+   "text": "day2\",\"value\":["
+  },
+  {
+   "t": 19284,
+   "text": "]}\n{\"op\":\""
+  },
+  {
+   "t": 19316,
+   "text": "add\",\"path\":\"/state/"
+  },
+  {
+   "t": 19352,
+   "text": "day2/0\",\"value\":{"
+  },
+  {
+   "t": 19390,
+   "text": "\"id\":\"b1\",\"title"
+  },
+  {
+   "t": 19415,
+   "text": "\":\"Meiji Sh"
+  },
+  {
+   "t": 19449,
+   "text": "rine\",\"subtitle\":"
+  },
+  {
+   "t": 19481,
+   "text": "\"Forest wal"
+  },
+  {
+   "t": 19516,
+   "text": "k"
+  },
+  {
+   "t": 19551,
+   "text": "\",\"icon\":\"t"
+  },
+  {
+   "t": 19582,
+   "text": "ree.fill\",\"tint\":"
+  },
+  {
+   "t": 19615,
+   "text": "\"green\",\"time\":\"9:"
+  },
+  {
+   "t": 19648,
+   "text": "00"
+  },
+  {
+   "t": 19681,
+   "text": "\"}}\n{\"op\":"
+  },
+  {
+   "t": 19716,
+   "text": "\"add\",\"path\":\"/state"
+  },
+  {
+   "t": 19748,
+   "text": "/day2/1\",\"value\":"
+  },
+  {
+   "t": 19781,
+   "text": "{\"id\":\"b2\",\""
+  },
+  {
+   "t": 19815,
+   "text": "title\":\"Sh"
+  },
+  {
+   "t": 19848,
+   "text": "ibuya Crossing\",\""
+  },
+  {
+   "t": 19882,
+   "text": "subtitle\":\"Sh"
+  },
+  {
+   "t": 19915,
+   "text": "op"
+  },
+  {
+   "t": 19952,
+   "text": "ping and c"
+  },
+  {
+   "t": 19981,
+   "text": "afes\",\"icon\":\"c"
+  },
+  {
+   "t": 20015,
+   "text": "up.and.sa"
+  },
+  {
+   "t": 20049,
+   "text": "ucer.fill\",\"tint"
+  },
+  {
+   "t": 20084,
+   "text": "\":\"p"
+  },
+  {
+   "t": 20119,
+   "text": "ink\",\"time\":\"13"
+  },
+  {
+   "t": 20149,
+   "text": ":00\"}}\n{\""
+  },
+  {
+   "t": 20182,
+   "text": "op\":\"add\",\"path\":\""
+  },
+  {
+   "t": 20216,
+   "text": "/state/day2/2\",\""
+  },
+  {
+   "t": 20250,
+   "text": "value\":{\"id\":\"b"
+  },
+  {
+   "t": 20282,
+   "text": "3\",\"title\":\"Sh"
+  },
+  {
+   "t": 20316,
+   "text": "ibuya S"
+  },
+  {
+   "t": 20349,
+   "text": "ky\",\"subtitle\":\""
+  },
+  {
+   "t": 20383,
+   "text": "Sunset views"
+  },
+  {
+   "t": 20415,
+   "text": "\",\"icon\":\"s"
+  },
+  {
+   "t": 20448,
+   "text": "un"
+  },
+  {
+   "t": 20486,
+   "text": "set.f"
+  },
+  {
+   "t": 20515,
+   "text": "ill\",\"tint\":\"or"
+  },
+  {
+   "t": 20550,
+   "text": "ange\",\"time\":\"17"
+  },
+  {
+   "t": 20581,
+   "text": ":30\"}}\n{\""
+  },
+  {
+   "t": 20622,
+   "text": "op\":\"add\",\"path\":\""
+  },
+  {
+   "t": 20661,
+   "text": "/elements/day3-card"
+  },
+  {
+   "t": 20686,
+   "text": "\",\"value\":{\"type\":\""
+  },
+  {
+   "t": 20718,
+   "text": "Card\",\"props\":{\"title"
+  },
+  {
+   "t": 20758,
+   "text": "\":\"Day 3:"
+  },
+  {
+   "t": 20787,
+   "text": " Day Trip\",\"icon\":"
+  },
+  {
+   "t": 20815,
+   "text": "\"tram.fill\",\"t"
+  },
+  {
+   "t": 20850,
+   "text": "int\":\"blue\"},\""
+  },
+  {
+   "t": 20883,
+   "text": "children\":[\"day3-list\""
+  },
+  {
+   "t": 20915,
+   "text": "]}}\n{\"op\":"
+  },
+  {
+   "t": 20949,
+   "text": "\"add\",\"path\":\"/el"
+  },
+  {
+   "t": 20982,
+   "text": "ements/day3-list\",\"value"
+  },
+  {
+   "t": 21017,
+   "text": "\":{\"type\":\"List\",\""
+  },
+  {
+   "t": 21052,
+   "text": "props\":{},\"repeat"
+  },
+  {
+   "t": 21082,
+   "text": "\":{\"statePath\":\""
+  },
+  {
+   "t": 21116,
+   "text": "/day3\",\"key\":\"id"
+  },
+  {
+   "t": 21149,
+   "text": "\"},\"children\":[\"day3"
+  },
+  {
+   "t": 21182,
+   "text": "-item\"]}}\n{"
+  },
+  {
+   "t": 21215,
+   "text": "\"op\":\"add\",\"path\":"
+  },
+  {
+   "t": 21248,
+   "text": "\"/elements/day3-"
+  },
+  {
+   "t": 21281,
+   "text": "item\",\"value\":{\"type\":"
+  },
+  {
+   "t": 21315,
+   "text": "\"ListItem\",\"props\":"
+  },
+  {
+   "t": 21373,
+   "text": "{\"title\":{\"$item"
+  },
+  {
+   "t": 21478,
+   "text": "\":\"title\"},\"subt"
+  },
+  {
+   "t": 21478,
+   "text": "itle\":{\"$item\":"
+  },
+  {
+   "t": 21478,
+   "text": "\"subtitle\"},\""
+  },
+  {
+   "t": 21488,
+   "text": "icon\":{\"$item\":"
+  },
+  {
+   "t": 21515,
+   "text": "\"icon\"},\"tint"
+  },
+  {
+   "t": 21552,
+   "text": "\":{\"$item\":\"t"
+  },
+  {
+   "t": 21583,
+   "text": "int\"},\"trailing\":"
+  },
+  {
+   "t": 21615,
+   "text": "{\"$item\":\"time\""
+  },
+  {
+   "t": 21650,
+   "text": "}},\"children\":[]}"
+  },
+  {
+   "t": 21682,
+   "text": "}\n{\"op\":\"add"
+  },
+  {
+   "t": 21718,
+   "text": "\",\"path\":\"/state/day"
+  },
+  {
+   "t": 21750,
+   "text": "3\",\"value\":[]}"
+  },
+  {
+   "t": 21783,
+   "text": "\n{\"op\":\"add\",\"path"
+  },
+  {
+   "t": 21815,
+   "text": "\":\"/state/day3/"
+  },
+  {
+   "t": 21847,
+   "text": "0\",\"value\":{\"id\":"
+  },
+  {
+   "t": 21887,
+   "text": "\"c1\",\"title\":\""
+  },
+  {
+   "t": 21916,
+   "text": "Train"
+  },
+  {
+   "t": 21954,
+   "text": " to Nik"
+  },
+  {
+   "t": 21983,
+   "text": "ko\",\"subtitle\":\""
+  },
+  {
+   "t": 22015,
+   "text": "Limited express"
+  },
+  {
+   "t": 22050,
+   "text": "\",\"icon\":\"tram."
+  },
+  {
+   "t": 22088,
+   "text": "fill\",\"tint\":\"bl"
+  },
+  {
+   "t": 22115,
+   "text": "ue\",\"time\":\"8:00"
+  },
+  {
+   "t": 22150,
+   "text": "\"}}\n{\"op\":"
+  },
+  {
+   "t": 22183,
+   "text": "\"add\",\"path\":\"/state"
+  },
+  {
+   "t": 22216,
+   "text": "/day3/1\",\"value\":"
+  },
+  {
+   "t": 22248,
+   "text": "{\"id\":\"c2\",\""
+  },
+  {
+   "t": 22281,
+   "text": "title\":\"Toshogu"
+  },
+  {
+   "t": 22317,
+   "text": " Shrine\",\"subtit"
+  },
+  {
+   "t": 22348,
+   "text": "le\":\"U"
+  },
+  {
+   "t": 22382,
+   "text": "NESCO site"
+  },
+  {
+   "t": 22415,
+   "text": "\",\"icon\":\"building.colum"
+  },
+  {
+   "t": 22448,
+   "text": "ns.fill\",\"tint\":"
+  },
+  {
+   "t": 22485,
+   "text": "\"yellow\",\"time\":\""
+  },
+  {
+   "t": 22515,
+   "text": "10"
+  },
+  {
+   "t": 22548,
+   "text": ":30\"}}\n{\""
+  },
+  {
+   "t": 22594,
+   "text": "op\":\"add\",\"path\":\""
+  },
+  {
+   "t": 22615,
+   "text": "/state/day3/2\",\""
+  },
+  {
+   "t": 22651,
+   "text": "value\":{\"id\":\"c"
+  },
+  {
+   "t": 22683,
+   "text": "3\",\"title\":\"Farew"
+  },
+  {
+   "t": 22715,
+   "text": "ell "
+  },
+  {
+   "t": 22750,
+   "text": "ramen\",\"subtitle\":"
+  },
+  {
+   "t": 22783,
+   "text": "\"Shinjuku al"
+  },
+  {
+   "t": 22818,
+   "text": "ley\",\"icon\":\"fork"
+  },
+  {
+   "t": 22849,
+   "text": ".knife\",\"tint\":\""
+  },
+  {
+   "t": 22887,
+   "text": "red\",\"time\":\"19:00"
+  },
+  {
+   "t": 22917,
+   "text": "\"}}"
+  }
+ ]
+}

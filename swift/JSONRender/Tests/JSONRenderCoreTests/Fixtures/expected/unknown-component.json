@@ -1,0 +1,12 @@
+{
+  "component": "Column",
+  "props": {},
+  "children": [
+    {
+      "component": "Text",
+      "props": {
+        "text": "kept"
+      }
+    }
+  ]
+}

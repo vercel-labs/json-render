@@ -1,0 +1,23 @@
+{
+  "root": "col",
+  "elements": {
+    "col": {
+      "type": "Column",
+      "props": {},
+      "children": ["known", "mystery"]
+    },
+    "known": {
+      "type": "Text",
+      "props": { "text": "kept" }
+    },
+    "mystery": {
+      "type": "Mystery",
+      "props": { "x": 1 },
+      "children": ["inner"]
+    },
+    "inner": {
+      "type": "Text",
+      "props": { "text": "dropped with its parent" }
+    }
+  }
+}
