@@ -1,6 +1,6 @@
 {
   "name": "@json-render/devtools",
-  "version": "0.23.0",
+  "version": "0.23.1",
   "license": "Apache-2.0",
   "description": "Framework-agnostic devtools core for json-render: event store, panel UI, picker, stream taps.",
   "keywords": [
