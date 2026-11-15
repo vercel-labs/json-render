@@ -32,6 +32,9 @@ dist
 tsup.config.bundled_*.mjs
 next-env.d.ts
 
+# Swift Package Manager
+.build/
+.swiftpm/
 
 # Debug
 npm-debug.log*

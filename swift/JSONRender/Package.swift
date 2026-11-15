@@ -1,6 +1,9 @@
 // swift-tools-version: 5.9
 import PackageDescription
 
+// This manifest is for local use, such as `swift test` from this directory.
+// The repository root has a second manifest that exposes the same products by
+// URL; keep the two in step.
 let package = Package(
     name: "JSONRender",
     platforms: [
