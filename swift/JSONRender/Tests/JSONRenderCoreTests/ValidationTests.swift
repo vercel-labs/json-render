@@ -299,6 +299,43 @@ final class ValidationTests: XCTestCase {
         })
     }
 
+    func testDroppedOrphanWarningsLeaveTheSpecValid() {
+        // Orphans are warnings, so a spec whose only issues are unreachable
+        // elements is valid, as core's validateSpec reports. Dropping some of
+        // those warnings at the issue limit must not turn the spec invalid:
+        // the summary takes the severity of the issues it replaces.
+        let orphanCount = 1_001
+        var elements: [String: JSONValue] = [
+            "root": .object(["type": .string("Text"), "props": .object([:])]),
+        ]
+        for index in 0..<orphanCount {
+            elements["orphan\(index)"] = .object([
+                "type": .string("Text"),
+                "props": .object([:]),
+            ])
+        }
+        let json = JSONValue.object([
+            "root": .string("root"),
+            "elements": .object(elements),
+        ])
+
+        let result = validateSpecJSON(json, options: ValidateSpecOptions(checkOrphans: true))
+
+        XCTAssertTrue(result.valid, "Unreachable elements are warnings, not errors")
+        XCTAssertEqual(
+            result.issues.filter { $0.code == .orphanedElement }.count,
+            1_000,
+            "The issue count is bounded"
+        )
+        let summary = result.issues.first { $0.code == .specTooComplex }
+        XCTAssertEqual(
+            summary?.severity,
+            .warning,
+            "The summary follows the severity of the issues it replaced"
+        )
+        XCTAssertEqual(result.issues.last, summary, "The summary comes last")
+    }
+
     func testDecodedSpecMatchesRawValidation() throws {
         for name in try Fixtures.specNames() {
             let decoded = validateSpec(try Fixtures.spec(name))

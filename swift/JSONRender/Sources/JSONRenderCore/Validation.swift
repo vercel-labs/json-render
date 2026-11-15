@@ -170,12 +170,20 @@ private final class ValidationBudget {
 /// stops adding issues at a count or byte limit. The result then carries one
 /// final issue that says the rest were not reported, so a shortened result
 /// never reads as a clean spec.
+///
+/// That summary takes the severity of the issues it stands in for. Dropped
+/// warnings stay warnings, so a spec whose only problems are unreachable
+/// elements is still valid, as it is in core's `validateSpec`; a dropped error
+/// keeps the spec invalid.
 private struct SpecIssueCollector {
     private let limits: ValidateSpecLimits
     private(set) var issues: [SpecIssue] = []
     private var messageBytes = 0
     /// Whether an issue was dropped because the walk reached a limit.
     private(set) var dropped = false
+    /// Whether a dropped issue was an error, which decides the severity of the
+    /// summary and whether the spec is valid.
+    private var droppedError = false
 
     init(limits: ValidateSpecLimits) {
         self.limits = limits
@@ -183,10 +191,15 @@ private struct SpecIssueCollector {
 
     /// Adds one issue, or drops it when the diagnostics budget is spent.
     mutating func add(_ issue: SpecIssue) {
-        guard !dropped else { return }
         let bytes = issue.message.utf8.count
-        guard issues.count < limits.maxIssues, messageBytes + bytes <= limits.maxIssueBytes else {
+        guard !dropped,
+              issues.count < limits.maxIssues,
+              messageBytes + bytes <= limits.maxIssueBytes
+        else {
             dropped = true
+            if issue.severity == .error {
+                droppedError = true
+            }
             return
         }
         issues.append(issue)
@@ -197,10 +210,19 @@ private struct SpecIssueCollector {
     /// short.
     func finish() -> [SpecIssue] {
         guard dropped else { return issues }
+        let severity: SpecIssueSeverity
+        let subject: String
+        if droppedError {
+            severity = .error
+            subject = "problems"
+        } else {
+            severity = .warning
+            subject = "warnings"
+        }
         return issues + [
             SpecIssue(
-                severity: .error,
-                message: "Spec has more problems than the validator reports at once; the remaining issues were not reported.",
+                severity: severity,
+                message: "Spec has more \(subject) than the validator reports at once; the remaining \(subject) were not reported.",
                 code: .specTooComplex
             )
         ]
