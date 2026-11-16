@@ -28,6 +28,32 @@ class CatalogTest {
     }
 
     @Test
+    fun ignoresMalformedOptionsAndKeepsTheFirstDuplicate() {
+        val options = Json.parseToJsonElement(
+            """[null, false, 7, {}, {"label":"Missing value"}, {"value":42},
+                "first", {"value":"first","label":"Duplicate"},
+                {"value":"second","label":"Second","disabled":true,"icon":"check"},
+                {"value":"third","label":false,"disabled":"true"}, []]""",
+        )
+        assertEquals(
+            listOf(
+                Option("first", "first", false),
+                Option("second", "Second", true, "check"),
+                Option("third", "third", false),
+            ),
+            selectionOptions(options),
+        )
+    }
+
+    @Test
+    fun nonArrayOptionsProduceAnEmptyList() {
+        assertEquals(emptyList(), selectionOptions(null))
+        for (source in listOf("null", "false", "42", "\"option\"", "{}")) {
+            assertEquals(emptyList(), selectionOptions(Json.parseToJsonElement(source)))
+        }
+    }
+
+    @Test
     fun acceptsPortableChartRowsAndFiltersNonNumericValues() {
         val sample = Json.parseToJsonElement(
             """

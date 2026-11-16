@@ -8,7 +8,8 @@ navigation, and animated progress indicators to the [Jetpack Compose renderer](.
 
 Use JDK 17, Android SDK 36, and Gradle 8.13. The library supports Android API 23
 and later. It uses AndroidX Material 3 `1.5.0-alpha18` for the Expressive theme
-and components.
+and components. These APIs are experimental and can change before a stable
+AndroidX release; this catalog does not provide a stable Material 3 dependency.
 
 In your app's `settings.gradle.kts`, include the library build from a local
 checkout of json-render.

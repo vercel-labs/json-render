@@ -43,8 +43,10 @@ internal fun ComponentContext.gap() = when (text("gap")) {
 
 internal data class Option(val value: String, val label: String, val disabled: Boolean, val icon: String? = null)
 
-internal fun ComponentContext.options(): List<Option> =
-    (props["options"] as? JsonArray).orEmpty().mapNotNull { element ->
+internal fun ComponentContext.options(): List<Option> = selectionOptions(props["options"])
+
+internal fun selectionOptions(value: JsonElement?): List<Option> =
+    (value as? JsonArray).orEmpty().mapNotNull { element ->
         when (element) {
             is JsonObject -> {
                 val value = element["value"].text() ?: return@mapNotNull null
