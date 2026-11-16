@@ -1,8 +1,24 @@
 # Changelog
 
-## 0.23.0
+## 0.23.1
 
 <!-- release:start -->
+
+### Bug Fixes
+
+- **Swift render tree limits:** Bound the child ids a build holds, so a spec that lists the same child many times with a long state value stops at a limit instead of holding a copy of that value once per child. Bound the issues the validator reports and the message bytes they hold, and end a shortened result with one `specTooComplex` issue that keeps its severity, so a spec whose only dropped issues were warnings stays valid (#477)
+
+### Improvements
+
+- **Swift package installation:** Made the repository root a Swift package, so Xcode and SwiftPM can add `JSONRender` by URL from 0.23.1 on, with the `JSONRenderCore`, `JSONRenderSwiftUI`, and `JSONRenderCatalog` products. The nested package at `swift/JSONRender` remains for local checkouts (#478)
+
+### Contributors
+
+- @ctate
+
+<!-- release:end -->
+
+## 0.23.0
 
 ### New Features
 
@@ -30,8 +46,6 @@
 - @KennyMcSimpson
 - @WhyTan00
 - @Jassi2004
-
-<!-- release:end -->
 
 ## 0.22.0
 

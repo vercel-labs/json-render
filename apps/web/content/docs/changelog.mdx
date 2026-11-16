@@ -4,6 +4,20 @@ title: "Changelog"
 
 Notable changes and updates to json-render.
 
+## v0.23.1
+
+November 15, 2026
+
+### Fixed: Swift Render Tree Limits
+
+Rendered child ids are now bounded, so a spec that lists the same child many times with a long state value stops at a limit instead of holding a copy of that value once per child. Validation also bounds the number of issues it reports and the message bytes they hold, and ends a shortened result with one `specTooComplex` issue. A result whose dropped issues were warnings stays valid.
+
+### New: Swift Package by URL
+
+The repository root is now a Swift package, so Xcode and SwiftPM can add `JSONRender` by URL from 0.23.1 on, with the `JSONRenderCore`, `JSONRenderSwiftUI`, and `JSONRenderCatalog` products. The nested package at `swift/JSONRender` still works for local checkouts.
+
+---
+
 ## v0.23.0
 
 November 15, 2026
