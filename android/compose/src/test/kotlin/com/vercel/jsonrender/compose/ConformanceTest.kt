@@ -9,10 +9,14 @@ import kotlinx.serialization.json.JsonPrimitive
 
 class ConformanceTest {
     @Test
-    fun `repeats and visibility match the existing React conformance fixtures`() {
-        for (name in listOf("todo-repeat", "visibility")) {
+    fun `all shared spec trees match the existing React conformance fixtures`() {
+        val names = listOf("expressions", "settings-form", "todo-repeat", "unknown-component", "user-profile-card", "visibility")
+        val types = setOf(
+            "Card", "Heading", "Text", "Badge", "Stack", "Separator", "Progress",
+            "Button", "Input", "Select", "Switch", "Image", "List", "Row", "Column",
+        )
+        for (name in names) {
             val spec = Spec.decode(fixture("specs/$name.json"))
-            val types = spec.elements.values.map { it.type }.toSet()
             val actual = checkNotNull(buildRenderTree(spec, types, spec.state)).snapshot()
             val expected = Json.parseToJsonElement(fixture("expected/$name.json"))
             assertEquals(expected, actual, name)

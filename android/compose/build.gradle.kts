@@ -14,6 +14,9 @@ android {
     sourceSets.getByName("test").resources.srcDir(
         "../../swift/JSONRender/Tests/JSONRenderCoreTests/Fixtures",
     )
+    sourceSets.getByName("test").resources.srcDir(
+        "../../swift/JSONRender/Sources/JSONRenderStreamingDemo/Resources",
+    )
     buildFeatures {
         compose = true
     }

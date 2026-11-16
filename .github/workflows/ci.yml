@@ -73,7 +73,11 @@ jobs:
           packages: platforms;android-36 build-tools;35.0.0
       - name: Build and test
         working-directory: android
-        run: ./gradlew :compose:assembleRelease :compose:testDebugUnitTest
+        run: ./gradlew :compose:assembleRelease :compose:testDebugUnitTest :compose:lint
+      - name: Build and test Material 3 Expressive
+        if: ${{ hashFiles('android/material3-expressive/settings.gradle.kts') != '' }}
+        working-directory: android
+        run: ./gradlew -p material3-expressive assembleRelease testDebugUnitTest lint
 
   swift:
     name: Swift (Linux, core)
