@@ -15,7 +15,7 @@ internal fun String.itemPointer(): String = if (isEmpty() || startsWith("/")) th
 
 internal data class RepeatScope(val item: JsonElement, val index: Int, val path: String)
 
-private val templateReference = Regex("""\$\{([^}]+)}""")
+private val templateReference = Regex("""\$\{([^}]+)\}""")
 
 internal data class Expressions(val state: JsonObject, val scope: RepeatScope?) {
     fun binding(value: JsonElement): String? {
