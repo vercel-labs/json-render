@@ -56,9 +56,17 @@ struct CatalogButtonStyle: ViewModifier {
         #if compiler(>=6.2)
         if #available(iOS 26, macOS 26, *), appearance.usesLiquidGlass {
             if variant == "primary" {
+                #if os(macOS)
+                // The prominent macOS style uses the system's default-button bezel.
+                // Use tinted system glass here to keep the pill shape.
+                content.buttonStyle(.glass(.regular.tint(.accentColor)))
+                    .buttonBorderShape(.capsule)
+                    .controlSize(isAccessory ? .regular : .large)
+                #else
                 content.buttonStyle(.glassProminent)
                     .buttonBorderShape(.capsule)
                     .controlSize(isAccessory ? .regular : .large)
+                #endif
             } else {
                 content.buttonStyle(.glass)
                     .buttonBorderShape(.capsule)
