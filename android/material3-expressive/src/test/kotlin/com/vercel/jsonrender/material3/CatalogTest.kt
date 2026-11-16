@@ -1,9 +1,12 @@
 package com.vercel.jsonrender.material3
 
+import com.vercel.jsonrender.compose.FoundationComponents
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotSame
+import kotlin.test.assertSame
 
 class CatalogTest {
     @Test
@@ -16,6 +19,12 @@ class CatalogTest {
             Menu Dialog LoadingIndicator Progress ProgressBar
         """.trimIndent().split(Regex("\\s+")).toSet()
         assertEquals(expected, Material3ExpressiveComponents.keys)
+        val sharedLayouts = setOf("Column", "Row", "Stack")
+        for ((name, foundation) in FoundationComponents) {
+            val expressive = Material3ExpressiveComponents.getValue(name)
+            if (name in sharedLayouts) assertSame(foundation, expressive, name)
+            else assertNotSame(foundation, expressive, name)
+        }
     }
 
     @Test
