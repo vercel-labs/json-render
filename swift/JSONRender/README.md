@@ -174,11 +174,16 @@ JSONRenderView(spec: spec, registry: NativeCatalog.registry())
 | Menu | `label`, `icon`, `disabled` |
 | SegmentedPicker | `label`, `options` (objects with string `label` and `value`), `value`, `disabled` |
 | Input | `label`, `placeholder`, `value` |
+| Tabs | `options` (objects with string `label` and `value`, and optional `icon`), `value`, `height` |
+| Sheet | `title`, `presented` |
+| Slider | `label`, `value`, `min`, `max`, `step`, `tint`, `disabled` |
 | Switch | `label`, `description`, `checked`, `disabled` |
 | BarChart, LineChart | `title`, `data`, `xKey`, `yKey`, `tint`, `height` |
 | Separator | none |
 
-`icon` props are SF Symbols names, and `tint` is a named system color such as `blue`, `green`, or `orange`. Button emits `press`. Switch, Input, and SegmentedPicker emit `change`. Use `$bindState` or `$bindItem` on Switch's `checked` or on Input's and SegmentedPicker's `value` for two-way state. Input displays its value as read-only text until it receives a binding. ListItem renders its children as trailing accessories. Menu renders its Button children as native menu actions.
+`icon` props are SF Symbols names, and `tint` is a named system color such as `blue`, `green`, or `orange`. Button emits `press`. Switch, Input, SegmentedPicker, Slider, and Tabs emit `change`. Use `$bindState` or `$bindItem` for two-way state on Switch's `checked` and the other controls' `value`. Input displays read-only text until it receives a binding. Slider defaults to a range of 0 to 100. ListItem renders its children as trailing accessories. Menu renders its Button children as native menu actions.
+
+Tabs renders each tab's content from a named slot that matches the option's `value`. Set `height` in points when Tabs is nested inside a scroll view. Bind Sheet's `presented` prop to state and set it to `true` to show its children in a native sheet. Sheet emits `dismiss` when it closes.
 
 Each element fades in the first time it appears, so a streamed spec builds up smoothly. Pass `animatesAppearance: false` to turn this off.
 
@@ -213,13 +218,18 @@ struct Dashboard: View {
 
 On iOS 26 and macOS 26 or later, with Xcode 26 or later, standalone Button
 elements use system glass styles. A Toolbar groups related controls on one
-glass surface. Menu, Switch, SegmentedPicker, and Input use native SwiftUI
-controls. Cards, metrics, and standalone lists use system content material in
+glass surface. Menu, Switch, SegmentedPicker, Slider, Tabs, Sheet, and Input
+use native SwiftUI controls and presentations. Cards, metrics, and standalone lists use system content material in
 this appearance. Charts, images, and text render in the content layer. Both
 appearances use the same components, action handlers, and state bindings. Older toolchains and OS versions use the standard appearance.
 
-To replay the SwiftUI streaming demo with this appearance, run
-`swift run JSONRenderStreamingDemo --liquid-glass` on macOS.
+On macOS, launch the interactive showcase with
+`swift run JSONRenderStreamingDemo --liquid-glass-showcase`. Open **Plan a hike**
+to see a native sheet, choose **Controls** to try the bound slider and switch,
+or expand **Map tools** to see a morphing glass group on the scroll edge.
+
+Run `swift run JSONRenderStreamingDemo --liquid-glass` to replay the streaming
+examples in Liquid Glass mode.
 
 ## Streaming
 

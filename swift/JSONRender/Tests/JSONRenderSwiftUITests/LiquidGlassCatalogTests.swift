@@ -24,12 +24,15 @@ final class LiquidGlassCatalogTests: XCTestCase {
             "SegmentedPicker": ["value": .object(["$bindState": .string("/period")])],
             "Switch": ["checked": .object(["$bindState": .string("/alerts")])],
             "Toggle": ["checked": .object(["$bindState": .string("/alerts")])],
+            "Slider": ["value": .object(["$bindState": .string("/radius")])],
+            "Tabs": ["value": .object(["$bindState": .string("/section")])],
+            "Sheet": ["presented": .object(["$bindState": .string("/sheet")])],
         ]
         let components = [
             "Alert", "Badge", "BarChart", "Button", "Card", "Column", "Divider", "Grid",
             "Heading", "Image", "Input", "LineChart", "List", "ListItem", "Menu", "Metric",
-            "Progress", "Row", "SegmentedPicker", "Separator", "Stack", "Switch", "Text",
-            "Toggle", "Toolbar",
+            "Progress", "Row", "SegmentedPicker", "Separator", "Sheet", "Slider", "Stack", "Switch",
+            "Tabs", "Text", "Toggle", "Toolbar",
         ]
         var elements = Dictionary(uniqueKeysWithValues: components.map {
             ($0, UIElement(type: $0, props: props[$0] ?? [:]))
@@ -51,6 +54,9 @@ final class LiquidGlassCatalogTests: XCTestCase {
             "SegmentedPicker": ["value": "/period"],
             "Switch": ["checked": "/alerts"],
             "Toggle": ["checked": "/alerts"],
+            "Slider": ["value": "/radius"],
+            "Tabs": ["value": "/section"],
+            "Sheet": ["presented": "/sheet"],
         ] {
             XCTAssertEqual(tree.children.first { $0.component == component }?.bindings, bindings)
         }
@@ -83,11 +89,17 @@ final class LiquidGlassCatalogTests: XCTestCase {
         XCTAssertEqual(tree.children.last?.children.map(\.key), ["share"])
     }
 
+    func testSliderRejectsInvalidRanges() {
+        XCTAssertEqual(CatalogSlider.range(minimum: -5, maximum: 5), -5...5)
+        XCTAssertEqual(CatalogSlider.range(minimum: 4, maximum: 4), 0...100)
+        XCTAssertEqual(CatalogSlider.range(minimum: -.infinity, maximum: 50), 0...100)
+    }
+
     func testSegmentedPickerUsesOrderedUniqueOptions() {
         let options = JSONValue.decode(
             #"[{"label":"Week","value":"week"},{"label":"Repeated","value":"week"},{"value":"invalid"},{"label":"Month","value":"month"}]"#
         )
-        let parsed = CatalogSegmentedPicker.options(from: options)
+        let parsed = CatalogOption.parse(options)
         XCTAssertEqual(parsed.map(\.value), ["week", "month"])
         XCTAssertEqual(parsed.map(\.label), ["Week", "Month"])
     }

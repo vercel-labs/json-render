@@ -58,57 +58,64 @@ struct CatalogMenu: View {
 }
 
 struct CatalogSegmentedPicker: View {
-    struct Option: Identifiable {
-        let label: String
-        let value: String
-        var id: String { value }
-    }
-
     let context: ComponentRenderContext<AnyView>
     @State private var localSelection: String?
 
     var body: some View {
-        let options = Self.options(from: context.props["options"])
-        let statePath = context.binding("value")
-        let selection = Binding<String?>(
-            get: {
-                let value: String?
-                if let statePath {
-                    value = context.stateValue(at: statePath)?.stringValue
-                } else {
-                    value = localSelection ?? context.props.string("value")
-                }
-                return options.contains { $0.value == value } ? value : options.first?.value
-            },
-            set: { newValue in
-                guard let newValue else { return }
-                if let statePath {
-                    context.setState(at: statePath, to: .string(newValue))
-                } else {
-                    localSelection = newValue
-                }
-                Task { await context.emit("change") }
-            }
-        )
-
+        let options = CatalogOption.parse(context.props["options"])
+        let selection = catalogSelection(context, options: options, local: $localSelection)
         Picker(context.props.string("label") ?? "", selection: selection) {
             ForEach(options) { option in
-                Text(option.label).tag(Optional(option.value))
+                Text(option.label).tag(option.value)
             }
         }
         .pickerStyle(.segmented)
         .disabled(options.isEmpty || context.props.bool("disabled") == true)
     }
+}
 
-    static func options(from value: JSONValue?) -> [Option] {
+struct CatalogOption: Identifiable {
+    let label: String
+    let value: String
+    let icon: String?
+    var id: String { value }
+
+    static func parse(_ value: JSONValue?) -> [CatalogOption] {
         var seen: Set<String> = []
         return (value?.arrayValue ?? []).compactMap { option in
             guard let props = option.objectValue,
                   let label = props.string("label"),
                   let value = props.string("value"),
                   seen.insert(value).inserted else { return nil }
-            return Option(label: label, value: value)
+            return CatalogOption(label: label, value: value, icon: props.string("icon"))
         }
     }
+}
+
+func catalogSelection(
+    _ context: ComponentRenderContext<AnyView>,
+    options: [CatalogOption],
+    local: Binding<String?>
+) -> Binding<String> {
+    let path = context.binding("value")
+    return Binding(
+        get: {
+            let value: String?
+            if let path {
+                value = context.stateValue(at: path)?.stringValue
+            } else {
+                value = local.wrappedValue ?? context.props.string("value")
+            }
+            return options.first(where: { $0.value == value })?.value ?? options.first?.value ?? ""
+        },
+        set: { newValue in
+            if let path {
+                context.setState(at: path, to: .string(newValue))
+            } else {
+                local.wrappedValue = newValue
+            }
+            Task { await context.emit("change") }
+        }
+    )
 }
 #endif

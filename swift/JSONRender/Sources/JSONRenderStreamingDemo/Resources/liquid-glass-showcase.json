@@ -1,0 +1,223 @@
+{
+  "root": "screen",
+  "elements": {
+    "screen": {
+      "type": "Stack",
+      "props": { "gap": 22 },
+      "children": ["hero", "tabs", "sheet"]
+    },
+    "hero": {
+      "type": "Stack",
+      "props": { "gap": 10 },
+      "children": ["title", "location", "mapBar"]
+    },
+    "title": {
+      "type": "Heading",
+      "props": { "level": "h1", "text": "Juniper Ridge" }
+    },
+    "location": {
+      "type": "Text",
+      "props": { "variant": "lead", "text": "Barton Creek Preserve · Austin, Texas" }
+    },
+    "mapBar": {
+      "type": "Row",
+      "props": { "gap": 12 },
+      "children": ["mapOptions", "planAction", "bookmark"]
+    },
+    "mapOptions": {
+      "type": "Toolbar",
+      "props": { "label": "Map options" },
+      "children": ["layers", "routeMenu"]
+    },
+    "layers": {
+      "type": "SegmentedPicker",
+      "props": {
+        "label": "Layer",
+        "value": { "$bindState": "/layer" },
+        "options": [
+          { "label": "Terrain", "value": "terrain" },
+          { "label": "Satellite", "value": "satellite" }
+        ]
+      }
+    },
+    "routeMenu": {
+      "type": "Menu",
+      "props": { "label": "Route", "icon": "ellipsis.circle" },
+      "children": ["routeSummary", "routeDetails"]
+    },
+    "routeSummary": {
+      "type": "Button",
+      "props": { "label": "Show overview", "icon": "map" },
+      "on": { "press": { "action": "setState", "params": { "statePath": "/tab", "value": "overview" } } }
+    },
+    "routeDetails": {
+      "type": "Button",
+      "props": { "label": "Show settings", "icon": "slider.horizontal.3" },
+      "on": { "press": { "action": "setState", "params": { "statePath": "/tab", "value": "settings" } } }
+    },
+    "planAction": {
+      "type": "Button",
+      "props": { "label": "Plan a hike", "variant": "primary", "icon": "figure.hiking" },
+      "on": { "press": { "action": "setState", "params": { "statePath": "/sheet", "value": true } } }
+    },
+    "bookmark": {
+      "type": "Button",
+      "props": {
+        "label": { "$cond": { "$state": "/saved" }, "$then": "Saved", "$else": "Save trail" },
+        "icon": "bookmark"
+      },
+      "on": { "press": { "action": "setState", "params": { "statePath": "/saved", "value": true } } }
+    },
+    "tabs": {
+      "type": "Tabs",
+      "props": {
+        "value": { "$bindState": "/tab" },
+        "height": 500,
+        "options": [
+          { "label": "Overview", "value": "overview", "icon": "map" },
+          { "label": "Controls", "value": "settings", "icon": "slider.horizontal.3" }
+        ]
+      },
+      "slots": { "overview": ["overview"], "settings": ["settings"] }
+    },
+    "overview": {
+      "type": "Stack",
+      "props": { "gap": 14 },
+      "children": ["metrics", "details"]
+    },
+    "metrics": {
+      "type": "Grid",
+      "props": { "columns": 3 },
+      "children": ["distance", "gain", "time"]
+    },
+    "distance": {
+      "type": "Metric",
+      "props": { "label": "Distance", "value": "6.2 km", "icon": "point.topleft.down.to.point.bottomright.curvepath", "tint": "mint" }
+    },
+    "gain": {
+      "type": "Metric",
+      "props": { "label": "Elevation gain", "value": "280 m", "icon": "mountain.2", "tint": "mint" }
+    },
+    "time": {
+      "type": "Metric",
+      "props": { "label": "Estimated time", "value": "1 h 45 m", "icon": "clock", "tint": "mint" }
+    },
+    "details": {
+      "type": "Grid",
+      "props": { "columns": 2 },
+      "children": ["terrain", "status"]
+    },
+    "terrain": {
+      "type": "Card",
+      "props": { "title": "Elevation profile", "description": "Clockwise from the trailhead" },
+      "children": ["elevation"]
+    },
+    "elevation": {
+      "type": "LineChart",
+      "props": { "height": 165, "tint": "mint", "data": [
+        { "x": "Start", "y": 79 },
+        { "x": "1 km", "y": 101 },
+        { "x": "2 km", "y": 186 },
+        { "x": "3 km", "y": 224 },
+        { "x": "4 km", "y": 197 },
+        { "x": "5 km", "y": 132 },
+        { "x": "Finish", "y": 79 }
+      ] }
+    },
+    "status": {
+      "type": "Card",
+      "props": { "title": "Trail conditions", "description": "Updated this morning" },
+      "children": ["open", "downloadProgress", "conditions"]
+    },
+    "open": {
+      "type": "Alert",
+      "props": { "title": "Trail is open", "message": "Rocky footing near the summit.", "type": "success" }
+    },
+    "downloadProgress": {
+      "type": "Progress",
+      "props": { "label": "Offline map download", "value": 68, "tint": "mint" }
+    },
+    "conditions": {
+      "type": "List",
+      "props": {},
+      "children": ["trailhead"]
+    },
+    "trailhead": {
+      "type": "ListItem",
+      "props": { "title": "North trailhead", "icon": "signpost.right", "tint": "mint" },
+      "children": ["openBadge"]
+    },
+    "openBadge": {
+      "type": "Badge",
+      "props": { "text": "Open", "variant": "success" }
+    },
+    "settings": {
+      "type": "Card",
+      "props": { "title": "Trip preferences", "description": "Adjust the route before heading out" },
+      "children": ["alertSwitch", "range", "rangeText", "rule", "note"]
+    },
+    "alertSwitch": {
+      "type": "Switch",
+      "props": { "label": "Trail alerts", "description": "Show advisories for this route", "checked": { "$bindState": "/alerts" } }
+    },
+    "range": {
+      "type": "Slider",
+      "props": { "label": "Search radius", "min": 1, "max": 15, "step": 1, "value": { "$bindState": "/radius" }, "tint": "mint" }
+    },
+    "rangeText": {
+      "type": "Text",
+      "props": { "text": { "$template": "Search within ${/radius} km of the trailhead" }, "variant": "muted" }
+    },
+    "rule": { "type": "Separator", "props": {} },
+    "note": {
+      "type": "Input",
+      "props": { "label": "Trip note", "value": { "$bindState": "/note" }, "placeholder": "Add a note" }
+    },
+    "sheet": {
+      "type": "Sheet",
+      "props": { "title": "Plan a hike", "presented": { "$bindState": "/sheet" } },
+      "children": ["schedule", "direction", "sheetActions"]
+    },
+    "schedule": {
+      "type": "Text",
+      "props": { "text": "Start at the north trailhead and follow the Juniper Ridge loop." }
+    },
+    "direction": {
+      "type": "SegmentedPicker",
+      "props": {
+        "label": "Direction", "value": { "$bindState": "/direction" },
+        "options": [{ "label": "Clockwise", "value": "clockwise" }, { "label": "Counterclockwise", "value": "counterclockwise" }]
+      }
+    },
+    "sheetActions": {
+      "type": "Row",
+      "props": { "justify": "end" },
+      "children": ["cancel", "done"]
+    },
+    "cancel": {
+      "type": "Button",
+      "props": { "label": "Cancel" },
+      "on": { "press": { "action": "setState", "params": { "statePath": "/sheet", "value": false } } }
+    },
+    "done": {
+      "type": "Button",
+      "props": { "label": "Done", "variant": "primary" },
+      "on": {
+        "press": [
+          { "action": "setState", "params": { "statePath": "/saved", "value": true } },
+          { "action": "setState", "params": { "statePath": "/sheet", "value": false } }
+        ]
+      }
+    }
+  },
+  "state": {
+    "layer": "terrain",
+    "tab": "overview",
+    "sheet": false,
+    "saved": false,
+    "alerts": true,
+    "radius": 8,
+    "direction": "clockwise",
+    "note": "Start at the north trailhead"
+  }
+}

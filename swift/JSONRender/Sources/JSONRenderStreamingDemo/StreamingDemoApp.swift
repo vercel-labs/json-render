@@ -17,11 +17,17 @@ struct StreamingDemoApp: App {
     @StateObject private var toaster = Toaster()
 
     var body: some Scene {
-        WindowGroup("json-render") {
-            DemoView(player: player, toaster: toaster)
+        let options = DemoOptions.current
+        WindowGroup(options.showcase ? "Liquid Glass Showcase" : "json-render") {
+            if options.showcase {
+                LiquidGlassShowcase()
+            } else {
+                DemoView(player: player, toaster: toaster)
+            }
         }
         .windowStyle(.hiddenTitleBar)
-        .defaultSize(width: DemoOptions.current.width, height: DemoOptions.current.height)
+        .windowToolbarStyle(.unified)
+        .defaultSize(width: options.showcase ? 980 : options.width, height: options.showcase ? 770 : options.height)
         .commands {
             CommandMenu("Demo") {
                 ForEach(player.recordings.indices, id: \.self) { index in
@@ -56,6 +62,7 @@ final class DemoAppDelegate: NSObject, NSApplicationDelegate {
         DispatchQueue.main.async {
             guard let window = NSApp.windows.first else { return }
             let options = DemoOptions.current
+            guard !options.showcase else { return }
             window.setContentSize(NSSize(width: options.width, height: options.height))
             if let origin = options.origin, let screen = window.screen ?? NSScreen.main {
                 let y = screen.frame.maxY - origin.y - window.frame.height
@@ -80,6 +87,7 @@ struct DemoOptions {
     var startDelay = 1.0
     var appearance: String?
     var catalogAppearance: NativeCatalogAppearance = .standard
+    var showcase = false
     /// Pauses the replay after this many patches, for still frames.
     var stopAfter: Int?
     /// Playback speed. 1 replays the recorded timing.
@@ -110,6 +118,7 @@ struct DemoOptions {
             case "--delay": startDelay = iterator.next().flatMap(Double.init) ?? startDelay
             case "--appearance": appearance = iterator.next()
             case "--liquid-glass": catalogAppearance = .liquidGlass
+            case "--liquid-glass-showcase": showcase = true
             case "--stop-after": stopAfter = iterator.next().flatMap(Int.init)
             case "--speed": speed = iterator.next().flatMap(Double.init) ?? speed
             case "--first-token": firstTokenDelay = iterator.next().flatMap(Double.init) ?? firstTokenDelay
