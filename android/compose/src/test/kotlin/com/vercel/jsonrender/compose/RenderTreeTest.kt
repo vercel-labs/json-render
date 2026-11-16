@@ -3,6 +3,7 @@ package com.vercel.jsonrender.compose
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
 class RenderTreeTest {
@@ -34,7 +35,7 @@ class RenderTreeTest {
                         "props": {"label": {"$template": "Task: ${title}"}, "checked": {"$bindItem": "checked"}},
                         "on": {
                             "press": [
-                                {"action": "open", "params": {"task": {"$item": "title"}}},
+                                {"action": "open", "params": {"task": {"$item": "title"}, "data": {"title": {"$item": "title"}}}},
                                 {"action": "track", "params": {"position": {"$index": true}}}
                             ]
                         }
@@ -52,7 +53,8 @@ class RenderTreeTest {
 
         val actions = resolveActions(row.element.on["press"], spec.state, row.scope)
         assertEquals(listOf("open", "track"), actions.map { it.action })
-        assertEquals(JsonPrimitive("Design"), actions[0].params["task"])
+        assertEquals(JsonPrimitive("/groups/1/items/0/title"), actions[0].params["task"])
+        assertEquals(JsonPrimitive("Design"), (actions[0].params["data"] as JsonObject)["title"])
         assertEquals(JsonPrimitive(0), actions[1].params["position"])
     }
 

@@ -160,7 +160,11 @@ internal fun resolveActions(
     return bindings.mapNotNull { entry ->
         val source = entry as? JsonObject ?: return@mapNotNull null
         val action = source.string("action") ?: return@mapNotNull null
-        val params = expressions.resolve(source["params"]) as? JsonObject
-        ActionBinding(action, params ?: JsonObject(emptyMap()), source)
+        val input = source["params"] as? JsonObject
+        if (!budget.visit(input?.size ?: 0)) return@mapNotNull null
+        val params = input.orEmpty().mapNotNull { (name, value) ->
+            expressions.resolveActionParam(value)?.let { name to it }
+        }.toMap()
+        ActionBinding(action, JsonObject(params), source)
     }.takeUnless { budget.exhausted }.orEmpty()
 }

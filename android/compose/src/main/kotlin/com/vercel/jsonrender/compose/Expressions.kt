@@ -73,6 +73,12 @@ internal data class Expressions(
         return obj.string("\$bindItem")?.let { name -> scope?.let { it.path + name.itemPointer() } }
     }
 
+    fun resolveActionParam(value: JsonElement): JsonElement? {
+        val itemPath = (value as? JsonObject)?.string("\$item")
+        if (itemPath != null) return scope?.let { JsonPrimitive(it.path + itemPath.itemPointer()) }
+        return resolve(value)
+    }
+
     fun resolve(value: JsonElement?, depth: Int = 0): JsonElement? {
         if (depth >= 64 || !budget.visit()) return null
         return when (value) {

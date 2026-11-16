@@ -59,7 +59,7 @@ fun SpecScreen(json: String) {
 
 In a custom container, call `context.RenderChildren()` for `children` and `context.RenderSlot(name)` for a named slot. For an input, read its value from `context.props` and call `context.write("value", newValue)` with a JSON value when the user edits it. The renderer forwards writes for `$bindState` and `$bindItem` props as JSON Pointer paths. Apply the callback to the current state and pass the updated object back to `JsonRender`.
 
-The `onAction` callback receives the action name, resolved parameters, and original binding. An event can declare multiple bindings, which the renderer delivers in order from the rendered snapshot. You can dispatch them yourself or use the optional `ActionDispatcher` for `setState`, `pushState`, `removeState`, registered suspend handlers, and handler success or error follow-ups. Supply app callbacks for confirmation and navigation. A binding that requires confirmation runs only when the callback approves it.
+The `onAction` callback receives the action name, resolved parameters, and original binding. An event can declare multiple bindings, which the renderer delivers in order from the rendered snapshot. A direct `$item` action parameter resolves to the item field's absolute state path so state actions can target a repeated row. You can dispatch them yourself or use the optional `ActionDispatcher` for `setState`, `pushState`, `removeState`, registered suspend handlers, and handler success or error follow-ups. Supply app callbacks for confirmation and navigation. A binding that requires confirmation runs only when the callback approves it.
 
 ## Foundation components
 
