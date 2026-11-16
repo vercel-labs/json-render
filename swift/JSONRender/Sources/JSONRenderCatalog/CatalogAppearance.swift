@@ -40,6 +40,7 @@ extension View {
 struct CatalogButtonStyle: ViewModifier {
     let variant: String
     @Environment(\.jsonRenderCatalogAppearance) private var appearance
+    @Environment(\.isAccessory) private var isAccessory
 
     @ViewBuilder
     func body(content: Content) -> some View {
@@ -56,8 +57,12 @@ struct CatalogButtonStyle: ViewModifier {
         if #available(iOS 26, macOS 26, *), appearance.usesLiquidGlass {
             if variant == "primary" {
                 content.buttonStyle(.glassProminent)
+                    .buttonBorderShape(.capsule)
+                    .controlSize(isAccessory ? .regular : .large)
             } else {
                 content.buttonStyle(.glass)
+                    .buttonBorderShape(.capsule)
+                    .controlSize(isAccessory ? .regular : .large)
             }
         } else {
             bordered(content)

@@ -748,7 +748,7 @@ struct ToastView: View {
         .shadow(color: .black.opacity(0.15), radius: 12, y: 4)
     }
 }
-#else
+#elseif !os(iOS)
 @main
 struct StreamingDemoApp {
     static func main() {

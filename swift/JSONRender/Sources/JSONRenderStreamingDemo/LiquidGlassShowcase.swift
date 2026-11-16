@@ -108,6 +108,7 @@ struct LiquidGlassShowcase: View {
                     Button("Reset zoom", systemImage: "location") { mapScale = 1 }
                 }
                 .buttonStyle(.glass)
+                .buttonBorderShape(.circle)
             }
             Button(
                 mapExpanded ? "Collapse map tools" : "Expand map tools",
@@ -116,6 +117,7 @@ struct LiquidGlassShowcase: View {
                 withAnimation(.spring(response: 0.35, dampingFraction: 0.86)) { mapExpanded.toggle() }
             }
             .buttonStyle(.glassProminent)
+            .buttonBorderShape(.circle)
         }
         .labelStyle(.iconOnly)
         .controlSize(.large)

@@ -230,6 +230,11 @@ On macOS, launch the interactive showcase with
 to see a native sheet, choose **Controls** to try the bound slider and switch,
 or expand **Map tools** to see system glass buttons on the scroll edge.
 
+To see the iPhone control shapes and floating tab bar, boot an iPhone simulator
+running iOS 26 or later and run `swift/JSONRender/Scripts/run-ios-showcase.sh`
+from the repository root. The same SwiftUI catalog uses the system appearance
+of each platform.
+
 Run `swift run JSONRenderStreamingDemo --liquid-glass` to replay the streaming
 examples in Liquid Glass mode.
 

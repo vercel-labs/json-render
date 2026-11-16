@@ -13,25 +13,57 @@ struct CatalogTabs: View {
             CGFloat($0.clampedFinite(to: 80...960, fallback: 360))
         }
         if !options.isEmpty {
+            tabs(options: options, selection: selection)
+            .frame(height: height)
+        }
+    }
+
+    @ViewBuilder
+    private func tabs(options: [CatalogOption], selection: Binding<String>) -> some View {
+        #if compiler(>=6.0)
+        if #available(iOS 18, macOS 15, *) {
             TabView(selection: selection) {
                 ForEach(options) { option in
-                    VStack(alignment: .leading, spacing: 12) {
-                        ForEach(Array((context.slots[option.value] ?? []).enumerated()), id: \.offset) { child in
-                            child.element
-                        }
+                    Tab(value: option.value) {
+                        page(option)
+                    } label: {
+                        tabLabel(option)
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                    .tabItem {
-                        if let icon = option.icon {
-                            Label(option.label, systemImage: icon)
-                        } else {
-                            Text(option.label)
-                        }
-                    }
-                    .tag(option.value)
                 }
             }
-            .frame(height: height)
+        } else {
+            legacyTabs(options: options, selection: selection)
+        }
+        #else
+        legacyTabs(options: options, selection: selection)
+        #endif
+    }
+
+    private func legacyTabs(options: [CatalogOption], selection: Binding<String>) -> some View {
+        TabView(selection: selection) {
+            ForEach(options) { option in
+                page(option)
+                    .tabItem { tabLabel(option) }
+                    .tag(option.value)
+            }
+        }
+    }
+
+    private func page(_ option: CatalogOption) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            ForEach(Array((context.slots[option.value] ?? []).enumerated()), id: \.offset) { child in
+                child.element
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+
+    @ViewBuilder
+    private func tabLabel(_ option: CatalogOption) -> some View {
+        if let icon = option.icon {
+            Label(option.label, systemImage: icon)
+        } else {
+            Text(option.label)
         }
     }
 }
