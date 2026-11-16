@@ -214,9 +214,9 @@ struct Dashboard: View {
 On iOS 26 and macOS 26 or later, with Xcode 26 or later, standalone Button
 elements use system glass styles. A Toolbar groups related controls on one
 glass surface. Menu, Switch, SegmentedPicker, and Input use native SwiftUI
-controls. Layouts, cards, lists, charts, images, and text remain content
-surfaces. Both appearances use the same components, action handlers, and state
-bindings. Older toolchains and OS versions use the standard appearance.
+controls. Cards, metrics, and standalone lists use system content material in
+this appearance. Charts, images, and text render in the content layer. Both
+appearances use the same components, action handlers, and state bindings. Older toolchains and OS versions use the standard appearance.
 
 To replay the SwiftUI streaming demo with this appearance, run
 `swift run JSONRenderStreamingDemo --liquid-glass` on macOS.

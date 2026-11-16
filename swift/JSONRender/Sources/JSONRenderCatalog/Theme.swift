@@ -202,6 +202,25 @@ extension EnvironmentValues {
     }
 }
 
+/// The content layer uses system material in the Liquid Glass appearance.
+struct CardBackground: View {
+    var shadow = false
+    @Environment(\.jsonRenderCatalogAppearance) private var appearance
+
+    var body: some View {
+        let glass = appearance.usesLiquidGlass
+        let shape = RoundedRectangle(
+            cornerRadius: glass ? 18 : CatalogTheme.cornerRadius,
+            style: .continuous
+        )
+        let fill = glass ? AnyShapeStyle(.regularMaterial) : AnyShapeStyle(CatalogTheme.surface)
+        shape
+            .fill(fill)
+            .shadow(color: shadow && !glass ? .black.opacity(0.05) : .clear, radius: 1.5, y: 1)
+            .overlay(shape.strokeBorder(CatalogTheme.hairline, lineWidth: 1))
+    }
+}
+
 /// A rounded raised surface with a hairline border and a soft shadow.
 struct CardSurface: ViewModifier {
     var padding: CGFloat = 16
@@ -210,15 +229,7 @@ struct CardSurface: ViewModifier {
         content
             .padding(padding)
             .frame(maxWidth: .infinity, alignment: .topLeading)
-            .background(
-                RoundedRectangle(cornerRadius: CatalogTheme.cornerRadius, style: .continuous)
-                    .fill(CatalogTheme.surface)
-                    .shadow(color: .black.opacity(0.05), radius: 1.5, y: 1)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: CatalogTheme.cornerRadius, style: .continuous)
-                    .strokeBorder(CatalogTheme.hairline, lineWidth: 1)
-            )
+            .background(CardBackground(shadow: true))
             .environment(\.surfaceDepth, 1)
     }
 }
@@ -226,14 +237,18 @@ struct CardSurface: ViewModifier {
 /// A recessed rounded well, used for tiles inside a card.
 struct WellSurface: ViewModifier {
     var padding: CGFloat = 12
+    @Environment(\.jsonRenderCatalogAppearance) private var appearance
 
     func body(content: Content) -> some View {
         content
             .padding(padding)
             .frame(maxWidth: .infinity, alignment: .topLeading)
             .background(
-                RoundedRectangle(cornerRadius: CatalogTheme.cornerRadius - 3, style: .continuous)
-                    .fill(CatalogTheme.well)
+                RoundedRectangle(
+                    cornerRadius: appearance.usesLiquidGlass ? 14 : CatalogTheme.cornerRadius - 3,
+                    style: .continuous
+                )
+                .fill(CatalogTheme.well)
             )
     }
 }

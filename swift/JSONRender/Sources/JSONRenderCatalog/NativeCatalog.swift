@@ -560,12 +560,7 @@ struct ListView: View {
             .padding(.vertical, depth == 0 ? 4 : 0)
             .background {
                 if depth == 0 {
-                    RoundedRectangle(cornerRadius: CatalogTheme.cornerRadius, style: .continuous)
-                        .fill(CatalogTheme.surface)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: CatalogTheme.cornerRadius, style: .continuous)
-                                .strokeBorder(CatalogTheme.hairline, lineWidth: 1)
-                        )
+                    CardBackground()
                 }
             }
         }
