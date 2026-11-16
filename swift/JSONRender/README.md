@@ -2,7 +2,7 @@
 
 Swift package renderer for json-render. It decodes the same `{ "root", "elements", "state" }` JSON that `@json-render/core` defines, resolves data bindings and expressions, dispatches actions, and renders the tree with SwiftUI on macOS and iOS.
 
-`JSONRenderCore` has no UI dependencies and builds on Linux. `JSONRenderSwiftUI`, `JSONRenderCatalog`, and the example apps need SwiftUI.
+`JSONRenderCore` has no UI dependencies and builds on Linux. `JSONRenderSwiftUI`, `JSONRenderCatalog`, `JSONRenderLiquidGlass`, and the example apps need SwiftUI.
 
 ## Requirements
 
@@ -106,6 +106,66 @@ let registry = BuiltInComponents.registry(
 ```
 
 A definition receives a `ComponentRenderContext` with resolved `props`, rendered `children` (with a stable identity for each in `childIDs`) and `slots`, state bindings, the repeat scope, and `on` and `emit` event helpers. To render a component type that has no registered view, set `fallback` on the `RendererRegistry`. Without a fallback, the element and its subtree are dropped with a warning, matching the React renderer.
+
+## Liquid Glass controls
+
+Add the `JSONRenderLiquidGlass` SwiftPM product to your app target and pass
+`LiquidGlassCatalog.components` to your registry. These components use system
+Liquid Glass styles on iOS 26 and macOS 26 or later when built with Xcode 26 or
+later. On older systems or with older toolchains, the buttons use the standard
+bordered styles.
+
+```swift
+import SwiftUI
+import JSONRenderCatalog
+import JSONRenderCore
+import JSONRenderLiquidGlass
+import JSONRenderSwiftUI
+
+struct GlassControls: View {
+    let spec: Spec
+    let actions: [String: ActionHandler]
+
+    var body: some View {
+        JSONRenderView(
+            spec: spec,
+            registry: NativeCatalog.registry(
+                extraComponents: LiquidGlassCatalog.components,
+                actions: actions
+            )
+        )
+    }
+}
+```
+
+- `GlassButton` takes a `label`, optional SF Symbol name in `icon`, and optional
+  `prominent` and `disabled` flags. It dispatches its `on.press` binding through
+  the renderer's action handlers.
+- `GlassButtonGroup` arranges its children horizontally in a SwiftUI
+  `GlassEffectContainer` when Liquid Glass is available.
+
+```json
+{
+  "root": "controls",
+  "elements": {
+    "controls": {
+      "type": "GlassButtonGroup",
+      "props": {},
+      "children": ["cancel", "save"]
+    },
+    "cancel": {
+      "type": "GlassButton",
+      "props": { "label": "Cancel" },
+      "on": { "press": { "action": "cancel" } }
+    },
+    "save": {
+      "type": "GlassButton",
+      "props": { "label": "Save", "prominent": true },
+      "on": { "press": { "action": "save" } }
+    }
+  }
+}
+```
 
 ## Render tree limits
 
