@@ -1,0 +1,54 @@
+---
+title: "Jetpack Compose"
+description: "Render committed json-render specs with app-registered Jetpack Compose components on Android."
+---
+
+The Jetpack Compose library renders a committed spec on Android API 23 and newer. Each element type maps to a composable in your app's registry. The default registry provides `Column`, `Row`, `Stack`, and `Text`.
+
+## Installation
+
+In your app's Gradle settings, include the `android` directory of a json-render checkout. The build requires JDK 17 or newer and Android SDK 36.
+
+```kotlin
+includeBuild("../json-render/android") {
+    dependencySubstitution {
+        substitute(module("com.vercel.jsonrender:compose")).using(project(":compose"))
+    }
+}
+```
+
+Enable Compose in your app module and add `implementation("com.vercel.jsonrender:compose")` to its dependencies.
+
+## Spec.decode
+
+`Spec.decode(source)` decodes a full spec from a JSON string. Its return value contains the root key, element map, and initial state. The decoder ignores unknown fields.
+
+## JsonRender
+
+Call `JsonRender(spec)` from a composable to render the spec with the foundation registry. Pass `registry` to supply your own component types, or combine your custom components with `FoundationComponents`.
+
+```kotlin
+@Composable
+fun StatusScreen() {
+    JsonRender(
+        spec = Spec.decode(
+            """{"root":"message","elements":{"message":{"type":"Text","props":{"text":"Ready"}}}}"""
+        ),
+    )
+}
+```
+
+Apps own state and dispatch. Pass an updated `state` to re-render state-dependent props and visibility. The `onStateChange` callback receives a JSON Pointer and a JSON value. You can apply them to the current state with `state.withStateValue(path, value)`. The `onAction` callback receives an action name, resolved parameters, and the original binding.
+
+## ComponentContext
+
+A `ComponentRegistry` maps a spec type name to a composable that receives a `ComponentContext`.
+
+- Read resolved props from `context.props`.
+- Use `context.RenderChildren()` and `context.RenderSlot(name)` to render nested elements.
+- Use `context.emit(event)` to dispatch an event's actions.
+- Use `context.write(prop, value)` to request a write to a `$bindState` or `$bindItem` prop.
+
+The runtime supports visibility, array repeats, state and item references, bindings, templates, and conditional props. Streaming patches, watchers, computed props, custom directives, and action lifecycle handling are outside this renderer's scope.
+
+See the [Android package guide](https://github.com/vercel-labs/json-render/tree/main/android) for a custom registry example.

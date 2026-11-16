@@ -1,0 +1,31 @@
+package com.vercel.jsonrender.compose
+
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+
+class ConformanceTest {
+    @Test
+    fun `repeats and visibility match the existing React conformance fixtures`() {
+        for (name in listOf("todo-repeat", "visibility")) {
+            val spec = Spec.decode(fixture("specs/$name.json"))
+            val types = spec.elements.values.map { it.type }.toSet()
+            val actual = checkNotNull(buildRenderTree(spec, types, spec.state)).snapshot()
+            val expected = Json.parseToJsonElement(fixture("expected/$name.json"))
+            assertEquals(expected, actual, name)
+        }
+    }
+
+    private fun fixture(name: String): String =
+        checkNotNull(javaClass.getResourceAsStream("/$name"))
+            .bufferedReader().use { it.readText() }
+
+    private fun RenderNode.snapshot(): JsonObject = JsonObject(buildMap {
+        put("component", JsonPrimitive(element.type))
+        put("props", props)
+        if (children.isNotEmpty()) put("children", JsonArray(children.map { it.snapshot() }))
+    })
+}
