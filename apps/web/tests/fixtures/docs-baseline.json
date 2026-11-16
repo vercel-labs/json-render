@@ -930,6 +930,26 @@
       ]
     },
     {
+      "path": "/docs/api/material3-expressive",
+      "file": "content/docs/api/material3-expressive.mdx",
+      "title": "Material 3 Expressive",
+      "metadataTitle": "Material 3 Expressive API | json-render",
+      "prefix": "",
+      "sourceSha256": "ae69eaa780b487116e6735316afd4315d741de734ec2b4b4798ef1b698ef4091",
+      "bodySha256": "ae69eaa780b487116e6735316afd4315d741de734ec2b4b4798ef1b698ef4091",
+      "markdownSha256": "dbb66f2ce4daa9aa27d65d4b49fd63b7910aabf826a01d89199b0b2e7627d5f7",
+      "headings": [
+        {
+          "title": "Render a spec",
+          "id": "render-a-spec"
+        },
+        {
+          "title": "Components",
+          "id": "components"
+        }
+      ]
+    },
+    {
       "path": "/docs/api/mcp",
       "file": "content/docs/api/mcp.mdx",
       "title": "@json-render/mcp",
