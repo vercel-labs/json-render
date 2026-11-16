@@ -67,8 +67,10 @@ jobs:
           distribution: temurin
           java-version: "17"
       - uses: gradle/actions/setup-gradle@v4
-      - name: Install Android SDK
-        run: sdkmanager "platforms;android-36" "build-tools;35.0.0"
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4
+        with:
+          packages: platforms;android-36 build-tools;35.0.0
       - name: Build and test
         working-directory: android
         run: ./gradlew :compose:assembleRelease :compose:testDebugUnitTest
