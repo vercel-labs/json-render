@@ -11,10 +11,7 @@ class ConformanceTest {
     @Test
     fun `all shared spec trees match the existing React conformance fixtures`() {
         val names = listOf("expressions", "settings-form", "todo-repeat", "unknown-component", "user-profile-card", "visibility")
-        val types = setOf(
-            "Card", "Heading", "Text", "Badge", "Stack", "Separator", "Progress",
-            "Button", "Input", "Select", "Switch", "Image", "List", "Row", "Column",
-        )
+        val types = FoundationComponents.keys
         for (name in names) {
             val spec = Spec.decode(fixture("specs/$name.json"))
             val actual = checkNotNull(buildRenderTree(spec, types, spec.state)).snapshot()

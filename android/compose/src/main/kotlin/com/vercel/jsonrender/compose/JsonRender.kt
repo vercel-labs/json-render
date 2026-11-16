@@ -118,7 +118,7 @@ private class Renderer(
         val occurrences = mutableMapOf<Pair<JsonPrimitive?, String>, Int>()
         for (node in nodes) {
             val identity = node.rowKey to node.id
-            val occurrence = occurrences.getOrDefault(identity, 0)
+            val occurrence = occurrences[identity] ?: 0
             occurrences[identity] = occurrence + 1
             key(node.rowKey, node.id, node.element.type, occurrence) { wrapper { Render(node) } }
         }

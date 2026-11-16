@@ -1,5 +1,6 @@
 package com.vercel.jsonrender.compose
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -25,7 +26,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -133,8 +136,16 @@ internal fun FoundationToggle(context: ComponentContext, role: Role) {
                 .padding(4.dp),
             contentAlignment = if (checked) Alignment.CenterEnd else Alignment.CenterStart,
         ) {
-            if (role == Role.Switch || checked) {
-                Box(Modifier.size(12.dp).background(if (checked) Color.White else mutedColor, toggleShape))
+            if (role == Role.Switch) {
+                Box(Modifier.size(12.dp).background(if (checked) Color.White else mutedColor, CircleShape))
+            } else if (checked) {
+                Canvas(Modifier.size(12.dp)) {
+                    val start = Offset(size.width * .12f, size.height * .54f)
+                    val corner = Offset(size.width * .40f, size.height * .80f)
+                    val end = Offset(size.width * .90f, size.height * .20f)
+                    drawLine(Color.White, start, corner, 2.dp.toPx(), StrokeCap.Round)
+                    drawLine(Color.White, corner, end, 2.dp.toPx(), StrokeCap.Round)
+                }
             }
         }
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {

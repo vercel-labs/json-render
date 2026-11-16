@@ -899,9 +899,9 @@
       "title": "Jetpack Compose",
       "metadataTitle": "Jetpack Compose API | json-render",
       "prefix": "",
-      "sourceSha256": "b7b3dcb80b63d3a3a700f11e5d7e26b7879484725453d6923dfc73e260bebdbc",
-      "bodySha256": "b7b3dcb80b63d3a3a700f11e5d7e26b7879484725453d6923dfc73e260bebdbc",
-      "markdownSha256": "95e28e64eb2134c3ffdb32a336a109d1c71f40070f7b8929138346579592747a",
+      "sourceSha256": "f5c00a505730c1541d38030576315ce5f11dde68f939da1d74fe53afb2d6e7ea",
+      "bodySha256": "f5c00a505730c1541d38030576315ce5f11dde68f939da1d74fe53afb2d6e7ea",
+      "markdownSha256": "5cf459fbe28880304e3ea2b1dd868f067c6940f8de3fc80e293f88128269f6fa",
       "headings": [
         {
           "title": "Installation",
@@ -918,6 +918,22 @@
         {
           "title": "ComponentContext",
           "id": "componentcontext"
+        },
+        {
+          "title": "FoundationComponents",
+          "id": "foundationcomponents"
+        },
+        {
+          "title": "Expressions and watches",
+          "id": "expressions-and-watches"
+        },
+        {
+          "title": "ActionDispatcher",
+          "id": "actiondispatcher"
+        },
+        {
+          "title": "SpecStreamCompiler",
+          "id": "specstreamcompiler"
         }
       ]
     },
