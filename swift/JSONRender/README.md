@@ -225,10 +225,12 @@ controls. Cards, metrics, and standalone lists use system content material.
 Both appearances share component names, action handlers, and state bindings.
 Older toolchains and OS versions use the standard appearance.
 
-On macOS, launch the interactive showcase with
-`swift run JSONRenderStreamingDemo --liquid-glass-showcase`. Open **Plan a hike**
-to see a native sheet, choose **Controls** to try the bound slider and switch,
-or expand **Map tools** to see system glass buttons on the scroll edge.
+On macOS, run `swift/JSONRender/Scripts/run-macos-showcase.sh` from the
+repository root. The script links the app against the selected Xcode SDK and
+launches it as a Mac app. Use macOS 26 or later and the corresponding Xcode
+SDK to see the system glass sidebar and toolbar. Open **Plan a hike** to see
+a native sheet or choose **Controls** in the sidebar to try the bound slider
+and switch.
 
 To see the iPhone control shapes and floating tab bar, boot an iPhone simulator
 running iOS 26 or later and run `swift/JSONRender/Scripts/run-ios-showcase.sh`

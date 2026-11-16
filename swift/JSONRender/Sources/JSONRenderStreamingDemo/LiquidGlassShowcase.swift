@@ -4,7 +4,32 @@ import JSONRenderCore
 import JSONRenderSwiftUI
 import SwiftUI
 
+struct MacLiquidGlassShowcaseApp: App {
+    @NSApplicationDelegateAdaptor(DemoAppDelegate.self) private var delegate
+
+    var body: some Scene {
+        WindowGroup("Trail Planner") {
+            LiquidGlassShowcase()
+        }
+        .windowToolbarStyle(.unified)
+        .defaultSize(width: 1100, height: 760)
+    }
+}
+
 struct LiquidGlassShowcase: View {
+    private enum Section: String, CaseIterable {
+        case overview, settings
+
+        var title: String { self == .overview ? "Overview" : "Controls" }
+        var icon: String { self == .overview ? "map" : "slider.horizontal.3" }
+    }
+
+    private enum MapLayer {
+        case terrain, satellite
+    }
+
+    @State private var mapLayer = MapLayer.terrain
+    @State private var section: Section? = .overview
     @State private var appearance: NativeCatalogAppearance = .liquidGlass
     @State private var search = ""
     @State private var mapExpanded = false
@@ -20,12 +45,41 @@ struct LiquidGlassShowcase: View {
     }()
 
     var body: some View {
-        NavigationStack {
+        NavigationSplitView {
+            List(Section.allCases, id: \.self, selection: $section) { section in
+                Label(section.title, systemImage: section.icon)
+                    .tag(section)
+            }
+            .listStyle(.sidebar)
+            .navigationSplitViewColumnWidth(min: 160, ideal: 190, max: 260)
+        } detail: {
             scrollContent
-                .navigationTitle("Trail Planner")
-                .searchable(text: $search, prompt: "Find a trail")
+                .navigationTitle(section?.title ?? "Trail Planner")
                 .toolbar {
-                    ToolbarItemGroup(placement: .primaryAction) {
+                    ToolbarItem(placement: .principal) {
+                        Picker("Map layer", selection: $mapLayer) {
+                            Text("Terrain").tag(MapLayer.terrain)
+                            Text("Satellite").tag(MapLayer.satellite)
+                        }
+                        .pickerStyle(.segmented)
+                        .help("Map layer")
+                    }
+
+                    ToolbarItem(placement: .primaryAction) {
+                        Button {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.86)) { mapExpanded.toggle() }
+                        } label: {
+                            Label("Map tools", systemImage: "map")
+                        }
+                    }
+
+                    #if compiler(>=6.2)
+                    if #available(macOS 26, *) {
+                        ToolbarSpacer(.fixed, placement: .primaryAction)
+                    }
+                    #endif
+
+                    ToolbarItem(placement: .primaryAction) {
                         Menu {
                             Picker("Catalog appearance", selection: $appearance) {
                                 Text("Liquid Glass").tag(NativeCatalogAppearance.liquidGlass)
@@ -34,15 +88,25 @@ struct LiquidGlassShowcase: View {
                         } label: {
                             Label("Appearance", systemImage: "circle.lefthalf.filled")
                         }
-                        Button {
-                            withAnimation(.spring(response: 0.35, dampingFraction: 0.86)) { mapExpanded.toggle() }
-                        } label: {
-                            Label("Map tools", systemImage: "map")
-                        }
                     }
                 }
         }
-        .preferredColorScheme(.dark)
+        .searchable(text: $search, prompt: "Find a trail")
+    }
+
+    private var activeSpec: Spec? {
+        guard var spec = Self.spec else { return nil }
+        spec.elements[spec.root]?.children = ["hero", (section ?? .overview).rawValue, "sheet"]
+        return spec
+    }
+
+    private var registry: RendererRegistry<AnyView> {
+        NativeCatalog.registry(actions: [
+            "selectSection": { params in
+                guard let value = params["section"]?.stringValue, let next = Section(rawValue: value) else { return }
+                await MainActor.run { section = next }
+            },
+        ], animatesAppearance: false)
     }
 
     @ViewBuilder
@@ -52,13 +116,13 @@ struct LiquidGlassShowcase: View {
                 Label("No matching trails", systemImage: "magnifyingglass")
                     .foregroundStyle(.secondary)
                     .padding(32)
-            } else if let spec = Self.spec {
-                JSONRenderView(spec: spec, registry: NativeCatalog.registry(animatesAppearance: false))
+            } else if let spec = activeSpec {
+                JSONRenderView(spec: spec, registry: registry)
                     .jsonRenderCatalogAppearance(appearance)
                     .jsonRenderTextScale(1.12)
                     .padding(.horizontal, 32)
                     .padding(.vertical, 28)
-                    .background(alignment: .top) { terrain }
+                    .background(alignment: .top) { terrainBackground }
             } else {
                 Text("The showcase spec could not be loaded.")
                     .padding()
@@ -128,9 +192,25 @@ struct LiquidGlassShowcase: View {
         mapScale = min(max(mapScale + amount, 0.8), 2.2)
     }
 
+    @ViewBuilder
+    private var terrainBackground: some View {
+        #if compiler(>=6.2)
+        if #available(macOS 26, *) {
+            terrain.backgroundExtensionEffect()
+        } else {
+            terrain
+        }
+        #else
+        terrain
+        #endif
+    }
+
     private var terrain: some View {
-        LinearGradient(
-            colors: [Color(red: 0.09, green: 0.28, blue: 0.27), .clear],
+        let base = mapLayer == .terrain
+            ? Color(red: 0.09, green: 0.28, blue: 0.27)
+            : Color(red: 0.16, green: 0.23, blue: 0.37)
+        return LinearGradient(
+            colors: [base, .clear],
             startPoint: .top,
             endPoint: .bottom
         )
@@ -148,7 +228,7 @@ struct LiquidGlassShowcase: View {
                         )
                         if step == 0 { contour.move(to: point) } else { contour.addLine(to: point) }
                     }
-                    context.stroke(contour, with: .color(.mint.opacity(0.30)), lineWidth: 1)
+                    context.stroke(contour, with: .color((mapLayer == .terrain ? Color.mint : Color.cyan).opacity(0.30)), lineWidth: 1)
                 }
             }
             .mask(LinearGradient(colors: [.black, .clear], startPoint: .top, endPoint: .bottom))

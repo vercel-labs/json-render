@@ -11,23 +11,29 @@ import JSONRenderCatalog
 /// The recordings in `Resources` hold real streamed responses with the time
 /// each chunk arrived. `Scripts/record-demo-streams.mjs` makes them.
 @main
+enum DemoEntryPoint {
+    @MainActor
+    static func main() {
+        if DemoOptions.current.showcase {
+            MacLiquidGlassShowcaseApp.main()
+        } else {
+            StreamingDemoApp.main()
+        }
+    }
+}
+
 struct StreamingDemoApp: App {
     @NSApplicationDelegateAdaptor(DemoAppDelegate.self) private var delegate
     @StateObject private var player = StreamPlayer(options: .current)
     @StateObject private var toaster = Toaster()
 
     var body: some Scene {
-        let options = DemoOptions.current
-        WindowGroup(options.showcase ? "Liquid Glass Showcase" : "json-render") {
-            if options.showcase {
-                LiquidGlassShowcase()
-            } else {
-                DemoView(player: player, toaster: toaster)
-            }
+        WindowGroup("json-render") {
+            DemoView(player: player, toaster: toaster)
         }
         .windowStyle(.hiddenTitleBar)
         .windowToolbarStyle(.unified)
-        .defaultSize(width: options.showcase ? 980 : options.width, height: options.showcase ? 770 : options.height)
+        .defaultSize(width: DemoOptions.current.width, height: DemoOptions.current.height)
         .commands {
             CommandMenu("Demo") {
                 ForEach(player.recordings.indices, id: \.self) { index in

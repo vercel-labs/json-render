@@ -4,7 +4,7 @@
     "screen": {
       "type": "Stack",
       "props": { "gap": 22 },
-      "children": ["hero", "tabs", "sheet"]
+      "children": ["hero", "overview", "sheet"]
     },
     "hero": {
       "type": "Stack",
@@ -22,23 +22,7 @@
     "mapBar": {
       "type": "Row",
       "props": { "gap": 12 },
-      "children": ["mapOptions", "planAction", "bookmark"]
-    },
-    "mapOptions": {
-      "type": "Toolbar",
-      "props": { "label": "Map options" },
-      "children": ["layers", "routeMenu"]
-    },
-    "layers": {
-      "type": "SegmentedPicker",
-      "props": {
-        "label": "Layer",
-        "value": { "$bindState": "/layer" },
-        "options": [
-          { "label": "Terrain", "value": "terrain" },
-          { "label": "Satellite", "value": "satellite" }
-        ]
-      }
+      "children": ["routeMenu", "planAction", "bookmark"]
     },
     "routeMenu": {
       "type": "Menu",
@@ -48,12 +32,12 @@
     "routeSummary": {
       "type": "Button",
       "props": { "label": "Show overview", "icon": "map" },
-      "on": { "press": { "action": "setState", "params": { "statePath": "/tab", "value": "overview" } } }
+      "on": { "press": { "action": "selectSection", "params": { "section": "overview" } } }
     },
     "routeDetails": {
       "type": "Button",
       "props": { "label": "Show settings", "icon": "slider.horizontal.3" },
-      "on": { "press": { "action": "setState", "params": { "statePath": "/tab", "value": "settings" } } }
+      "on": { "press": { "action": "selectSection", "params": { "section": "settings" } } }
     },
     "planAction": {
       "type": "Button",
@@ -67,18 +51,6 @@
         "icon": "bookmark"
       },
       "on": { "press": { "action": "setState", "params": { "statePath": "/saved", "value": true } } }
-    },
-    "tabs": {
-      "type": "Tabs",
-      "props": {
-        "value": { "$bindState": "/tab" },
-        "height": 500,
-        "options": [
-          { "label": "Overview", "value": "overview", "icon": "map" },
-          { "label": "Controls", "value": "settings", "icon": "slider.horizontal.3" }
-        ]
-      },
-      "slots": { "overview": ["overview"], "settings": ["settings"] }
     },
     "overview": {
       "type": "Stack",
@@ -211,8 +183,6 @@
     }
   },
   "state": {
-    "layer": "terrain",
-    "tab": "settings",
     "sheet": false,
     "saved": false,
     "alerts": true,
