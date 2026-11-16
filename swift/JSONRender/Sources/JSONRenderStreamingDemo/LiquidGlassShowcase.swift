@@ -9,7 +9,6 @@ struct LiquidGlassShowcase: View {
     @State private var search = ""
     @State private var mapExpanded = false
     @State private var mapScale = 1.0
-    @Namespace private var mapTools
 
     private static let spec: Spec? = {
         guard let url = Bundle.module.url(
@@ -69,9 +68,15 @@ struct LiquidGlassShowcase: View {
         #if compiler(>=6.2)
         if #available(macOS 26, *) {
             content.safeAreaBar(edge: .bottom, alignment: .trailing, spacing: 0) {
-                floatingTools
-                    .padding(.trailing, 30)
-                    .padding(.bottom, 14)
+                Group {
+                    if appearance == .liquidGlass {
+                        floatingTools
+                    } else {
+                        standardMapTools
+                    }
+                }
+                .padding(.trailing, 30)
+                .padding(.bottom, 14)
             }
         } else {
             content.safeAreaInset(edge: .bottom, alignment: .trailing) {
@@ -95,46 +100,25 @@ struct LiquidGlassShowcase: View {
     #if compiler(>=6.2)
     @available(macOS 26, *)
     private var floatingTools: some View {
-        GlassEffectContainer(spacing: 12) {
-            HStack(spacing: 10) {
-                if mapExpanded {
-                    mapTool("Zoom out", symbol: "minus") { zoom(by: -0.2) }
-                    mapTool("Zoom in", symbol: "plus") { zoom(by: 0.2) }
-                    mapTool("Reset zoom", symbol: "location") { mapScale = 1 }
+        HStack(spacing: 10) {
+            if mapExpanded {
+                Group {
+                    Button("Zoom out", systemImage: "minus") { zoom(by: -0.2) }
+                    Button("Zoom in", systemImage: "plus") { zoom(by: 0.2) }
+                    Button("Reset zoom", systemImage: "location") { mapScale = 1 }
                 }
-                mapTool(
-                    mapExpanded ? "Collapse map tools" : "Expand map tools",
-                    symbol: mapExpanded ? "xmark" : "map",
-                    prominent: true
-                ) {
-                    withAnimation(.spring(response: 0.35, dampingFraction: 0.86)) { mapExpanded.toggle() }
-                }
+                .buttonStyle(.glass)
             }
+            Button(
+                mapExpanded ? "Collapse map tools" : "Expand map tools",
+                systemImage: mapExpanded ? "xmark" : "map"
+            ) {
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.86)) { mapExpanded.toggle() }
+            }
+            .buttonStyle(.glassProminent)
         }
-    }
-
-    @available(macOS 26, *)
-    private func mapTool(
-        _ label: String,
-        symbol: String,
-        prominent: Bool = false,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            Image(systemName: symbol)
-                .font(.system(size: 16, weight: .semibold))
-                .frame(width: 44, height: 44)
-                .contentShape(Circle())
-        }
-        .buttonStyle(.plain)
-        .background(appearance == .standard ? Color.gray.opacity(0.22) : .clear, in: Circle())
-        .glassEffect(
-            appearance == .liquidGlass ? .regular.tint(prominent ? .mint.opacity(0.30) : nil).interactive() : .identity,
-            in: Circle()
-        )
-        .glassEffectID(prominent ? "map-tools" : symbol, in: mapTools)
-        .accessibilityLabel(label)
-        .help(label)
+        .labelStyle(.iconOnly)
+        .controlSize(.large)
     }
     #endif
 

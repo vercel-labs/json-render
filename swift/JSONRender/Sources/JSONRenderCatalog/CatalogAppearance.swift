@@ -22,19 +22,10 @@ private struct CatalogAppearanceKey: EnvironmentKey {
     static let defaultValue: NativeCatalogAppearance = .standard
 }
 
-private struct CatalogControlGroupKey: EnvironmentKey {
-    static let defaultValue = false
-}
-
 extension EnvironmentValues {
     var jsonRenderCatalogAppearance: NativeCatalogAppearance {
         get { self[CatalogAppearanceKey.self] }
         set { self[CatalogAppearanceKey.self] = newValue }
-    }
-
-    var isCatalogControlGroup: Bool {
-        get { self[CatalogControlGroupKey.self] }
-        set { self[CatalogControlGroupKey.self] = newValue }
     }
 }
 
@@ -49,7 +40,6 @@ extension View {
 struct CatalogButtonStyle: ViewModifier {
     let variant: String
     @Environment(\.jsonRenderCatalogAppearance) private var appearance
-    @Environment(\.isCatalogControlGroup) private var insideControlGroup
 
     @ViewBuilder
     func body(content: Content) -> some View {
@@ -64,13 +54,7 @@ struct CatalogButtonStyle: ViewModifier {
     private func styled(_ content: Content) -> some View {
         #if compiler(>=6.2)
         if #available(iOS 26, macOS 26, *), appearance.usesLiquidGlass {
-            if insideControlGroup {
-                if variant == "primary" {
-                    content.buttonStyle(.borderedProminent)
-                } else {
-                    content.buttonStyle(.borderless)
-                }
-            } else if variant == "primary" {
+            if variant == "primary" {
                 content.buttonStyle(.glassProminent)
             } else {
                 content.buttonStyle(.glass)

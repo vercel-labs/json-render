@@ -212,7 +212,7 @@
   },
   "state": {
     "layer": "terrain",
-    "tab": "overview",
+    "tab": "settings",
     "sheet": false,
     "saved": false,
     "alerts": true,

@@ -15,25 +15,16 @@ struct CatalogToolbar: View {
             }
         }
         .environment(\.hugsContent, true)
-        .environment(\.isCatalogControlGroup, true)
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
         .accessibilityElement(children: .contain)
         .accessibilityLabel(context.props.string("label") ?? "")
 
-        #if compiler(>=6.2)
-        if #available(iOS 26, macOS 26, *) {
-            GlassEffectContainer(spacing: spacing) {
-                controls
-                    .background(appearance.usesLiquidGlass ? Color.clear : CatalogTheme.surface, in: Capsule())
-                    .glassEffect(appearance.usesLiquidGlass ? .regular : .identity, in: Capsule())
-            }
+        if appearance.usesLiquidGlass {
+            controls.controlSize(.large)
         } else {
             controls.background(CatalogTheme.surface, in: Capsule())
         }
-        #else
-        controls.background(CatalogTheme.surface, in: Capsule())
-        #endif
     }
 }
 
@@ -60,6 +51,7 @@ struct CatalogMenu: View {
 struct CatalogSegmentedPicker: View {
     let context: ComponentRenderContext<AnyView>
     @State private var localSelection: String?
+    @Environment(\.jsonRenderCatalogAppearance) private var appearance
 
     var body: some View {
         let options = CatalogOption.parse(context.props["options"])
@@ -70,6 +62,7 @@ struct CatalogSegmentedPicker: View {
             }
         }
         .pickerStyle(.segmented)
+        .controlSize(appearance.usesLiquidGlass ? .large : .regular)
         .disabled(options.isEmpty || context.props.bool("disabled") == true)
     }
 }

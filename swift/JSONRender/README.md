@@ -217,16 +217,18 @@ struct Dashboard: View {
 ```
 
 On iOS 26 and macOS 26 or later, with Xcode 26 or later, standalone Button
-elements use system glass styles. A Toolbar groups related controls on one
-glass surface. Menu, Switch, SegmentedPicker, Slider, Tabs, Sheet, and Input
-use native SwiftUI controls and presentations. Cards, metrics, and standalone lists use system content material in
-this appearance. Charts, images, and text render in the content layer. Both
-appearances use the same components, action handlers, and state bindings. Older toolchains and OS versions use the standard appearance.
+elements use system glass styles. Toolbar arranges native controls without
+adding a background in Liquid Glass mode. Switch, SegmentedPicker, and Slider
+use SwiftUI's native controls and follow the host app's system appearance and
+interaction animations. Menus, tabs, sheets, and text fields also use system
+controls. Cards, metrics, and standalone lists use system content material.
+Both appearances share component names, action handlers, and state bindings.
+Older toolchains and OS versions use the standard appearance.
 
 On macOS, launch the interactive showcase with
 `swift run JSONRenderStreamingDemo --liquid-glass-showcase`. Open **Plan a hike**
 to see a native sheet, choose **Controls** to try the bound slider and switch,
-or expand **Map tools** to see a morphing glass group on the scroll edge.
+or expand **Map tools** to see system glass buttons on the scroll edge.
 
 Run `swift run JSONRenderStreamingDemo --liquid-glass` to replay the streaming
 examples in Liquid Glass mode.

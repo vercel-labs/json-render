@@ -808,6 +808,7 @@ final class LocalToggleState: ObservableObject {
 
 struct SwitchView: View {
     let context: ComponentRenderContext<AnyView>
+    @Environment(\.jsonRenderCatalogAppearance) private var appearance
     @StateObject private var local = LocalToggleState()
     @Environment(\.isAccessory) private var isAccessory
     @Environment(\.jsonRenderTextScale) private var textScale
@@ -830,7 +831,20 @@ struct SwitchView: View {
         )
 
         Group {
-            if isAccessory {
+            if appearance.usesLiquidGlass && !isAccessory {
+                Toggle(isOn: isOn) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(context.props.string("label") ?? "")
+                        if let description = context.props.string("description"), !description.isEmpty {
+                            Text(description).font(.caption).foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                .toggleStyle(.switch)
+                .controlSize(.large)
+                .accessibilityLabel(context.props.string("label") ?? "")
+                .accessibilityHint(context.props.string("description") ?? "")
+            } else if isAccessory {
                 Toggle(context.props.string("label") ?? "", isOn: isOn)
                     .toggleStyle(.switch)
                     .labelsHidden()
