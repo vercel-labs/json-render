@@ -202,7 +202,7 @@ extension EnvironmentValues {
     }
 }
 
-/// The content layer uses system material in the Liquid Glass appearance.
+/// A background for lists and cards using the standard appearance.
 struct CardBackground: View {
     var shadow = false
     @Environment(\.jsonRenderCatalogAppearance) private var appearance
@@ -224,13 +224,35 @@ struct CardBackground: View {
 /// A rounded raised surface with a hairline border and a soft shadow.
 struct CardSurface: ViewModifier {
     var padding: CGFloat = 16
+    @Environment(\.jsonRenderCatalogAppearance) private var appearance
 
     func body(content: Content) -> some View {
-        content
+        surface(content
             .padding(padding)
             .frame(maxWidth: .infinity, alignment: .topLeading)
-            .background(CardBackground(shadow: true))
-            .environment(\.surfaceDepth, 1)
+            .environment(\.surfaceDepth, 1))
+    }
+
+    @ViewBuilder
+    private func surface(_ content: some View) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, macOS 26, *) {
+            content
+                .background {
+                    if !appearance.usesLiquidGlass {
+                        CardBackground(shadow: true)
+                    }
+                }
+                .glassEffect(
+                    appearance.usesLiquidGlass ? .regular : .identity,
+                    in: RoundedRectangle(cornerRadius: 22, style: .continuous)
+                )
+        } else {
+            content.background(CardBackground(shadow: true))
+        }
+        #else
+        content.background(CardBackground(shadow: true))
+        #endif
     }
 }
 

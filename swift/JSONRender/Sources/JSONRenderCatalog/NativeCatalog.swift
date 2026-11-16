@@ -234,7 +234,7 @@ struct GridView: View {
         let columns = (context.props.number("columns") ?? 2).clampedInt(to: 1...6, fallback: 2)
         let spacing = CatalogTheme.gap(context.props["gap"], fallback: 12)
 
-        ColumnsLayout(columns: columns, spacing: spacing, minColumnWidth: 140 * textScale) {
+        let grid = ColumnsLayout(columns: columns, spacing: spacing, minColumnWidth: 140 * textScale) {
             ForEach(context.keyedChildren) { child in
                 child.view
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -242,6 +242,16 @@ struct GridView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+
+        #if compiler(>=6.2)
+        if #available(iOS 26, macOS 26, *) {
+            GlassEffectContainer(spacing: 0) { grid }
+        } else {
+            grid
+        }
+        #else
+        grid
+        #endif
     }
 }
 

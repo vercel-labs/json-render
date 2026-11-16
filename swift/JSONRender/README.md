@@ -221,7 +221,9 @@ elements use system glass styles. Toolbar arranges native controls without
 adding a background in Liquid Glass mode. Switch, SegmentedPicker, and Slider
 use SwiftUI's native controls and follow the host app's system appearance and
 interaction animations. Menus, tabs, sheets, and text fields also use system
-controls. Cards, metrics, and standalone lists use system content material.
+controls. Top-level cards and metrics use system Liquid Glass surfaces. Cards
+nested inside another surface use a recessed fill, and standalone lists use
+system content material.
 Both appearances share component names, action handlers, and state bindings.
 Older toolchains and OS versions use the standard appearance.
 
