@@ -1,0 +1,71 @@
+---
+title: "Material 3 Expressive"
+description: "Render json-render specs with native Material 3 Expressive components in Jetpack Compose."
+---
+
+The Material 3 Expressive catalog extends the Jetpack Compose renderer with
+Material typography, cards, shape-changing buttons, and animated progress
+indicators. Add the catalog as a local Gradle build using the
+[Android installation instructions](https://github.com/vercel-labs/json-render/tree/main/android/material3-expressive).
+
+## Render a spec
+
+Pass `Material3ExpressiveComponents` to `JsonRender` and wrap the renderer in
+`JsonRenderExpressiveTheme`. The theme inherits AndroidX's Expressive defaults
+and accepts app-provided colors, shapes, and typography.
+
+```kotlin
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import com.vercel.jsonrender.compose.JsonRender
+import com.vercel.jsonrender.compose.Spec
+import com.vercel.jsonrender.material3.JsonRenderExpressiveTheme
+import com.vercel.jsonrender.material3.Material3ExpressiveComponents
+
+@Composable
+fun DownloadScreen() {
+    val spec = remember {
+        Spec.decode(
+            """
+            {
+              "root": "download",
+              "elements": {
+                "download": {
+                  "type": "Card",
+                  "props": { "title": "Downloading map" },
+                  "children": ["progress"]
+                },
+                "progress": {
+                  "type": "Progress",
+                  "props": { "value": 65, "label": "Map download progress" }
+                }
+              }
+            }
+            """.trimIndent()
+        )
+    }
+
+    JsonRenderExpressiveTheme {
+        JsonRender(spec = spec, registry = Material3ExpressiveComponents)
+    }
+}
+```
+
+## Components
+
+- `Column`, `Row`, and `Stack` arrange children using the Foundation catalog.
+- `Heading` and `Text` take a `text` string.
+- `Card` renders children below an optional `title` and `description`.
+- `Button` takes a `label` and optional `disabled` flag, and emits `press`.
+- `ToggleButton` takes a `label`, `checked` boolean, and optional `disabled`
+  flag. It writes to the `checked` prop's `$bindState` path and emits `change`.
+  Supply updated state through `JsonRender` to reflect the change.
+- `LoadingIndicator` renders an indeterminate indicator with an optional
+  visible `label`.
+- `Progress` renders a wavy progress indicator. Set `value` to a percentage
+  from 0 to 100, or omit it for indeterminate progress. Use `label` to describe
+  the progress to assistive technologies.
+
+Pass `Material3ExpressiveComponents + appComponents` to add or override a
+component renderer. The app provides its own catalog definitions when
+generating specs on the server.

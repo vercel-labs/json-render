@@ -114,6 +114,10 @@ export const docsNavigation: NavSection[] = [
       { title: "@json-render/zustand", href: "/docs/api/zustand" },
       { title: "@json-render/jotai", href: "/docs/api/jotai" },
       { title: "@json-render/xstate", href: "/docs/api/xstate" },
+      {
+        title: "Material 3 Expressive",
+        href: "/docs/api/material3-expressive",
+      },
       { title: "@json-render/yaml", href: "/docs/api/yaml" },
     ],
   },

@@ -30,6 +30,7 @@
     "zustand",
     "jotai",
     "xstate",
+    "material3-expressive",
     "yaml"
   ]
 }

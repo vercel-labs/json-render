@@ -126,6 +126,9 @@ function Dashboard({ spec }) {
 
 ## Packages
 
+The [Material 3 Expressive catalog](android/material3-expressive) adds native
+components to the Android Jetpack Compose renderer.
+
 | Package                     | Description                                                            |
 | --------------------------- | ---------------------------------------------------------------------- |
 | `@json-render/core`         | Schemas, catalogs, AI prompts, dynamic props, SpecStream utilities     |
