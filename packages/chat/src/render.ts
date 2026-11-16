@@ -13,6 +13,7 @@ import type { CardChild, CardElement } from "chat";
 import * as build from "./elements";
 import type { ZodType } from "zod";
 import { standardComponentDefinitions } from "./catalog";
+import type { CardMessage } from "./stream";
 
 type Element = {
   type: string;
@@ -59,7 +60,11 @@ export interface ToCardOptions {
 const DEFAULT_MAX_ELEMENTS = 1000;
 
 export class CardSpecError extends Error {
-  constructor(public readonly issues: string[]) {
+  constructor(
+    public readonly issues: string[],
+    /** The message showing the partial card, when streamCard posted one. */
+    public readonly postedMessage?: CardMessage,
+  ) {
     super(issues.join("\n"));
     this.name = "CardSpecError";
   }
