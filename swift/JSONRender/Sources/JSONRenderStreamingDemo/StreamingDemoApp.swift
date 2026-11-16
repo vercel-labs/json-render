@@ -79,6 +79,7 @@ struct DemoOptions {
     var autoplay = false
     var startDelay = 1.0
     var appearance: String?
+    var catalogAppearance: NativeCatalogAppearance = .standard
     /// Pauses the replay after this many patches, for still frames.
     var stopAfter: Int?
     /// Playback speed. 1 replays the recorded timing.
@@ -108,6 +109,7 @@ struct DemoOptions {
             case "--autoplay": autoplay = true
             case "--delay": startDelay = iterator.next().flatMap(Double.init) ?? startDelay
             case "--appearance": appearance = iterator.next()
+            case "--liquid-glass": catalogAppearance = .liquidGlass
             case "--stop-after": stopAfter = iterator.next().flatMap(Int.init)
             case "--speed": speed = iterator.next().flatMap(Double.init) ?? speed
             case "--first-token": firstTokenDelay = iterator.next().flatMap(Double.init) ?? firstTokenDelay
@@ -419,6 +421,7 @@ struct DemoView: View {
                                 animation: .spring(response: 0.35, dampingFraction: 0.9)
                             )
                             .jsonRenderTextScale(scale)
+                            .jsonRenderCatalogAppearance(player.options.catalogAppearance)
                             .id(player.runID)
                             .padding(.horizontal, 28)
                             .padding(.top, 24)

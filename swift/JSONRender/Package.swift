@@ -14,7 +14,6 @@ let package = Package(
         .library(name: "JSONRenderCore", targets: ["JSONRenderCore"]),
         .library(name: "JSONRenderSwiftUI", targets: ["JSONRenderSwiftUI"]),
         .library(name: "JSONRenderCatalog", targets: ["JSONRenderCatalog"]),
-        .library(name: "JSONRenderLiquidGlass", targets: ["JSONRenderLiquidGlass"]),
         .executable(name: "JSONRenderMacExample", targets: ["JSONRenderMacExample"]),
         .executable(name: "JSONRenderStreamingDemo", targets: ["JSONRenderStreamingDemo"]),
     ],
@@ -28,10 +27,6 @@ let package = Package(
         .target(
             name: "JSONRenderCatalog",
             dependencies: ["JSONRenderCore", "JSONRenderSwiftUI"]
-        ),
-        .target(
-            name: "JSONRenderLiquidGlass",
-            dependencies: ["JSONRenderCore"]
         ),
         // macOS example app. Built and run on a Mac that has SwiftUI.
         .executableTarget(
@@ -55,7 +50,7 @@ let package = Package(
         // Linux and the macOS job is what runs these tests.
         .testTarget(
             name: "JSONRenderSwiftUITests",
-            dependencies: ["JSONRenderCore", "JSONRenderSwiftUI", "JSONRenderCatalog", "JSONRenderLiquidGlass"]
+            dependencies: ["JSONRenderCore", "JSONRenderSwiftUI", "JSONRenderCatalog"]
         ),
     ]
 )

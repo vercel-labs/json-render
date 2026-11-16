@@ -16,7 +16,7 @@ import JSONRenderSwiftUI
 public enum NativeCatalog {
     /// The catalog's component renderers keyed by name.
     public static var components: [String: ComponentDefinition<AnyView>] {
-        [
+        var definitions: [String: ComponentDefinition<AnyView>] = [
             "Card": ComponentDefinition { AnyView(CardView(context: $0)) },
             "Stack": ComponentDefinition { AnyView(StackView(context: $0)) },
             "Grid": ComponentDefinition { AnyView(GridView(context: $0)) },
@@ -30,11 +30,16 @@ public enum NativeCatalog {
             "Image": ComponentDefinition { AnyView(ImageView(props: $0.props)) },
             "Progress": ComponentDefinition { AnyView(ProgressBarView(props: $0.props)) },
             "Button": ComponentDefinition { AnyView(CatalogButton(context: $0)) },
+            "Toolbar": ComponentDefinition { AnyView(CatalogToolbar(context: $0)) },
+            "Menu": ComponentDefinition { AnyView(CatalogMenu(context: $0)) },
+            "SegmentedPicker": ComponentDefinition { AnyView(CatalogSegmentedPicker(context: $0)) },
             "Switch": ComponentDefinition { AnyView(SwitchView(context: $0)) },
             "BarChart": ComponentDefinition { AnyView(ChartView(kind: .bar, props: $0.props)) },
             "LineChart": ComponentDefinition { AnyView(ChartView(kind: .line, props: $0.props)) },
             "Separator": ComponentDefinition { _ in AnyView(Divider().padding(.vertical, 2)) },
         ]
+        definitions["Input"] = BuiltInComponents.components["Input"]
+        return definitions
     }
 
     /// A registry with the catalog components plus app components and actions.
@@ -795,14 +800,7 @@ struct CatalogButton: View {
         .controlSize(CatalogTheme.controlSize(scale: textScale, compact: isAccessory))
         .disabled(context.props.bool("disabled") ?? false)
 
-        switch variant {
-        case "primary":
-            button.buttonStyle(.borderedProminent)
-        case "danger":
-            button.buttonStyle(.bordered).tint(.red)
-        default:
-            button.buttonStyle(.bordered)
-        }
+        button.modifier(CatalogButtonStyle(variant: variant))
     }
 }
 
@@ -833,14 +831,17 @@ struct SwitchView: View {
             }
         )
 
-        if isAccessory {
-            Toggle(context.props.string("label") ?? "", isOn: isOn)
-                .toggleStyle(.switch)
-                .labelsHidden()
-                .controlSize(CatalogTheme.controlSize(scale: textScale, compact: true))
-        } else {
-            switchRow(isOn: isOn)
+        Group {
+            if isAccessory {
+                Toggle(context.props.string("label") ?? "", isOn: isOn)
+                    .toggleStyle(.switch)
+                    .labelsHidden()
+                    .controlSize(CatalogTheme.controlSize(scale: textScale, compact: true))
+            } else {
+                switchRow(isOn: isOn)
+            }
         }
+        .disabled(context.props.bool("disabled") ?? false)
     }
 
     private func switchRow(isOn: Binding<Bool>) -> some View {
@@ -855,7 +856,7 @@ struct SwitchView: View {
                 }
             }
             Spacer(minLength: 8)
-            Toggle("", isOn: isOn)
+            Toggle(context.props.string("label") ?? "", isOn: isOn)
                 .toggleStyle(.switch)
                 .labelsHidden()
                 .controlSize(CatalogTheme.controlSize(scale: textScale, compact: true))

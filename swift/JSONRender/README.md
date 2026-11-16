@@ -2,7 +2,7 @@
 
 Swift package renderer for json-render. It decodes the same `{ "root", "elements", "state" }` JSON that `@json-render/core` defines, resolves data bindings and expressions, dispatches actions, and renders the tree with SwiftUI on macOS and iOS.
 
-`JSONRenderCore` has no UI dependencies and builds on Linux. `JSONRenderSwiftUI`, `JSONRenderCatalog`, `JSONRenderLiquidGlass`, and the example apps need SwiftUI.
+`JSONRenderCore` has no UI dependencies and builds on Linux. `JSONRenderSwiftUI`, `JSONRenderCatalog`, and the example apps need SwiftUI.
 
 ## Requirements
 
@@ -107,66 +107,6 @@ let registry = BuiltInComponents.registry(
 
 A definition receives a `ComponentRenderContext` with resolved `props`, rendered `children` (with a stable identity for each in `childIDs`) and `slots`, state bindings, the repeat scope, and `on` and `emit` event helpers. To render a component type that has no registered view, set `fallback` on the `RendererRegistry`. Without a fallback, the element and its subtree are dropped with a warning, matching the React renderer.
 
-## Liquid Glass controls
-
-Add the `JSONRenderLiquidGlass` SwiftPM product to your app target and pass
-`LiquidGlassCatalog.components` to your registry. These components use system
-Liquid Glass styles on iOS 26 and macOS 26 or later when built with Xcode 26 or
-later. On older systems or with older toolchains, the buttons use the standard
-bordered styles.
-
-```swift
-import SwiftUI
-import JSONRenderCatalog
-import JSONRenderCore
-import JSONRenderLiquidGlass
-import JSONRenderSwiftUI
-
-struct GlassControls: View {
-    let spec: Spec
-    let actions: [String: ActionHandler]
-
-    var body: some View {
-        JSONRenderView(
-            spec: spec,
-            registry: NativeCatalog.registry(
-                extraComponents: LiquidGlassCatalog.components,
-                actions: actions
-            )
-        )
-    }
-}
-```
-
-- `GlassButton` takes a `label`, optional SF Symbol name in `icon`, and optional
-  `prominent` and `disabled` flags. It dispatches its `on.press` binding through
-  the renderer's action handlers.
-- `GlassButtonGroup` arranges its children horizontally in a SwiftUI
-  `GlassEffectContainer` when Liquid Glass is available.
-
-```json
-{
-  "root": "controls",
-  "elements": {
-    "controls": {
-      "type": "GlassButtonGroup",
-      "props": {},
-      "children": ["cancel", "save"]
-    },
-    "cancel": {
-      "type": "GlassButton",
-      "props": { "label": "Cancel" },
-      "on": { "press": { "action": "cancel" } }
-    },
-    "save": {
-      "type": "GlassButton",
-      "props": { "label": "Save", "prominent": true },
-      "on": { "press": { "action": "save" } }
-    }
-  }
-}
-```
-
 ## Render tree limits
 
 A spec's `elements` map can reference the same element from several parents, so a small spec can describe an exponentially large tree. `buildRenderTree` shares one budget across each build and stops when any limit is reached:
@@ -230,17 +170,56 @@ JSONRenderView(spec: spec, registry: NativeCatalog.registry())
 | Image | `src`, `alt`, `height` |
 | Progress | `value`, `max`, `label`, `tint` |
 | Button | `label`, `variant` (`primary`, `secondary`, `danger`), `icon`, `disabled` |
-| Switch | `label`, `description`, `checked` |
+| Toolbar | `label`, `gap` |
+| Menu | `label`, `icon`, `disabled` |
+| SegmentedPicker | `label`, `options` (objects with string `label` and `value`), `value`, `disabled` |
+| Input | `label`, `placeholder`, `value` |
+| Switch | `label`, `description`, `checked`, `disabled` |
 | BarChart, LineChart | `title`, `data`, `xKey`, `yKey`, `tint`, `height` |
 | Separator | none |
 
-`icon` props are SF Symbols names, and `tint` is a named system color such as `blue`, `green`, or `orange`. Button emits `press` and Switch emits `change`. Bind `checked` with `$bindState` or `$bindItem` for two-way state. ListItem renders its children as trailing accessories, such as a Badge, a Button, or a Switch.
+`icon` props are SF Symbols names, and `tint` is a named system color such as `blue`, `green`, or `orange`. Button emits `press`. Switch, Input, and SegmentedPicker emit `change`. Use `$bindState` or `$bindItem` on Switch's `checked` or on Input's and SegmentedPicker's `value` for two-way state. Input displays its value as read-only text until it receives a binding. ListItem renders its children as trailing accessories. Menu renders its Button children as native menu actions.
 
 Each element fades in the first time it appears, so a streamed spec builds up smoothly. Pass `animatesAppearance: false` to turn this off.
 
 Grid keeps its columns at least 140 points wide and uses fewer columns in a narrow container. Apply `.jsonRenderTextScale(1.25)` to scale the catalog's text, icons, and controls, for example for a presentation.
 
 `Scripts/record-demo-streams.mjs` defines the same catalog with `defineCatalog` from `@json-render/core`, so `catalog.prompt()` produces a system prompt for it.
+
+### Liquid Glass appearance
+
+Set the appearance on the renderer or a parent view. The setting applies to
+`NativeCatalog.registry()` and can change while the same view is mounted.
+
+```swift
+import JSONRenderCatalog
+import JSONRenderCore
+import JSONRenderSwiftUI
+import SwiftUI
+
+struct Dashboard: View {
+    let spec: Spec
+    @State private var usesLiquidGlass = true
+
+    var body: some View {
+        VStack {
+            Toggle("Liquid Glass", isOn: $usesLiquidGlass)
+            JSONRenderView(spec: spec, registry: NativeCatalog.registry())
+                .jsonRenderCatalogAppearance(usesLiquidGlass ? .liquidGlass : .standard)
+        }
+    }
+}
+```
+
+On iOS 26 and macOS 26 or later, with Xcode 26 or later, standalone Button
+elements use system glass styles. A Toolbar groups related controls on one
+glass surface. Menu, Switch, SegmentedPicker, and Input use native SwiftUI
+controls. Layouts, cards, lists, charts, images, and text remain content
+surfaces. Both appearances use the same components, action handlers, and state
+bindings. Older toolchains and OS versions use the standard appearance.
+
+To replay the SwiftUI streaming demo with this appearance, run
+`swift run JSONRenderStreamingDemo --liquid-glass` on macOS.
 
 ## Streaming
 

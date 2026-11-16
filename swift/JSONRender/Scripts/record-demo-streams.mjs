@@ -211,11 +211,54 @@ export const catalog = defineCatalog(schema, {
       description: "Push button. Bind on.press to an action.",
       example: { label: "Save", variant: "primary" },
     },
+    Toolbar: {
+      props: z.object({ label: z.string().nullable(), gap }),
+      slots: ["default"],
+      description: "Groups toolbar controls such as Button, Menu, and SegmentedPicker.",
+      example: { label: "Map actions", gap: "sm" },
+    },
+    Menu: {
+      props: z.object({
+        label: z.string(),
+        icon: symbol,
+        disabled: z.boolean().nullable(),
+      }),
+      slots: ["default"],
+      description: "Native menu of Button actions.",
+      example: { label: "More", icon: "ellipsis" },
+    },
+    SegmentedPicker: {
+      props: z.object({
+        label: z.string(),
+        value: z.string().nullable(),
+        options: z.array(z.object({ label: z.string(), value: z.string() })),
+        disabled: z.boolean().nullable(),
+      }),
+      events: ["change"],
+      description:
+        "Native segmented control. Bind value with $bindState to store the selected option.",
+      example: {
+        label: "Period",
+        value: "week",
+        options: [{ label: "Week", value: "week" }, { label: "Month", value: "month" }],
+      },
+    },
+    Input: {
+      props: z.object({
+        label: z.string().nullable(),
+        placeholder: z.string().nullable(),
+        value: z.string().nullable(),
+      }),
+      events: ["change"],
+      description: "Text field. Bind value with $bindState to accept edits.",
+      example: { label: "Name", placeholder: "Enter a name" },
+    },
     Switch: {
       props: z.object({
         label: z.string(),
         description: z.string().nullable(),
         checked: z.boolean().nullable(),
+        disabled: z.boolean().nullable(),
       }),
       events: ["change"],
       description:
