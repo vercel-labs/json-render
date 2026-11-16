@@ -935,9 +935,9 @@
       "title": "Material 3 Expressive",
       "metadataTitle": "Material 3 Expressive API | json-render",
       "prefix": "",
-      "sourceSha256": "ae69eaa780b487116e6735316afd4315d741de734ec2b4b4798ef1b698ef4091",
-      "bodySha256": "ae69eaa780b487116e6735316afd4315d741de734ec2b4b4798ef1b698ef4091",
-      "markdownSha256": "dbb66f2ce4daa9aa27d65d4b49fd63b7910aabf826a01d89199b0b2e7627d5f7",
+      "sourceSha256": "16455ff5ab177ef70747f32096d65594734d278537dd0cce5b1d5f90b87d733a",
+      "bodySha256": "16455ff5ab177ef70747f32096d65594734d278537dd0cce5b1d5f90b87d733a",
+      "markdownSha256": "5cfa7d0bc66c10739a402ca8a9440bb7e0612c6e82dfbebfd4c645b05b5daf94",
       "headings": [
         {
           "title": "Render a spec",
@@ -946,6 +946,22 @@
         {
           "title": "Components",
           "id": "components"
+        },
+        {
+          "title": "Layout and content",
+          "id": "layout-and-content"
+        },
+        {
+          "title": "Controls",
+          "id": "controls"
+        },
+        {
+          "title": "Navigation and overlays",
+          "id": "navigation-and-overlays"
+        },
+        {
+          "title": "Progress and charts",
+          "id": "progress-and-charts"
         }
       ]
     },

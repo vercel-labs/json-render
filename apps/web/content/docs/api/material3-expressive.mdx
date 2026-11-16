@@ -4,8 +4,7 @@ description: "Render json-render specs with native Material 3 Expressive compone
 ---
 
 The Material 3 Expressive catalog extends the Jetpack Compose renderer with
-Material typography, cards, shape-changing buttons, and animated progress
-indicators. Add the catalog as a local Gradle build using the
+Material content, forms, navigation, charts, and animated progress indicators. Add the catalog as a local Gradle build using the
 [Android installation instructions](https://github.com/vercel-labs/json-render/tree/main/android/material3-expressive).
 
 ## Render a spec
@@ -53,18 +52,82 @@ fun DownloadScreen() {
 
 ## Components
 
-- `Column`, `Row`, and `Stack` arrange children using the Foundation catalog.
-- `Heading` and `Text` take a `text` string.
-- `Card` renders children below an optional `title` and `description`.
-- `Button` takes a `label` and optional `disabled` flag, and emits `press`.
-- `ToggleButton` takes a `label`, `checked` boolean, and optional `disabled`
-  flag. It writes to the `checked` prop's `$bindState` path and emits `change`.
-  Supply updated state through `JsonRender` to reflect the change.
-- `LoadingIndicator` renders an indeterminate indicator with an optional
-  visible `label`.
-- `Progress` renders a wavy progress indicator. Set `value` to a percentage
-  from 0 to 100, or omit it for indeterminate progress. Use `label` to describe
-  the progress to assistive technologies.
+### Layout and content
+
+- `Column` and `Row` arrange children with a `gap`. `Stack` adds a `direction`.
+- `Grid` wraps children across up to `columns` per row with a `gap`. It
+  supports one to six columns.
+- `Heading` accepts `text` and `level`. `Text` accepts `text` and a `variant`
+  of `lead`, `caption`, `muted`, or `code`.
+- `Card` renders children below optional `title`, `description`, and `icon`
+  props. Set `fullWidth` to fill the available width or use an `outlined` or
+  `elevated` variant. `Surface` wraps children in a tonal container. Its
+  `variant` accepts `primary`, `secondary`, or `tertiary`.
+- `List` accepts an optional `title` and child `ListItem` elements. A
+  `ListItem` accepts `title`, `subtitle`, `icon`, and `trailing`, and renders
+  its children as accessories. Set `clickable` to emit `press` on activation.
+- `Metric` accepts `label`, a string or numeric `value`, `detail`, and a
+  `trend` of `up` or `down`. `Badge` takes `text` and `variant`.
+- `Alert` displays a `title`, optional `message`, and child controls. Use
+  `type` to select an `info`, `success`, `warning`, or `error` color.
+- `Image` accepts an HTTPS `src`, `alt` text, an optional `height` in dp, and
+  a `fit` of `contain` or `cover`. Add the Android `INTERNET` permission to
+  the host app to load network images.
+- `Separator` and `Divider` draw a horizontal line. `Spacer` reserves
+  `size` dp on each axis.
+
+### Controls
+
+- `Button` accepts `label`, `icon`, `disabled`, and a `variant` of `primary`,
+  `secondary`, `outline`, `elevated`, or `danger`. `IconButton` and
+  `FloatingActionButton` use `label` as the accessibility name. All three
+  emit `press`.
+- `ToggleButton`, `Switch` (also `Toggle`), and `Checkbox` accept `label`,
+  `checked`, and `disabled`. `Switch` also accepts `description`.
+- `Input` and `Textarea` accept `label`, `value`, `placeholder`,
+  `description`, `disabled`, `readOnly`, and `error`. `Input` also accepts
+  a keyboard `type` of `email`, `number`, `password`, `tel`, or `url`.
+- `Slider` takes a numeric `value`, optional `min` and `max`, and a
+  `steps` count for intermediate detents. It accepts `label` and `disabled`.
+- `Select`, `RadioGroup`, and `SegmentedPicker` (also
+  `SegmentedButtonGroup`) select a string `value` from `options`. Each
+  option is a string or an object with `label`, `value`, and optional
+  `disabled`. Segmented pickers show the first five options.
+
+Bind `checked` or `value` with `$bindState` to receive writes through
+`JsonRender`'s state callback and pass the updated state back to the renderer.
+Without a binding, the control keeps its selection locally. These controls
+emit `change` after an interaction.
+
+### Navigation and overlays
+
+- `Tabs` and `NavigationBar` use the same `options` and `value` props as
+  `SegmentedPicker`. The navigation bar shows the first five options and
+  accepts an optional `icon` for each.
+- `TopAppBar` uses a `title`, a `navigation` slot, and an `actions` slot.
+  Its children also render as actions.
+- `Toolbar` (also `FloatingToolbar`) renders child controls using Material's
+  horizontal floating toolbar. It accepts `label`, `gap`, and `expanded`,
+  plus `leading` and `trailing` slots.
+- `Menu` opens its child controls from a `label` and optional `icon`. A child
+  `Button` closes the menu and emits its own `press` event.
+- `Dialog` takes `open`, `title`, `description`, `confirmLabel`, and an
+  optional `dismissLabel`. Bind `open` to state to control visibility.
+  Closing writes `false` and emits `confirm` or `dismiss`.
+
+Built-in icon names include `add`, `back`, `check`, `close`, `favorite`,
+`home`, `info`, `more`, `search`, and `settings`.
+
+### Progress and charts
+
+- `Progress` (also `ProgressBar`) renders Material's wavy progress indicator. Set `value` from
+  zero to `max` (default 100), or omit it for indeterminate progress.
+  Set `label` to describe the progress to assistive technologies.
+- `LoadingIndicator` renders Material's contained indicator with an optional
+  visible `label`. A `value` from 0 to 100 selects determinate progress.
+- `BarChart` and `LineChart` take `data` as an array of objects and accept
+  `xKey`, `yKey`, `title`, and `height` in dp. The first 100 rows are
+  considered and rows without a finite number are skipped.
 
 Pass `Material3ExpressiveComponents + appComponents` to add or override a
 component renderer. The app provides its own catalog definitions when

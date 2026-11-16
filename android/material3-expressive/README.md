@@ -1,8 +1,8 @@
 # Material 3 Expressive for json-render
 
 Render Android json-render specs with Material 3 Expressive components. The
-catalog adds Material typography, cards, shape-changing buttons, toggle
-buttons, and animated progress indicators to the [Jetpack Compose renderer](../README.md).
+catalog adds Material layouts, content, charts, form controls,
+navigation, and animated progress indicators to the [Jetpack Compose renderer](../README.md).
 
 ## Add the catalog to your app
 
@@ -50,21 +50,13 @@ bindings or events. To add or replace component renderers, pass
 
 ## Components
 
-`Column`, `Row`, and `Stack` come from the Compose renderer's foundation catalog.
+The catalog includes layout and content components, buttons and form controls,
+Material tabs and navigation, overlays, charts, and Expressive progress
+indicators. See the [component reference](../../apps/web/content/docs/api/material3-expressive.mdx)
+for supported props, bindings, slots, and events.
 
-- `Text` and `Heading` take a `text` string. `Heading` uses Material's
-  `headlineMedium` style.
-- `Card` renders its children below optional `title` and `description` strings.
-- `Button` takes a `label` string and an optional `disabled` boolean. It emits
-  `press` on activation.
-- `ToggleButton` takes a `label` string, a `checked` boolean, and an optional
-  `disabled` boolean. Bind `checked` with `$bindState` to receive updates through
-  the renderer's state callback. The component emits `change` on activation.
-- `LoadingIndicator` renders a contained indeterminate indicator with an
-  optional visible `label`.
-- `Progress` renders a wavy progress indicator. Set `value` to a percentage
-  from 0 to 100, or omit it for indeterminate progress. Set `label` to describe
-  the progress to assistive technologies.
+To load images from HTTPS URLs with `Image`, add the Android `INTERNET`
+permission to your app.
 
 ## Build from source
 

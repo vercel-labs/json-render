@@ -2,36 +2,20 @@
 
 package com.vercel.jsonrender.material3
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.ColorScheme
-import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.LinearWavyProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialExpressiveTheme
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
-import androidx.compose.material3.Text
-import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import com.vercel.jsonrender.compose.ComponentContext
 import com.vercel.jsonrender.compose.ComponentRegistry
 import com.vercel.jsonrender.compose.FoundationComponents
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.booleanOrNull
-import kotlinx.serialization.json.floatOrNull
 
 /** Wraps rendered content in AndroidX's Material Expressive theme. */
 @Composable
@@ -50,89 +34,50 @@ fun JsonRenderExpressiveTheme(
 }
 
 private val expressiveComponents: ComponentRegistry = mapOf(
-    "Text" to { context: ComponentContext -> Text(context.text("text").orEmpty()) },
-    "Heading" to { context: ComponentContext ->
-        Text(context.text("text").orEmpty(), style = MaterialTheme.typography.headlineMedium)
+    "Grid" to { MaterialGrid(it) },
+    "Text" to { MaterialText(it) },
+    "Heading" to { MaterialHeading(it) },
+    "Card" to { MaterialCard(it) },
+    "Surface" to { MaterialSurface(it) },
+    "Metric" to { MaterialMetric(it) },
+    "Badge" to { MaterialBadge(it) },
+    "Alert" to { MaterialAlert(it) },
+    "List" to { MaterialList(it) },
+    "ListItem" to { MaterialListItem(it) },
+    "BarChart" to { MaterialChart(it, bars = true) },
+    "LineChart" to { MaterialChart(it, bars = false) },
+    "Separator" to { HorizontalDivider() },
+    "Divider" to { HorizontalDivider() },
+    "Spacer" to {
+        val size = it.number("size")?.coerceIn(0f, 256f)?.dp ?: 8.dp
+        Spacer(Modifier.width(size).height(size))
     },
-    "Card" to { context: ComponentContext -> ExpressiveCard(context) },
-    "Button" to { context: ComponentContext -> ExpressiveButton(context) },
-    "ToggleButton" to { context: ComponentContext -> ExpressiveToggleButton(context) },
-    "LoadingIndicator" to { context: ComponentContext -> ExpressiveLoadingIndicator(context) },
-    "Progress" to { context: ComponentContext -> ExpressiveProgress(context) },
+    "Image" to { MaterialImage(it) },
+    "Button" to { MaterialButton(it) },
+    "IconButton" to { MaterialIconButton(it) },
+    "FloatingActionButton" to { MaterialFloatingActionButton(it) },
+    "ToggleButton" to { MaterialToggleButton(it) },
+    "Switch" to { MaterialSwitch(it) },
+    "Toggle" to { MaterialSwitch(it) },
+    "Checkbox" to { MaterialCheckbox(it) },
+    "Input" to { MaterialInput(it) },
+    "Textarea" to { MaterialInput(it, multiline = true) },
+    "Select" to { MaterialSelect(it) },
+    "RadioGroup" to { MaterialRadioGroup(it) },
+    "Slider" to { MaterialSlider(it) },
+    "SegmentedButtonGroup" to { MaterialSegments(it) },
+    "SegmentedPicker" to { MaterialSegments(it) },
+    "Tabs" to { MaterialTabs(it) },
+    "NavigationBar" to { MaterialNavigationBar(it) },
+    "TopAppBar" to { MaterialTopAppBar(it) },
+    "FloatingToolbar" to { MaterialFloatingToolbar(it) },
+    "Toolbar" to { MaterialFloatingToolbar(it) },
+    "Menu" to { MaterialMenu(it) },
+    "Dialog" to { MaterialDialog(it) },
+    "LoadingIndicator" to { MaterialLoadingIndicator(it) },
+    "Progress" to { MaterialProgress(it) },
+    "ProgressBar" to { MaterialProgress(it) },
 )
 
-/** Foundation layouts with Material text, cards, actions, and progress indicators. */
+/** The Compose Foundation layout components and the Material 3 Expressive catalog. */
 val Material3ExpressiveComponents: ComponentRegistry = FoundationComponents + expressiveComponents
-
-@Composable
-private fun ExpressiveCard(context: ComponentContext) {
-    Card {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            context.text("title")?.let { Text(it, style = MaterialTheme.typography.titleLarge) }
-            context.text("description")?.let { Text(it) }
-            context.RenderChildren()
-        }
-    }
-}
-
-@Composable
-private fun ExpressiveButton(context: ComponentContext) {
-    Button(
-        onClick = { context.emit("press") },
-        enabled = !context.flag("disabled"),
-        shapes = ButtonDefaults.shapes(),
-    ) {
-        Text(context.text("label").orEmpty())
-    }
-}
-
-@Composable
-private fun ExpressiveToggleButton(context: ComponentContext) {
-    ToggleButton(
-        checked = context.flag("checked"),
-        onCheckedChange = { checked ->
-            context.write("checked", JsonPrimitive(checked))
-            context.emit("change")
-        },
-        enabled = !context.flag("disabled"),
-    ) {
-        Text(context.text("label").orEmpty())
-    }
-}
-
-@Composable
-private fun ExpressiveLoadingIndicator(context: ComponentContext) {
-    Row(
-        modifier = Modifier.semantics(mergeDescendants = true) {},
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        ContainedLoadingIndicator()
-        context.text("label")?.let { Text(it) }
-    }
-}
-
-@Composable
-private fun ExpressiveProgress(context: ComponentContext) {
-    val label = context.text("label")
-    val progress = (context.props["value"] as? JsonPrimitive)
-        ?.takeUnless { it.isString }
-        ?.floatOrNull
-        ?.takeIf { it.isFinite() }
-        ?.coerceIn(0f, 100f)
-        ?.div(100f)
-    val modifier = Modifier.fillMaxWidth().semantics {
-        label?.let { contentDescription = it }
-    }
-    if (progress == null) {
-        LinearWavyProgressIndicator(modifier = modifier)
-    } else {
-        LinearWavyProgressIndicator(progress = { progress }, modifier = modifier)
-    }
-}
-
-private fun ComponentContext.text(name: String): String? =
-    (props[name] as? JsonPrimitive)?.takeIf { it.isString }?.content
-
-private fun ComponentContext.flag(name: String): Boolean =
-    (props[name] as? JsonPrimitive)?.takeUnless { it.isString }?.booleanOrNull == true

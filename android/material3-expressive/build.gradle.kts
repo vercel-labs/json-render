@@ -33,5 +33,9 @@ kotlin {
 dependencies {
     api("com.vercel.jsonrender:compose")
     api("androidx.compose.material3:material3:1.5.0-alpha18")
-    implementation("androidx.compose.foundation:foundation-layout:1.11.0-beta02")
+    implementation("androidx.compose.foundation:foundation:1.11.0-beta02")
+    implementation("androidx.compose.material:material-icons-core:1.7.8")
+    implementation("io.coil-kt.coil3:coil-compose:3.5.0")
+    implementation("io.coil-kt.coil3:coil-network-okhttp:3.5.0")
+    testImplementation(kotlin("test-junit"))
 }
