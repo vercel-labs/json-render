@@ -8,6 +8,7 @@ import {
   streamCard,
   toCard,
   toPartialCard,
+  type CardMessage,
   type CardTarget,
 } from "./index";
 
@@ -155,6 +156,148 @@ describe("streamCard", () => {
     expect(calls.filter((c) => c.op === "post")).toHaveLength(1);
     expect(calls.at(-1)?.children).toBe(4);
     expect(result.card.title).toBe("Weekly deploys");
+  });
+
+  const lines = (spec: Spec) => [
+    `${JSON.stringify({ op: "add", path: "/root", value: spec.root })}\n`,
+    ...Object.entries(spec.elements).map(
+      ([key, value]) =>
+        `${JSON.stringify({ op: "add", path: `/elements/${key}`, value })}\n`,
+    ),
+  ];
+
+  // Yields the spec's patches, then throws if `fail` is set.
+  async function* model(spec: Spec, fail?: Error) {
+    yield* lines(spec);
+    if (fail) throw fail;
+  }
+
+  // Records every message it posts; `edits` decides which edit calls reject.
+  const target = (rejectEdit: (n: number) => boolean = () => false) => {
+    const posted: CardMessage[] = [];
+    const rejection = new Error("edit rejected");
+    let edits = 0;
+    const value: CardTarget = {
+      async post() {
+        const message: CardMessage = {
+          async edit() {
+            if (rejectEdit(++edits)) throw rejection;
+          },
+        };
+        posted.push(message);
+        return message;
+      },
+    };
+    return { value, posted, rejection };
+  };
+
+  const failure = (promise: Promise<unknown>) =>
+    promise.then(
+      () => expect.fail("streamCard resolved"),
+      (error: unknown) => error,
+    );
+
+  const titleOnly: Spec = {
+    root: "card",
+    elements: { card: { type: "Card", props: { title: "Hi" }, children: [] } },
+  };
+
+  it("sets postedMessage on CardSpecError when the final spec fails after the post", async () => {
+    const t = target();
+    const error = await failure(
+      streamCard(t.value, model(report), {
+        updateIntervalMs: 0,
+        limits: { charts: 0 },
+      }),
+    );
+    expect(error).toBeInstanceOf(CardSpecError);
+    expect((error as CardSpecError).issues).toEqual([
+      "at most 0 Chart per message",
+    ]);
+    expect(t.posted).toHaveLength(1);
+    expect((error as CardSpecError).postedMessage).toBe(t.posted[0]);
+  });
+
+  it("leaves postedMessage undefined on CardSpecError when nothing was posted", async () => {
+    const t = target();
+    const empty: Spec = {
+      root: "card",
+      elements: { card: { type: "Card", props: {}, children: [] } },
+    };
+    const error = await failure(
+      streamCard(t.value, model(empty), { updateIntervalMs: 0 }),
+    );
+    expect(error).toBeInstanceOf(CardSpecError);
+    expect(t.posted).toHaveLength(0);
+    expect((error as CardSpecError).postedMessage).toBeUndefined();
+  });
+
+  it("rethrows a text stream error unchanged after the post", async () => {
+    const t = target();
+    const cause = new DOMException("aborted", "AbortError");
+    const error = await failure(
+      streamCard(t.value, model(titleOnly, cause), { updateIntervalMs: 0 }),
+    );
+    expect(t.posted).toHaveLength(1);
+    expect(error).toBe(cause);
+    expect((error as DOMException).name).toBe("AbortError");
+  });
+
+  it("rethrows a rejected edit unchanged after the post", async () => {
+    const t = target((n) => n === 1);
+    const error = await failure(
+      streamCard(t.value, model(report), { updateIntervalMs: 0 }),
+    );
+    expect(t.posted).toHaveLength(1);
+    expect(error).toBe(t.rejection);
+  });
+
+  it("rethrows a rejected final edit unchanged", async () => {
+    // The interval holds back the subtitle patch, so only the final flush edits.
+    const t = target(() => true);
+    async function* stream() {
+      yield* lines(titleOnly);
+      yield `${JSON.stringify({ op: "add", path: "/elements/card/props/subtitle", value: "Final" })}\n`;
+    }
+    const error = await failure(
+      streamCard(t.value, stream(), { updateIntervalMs: 60_000 }),
+    );
+    expect(t.posted).toHaveLength(1);
+    expect(error).toBe(t.rejection);
+  });
+
+  it("rethrows errors unchanged and without postedMessage before anything is posted", async () => {
+    const cause = new Error("stream aborted");
+    const empty = target();
+    async function* abort(): AsyncGenerator<string> {
+      throw cause;
+    }
+    expect(await failure(streamCard(empty.value, abort()))).toBe(cause);
+    expect(empty.posted).toHaveLength(0);
+
+    const postFails = new Error("post rejected");
+    const rejecting: CardTarget = {
+      async post() {
+        throw postFails;
+      },
+    };
+    expect(
+      await failure(
+        streamCard(rejecting, model(titleOnly), { updateIntervalMs: 0 }),
+      ),
+    ).toBe(postFails);
+  });
+});
+
+describe("CardSpecError", () => {
+  it("has no postedMessage when toCard throws it", () => {
+    expect.assertions(2);
+    try {
+      toCard(report, { limits: { charts: 0 } });
+    } catch (error) {
+      expect(error).toBeInstanceOf(CardSpecError);
+      expect((error as CardSpecError).postedMessage).toBeUndefined();
+    }
   });
 });
 

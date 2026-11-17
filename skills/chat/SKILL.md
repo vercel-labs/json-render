@@ -79,7 +79,7 @@ Standard components: `Card`, `Section`, `Text` (markdown), `Fields` with `Field`
 
 ## Validation and limits
 
-`toCard` throws `CardSpecError` with an `issues` array (one entry per problem). Send the issues back to the model to repair the spec. Pass `limits` to reject specs that a platform would degrade, for example `{ tables: 1, charts: 2 }` for Slack. Available limits: `tables`, `charts`, `fields`, `tableRows`, `tableColumns`, `chartTitle`, `chartLabel`, `chartSeries`, `chartPoints`.
+`toCard` throws `CardSpecError` with an `issues` array (one entry per problem). Send the issues back to the model to repair the spec. When `streamCard` throws `CardSpecError` after it posted the card, `postedMessage` is the message showing the partial card; edit it rather than posting a second one. Other errors propagate unchanged. Pass `limits` to reject specs that a platform would degrade, for example `{ tables: 1, charts: 2 }` for Slack. Available limits: `tables`, `charts`, `fields`, `tableRows`, `tableColumns`, `chartTitle`, `chartLabel`, `chartSeries`, `chartPoints`.
 
 ## Runtime
 
