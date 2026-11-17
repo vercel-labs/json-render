@@ -307,6 +307,83 @@ describe("$truncate", () => {
       ),
     ).toBe("hello world…");
   });
+
+  it("truncates by unicode code point", () => {
+    const ctx = makeCtx();
+    expect(
+      resolvePropValue(
+        { $truncate: "Great day \u{1F600} yes", length: 11 },
+        ctx,
+      ),
+    ).toBe("Great day \u{1F600}...");
+    expect(
+      resolvePropValue(
+        { $truncate: "Great day \u{1F600} yes", length: 10 },
+        ctx,
+      ),
+    ).toBe("Great day ...");
+  });
+
+  it("keeps text whose code point length fits", () => {
+    const ctx = makeCtx();
+    expect(
+      resolvePropValue({ $truncate: "\u{1F600}\u{1F600}", length: 2 }, ctx),
+    ).toBe("\u{1F600}\u{1F600}");
+  });
+
+  it("bounds scanning of oversized text by the requested length", () => {
+    const ctx = makeCtx();
+    const text = "\u{1F600}".repeat(1_000_000);
+    const iterator = String.prototype[Symbol.iterator];
+    const codePointAt = String.prototype.codePointAt;
+    let scanned = 0;
+    const checkBudget = () => {
+      if (++scanned > 11) throw new Error("Scanned beyond truncation budget");
+    };
+    const iteratorSpy = vi
+      .spyOn(String.prototype, Symbol.iterator)
+      .mockImplementation(function* (this: string) {
+        for (const point of { [Symbol.iterator]: () => iterator.call(this) }) {
+          if (this === text) checkBudget();
+          yield point;
+        }
+        return undefined;
+      });
+    const codePointSpy = vi
+      .spyOn(String.prototype, "codePointAt")
+      .mockImplementation(function (this: string, position: number) {
+        if (this === text) checkBudget();
+        return codePointAt.call(this, position);
+      });
+    try {
+      expect(resolvePropValue({ $truncate: text, length: 10 }, ctx)).toBe(
+        "\u{1F600}".repeat(10) + "...",
+      );
+    } finally {
+      iteratorSpy.mockRestore();
+      codePointSpy.mockRestore();
+    }
+  });
+
+  it.each([
+    [0, "..."],
+    [1.5, "\u{1F600}..."],
+    [-1, "\u{1F600}a..."],
+    [-0.5, "..."],
+    [-10, "..."],
+    [NaN, "..."],
+    [Infinity, "\u{1F600}a\u{1F600}"],
+    [-Infinity, "..."],
+  ])("preserves slice behavior for length %s", (length, expected) => {
+    expect(
+      resolvePropValue({ $truncate: "\u{1F600}a\u{1F600}", length }, makeCtx()),
+    ).toBe(expected);
+  });
+
+  it("returns empty string for null", () => {
+    const ctx = makeCtx();
+    expect(resolvePropValue({ $truncate: null }, ctx)).toBe("");
+  });
 });
 
 // ============================================================================
@@ -455,6 +532,98 @@ describe("createI18nDirective", () => {
         ctx,
       ),
     ).toBe("3 items in cart");
+  });
+});
+
+describe("$t literal interpolation", () => {
+  const tDirective = createI18nDirective({
+    locale: "en",
+    messages: {
+      en: {
+        greet: "Hello, {{name}}!",
+        price: "Total: {{amount}} ({{note}})",
+        both: "{{name}} {{n.me}}",
+      },
+    },
+  });
+
+  function makeI18nCtx(
+    state: Record<string, unknown> = {},
+  ): PropResolutionContext {
+    return {
+      stateModel: state,
+      directives: createDirectiveRegistry([tDirective]),
+    };
+  }
+
+  it("inserts $ replacement patterns literally", () => {
+    const ctx = makeI18nCtx();
+    expect(
+      resolvePropValue({ $t: "greet", params: { name: "$& and $'" } }, ctx),
+    ).toBe("Hello, $& and $'!");
+    expect(
+      resolvePropValue({ $t: "greet", params: { name: "$` and $'" } }, ctx),
+    ).toBe("Hello, $` and $'!");
+  });
+
+  it("does not expand $$ or rescan inserted placeholders", () => {
+    const ctx = makeI18nCtx();
+    expect(
+      resolvePropValue(
+        { $t: "price", params: { amount: "$$5.00", note: "gift" } },
+        ctx,
+      ),
+    ).toBe("Total: $$5.00 (gift)");
+    expect(
+      resolvePropValue(
+        { $t: "price", params: { amount: "{{note}}", note: "gift" } },
+        ctx,
+      ),
+    ).toBe("Total: {{note}} (gift)");
+  });
+
+  it("treats regex metacharacters in param keys as literals", () => {
+    const ctx = makeI18nCtx();
+    expect(
+      resolvePropValue({ $t: "greet", params: { "na(me": "x" } }, ctx),
+    ).toBe("Hello, {{name}}!");
+    expect(
+      resolvePropValue({ $t: "greet", params: { "n.me": "x" } }, ctx),
+    ).toBe("Hello, {{name}}!");
+  });
+
+  it("replaces only the exact placeholder", () => {
+    const ctx = makeI18nCtx();
+    expect(
+      resolvePropValue({ $t: "both", params: { "n.me": "Bee" } }, ctx),
+    ).toBe("{{name}} Bee");
+    expect(resolvePropValue({ $t: "both", params: { name: "Ada" } }, ctx)).toBe(
+      "Ada {{n.me}}",
+    );
+  });
+
+  it("clears a placeholder when the param resolves to null", () => {
+    const ctx = makeI18nCtx();
+    expect(resolvePropValue({ $t: "greet", params: { name: null } }, ctx)).toBe(
+      "Hello, !",
+    );
+  });
+
+  it("scans many unmatched openers in linear time", () => {
+    const ctx = makeI18nCtx();
+    const hostile = "{{".repeat(200_000) + "}}";
+    const start = performance.now();
+    expect(resolvePropValue({ $t: hostile, params: { name: "x" } }, ctx)).toBe(
+      hostile,
+    );
+    expect(performance.now() - start).toBeLessThan(1000);
+  });
+
+  it("matches a placeholder that overlaps an unmatched opener", () => {
+    const ctx = makeI18nCtx();
+    expect(
+      resolvePropValue({ $t: "{{{{name}}", params: { name: "Ada" } }, ctx),
+    ).toBe("{{Ada");
   });
 });
 
