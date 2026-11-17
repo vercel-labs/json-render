@@ -50,7 +50,13 @@ export async function POST(req: Request) {
   }
 
   const modelMessages = await convertToModelMessages(uiMessages);
-  const result = await agent.stream({ messages: modelMessages });
+  const result = await agent.stream({
+    messages: modelMessages,
+    abortSignal:
+      process.env.CHAT_SEARCH_PROVIDER === "parallel"
+        ? AbortSignal.any([req.signal, AbortSignal.timeout(55_000)])
+        : req.signal,
+  });
 
   const stream = createUIMessageStream({
     execute: async ({ writer }) => {

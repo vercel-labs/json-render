@@ -1,6 +1,7 @@
 import { tool, generateText } from "ai";
 import { gateway } from "@ai-sdk/gateway";
 import { z } from "zod";
+import { parallelWebSearch } from "./parallel-search";
 
 /**
  * Web search tool using Perplexity Sonar via AI Gateway.
@@ -10,7 +11,7 @@ import { z } from "zod";
  * (with an `execute` function) so that ToolLoopAgent can loop: it calls
  * the model, gets results, and feeds them back for the next step.
  */
-export const webSearch = tool({
+const gatewayWebSearch = tool({
   description:
     "Search the web for current information on any topic. Use this when the user asks about something not covered by the specialized tools (weather, crypto, GitHub, Hacker News). Returns a synthesized answer based on real-time web data.",
   inputSchema: z.object({
@@ -34,3 +35,8 @@ export const webSearch = tool({
     }
   },
 });
+
+export const webSearch =
+  process.env.CHAT_SEARCH_PROVIDER === "parallel"
+    ? parallelWebSearch
+    : gatewayWebSearch;

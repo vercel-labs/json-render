@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Streamdown } from "streamdown";
 import { code } from "@streamdown/code";
+import { getSearchSources } from "@/lib/search-sources";
 
 // =============================================================================
 // Types
@@ -88,6 +89,10 @@ function ToolCallDisplay({
     state !== "output-denied";
   const labels = TOOL_LABELS[toolName];
   const label = labels ? (isLoading ? labels[0] : labels[1]) : toolName;
+  const sources =
+    toolName === "webSearch" && state === "output-available"
+      ? getSearchSources(result)
+      : [];
 
   return (
     <div className="text-sm group">
@@ -107,6 +112,28 @@ function ToolCallDisplay({
           />
         )}
       </button>
+      {sources.length > 0 && (
+        <ul
+          aria-label="Web search sources"
+          className="mt-2 grid gap-2 sm:grid-cols-2"
+        >
+          {sources.map((source) => (
+            <li key={source.url}>
+              <a
+                href={source.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block rounded-lg border p-3 hover:bg-muted/50 break-words"
+              >
+                <span className="font-medium">{source.title}</span>
+                <span className="mt-1 block text-xs text-muted-foreground break-all">
+                  {source.url}
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
       {expanded && !isLoading && result != null && (
         <div className="mt-1 max-h-64 overflow-auto">
           <pre className="text-xs text-muted-foreground whitespace-pre-wrap break-all">
