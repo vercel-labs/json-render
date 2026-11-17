@@ -305,6 +305,20 @@ const { registry } = defineRegistry(catalog, { components: {} });
 <Renderer spec={spec} registry={registry} />;
 ```
 
+### Jetpack Compose (Android)
+
+The Kotlin renderer reads json-render specs and renders them with app-registered Jetpack Compose components.
+
+```kotlin
+import com.vercel.jsonrender.compose.JsonRender
+import com.vercel.jsonrender.compose.Spec
+
+val spec = Spec.decode(json)
+JsonRender(spec)
+```
+
+See the [Android package guide](android/README.md) for Gradle setup, custom components, state, and actions.
+
 ### Remotion (Video)
 
 ```tsx
