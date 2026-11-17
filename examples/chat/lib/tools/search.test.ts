@@ -29,9 +29,16 @@ afterEach(() => {
 function mockClient(result: unknown) {
   const execute = vi.fn().mockResolvedValue(result);
   const close = vi.fn().mockResolvedValue(undefined);
-  const tools = vi.fn().mockResolvedValue({ web_search: { execute } });
-  mocks.createMCPClient.mockResolvedValue({ tools, close });
-  return { execute, close, tools };
+  const listTools = vi.fn().mockResolvedValue({ tools: [] });
+  const toolsFromDefinitions = vi
+    .fn()
+    .mockReturnValue({ web_search: { execute } });
+  mocks.createMCPClient.mockResolvedValue({
+    listTools,
+    toolsFromDefinitions,
+    close,
+  });
+  return { execute, close, listTools };
 }
 
 describe("chat search provider", () => {
@@ -126,7 +133,7 @@ describe("chat search provider", () => {
       error: "Search failed: HTTP 429",
     });
     const client = mockClient({});
-    client.tools.mockRejectedValueOnce(new Error("discovery failed"));
+    client.listTools.mockRejectedValueOnce(new Error("discovery failed"));
     expect(await parallelWebSearch.execute!(input, options)).toEqual({
       error: "Search failed: discovery failed",
     });
@@ -145,7 +152,7 @@ describe("chat search provider", () => {
         return deadline.signal;
       });
       const client = mockClient({});
-      client.tools.mockImplementation(async () => {
+      client.listTools.mockImplementation(async () => {
         const config = mocks.createMCPClient.mock.calls[0]![0];
         await config.transport.fetch(config.transport.url, {});
         return {};

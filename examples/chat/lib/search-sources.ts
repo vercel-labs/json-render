@@ -10,15 +10,11 @@ export function getSearchSources(output: unknown): SearchSource[] {
   return output.sources.flatMap((source: unknown) => {
     if (!source || typeof source !== "object") return [];
     if (!("url" in source) || typeof source.url !== "string") return [];
+    // Keep the original URL, but require it to resolve without the chat page as a base.
+    if (!/^https?:\/\//i.test(source.url)) return [];
     try {
       const url = new URL(source.url);
-      if (
-        !["http:", "https:"].includes(url.protocol) ||
-        url.username ||
-        url.password ||
-        seen.has(url.href)
-      )
-        return [];
+      if (url.username || url.password || seen.has(url.href)) return [];
       seen.add(url.href);
       return [
         {

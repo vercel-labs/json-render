@@ -24,6 +24,12 @@ describe("web search source links", () => {
     ]);
   });
 
+  it("rejects a URL that would navigate relative to the chat page", () => {
+    expect(
+      getSearchSources({ sources: [{ url: "https:example.org/docs" }] }),
+    ).toEqual([]);
+  });
+
   it("accepts default search output and malformed tool output without cards", () => {
     for (const output of [
       undefined,

@@ -54,8 +54,19 @@ export const parallelWebSearch = tool({
         },
         initializationOptions: { signal, timeout: SEARCH_TIMEOUT_MS },
       });
-      const tools = await client.tools();
-      const search = tools.web_search;
+      // Pass the deadline to the discovery request so it also covers waiting
+      // for a JSON-RPC reply after an SSE response has opened.
+      let definitions = await client.listTools({ options: { signal } });
+      while (
+        definitions.nextCursor != null &&
+        !definitions.tools.some(({ name }) => name === "web_search")
+      ) {
+        definitions = await client.listTools({
+          params: { cursor: definitions.nextCursor },
+          options: { signal },
+        });
+      }
+      const search = client.toolsFromDefinitions(definitions).web_search;
       if (!search) throw new Error("Parallel web_search is unavailable");
       const result = await search.execute(
         {
