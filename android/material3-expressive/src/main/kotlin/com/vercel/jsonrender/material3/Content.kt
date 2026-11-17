@@ -182,7 +182,6 @@ internal fun MaterialListItem(context: ComponentContext) {
     } else Modifier
     val icon = context.text("icon")
     ListItem(
-        headlineContent = { Text(context.text("title").orEmpty()) },
         leadingContent = icon?.let { { ControlIcon(it, "") } },
         supportingContent = subtitle?.let { { Text(it, maxLines = 2, overflow = TextOverflow.Ellipsis) } },
         trailingContent = {
@@ -192,7 +191,9 @@ internal fun MaterialListItem(context: ComponentContext) {
             }
         },
         modifier = modifier,
-    )
+    ) {
+        Text(context.text("title").orEmpty())
+    }
 }
 
 internal data class ChartPoint(val label: String, val value: Float)

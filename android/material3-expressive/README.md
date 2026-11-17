@@ -6,10 +6,10 @@ navigation, and animated progress indicators to the [Jetpack Compose renderer](.
 
 ## Add the catalog to your app
 
-Use JDK 17, Android SDK 36, and Gradle 8.13. The library supports Android API 23
-and later. It uses AndroidX Material 3 `1.5.0-alpha18` for the Expressive theme
-and components. These APIs are experimental and can change before a stable
-AndroidX release; this catalog does not provide a stable Material 3 dependency.
+Use JDK 17, Android SDK 37.1, Android Gradle Plugin 9.5.1, and Gradle 9.6.
+The library supports Android API 24 and later. It uses AndroidX Material 3
+`1.5.0-rc01` for its theme and components. Some Expressive APIs still require
+experimental opt-in.
 
 In your app's `settings.gradle.kts`, include the library build from a local
 checkout of json-render.
@@ -69,4 +69,4 @@ android/gradlew -p android/material3-expressive assembleDebug
 
 When reviewing the catalog alongside a separate checkout of the Compose
 renderer, set `-PjsonRenderAndroidDir=/path/to/compose-checkout/android` on the
-Gradle command and run the wrapper from that checkout.
+Gradle command. Both builds must use the same Android Gradle Plugin version.

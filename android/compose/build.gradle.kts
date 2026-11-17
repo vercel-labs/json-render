@@ -1,13 +1,14 @@
 plugins {
     id("com.android.library")
-    kotlin("android")
     kotlin("plugin.compose")
     kotlin("plugin.serialization")
 }
 
 android {
     namespace = "com.vercel.jsonrender.compose"
-    compileSdk = 36
+    compileSdk {
+        version = release(37) { minorApiLevel = 1 }
+    }
     defaultConfig {
         minSdk = 23
     }
@@ -26,16 +27,10 @@ android {
     }
 }
 
-kotlin {
-    compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
-    }
-}
-
 dependencies {
     api("androidx.compose.ui:ui:1.10.5")
     api("androidx.compose.runtime:runtime:1.10.5")
     implementation("androidx.compose.foundation:foundation:1.10.5")
     api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0")
-    testImplementation(kotlin("test-junit"))
+    testImplementation(kotlin("test-junit", "2.4.21"))
 }

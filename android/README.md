@@ -4,7 +4,7 @@ Render a json-render spec as native Jetpack Compose UI. The renderer looks up ea
 
 ## Add the renderer to an app
 
-Build with JDK 17 or newer and Android SDK 36. The library supports Android API 23 and newer. Include this Gradle project as a composite build in your app's `settings.gradle.kts`. Point the path at the `android` directory of your json-render checkout.
+Build with JDK 17 or newer and Android SDK 37.1. The library supports Android API 23 and newer. Include this Gradle project as a composite build in your app's `settings.gradle.kts`. Point the path at the `android` directory of your json-render checkout.
 
 ```kotlin
 includeBuild("../json-render/android") {

@@ -30,6 +30,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
@@ -229,12 +230,16 @@ internal fun MaterialSlider(context: ComponentContext) {
     val (value, update) = context.control("value", context.number("value") ?: min, ::JsonPrimitive)
     val label = context.text("label")
     val steps = context.number("steps")?.toInt()?.coerceIn(0, 100) ?: 0
+    val range = min..max
+    val sliderState = remember(steps, range) { SliderState(value.coerceIn(min, max), steps, range) }
+    sliderState.value = value.coerceIn(min, max)
     Column {
         label?.let { Text(it) }
         Slider(
-            value.coerceIn(min, max), update,
+            state = sliderState,
+            onValueChange = update,
             modifier = Modifier.semantics { label?.let { contentDescription = it } },
-            enabled = context.enabled, valueRange = min..max, steps = steps,
+            enabled = context.enabled,
         )
     }
 }
