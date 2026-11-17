@@ -899,9 +899,9 @@
       "title": "Jetpack Compose",
       "metadataTitle": "Jetpack Compose API | json-render",
       "prefix": "",
-      "sourceSha256": "f5c00a505730c1541d38030576315ce5f11dde68f939da1d74fe53afb2d6e7ea",
-      "bodySha256": "f5c00a505730c1541d38030576315ce5f11dde68f939da1d74fe53afb2d6e7ea",
-      "markdownSha256": "5cf459fbe28880304e3ea2b1dd868f067c6940f8de3fc80e293f88128269f6fa",
+      "sourceSha256": "bd2192d3202b438f7534d0fc513aea2ed2b09437a3ad30eea6933cfa36d42371",
+      "bodySha256": "bd2192d3202b438f7534d0fc513aea2ed2b09437a3ad30eea6933cfa36d42371",
+      "markdownSha256": "70da61414472f2c513126e30ac860ce15bbe4477fd99338a71544089e06c42e9",
       "headings": [
         {
           "title": "Installation",
@@ -979,9 +979,9 @@
       "title": "Material 3 Expressive",
       "metadataTitle": "Material 3 Expressive API | json-render",
       "prefix": "",
-      "sourceSha256": "16455ff5ab177ef70747f32096d65594734d278537dd0cce5b1d5f90b87d733a",
-      "bodySha256": "16455ff5ab177ef70747f32096d65594734d278537dd0cce5b1d5f90b87d733a",
-      "markdownSha256": "5cfa7d0bc66c10739a402ca8a9440bb7e0612c6e82dfbebfd4c645b05b5daf94",
+      "sourceSha256": "12fa5ffb881596f56be39a8da15f190b2f403362deaaf96c3cc0d6148d7c606a",
+      "bodySha256": "12fa5ffb881596f56be39a8da15f190b2f403362deaaf96c3cc0d6148d7c606a",
+      "markdownSha256": "a6e99c16590ccfe3e2aef770b0e71916f96107ecf15666f5387620bd09494b98",
       "headings": [
         {
           "title": "Render a spec",
