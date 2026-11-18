@@ -82,12 +82,14 @@ type ActionHandler = (params: Record<string, unknown>) => void | Promise<void>;
 
 ### ValidationProvider
 
+Render `ValidationProvider` inside `StateProvider`. Custom validators return a `boolean` synchronously.
+
 ```tsx
 <ValidationProvider customFunctions={Record<string, ValidationFunction>}>
   {children}
 </ValidationProvider>
 
-type ValidationFunction = (value: unknown, args?: object) => boolean | Promise<boolean>;
+type ValidationFunction = (value: unknown, args?: Record<string, unknown>) => boolean;
 ```
 
 ## defineRegistry
