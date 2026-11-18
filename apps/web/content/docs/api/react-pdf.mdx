@@ -47,6 +47,8 @@ interface RenderOptions {
   registry?: ComponentRegistry;
   includeStandard?: boolean;  // default: true
   state?: Record<string, unknown>;
+  functions?: Record<string, ComputedFunction>;
+  directives?: DirectiveDefinition[];
 }
 ```
 
@@ -69,6 +71,14 @@ interface RenderOptions {
     <tr>
       <td><code>state</code></td>
       <td>Initial state for <code>$state</code> / <code>$cond</code> dynamic prop resolution</td>
+    </tr>
+    <tr>
+      <td><code>functions</code></td>
+      <td>Named functions for <code>$computed</code> expressions</td>
+    </tr>
+    <tr>
+      <td><code>directives</code></td>
+      <td>Custom directives for user-defined <code>$</code>-prefixed dynamic values</td>
     </tr>
   </tbody>
 </table>
@@ -113,8 +123,12 @@ interface CreateRendererProps {
   onStateChange?: (changes: Array<{ path: string; value: unknown }>) => void;
   loading?: boolean;
   fallback?: ComponentRenderer;
+  functions?: Record<string, ComputedFunction>;
+  directives?: DirectiveDefinition[];
 }
 ```
+
+`JSONUIProvider` accepts the same `functions` and `directives` props.
 
 When `store` is provided, `state` and `onStateChange` are ignored (controlled mode).
 
