@@ -208,7 +208,7 @@ it("keeps an unrelated bound input from rerendering during a field edit", () => 
     },
   };
   const renderForm = (store: StateStore) => (
-    <JSONUIProvider store={store}>
+    <JSONUIProvider store={store} registry={fieldRegistry}>
       <Renderer spec={spec} registry={fieldRegistry} />
     </JSONUIProvider>
   );
