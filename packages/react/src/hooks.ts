@@ -19,6 +19,8 @@ import {
   SPEC_DATA_PART_TYPE,
 } from "@json-render/core";
 
+export { useBoundProp } from "@internal/react-state";
+
 /**
  * Token usage metadata from AI generation
  */
@@ -427,48 +429,6 @@ export function flatToTree(elements: FlatElement[]): Spec {
 
   return { root, elements: elementMap };
 }
-
-// =============================================================================
-// useBoundProp — Two-way binding helper for $bindState/$bindItem expressions
-// =============================================================================
-
-/**
- * Hook for two-way bound props. Returns `[value, setValue]` where:
- *
- * - `value` is the already-resolved prop value (passed through from render props)
- * - `setValue` writes back to the bound state path (no-op if not bound)
- *
- * Designed to work with the `bindings` map that the renderer provides when
- * a prop uses `{ $bindState: "/path" }` or `{ $bindItem: "field" }`.
- *
- * @example
- * ```tsx
- * import { useBoundProp } from "@json-render/react";
- *
- * const Input: ComponentRenderer = ({ props, bindings }) => {
- *   const [value, setValue] = useBoundProp<string>(props.value, bindings?.value);
- *   return <input value={value ?? ""} onChange={(e) => setValue(e.target.value)} />;
- * };
- * ```
- */
-export function useBoundProp<T>(
-  propValue: T | undefined,
-  bindingPath: string | undefined,
-): [T | undefined, (value: T) => void] {
-  // Import useStateStore lazily to avoid circular dependency issues.
-  // The hook is always called inside a StateProvider so this is safe.
-  const { set } = useStateStoreFromContext();
-  const setValue = useCallback(
-    (value: T) => {
-      if (bindingPath) set(bindingPath, value);
-    },
-    [bindingPath, set],
-  );
-  return [propValue, setValue];
-}
-
-// Re-export useStateStore access for useBoundProp without circular import
-import { useStateStore as useStateStoreFromContext } from "./contexts/state";
 
 // =============================================================================
 // buildSpecFromParts — Derive Spec from AI SDK data parts

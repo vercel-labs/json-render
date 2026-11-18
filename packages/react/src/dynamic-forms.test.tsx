@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import React, { useState, useCallback, useMemo } from "react";
 import { render, act, fireEvent, screen } from "@testing-library/react";
-import type { Spec } from "@json-render/core";
+import { createStateStore, type Spec, type StateStore } from "@json-render/core";
 import {
   JSONUIProvider,
   Renderer,
@@ -173,6 +173,67 @@ const registry = { Button, Text, Input: InputField, Select: SelectField };
 function getState(): Record<string, unknown> {
   return JSON.parse(screen.getByTestId("state-probe").textContent!);
 }
+
+it("keeps an unrelated bound input from rerendering during a field edit", () => {
+  const renderedFields = vi.fn();
+  const fieldRegistry = {
+    Form: ({ children }: ComponentRenderProps) => <>{children}</>,
+    Field: ({
+      element: { props },
+      bindings,
+    }: ComponentRenderProps<{ name: string; value: string }>) => {
+      const [value, setValue] = useBoundProp(props.value, bindings?.value);
+      renderedFields(props.name);
+      return (
+        <input
+          aria-label={props.name}
+          value={value ?? ""}
+          onChange={(event) => setValue(event.currentTarget.value)}
+        />
+      );
+    },
+  };
+  const spec: Spec = {
+    root: "form",
+    elements: {
+      form: { type: "Form", props: {}, children: ["first", "second"] },
+      first: {
+        type: "Field",
+        props: { name: "First", value: { $bindState: "/first" } },
+      },
+      second: {
+        type: "Field",
+        props: { name: "Second", value: { $bindState: "/second" } },
+      },
+    },
+  };
+  const renderForm = (store: StateStore) => (
+    <JSONUIProvider store={store}>
+      <Renderer spec={spec} registry={fieldRegistry} />
+    </JSONUIProvider>
+  );
+
+  const store = createStateStore({ first: "Alice", second: "Bob" });
+  const { rerender } = render(renderForm(store));
+  const first = screen.getByRole<HTMLInputElement>("textbox", { name: "First" });
+  const second = screen.getByRole<HTMLInputElement>("textbox", { name: "Second" });
+
+  renderedFields.mockClear();
+  fireEvent.change(first, { target: { value: "Carol" } });
+  expect(first.value).toBe("Carol");
+  expect(second.value).toBe("Bob");
+  expect(store.get("/first")).toBe("Carol");
+  expect(renderedFields.mock.calls).toEqual([["First"]]);
+
+  const replacement = createStateStore(store.getSnapshot());
+  rerender(renderForm(replacement));
+  renderedFields.mockClear();
+  fireEvent.change(first, { target: { value: "Dana" } });
+  expect(first.value).toBe("Dana");
+  expect(store.get("/first")).toBe("Carol");
+  expect(replacement.get("/first")).toBe("Dana");
+  expect(renderedFields.mock.calls).toEqual([["First"]]);
+});
 
 // =============================================================================
 // $computed expressions in rendering
