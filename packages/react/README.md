@@ -24,18 +24,19 @@ export const catalog = defineCatalog(schema, {
         title: z.string(),
         description: z.string().nullable(),
       }),
+      slots: ["default"],
       description: "A card container",
     },
     Button: {
       props: z.object({
         label: z.string(),
-        action: z.string(),
       }),
+      events: ["press"],
       description: "A clickable button",
     },
     Input: {
       props: z.object({
-        value: z.union([z.string(), z.record(z.unknown())]).nullable(),
+        value: z.string().nullable(),
         label: z.string(),
         placeholder: z.string().nullable(),
       }),
@@ -56,6 +57,11 @@ export const catalog = defineCatalog(schema, {
 ```tsx
 import { defineRegistry, useBoundProp } from "@json-render/react";
 import { catalog } from "./catalog";
+
+export const actions = {
+  submit: async () => console.log("Submit"),
+  cancel: async () => console.log("Cancel"),
+};
 
 export const { registry } = defineRegistry(catalog, {
   components: {
@@ -83,26 +89,28 @@ export const { registry } = defineRegistry(catalog, {
       );
     },
   },
+  actions,
 });
 ```
 
 ### 3. Render Specs
 
-```tsx
-import { Renderer, StateProvider, ActionProvider } from "@json-render/react";
-import { registry } from "./registry";
+Wrap `Renderer` in `JSONUIProvider` to supply the state, actions, visibility, and validation contexts.
 
-function App({ spec }) {
+```tsx
+import type { Spec } from "@json-render/core";
+import { JSONUIProvider, Renderer } from "@json-render/react";
+import { actions, registry } from "./registry";
+
+function App({ spec }: { spec: Spec }) {
   return (
-    <StateProvider initialState={{ form: { name: "" } }}>
-      <ActionProvider
-        handlers={{
-          submit: () => console.log("Submit"),
-        }}
-      >
-        <Renderer spec={spec} registry={registry} />
-      </ActionProvider>
-    </StateProvider>
+    <JSONUIProvider
+      registry={registry}
+      initialState={spec.state}
+      handlers={actions}
+    >
+      <Renderer spec={spec} registry={registry} />
+    </JSONUIProvider>
   );
 }
 ```
@@ -124,20 +132,22 @@ interface UIElement {
   children?: string[]; // Keys of child elements
   slots?: Record<string, string[]>; // Named slots mapped to child keys
   visible?: VisibilityCondition; // Visibility condition
+  on?: Record<string, ActionBinding | ActionBinding[]>; // Event bindings
 }
 ```
 
 The `slots` element field is a React renderer feature. Other renderer packages may only use catalog slot declarations for default children.
 
-Example spec:
+Pass this spec to `App`.
 
 ```json
 {
   "root": "card-1",
+  "state": { "form": { "name": "" } },
   "elements": {
     "card-1": {
       "type": "Card",
-      "props": { "title": "Welcome" },
+      "props": { "title": "Welcome", "description": null },
       "children": ["input-1", "btn-1"]
     },
     "input-1": {
@@ -146,11 +156,13 @@ Example spec:
         "value": { "$bindState": "/form/name" },
         "label": "Name",
         "placeholder": "Enter name"
-      }
+      },
+      "children": []
     },
     "btn-1": {
       "type": "Button",
       "props": { "label": "Submit" },
+      "on": { "press": { "action": "submit" } },
       "children": []
     }
   }
@@ -351,10 +363,12 @@ Register functions via the `functions` prop on `JSONUIProvider` or `createRender
 
 ```tsx
 <JSONUIProvider
-  spec={spec}
-  catalog={catalog}
+  registry={registry}
+  initialState={spec.state}
   functions={{ fullName: (args) => `${args.first} ${args.last}` }}
 >
+  <Renderer spec={spec} registry={registry} />
+</JSONUIProvider>
 ```
 
 See [@json-render/core](../core/README.md) for full expression syntax.
@@ -500,7 +514,7 @@ const systemPrompt = catalog.prompt();
 ```tsx
 import { defineCatalog } from "@json-render/core";
 import { schema } from "@json-render/react/schema";
-import { defineRegistry, Renderer } from "@json-render/react";
+import { defineRegistry, JSONUIProvider, Renderer } from "@json-render/react";
 import { z } from "zod";
 
 const catalog = defineCatalog(schema, {
@@ -531,7 +545,11 @@ const spec = {
 };
 
 function App() {
-  return <Renderer spec={spec} registry={registry} />;
+  return (
+    <JSONUIProvider registry={registry}>
+      <Renderer spec={spec} registry={registry} />
+    </JSONUIProvider>
+  );
 }
 ```
 
