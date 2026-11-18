@@ -85,6 +85,7 @@ export function useJsonRenderApp(
     appRef.current = app;
 
     app.ontoolresult = (result: { content?: ToolResultContent[] }) => {
+      if (appRef.current !== app) return;
       const parsed = parseSpecFromToolResult(result);
       if (parsed) {
         setSpec(parsed);
@@ -97,13 +98,15 @@ export function useJsonRenderApp(
     app
       .connect()
       .then(() => {
-        setConnected(true);
+        if (appRef.current === app) setConnected(true);
       })
       .catch((err: unknown) => {
+        if (appRef.current !== app) return;
         setError(err instanceof Error ? err : new Error(String(err)));
       });
 
     return () => {
+      appRef.current = null;
       app.close().catch(() => {});
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
