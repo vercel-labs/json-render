@@ -1,4 +1,4 @@
-import { defineSchema } from "@json-render/core";
+import { defineSchema, type InferSpec } from "@json-render/core";
 
 /**
  * The schema for @json-render/react
@@ -109,9 +109,9 @@ export type ReactSchema = typeof schema;
  * Infer the spec type from a catalog
  */
 export type ReactSpec<TCatalog> = typeof schema extends {
-  createCatalog: (catalog: TCatalog) => { _specType: infer S };
+  createCatalog: (catalog: TCatalog) => { _specType: unknown };
 }
-  ? S
+  ? InferSpec<typeof schema.definition, TCatalog>
   : never;
 
 // Backward compatibility aliases

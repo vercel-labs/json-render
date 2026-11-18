@@ -26,7 +26,7 @@ export interface SchemaBuilder {
   /** Placeholder for user-provided Zod schema */
   zod(): SchemaType<"zod">;
   /** Reference to catalog key (e.g., 'catalog.components') */
-  ref(path: string): SchemaType<"ref", string>;
+  ref<Path extends string>(path: Path): SchemaType<"ref", Path>;
   /** Props from referenced catalog entry */
   propsOf(path: string): SchemaType<"propsOf", string>;
   /** Map of named entries with shared shape */
@@ -358,13 +358,20 @@ type InferSpecField<T, TCatalog> =
                     ? any
                     : unknown;
 
+// Catalogs that can be empty at runtime also need the string fallback.
+type CatalogReferenceKeys<T> = T extends object
+  ? {} extends Pick<T, Extract<keyof T, string | number>>
+    ? string
+    : `${Extract<keyof T, string | number>}`
+  : string;
+
 type InferRefType<Path, TCatalog> = Path extends "catalog.components"
   ? TCatalog extends { components: infer C }
-    ? keyof C
+    ? CatalogReferenceKeys<C>
     : string
   : Path extends "catalog.actions"
     ? TCatalog extends { actions: infer A }
-      ? keyof A
+      ? CatalogReferenceKeys<A>
       : string
     : string;
 

@@ -56,7 +56,7 @@ export const schema = defineSchema((s) => ({
 ## Creating a Catalog
 
 ```typescript
-import { defineCatalog } from "@json-render/core";
+import { defineCatalog, type InferSpec } from "@json-render/core";
 import { schema } from "./schema";
 import { z } from "zod";
 
@@ -71,7 +71,13 @@ export const catalog = defineCatalog(schema, {
     },
   },
 });
+
+export type CatalogSpec = InferSpec<typeof schema.definition, typeof catalog.data>;
 ```
+
+Use `CatalogSpec` to type specs for this catalog. References to
+`catalog.components` and `catalog.actions` infer names from a catalog with
+known required entries.
 
 ## Generating AI Prompts
 
