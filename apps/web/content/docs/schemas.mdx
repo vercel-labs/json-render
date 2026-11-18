@@ -49,9 +49,14 @@ See the [Custom Schema guide](/docs/custom-schema) to learn how to implement sup
       "props": { "label": "Click me" },
       "children": []
     }
+  },
+  "state": {
+    "user": { "name": "Ada" }
   }
 }
 ```
+
+The optional `state` object supplies initial values for bindings such as `/user/name`. With the built-in React schema, `catalog.validate()` and `catalog.zodSchema()` preserve this object when parsing a spec. Use `catalog.jsonSchema()` to export the schema for structured generation.
 
 ## Schema Components
 
