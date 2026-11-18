@@ -935,9 +935,9 @@
       "title": "@json-render/mcp",
       "metadataTitle": "@json-render/mcp API | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/mcp\")\n\n# @json-render/mcp\n",
-      "sourceSha256": "5e4c315e6a9c363bea6d77bf64a8f5aa798caf2f763983d831e1317bb684ed4a",
-      "bodySha256": "dc990fe9a19a66a68c3408e34bd2ddc8ac04fc714b0039f0c192709e65b33633",
-      "markdownSha256": "9772c7f3666aa846ba6a400f6f2f43a8d78da6c7e98b4f9f74ebb8698ea2e37f",
+      "sourceSha256": "0cf48e580a691004fbbce9d4275d253a4f5ec9bd15e4cb832d9bc7a40999ae17",
+      "bodySha256": "f0a99f697d9761a4e6e8eaf3427a5b3f190cf76ed81dcc4ca404a482bcd8cde9",
+      "markdownSha256": "c789f8cbe53b751dc919b8b7c3b5fcb0127d7241cc592c597cd16ef91ec4350e",
       "headings": [
         {
           "title": "Install",

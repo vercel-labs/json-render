@@ -38,7 +38,7 @@ import { createMcpApp } from "@json-render/mcp";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import fs from "node:fs";
 
-const server = createMcpApp({
+const server = await createMcpApp({
   name: "My Dashboard",
   version: "1.0.0",
   catalog: myCatalog,

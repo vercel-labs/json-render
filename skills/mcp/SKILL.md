@@ -24,7 +24,7 @@ const catalog = defineCatalog(schema, {
   actions: {},
 });
 
-const server = createMcpApp({
+const server = await createMcpApp({
   name: "My App",
   version: "1.0.0",
   catalog,
