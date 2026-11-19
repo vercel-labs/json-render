@@ -1,4 +1,9 @@
-import { createContext, useContext, type ParentProps } from "solid-js";
+import {
+  createContext,
+  useContext,
+  type ParentProps,
+  type JSX,
+} from "solid-js";
 
 export interface RepeatScopeValue {
   item: unknown;
@@ -8,7 +13,9 @@ export interface RepeatScopeValue {
 
 const RepeatScopeContext = createContext<RepeatScopeValue | null>(null);
 
-export function RepeatScopeProvider(props: ParentProps<RepeatScopeValue>) {
+export function RepeatScopeProvider(
+  props: ParentProps<RepeatScopeValue>,
+): JSX.Element {
   return (
     <RepeatScopeContext.Provider
       value={{ item: props.item, index: props.index, basePath: props.basePath }}

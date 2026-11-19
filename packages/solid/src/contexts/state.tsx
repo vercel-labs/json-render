@@ -7,6 +7,7 @@ import {
   onCleanup,
   type Accessor,
   type ParentProps,
+  type JSX,
 } from "solid-js";
 import {
   getByPath,
@@ -44,7 +45,9 @@ function computeInitialFlat(
   return flattenToPointers(initialState);
 }
 
-export function StateProvider(props: ParentProps<StateProviderProps>) {
+export function StateProvider(
+  props: ParentProps<StateProviderProps>,
+): JSX.Element {
   let internalStore: StateStore | undefined;
   if (!props.store) {
     internalStore = createStateStore(props.initialState ?? {});

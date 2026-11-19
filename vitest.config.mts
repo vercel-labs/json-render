@@ -37,6 +37,7 @@ export default defineConfig({
     include: [
       "packages/**/*.test.ts",
       "packages/**/*.test.tsx",
+      "scripts/**/*.test.mjs",
       "apps/web/lib/jev/**/*.test.ts",
       "apps/web/lib/use-playground-stream.test.ts",
     ],

@@ -6,6 +6,7 @@ import {
   createMemo,
   type Accessor,
   type ParentProps,
+  type JSX,
 } from "solid-js";
 import {
   runValidation,
@@ -92,7 +93,7 @@ function validationConfigEqual(
 
 export function ValidationProvider(
   props: ParentProps<ValidationProviderProps>,
-) {
+): JSX.Element {
   const { getSnapshot } = useStateStore();
   const customFunctions = () => props.customFunctions ?? {};
 

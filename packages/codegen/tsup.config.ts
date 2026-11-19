@@ -1,10 +1,15 @@
 import { defineConfig } from "tsup";
+import { emitTypes } from "../../scripts/emit-types.mjs";
 
-export default defineConfig({
+export default defineConfig((options) => ({
   entry: ["src/index.ts"],
   format: ["cjs", "esm"],
-  dts: true,
   sourcemap: true,
   clean: true,
   external: ["@json-render/core"],
-});
+  onSuccess: async () => {
+    await emitTypes(__dirname, {
+      watch: Boolean(options.watch),
+    });
+  },
+}));

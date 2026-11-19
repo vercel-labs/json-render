@@ -23,6 +23,11 @@ packageExtensions:
   "streamdown@2.2.0":
     dependencies:
       shiki: "3.23.0"
+  # @sveltejs/package imports typescript without declaring it, so it would load whichever
+  # version is hoisted. Declaring the peer links the svelte packages' own TypeScript.
+  "@sveltejs/package":
+    peerDependencies:
+      typescript: "^5.3.3"
 
 overrides:
   "@streamdown/code@1.0.2>shiki": "3.23.0"

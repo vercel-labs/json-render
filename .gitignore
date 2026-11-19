@@ -52,3 +52,5 @@ opensrc/
 examples/stripe-app/*/stripe-app.json
 examples/stripe-app/*/.build
 examples/stripe-app/*/yarn.lock
+
+.types
