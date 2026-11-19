@@ -113,7 +113,7 @@ Register a json-render UI resource on an existing `McpServer`.
 
 React hook for the iframe-side app. Connects to the MCP host, receives tool results, and maintains the current json-render spec.
 
-The hook accepts a spec directly or wrapped as `{ spec }`. It looks for a JSON spec in the first text block, then checks `structuredContent`.
+The hook accepts a spec directly or wrapped as `{ spec }`. It looks for a JSON spec in the first text block, then checks `structuredContent` from a successful tool result.
 
 Returns `{ spec, loading, connected, connecting, error, app, callServerTool }`.
 

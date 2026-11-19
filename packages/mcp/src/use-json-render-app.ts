@@ -41,18 +41,19 @@ export interface UseJsonRenderAppReturn {
 
 type ToolResultContent = CallToolResult["content"][number];
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
 function readSpec(value: unknown): Spec | null {
-  const spec =
-    value && typeof value === "object" && "spec" in value ? value.spec : value;
+  const spec = isRecord(value) && "spec" in value ? value.spec : value;
   if (
     spec &&
     typeof spec === "object" &&
     "root" in spec &&
     typeof spec.root === "string" &&
     "elements" in spec &&
-    spec.elements &&
-    typeof spec.elements === "object" &&
-    !Array.isArray(spec.elements)
+    isRecord(spec.elements)
   ) {
     return spec as Spec;
   }
@@ -62,6 +63,7 @@ function readSpec(value: unknown): Spec | null {
 function parseSpecFromToolResult(result: {
   content?: ToolResultContent[];
   structuredContent?: unknown;
+  isError?: boolean;
 }): Spec | null {
   const text = result.content?.find((item) => item.type === "text")?.text;
   if (text) {
@@ -72,7 +74,21 @@ function parseSpecFromToolResult(result: {
       // A tool can send a text summary alongside its structured result.
     }
   }
-  return readSpec(result.structuredContent);
+  if (result.isError) return null;
+  const spec = readSpec(result.structuredContent);
+  if (
+    !spec ||
+    !Object.hasOwn(spec.elements, spec.root) ||
+    !Object.values(spec.elements).every(
+      (element) =>
+        isRecord(element) &&
+        typeof element.type === "string" &&
+        isRecord(element.props),
+    )
+  ) {
+    return null;
+  }
+  return spec;
 }
 
 /**

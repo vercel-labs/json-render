@@ -96,4 +96,40 @@ describe("MCP tool result formats", () => {
 
     expect(result.current.spec).toEqual(spec);
   });
+
+  it("keeps the current spec when a failed tool returns structured data", async () => {
+    const { result } = renderHook(() => useJsonRenderApp());
+    await act(async () => {
+      sessions[0]?.ontoolresult?.({
+        content: [{ type: "text", text: JSON.stringify(spec) }],
+      });
+    });
+
+    callServerTool.mockResolvedValue({
+      isError: true,
+      content: [{ type: "text", text: "Refresh failed" }],
+      structuredContent: { spec: { ...spec, state: { failed: true } } },
+    });
+    await act(async () => {
+      await result.current.callServerTool("refresh-dashboard");
+    });
+
+    expect(result.current.spec).toEqual(spec);
+    expect(result.current.loading).toBe(false);
+  });
+
+  it("ignores structured data whose elements are not UI components", async () => {
+    const { result } = renderHook(() => useJsonRenderApp());
+    await act(async () => {
+      sessions[0]?.ontoolresult?.({
+        content: [],
+        structuredContent: {
+          root: "workspace",
+          elements: { workspace: { kind: "directory" } },
+        },
+      });
+    });
+
+    expect(result.current.spec).toBeNull();
+  });
 });
