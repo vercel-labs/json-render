@@ -35,6 +35,7 @@ export interface StateContextValue {
 }
 
 const StateContext = createContext<StateContextValue | null>(null);
+const StateSetterContext = createContext<StateContextValue["set"] | null>(null);
 
 /**
  * Props for StateProvider
@@ -180,7 +181,11 @@ export function StateProvider({
   );
 
   return (
-    <StateContext.Provider value={value}>{children}</StateContext.Provider>
+    <StateContext.Provider value={value}>
+      <StateSetterContext.Provider value={set}>
+        {children}
+      </StateSetterContext.Provider>
+    </StateContext.Provider>
   );
 }
 
@@ -201,6 +206,31 @@ export function useStateStore(): StateContextValue {
 export function useStateValue<T>(path: string): T | undefined {
   const { state } = useStateStore();
   return getByPath(state, path) as T | undefined;
+}
+
+/**
+ * Return the resolved prop and a setter for its binding path.
+ * Use the path from the renderer's bindings map for `$bindState` or `$bindItem`.
+ * The setter has no effect when the prop has no binding.
+ *
+ * @example
+ * const [value, setValue] = useBoundProp<string>(props.value, bindings?.value);
+ */
+export function useBoundProp<T>(
+  propValue: T | undefined,
+  bindingPath: string | undefined,
+): [T | undefined, (value: T) => void] {
+  const set = useContext(StateSetterContext);
+  if (!set) {
+    throw new Error("useStateStore must be used within a StateProvider");
+  }
+  const setValue = useCallback(
+    (value: T) => {
+      if (bindingPath) set(bindingPath, value);
+    },
+    [bindingPath, set],
+  );
+  return [propValue, setValue];
 }
 
 /**

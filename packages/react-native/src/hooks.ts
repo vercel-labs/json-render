@@ -13,36 +13,8 @@ import {
   autoFixSpec,
   formatSpecIssues,
 } from "@json-render/core";
-import { useStateStore } from "./contexts/state";
 
-// =============================================================================
-// useBoundProp — Two-way binding helper for $bindState/$bindItem expressions
-// =============================================================================
-
-/**
- * Hook for two-way bound props. Returns `[value, setValue]` where:
- *
- * - `value` is the already-resolved prop value (passed through from render props)
- * - `setValue` writes back to the bound state path (no-op if not bound)
- *
- * @example
- * ```tsx
- * const [value, setValue] = useBoundProp<string>(element.props.value, bindings?.value);
- * ```
- */
-export function useBoundProp<T>(
-  propValue: T | undefined,
-  bindingPath: string | undefined,
-): [T | undefined, (value: T) => void] {
-  const { set } = useStateStore();
-  const setValue = useCallback(
-    (value: T) => {
-      if (bindingPath) set(bindingPath, value);
-    },
-    [bindingPath, set],
-  );
-  return [propValue, setValue];
-}
+export { useBoundProp } from "@internal/react-state";
 
 /**
  * Result of attempting to parse a JSONL line.
