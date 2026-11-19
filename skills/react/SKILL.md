@@ -9,24 +9,27 @@ React renderer that converts JSON specs into React component trees.
 
 ## Quick Start
 
-```typescript
-import { defineRegistry, Renderer } from "@json-render/react";
-import { catalog } from "./catalog";
+Import the registry from the catalog example below and wrap `Renderer` in `JSONUIProvider`.
 
-const { registry } = defineRegistry(catalog, {
-  components: {
-    Card: ({ props, children }) => <div>{props.title}{children}</div>,
-  },
-});
+```tsx
+import type { Spec } from "@json-render/core";
+import { JSONUIProvider, Renderer } from "@json-render/react";
+import { registry } from "./catalog";
 
-function App({ spec }) {
-  return <Renderer spec={spec} registry={registry} />;
+function App({ spec }: { spec: Spec }) {
+  return (
+    <JSONUIProvider registry={registry} initialState={spec.state}>
+      <Renderer spec={spec} registry={registry} />
+    </JSONUIProvider>
+  );
 }
 ```
 
 ## Creating a Catalog
 
-```typescript
+Save the catalog and registry in `catalog.tsx`.
+
+```tsx
 import { defineCatalog } from "@json-render/core";
 import { schema } from "@json-render/react/schema";
 import { defineRegistry } from "@json-render/react";
@@ -53,13 +56,14 @@ export const catalog = defineCatalog(schema, {
       description: "Layout with named content regions",
     },
   },
+  actions: {},
 });
 
 // Define component implementations with type-safe props
-const { registry } = defineRegistry(catalog, {
+export const { registry } = defineRegistry(catalog, {
   components: {
     Button: ({ props }) => (
-      <button className={props.variant}>{props.label}</button>
+      <button className={props.variant ?? undefined}>{props.label}</button>
     ),
     Card: ({ props, children }) => (
       <div className="card">
@@ -80,14 +84,22 @@ const { registry } = defineRegistry(catalog, {
 
 ## Spec Structure (Element Tree)
 
-The React schema uses an element tree format:
+The React schema uses a flat element map. The `root` and `children` fields refer to keys in `elements`.
 
 ```json
 {
-  "root": {
-    "type": "Card",
-    "props": { "title": "Hello" },
-    "children": [{ "type": "Button", "props": { "label": "Click me" } }]
+  "root": "card",
+  "elements": {
+    "card": {
+      "type": "Card",
+      "props": { "title": "Hello" },
+      "children": ["button"]
+    },
+    "button": {
+      "type": "Button",
+      "props": { "label": "Click me", "variant": "primary" },
+      "children": []
+    }
   }
 }
 ```
@@ -171,8 +183,12 @@ Register `$computed` functions via the `functions` prop on `JSONUIProvider` or `
 
 ```tsx
 <JSONUIProvider
+  registry={registry}
+  initialState={spec.state}
   functions={{ fullName: (args) => `${args.first} ${args.last}` }}
 >
+  <Renderer spec={spec} registry={registry} />
+</JSONUIProvider>
 ```
 
 ## Event System
