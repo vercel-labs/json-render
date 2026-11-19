@@ -656,6 +656,160 @@ describe("catalog.validate", () => {
     expect(result.data).toBeDefined();
     expect(result.data!.root).toBe("t");
   });
+
+  it("checks props against the selected component when there are several", () => {
+    const result = catalog.validate({
+      root: "t",
+      elements: {
+        t: { type: "Text", props: { content: 42 }, children: [] },
+      },
+    });
+    expect(result.success).toBe(false);
+    expect(result.error!.issues).toHaveLength(1);
+    expect(result.error!.issues[0]!.code).toBe("invalid_type");
+    expect(result.error!.issues[0]!.path).toEqual([
+      "elements",
+      "t",
+      "props",
+      "content",
+    ]);
+  });
+
+  it("rejects props that belong to a different component", () => {
+    const result = catalog.validate({
+      root: "card-1",
+      elements: {
+        "card-1": { type: "Card", props: { content: "Hi" }, children: [] },
+      },
+    });
+    expect(result.success).toBe(false);
+    expect(result.error!.issues[0]!.path).toEqual([
+      "elements",
+      "card-1",
+      "props",
+      "title",
+    ]);
+  });
+
+  it("validates each element against its own component", () => {
+    const result = catalog.validate({
+      root: "card-1",
+      elements: {
+        "card-1": {
+          type: "Card",
+          props: { title: "Hello" },
+          children: ["text-1"],
+        },
+        "text-1": { type: "Text", props: { content: 1 }, children: [] },
+      },
+    });
+    expect(result.success).toBe(false);
+    expect(result.error!.issues.map((issue) => issue.path)).toEqual([
+      ["elements", "text-1", "props", "content"],
+    ]);
+  });
+
+  it("accepts and rejects the same props with one component or several", () => {
+    const Bar = {
+      props: z.object({ done: z.number().int().min(0).max(10) }),
+      description: "",
+    };
+    const Label = { props: z.object({ text: z.string() }), description: "" };
+    const one = defineCatalog(testSchema, { components: { Bar }, actions: {} });
+    const two = defineCatalog(testSchema, {
+      components: { Bar, Label },
+      actions: {},
+    });
+    const spec = (done: number) => ({
+      root: "a",
+      elements: { a: { type: "Bar", props: { done }, children: [] } },
+    });
+    expect(one.validate(spec(99)).success).toBe(false);
+    expect(two.validate(spec(99)).success).toBe(false);
+    expect(one.validate(spec(5)).success).toBe(true);
+    expect(two.validate(spec(5)).success).toBe(true);
+  });
+
+  it("pairs props with a ref under any key and allows optional props", () => {
+    const sceneSchema = defineSchema((s) => ({
+      spec: s.object({
+        clips: s.array(
+          s.object({
+            component: s.ref("catalog.components"),
+            props: { ...s.propsOf("catalog.components"), ...s.optional() },
+          }),
+        ),
+      }),
+      catalog: s.object({
+        components: s.map({ props: s.zod() }),
+      }),
+    }));
+    const scenes = defineCatalog(sceneSchema, {
+      components: {
+        Title: { props: z.object({ text: z.string() }) },
+        Image: { props: z.object({ src: z.string() }) },
+      },
+    });
+    const title = { component: "Title", props: { text: "Hi" } };
+    const bare = { component: "Image" };
+    const wrong = { component: "Image", props: { text: "Hi" } };
+    expect(scenes.validate({ clips: [title] }).success).toBe(true);
+    expect(scenes.validate({ clips: [bare] }).success).toBe(true);
+    const result = scenes.validate({ clips: [wrong] });
+    expect(result.success).toBe(false);
+    const path = ["clips", 0, "props", "src"];
+    expect(result.error!.issues[0]!.path).toEqual(path);
+  });
+
+  it("leaves props open when no ref selects the component", () => {
+    const looseSchema = defineSchema((s) => ({
+      spec: s.object({
+        name: s.string(),
+        props: s.propsOf("catalog.components"),
+      }),
+      catalog: s.object({
+        components: s.map({ props: s.zod() }),
+      }),
+    }));
+    const loose = defineCatalog(looseSchema, {
+      components: {
+        Title: { props: z.object({ text: z.string() }) },
+        Image: { props: z.object({ src: z.string() }) },
+      },
+    });
+    const spec = { name: "Image", props: { text: 1 } };
+    expect(loose.validate(spec).success).toBe(true);
+  });
+
+  it("keeps the JSON Schema for props open with several components", () => {
+    const openSchema = defineSchema((s) => ({
+      spec: s.object({
+        root: s.string(),
+        elements: s.record(
+          s.object({
+            type: s.ref("catalog.components"),
+            props: s.record(s.any()),
+            children: s.array(s.string()),
+            slots: { ...s.record(s.array(s.string())), ...s.optional() },
+            visible: { ...s.any(), ...s.optional() },
+          }),
+        ),
+      }),
+      catalog: testSchema.definition.catalog,
+    }));
+    const data = {
+      components: {
+        Text: { props: z.object({ content: z.string() }), description: "" },
+        Card: { props: z.object({ title: z.string() }), description: "" },
+      },
+      actions: {},
+    };
+    const paired = defineCatalog(testSchema, data);
+    const open = defineCatalog(openSchema, data);
+    expect(paired.jsonSchema()).toEqual(open.jsonSchema());
+    const strict = { strict: true };
+    expect(paired.jsonSchema(strict)).toEqual(open.jsonSchema(strict));
+  });
 });
 
 // =============================================================================

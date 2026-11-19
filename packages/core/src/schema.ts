@@ -504,15 +504,40 @@ function buildZodType(schemaType: SchemaType, catalogData: unknown): z.ZodType {
     }
     case "object": {
       const shape = schemaType.inner as Record<string, SchemaType>;
+      const selectedProps = findSelectedProps(shape, catalogData);
       const zodShape: Record<string, z.ZodType> = {};
       for (const [key, value] of Object.entries(shape)) {
-        let zodType = buildZodType(value, catalogData);
+        // Props selected by a sibling ref are checked per entry below.
+        let zodType = selectedProps.some((pair) => pair.propsKey === key)
+          ? z.record(z.string(), z.unknown())
+          : buildZodType(value, catalogData);
         if (value.optional) {
           zodType = zodType.optional();
         }
         zodShape[key] = zodType;
       }
-      return z.object(zodShape);
+      const objectType = z.object(zodShape);
+      if (selectedProps.length === 0) {
+        return objectType;
+      }
+      return objectType.superRefine((value, ctx) => {
+        const fields = value as Record<string, unknown>;
+        for (const { refKey, propsKey, entries } of selectedProps) {
+          const selected = fields[refKey];
+          const props = fields[propsKey];
+          if (typeof selected !== "string" || props === undefined) continue;
+          if (!Object.prototype.hasOwnProperty.call(entries, selected)) {
+            continue;
+          }
+          const propsSchema = entries[selected]?.props;
+          if (!propsSchema) continue;
+          const result = propsSchema.safeParse(props);
+          if (result.success) continue;
+          for (const issue of result.error.issues) {
+            ctx.addIssue({ ...issue, path: [propsKey, ...issue.path] });
+          }
+        }
+      });
     }
     case "record": {
       const inner = buildZodType(schemaType.inner as SchemaType, catalogData);
@@ -548,38 +573,73 @@ function buildZodType(schemaType: SchemaType, catalogData: unknown): z.ZodType {
   }
 }
 
-function getKeysFromPath(path: string, catalogData: unknown): string[] {
+type CatalogEntries = Record<string, { props?: z.ZodType } | undefined>;
+
+interface SelectedProps {
+  refKey: string;
+  propsKey: string;
+  entries: CatalogEntries;
+}
+
+function getEntriesFromPath(
+  path: string,
+  catalogData: unknown,
+): CatalogEntries | undefined {
   const parts = path.split(".");
   let current: unknown = { catalog: catalogData };
   for (const part of parts) {
     if (current && typeof current === "object") {
       current = (current as Record<string, unknown>)[part];
     } else {
-      return [];
+      return undefined;
     }
   }
   if (current && typeof current === "object") {
-    return Object.keys(current);
+    return current as CatalogEntries;
   }
-  return [];
+  return undefined;
+}
+
+function getKeysFromPath(path: string, catalogData: unknown): string[] {
+  const entries = getEntriesFromPath(path, catalogData);
+  return entries ? Object.keys(entries) : [];
 }
 
 function getPropsFromPath(path: string, catalogData: unknown): z.ZodType[] {
-  const parts = path.split(".");
-  let current: unknown = { catalog: catalogData };
-  for (const part of parts) {
-    if (current && typeof current === "object") {
-      current = (current as Record<string, unknown>)[part];
-    } else {
-      return [];
-    }
+  const entries = getEntriesFromPath(path, catalogData);
+  if (!entries) {
+    return [];
   }
-  if (current && typeof current === "object") {
-    return Object.values(current as Record<string, { props?: z.ZodType }>)
-      .map((entry) => entry.props)
-      .filter((props): props is z.ZodType => props !== undefined);
+  return Object.values(entries)
+    .map((entry) => entry?.props)
+    .filter((props): props is z.ZodType => props !== undefined);
+}
+
+/**
+ * Pair each `propsOf` field with the one `ref` field in the same object that
+ * points at the same catalog path (for example `props` with `type`), so the
+ * props can be checked against the entry the ref selects. Only catalogs with
+ * more than one entry need this; with one entry, `propsOf` already uses that
+ * entry's schema.
+ */
+function findSelectedProps(
+  shape: Record<string, SchemaType>,
+  catalogData: unknown,
+): SelectedProps[] {
+  const pairs: SelectedProps[] = [];
+  const fields = Object.entries(shape);
+  for (const [propsKey, value] of fields) {
+    if (value.kind !== "propsOf") continue;
+    const path = value.inner as string;
+    const refKeys = fields
+      .filter(([, other]) => other.kind === "ref" && other.inner === path)
+      .map(([key]) => key);
+    if (refKeys.length !== 1) continue;
+    const entries = getEntriesFromPath(path, catalogData);
+    if (!entries || Object.keys(entries).length < 2) continue;
+    pairs.push({ refKey: refKeys[0]!, propsKey, entries });
   }
-  return [];
+  return pairs;
 }
 
 /**
