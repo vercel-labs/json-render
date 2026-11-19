@@ -126,6 +126,9 @@ function Dashboard({ spec }) {
 
 ## Packages
 
+The [Material 3 Expressive catalog](android/material3-expressive) adds native
+components to the Android Jetpack Compose renderer.
+
 | Package                     | Description                                                            |
 | --------------------------- | ---------------------------------------------------------------------- |
 | `@json-render/core`         | Schemas, catalogs, AI prompts, dynamic props, SpecStream utilities     |
@@ -301,6 +304,20 @@ const catalog = defineCatalog(schema, {
 const { registry } = defineRegistry(catalog, { components: {} });
 <Renderer spec={spec} registry={registry} />;
 ```
+
+### Jetpack Compose (Android)
+
+The Kotlin renderer reads json-render specs and renders them with app-registered Jetpack Compose components.
+
+```kotlin
+import com.vercel.jsonrender.compose.JsonRender
+import com.vercel.jsonrender.compose.Spec
+
+val spec = Spec.decode(json)
+JsonRender(spec)
+```
+
+See the [Android package guide](android/README.md) for Gradle setup, custom components, state, and actions.
 
 ### Remotion (Video)
 
