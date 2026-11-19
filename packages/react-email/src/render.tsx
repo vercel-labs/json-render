@@ -10,6 +10,10 @@ import {
   type PropResolutionContext,
 } from "@json-render/core";
 import { standardComponents } from "./components/standard";
+import { standardComponentDefinitions } from "./catalog";
+
+const standardDefs: Record<string, { slots: readonly string[] }> =
+  standardComponentDefinitions;
 
 // Re-export the standard components for use in custom registries
 export { standardComponents };
@@ -56,7 +60,24 @@ function renderElement(
   const resolvedElement: UIElement = { ...element, props: resolvedProps };
 
   const Component = registry[resolvedElement.type];
-  if (!Component) return null;
+  if (!Component) {
+    console.warn(
+      `[json-render/react-email] Unknown component type "${resolvedElement.type}" for element "${elementKey}", skipping it`,
+    );
+    return null;
+  }
+
+  // Standard leaf components render only their props, so children vanish.
+  // Custom overrides may render children, so only warn for the standard one.
+  if (
+    resolvedElement.children?.length &&
+    Component === standardComponents[resolvedElement.type] &&
+    standardDefs[resolvedElement.type]?.slots.length === 0
+  ) {
+    console.warn(
+      `[json-render/react-email] "${resolvedElement.type}" does not render children; ${resolvedElement.children.length} child element(s) of "${elementKey}" will be dropped`,
+    );
+  }
 
   if (resolvedElement.repeat) {
     const repeat = resolvedElement.repeat;
