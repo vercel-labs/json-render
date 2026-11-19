@@ -179,7 +179,7 @@ function PlaygroundControls({
       {model !== "typesafe-ai/jev" && (
         <>
           <div className="flex shrink-0 items-center rounded border border-border text-[10px] font-mono overflow-hidden">
-            {(["jsonl", "yaml"] as const).map((f) => (
+            {(["jsonl", "yaml", "compact"] as const).map((f) => (
               <button
                 key={f}
                 disabled={disabled}
@@ -194,30 +194,32 @@ function PlaygroundControls({
               </button>
             ))}
           </div>
-          <div className="flex shrink-0 items-center rounded border border-border text-[10px] font-mono overflow-hidden">
-            {(["patch", "merge", "diff"] as const).map((m) => (
-              <button
-                key={m}
-                disabled={disabled}
-                onClick={() => {
-                  setEditModes((prev) =>
-                    prev.includes(m)
-                      ? prev.length > 1
-                        ? prev.filter((x) => x !== m)
-                        : prev
-                      : [...prev, m],
-                  );
-                }}
-                className={`px-1.5 py-0.5 transition-colors ${
-                  editModes.includes(m)
-                    ? "bg-muted text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {m}
-              </button>
-            ))}
-          </div>
+          {format !== "compact" && (
+            <div className="flex shrink-0 items-center rounded border border-border text-[10px] font-mono overflow-hidden">
+              {(["patch", "merge", "diff"] as const).map((m) => (
+                <button
+                  key={m}
+                  disabled={disabled}
+                  onClick={() => {
+                    setEditModes((prev) =>
+                      prev.includes(m)
+                        ? prev.length > 1
+                          ? prev.filter((x) => x !== m)
+                          : prev
+                        : [...prev, m],
+                    );
+                  }}
+                  className={`px-1.5 py-0.5 transition-colors ${
+                    editModes.includes(m)
+                      ? "bg-muted text-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+          )}
         </>
       )}
       {showClear && !disabled && (
