@@ -4,6 +4,16 @@ title: "Changelog"
 
 Notable changes and updates to json-render.
 
+## v0.23.2
+
+November 18, 2026
+
+### Fixed: Chat Streaming Error Message
+
+When `streamCard` posts a partial card and the final spec is invalid, the `CardSpecError` it throws now carries that posted message as `postedMessage`, so callers can edit or remove the partial card.
+
+---
+
 ## v0.23.1
 
 November 15, 2026
