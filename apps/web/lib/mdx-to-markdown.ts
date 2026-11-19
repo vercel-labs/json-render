@@ -2,8 +2,8 @@
  * Converts raw MDX content to clean Markdown suitable for AI agents.
  *
  * Transformations:
- * - Remove `export` statements (metadata, etc.)
- * - Remove `import` statements
+ * - Preserve fenced code examples
+ * - Remove page-level `import` and `export` statements
  * - Replace `<PackageInstall packages="x y" />` with a fenced bash code block
  * - Strip standalone JSX callout divs (the amber concept boxes)
  * - Pass everything else through as-is (already valid Markdown)
@@ -11,11 +11,31 @@
 export function mdxToCleanMarkdown(raw: string): string {
   const lines = raw.split("\n");
   const out: string[] = [];
+  let codeFence: string | undefined;
   let inJsxBlock = false;
   let jsxDepth = 0;
 
   for (const line of lines) {
     const trimmed = line.trim();
+    const fenceMarker = trimmed.match(/^(`{3,}|~{3,})/)?.[0];
+
+    if (codeFence) {
+      if (!inJsxBlock) out.push(line);
+      if (fenceMarker === trimmed && trimmed.startsWith(codeFence)) {
+        codeFence = undefined;
+      }
+      continue;
+    }
+
+    if (
+      fenceMarker &&
+      (fenceMarker.startsWith("~") ||
+        !trimmed.slice(fenceMarker.length).includes("`"))
+    ) {
+      codeFence = fenceMarker;
+      if (!inJsxBlock) out.push(line);
+      continue;
+    }
 
     // Skip export and import statements
     if (trimmed.startsWith("export ") || trimmed.startsWith("import ")) {
