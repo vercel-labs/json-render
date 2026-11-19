@@ -139,8 +139,20 @@ export type ItemCondition = { $item: string } & ComparisonOperators;
  */
 export type IndexCondition = { $index: true } & ComparisonOperators;
 
-/** A single visibility condition (state, item, or index). */
-export type SingleCondition = StateCondition | ItemCondition | IndexCondition;
+/**
+ * A condition whose left-hand side is any prop expression, resolved the same
+ * way as props: literals, `$state`, `$computed`, or a custom directive.
+ *
+ * @example { $value: { $cartCount: {} }, gt: 0 }
+ */
+export type ValueCondition = { $value: unknown } & ComparisonOperators;
+
+/** A single visibility condition (state, item, index, or value). */
+export type SingleCondition =
+  | StateCondition
+  | ItemCondition
+  | IndexCondition
+  | ValueCondition;
 
 /**
  * AND wrapper — all child conditions must be true.
@@ -157,7 +169,7 @@ export type OrCondition = { $or: VisibilityCondition[] };
 /**
  * Visibility condition types.
  * - `boolean` — always/never
- * - `SingleCondition` — single condition (`$state`, `$item`, or `$index`)
+ * - `SingleCondition` — single condition (`$state`, `$item`, `$index`, or `$value`)
  * - `SingleCondition[]` — implicit AND (all must be true)
  * - `AndCondition` — `{ $and: [...] }`, explicit AND (all must be true)
  * - `OrCondition` — `{ $or: [...] }`, at least one must be true

@@ -1,9 +1,15 @@
 import { describe, it, expect } from "vitest";
+import { z } from "zod";
 import {
+  conditionUsesItemScope,
   evaluateVisibility,
   splitRepeatVisibility,
   visibility,
+  VisibilityConditionSchema,
+  VisibilityConditionStrictSchema,
 } from "./visibility";
+import { createDirectiveRegistry, defineDirective } from "./directives";
+import { resolvePropValue, type PropResolutionContext } from "./props";
 
 describe("evaluateVisibility", () => {
   describe("undefined / boolean", () => {
@@ -777,5 +783,140 @@ describe("splitRepeatVisibility", () => {
       container: undefined,
       itemFilter: cond,
     });
+  });
+});
+
+describe("$value conditions", () => {
+  const cartCount = defineDirective({
+    name: "$cartCount",
+    schema: z.object({ $cartCount: z.unknown() }),
+    resolve(_value, ctx) {
+      const items = resolvePropValue({ $state: "/cart/items" }, ctx);
+      return Array.isArray(items) ? items.length : 0;
+    },
+  });
+  const directives = createDirectiveRegistry([cartCount]);
+  const withItems = (items: unknown[]): PropResolutionContext => ({
+    stateModel: { cart: { items } },
+    directives,
+  });
+
+  it("resolves a custom directive on the left-hand side", () => {
+    const condition = { $value: { $cartCount: {} }, gt: 0 };
+    expect(evaluateVisibility(condition, withItems(["a", "b"]))).toBe(true);
+    expect(evaluateVisibility(condition, withItems([]))).toBe(false);
+  });
+
+  it("compares a directive against another directive", () => {
+    expect(
+      evaluateVisibility(
+        { $value: { $cartCount: {} }, eq: 2 },
+        withItems(["a", "b"]),
+      ),
+    ).toBe(true);
+  });
+
+  it("resolves literals and nested $state", () => {
+    expect(evaluateVisibility({ $value: 5, gte: 5 }, { stateModel: {} })).toBe(
+      true,
+    );
+    expect(
+      evaluateVisibility(
+        { $value: { $state: "/count" }, lt: 3 },
+        { stateModel: { count: 2 } },
+      ),
+    ).toBe(true);
+  });
+
+  it("resolves $computed", () => {
+    const ctx: PropResolutionContext = {
+      stateModel: { a: 2, b: 3 },
+      functions: {
+        sum: (args) => (args.a as number) + (args.b as number),
+      },
+    };
+    expect(
+      evaluateVisibility(
+        {
+          $value: {
+            $computed: "sum",
+            args: { a: { $state: "/a" }, b: { $state: "/b" } },
+          },
+          eq: 5,
+        },
+        ctx,
+      ),
+    ).toBe(true);
+  });
+
+  it("inverts with not", () => {
+    const condition = { $value: { $cartCount: {} }, gt: 0, not: true } as const;
+    expect(evaluateVisibility(condition, withItems([]))).toBe(true);
+    expect(evaluateVisibility(condition, withItems(["a"]))).toBe(false);
+  });
+
+  it("checks truthiness without an operator", () => {
+    expect(
+      evaluateVisibility({ $value: { $cartCount: {} } }, withItems(["a"])),
+    ).toBe(true);
+    expect(
+      evaluateVisibility({ $value: { $cartCount: {} } }, withItems([])),
+    ).toBe(false);
+  });
+
+  it("works inside $cond in props", () => {
+    const value = {
+      $cond: { $value: { $cartCount: {} }, gt: 0 },
+      $then: "checkout",
+      $else: "empty",
+    };
+    expect(resolvePropValue(value, withItems(["a"]))).toBe("checkout");
+    expect(resolvePropValue(value, withItems([]))).toBe("empty");
+  });
+
+  it("is accepted by both schemas", () => {
+    const condition = { $value: { $cartCount: {} }, gt: 0 };
+    expect(VisibilityConditionSchema.safeParse(condition).success).toBe(true);
+    expect(VisibilityConditionStrictSchema.safeParse(condition).success).toBe(
+      true,
+    );
+  });
+
+  it("strict schema rejects $value mixed with another source", () => {
+    expect(
+      VisibilityConditionStrictSchema.safeParse({
+        $value: 1,
+        $state: "/x",
+        eq: 1,
+      }).success,
+    ).toBe(false);
+  });
+
+  it("does not swallow $and/$or in the loose schema", () => {
+    const condition = { $or: [{ $state: "/a" }, { $value: 1, eq: 1 }] };
+    expect(VisibilityConditionSchema.parse(condition)).toEqual(condition);
+  });
+});
+
+describe("conditionUsesItemScope with $value", () => {
+  it("is true when $item or $index appears inside $value", () => {
+    expect(conditionUsesItemScope({ $value: { $item: "qty" }, gt: 0 })).toBe(
+      true,
+    );
+    expect(
+      conditionUsesItemScope({
+        $value: { $computed: "double", args: { n: { $index: true } } },
+        gt: 1,
+      }),
+    ).toBe(true);
+  });
+
+  it("is false when $value only reads state or directives", () => {
+    expect(conditionUsesItemScope({ $value: { $cartCount: {} }, gt: 0 })).toBe(
+      false,
+    );
+    expect(conditionUsesItemScope({ $value: { $state: "/n" }, gt: 0 })).toBe(
+      false,
+    );
   });
 });

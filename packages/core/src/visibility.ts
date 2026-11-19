@@ -1,9 +1,11 @@
 import { z } from "zod";
+import { resolvePropValue } from "./props";
 import type {
   VisibilityCondition,
   StateCondition,
   ItemCondition,
   IndexCondition,
+  ValueCondition,
   SingleCondition,
   AndCondition,
   OrCondition,
@@ -48,10 +50,22 @@ const IndexConditionSchema = z.object({
   ...comparisonOps,
 });
 
+/**
+ * `$value` takes any prop expression and is required to be present (a bare
+ * `z.unknown()` would also match objects without the key).
+ */
+const valueSource = z.custom<unknown>((value) => value !== undefined);
+
+const ValueConditionSchema = z.object({
+  $value: valueSource,
+  ...comparisonOps,
+});
+
 const SingleConditionSchema = z.union([
   StateConditionSchema,
   ItemConditionSchema,
   IndexConditionSchema,
+  ValueConditionSchema,
 ]);
 
 /**
@@ -74,6 +88,7 @@ const StrictSingleConditionSchema = z.union([
   z.strictObject({ $state: z.string(), ...comparisonOps }),
   z.strictObject({ $item: z.string(), ...comparisonOps }),
   z.strictObject({ $index: z.literal(true), ...comparisonOps }),
+  z.strictObject({ $value: valueSource, ...comparisonOps }),
 ]);
 
 /**
@@ -82,8 +97,24 @@ const StrictSingleConditionSchema = z.union([
  * validation time instead of silently evaluating to hidden at runtime.
  */
 /**
+ * True when a prop expression reads the repeat-item scope (`$item`, `$index`
+ * or `$bindItem`) anywhere inside it.
+ */
+function expressionUsesItemScope(value: unknown): boolean {
+  if (Array.isArray(value)) return value.some(expressionUsesItemScope);
+  if (typeof value !== "object" || value === null) return false;
+  return Object.entries(value).some(
+    ([key, child]) =>
+      key === "$item" ||
+      key === "$index" ||
+      key === "$bindItem" ||
+      expressionUsesItemScope(child),
+  );
+}
+
+/**
  * True when a condition references the repeat-item scope ($item or $index)
- * anywhere in its tree. Renderers use this to apply a repeat container's own
+ * anywhere in its tree, including inside a `$value` expression. Renderers use this to apply a repeat container's own
  * visible condition as a per-item filter instead of evaluating it (and
  * failing) outside the repeat scope.
  */
@@ -94,6 +125,8 @@ export function conditionUsesItemScope(
   if (Array.isArray(condition)) return condition.some(conditionUsesItemScope);
   if (typeof condition !== "object" || condition === null) return false;
   if ("$item" in condition || "$index" in condition) return true;
+  if ("$value" in condition)
+    return expressionUsesItemScope((condition as ValueCondition).$value);
   if ("$and" in condition)
     return (condition as { $and: VisibilityCondition[] }).$and.some(
       conditionUsesItemScope,
@@ -205,6 +238,10 @@ function isIndexCondition(cond: SingleCondition): cond is IndexCondition {
   return "$index" in cond;
 }
 
+function isValueCondition(cond: SingleCondition): cond is ValueCondition {
+  return "$value" in cond;
+}
+
 /**
  * Resolve the left-hand-side value of a condition based on its source.
  */
@@ -220,6 +257,11 @@ function resolveConditionValue(
     return cond.$item === ""
       ? ctx.repeatItem
       : getByPath(ctx.repeatItem, cond.$item);
+  }
+  // `$value` resolves any prop expression: literals, `$state`, `$computed`
+  // and custom directives (when the context carries a registry).
+  if (isValueCondition(cond)) {
+    return resolvePropValue(cond.$value, ctx);
   }
   // StateCondition
   return getByPath(ctx.stateModel, (cond as StateCondition).$state);

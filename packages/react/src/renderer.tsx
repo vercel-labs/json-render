@@ -824,6 +824,8 @@ function RepeatChildren({
 }) {
   const { state } = useStateStore();
   const { ctx } = useVisibility();
+  const functions = useFunctions();
+  const directives = useDirectives();
   const parentScope = useRepeatScope();
   const repeat = element.repeat!;
   const statePath = resolveRepeatStatePath(
@@ -849,6 +851,8 @@ function RepeatChildren({
         itemFilter === undefined ||
         evaluateVisibility(itemFilter, {
           ...ctx,
+          functions,
+          directives,
           repeatItem: itemValue,
           repeatIndex: index,
         }),
