@@ -25,6 +25,10 @@ import { JsonRenderDevtools } from "@json-render/devtools-solid";
 </JSONUIProvider>;
 ```
 
+While devtools is mounted, the renderer adds `display: contents` wrappers with
+`data-jr-key` attributes for the DOM picker. Unmounting devtools removes these
+wrappers; the spec content remains visible in either case.
+
 - Floating toggle appears bottom-right.
 - Hotkey: `Ctrl`/`Cmd` + `Shift` + `J`.
 - Tree-shakes to `null` in production builds.
