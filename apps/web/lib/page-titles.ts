@@ -54,6 +54,7 @@ export const PAGE_TITLES: Record<string, string> = {
   "docs/api/react-email": "@json-render/react-email API",
   "docs/api/chat": "@json-render/chat API",
   "docs/api/react-native": "@json-render/react-native API",
+  "docs/api/jetpack-compose": "Jetpack Compose API",
   "docs/api/svelte": "@json-render/svelte API",
   "docs/api/directives": "@json-render/directives API",
   "docs/api/codegen": "@json-render/codegen API",

@@ -894,6 +894,50 @@
       ]
     },
     {
+      "path": "/docs/api/jetpack-compose",
+      "file": "content/docs/api/jetpack-compose.mdx",
+      "title": "Jetpack Compose",
+      "metadataTitle": "Jetpack Compose API | json-render",
+      "prefix": "",
+      "sourceSha256": "f5c00a505730c1541d38030576315ce5f11dde68f939da1d74fe53afb2d6e7ea",
+      "bodySha256": "f5c00a505730c1541d38030576315ce5f11dde68f939da1d74fe53afb2d6e7ea",
+      "markdownSha256": "5cf459fbe28880304e3ea2b1dd868f067c6940f8de3fc80e293f88128269f6fa",
+      "headings": [
+        {
+          "title": "Installation",
+          "id": "installation"
+        },
+        {
+          "title": "Spec.decode",
+          "id": "specdecode"
+        },
+        {
+          "title": "JsonRender",
+          "id": "jsonrender"
+        },
+        {
+          "title": "ComponentContext",
+          "id": "componentcontext"
+        },
+        {
+          "title": "FoundationComponents",
+          "id": "foundationcomponents"
+        },
+        {
+          "title": "Expressions and watches",
+          "id": "expressions-and-watches"
+        },
+        {
+          "title": "ActionDispatcher",
+          "id": "actiondispatcher"
+        },
+        {
+          "title": "SpecStreamCompiler",
+          "id": "specstreamcompiler"
+        }
+      ]
+    },
+    {
       "path": "/docs/api/jotai",
       "file": "content/docs/api/jotai.mdx",
       "title": "@json-render/jotai",
