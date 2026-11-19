@@ -1,12 +1,18 @@
 import React from "react";
 import { render } from "@react-email/render";
-import type { Spec, UIElement } from "@json-render/core";
+import type {
+  ComputedFunction,
+  DirectiveDefinition,
+  Spec,
+  UIElement,
+} from "@json-render/core";
 import {
   resolveElementProps,
   resolveRepeatItemStatePath,
   resolveRepeatStatePath,
   evaluateVisibility,
   getByPath,
+  createDirectiveRegistry,
   type PropResolutionContext,
 } from "@json-render/core";
 import { standardComponents } from "./components/standard";
@@ -20,7 +26,17 @@ export interface RenderOptions {
   registry?: RenderComponentRegistry;
   includeStandard?: boolean;
   state?: Record<string, unknown>;
+  /** Named functions for `$computed` expressions in props */
+  functions?: Record<string, ComputedFunction>;
+  /** Custom directives for user-defined `$`-prefixed dynamic values */
+  directives?: DirectiveDefinition[];
 }
+
+/** Context shared by every element in one render pass. */
+type BaseContext = Pick<
+  PropResolutionContext,
+  "stateModel" | "functions" | "directives"
+>;
 
 const noopEmit = () => {};
 
@@ -28,7 +44,7 @@ function renderElement(
   elementKey: string,
   spec: Spec,
   registry: RenderComponentRegistry,
-  stateModel: Record<string, unknown>,
+  base: BaseContext,
   repeatItem?: unknown,
   repeatIndex?: number,
   repeatBasePath?: string,
@@ -37,7 +53,7 @@ function renderElement(
   if (!element) return null;
 
   const ctx: PropResolutionContext = {
-    stateModel,
+    ...base,
     repeatItem,
     repeatIndex,
     repeatBasePath,
@@ -69,7 +85,7 @@ function renderElement(
     }
 
     const items =
-      (getByPath(stateModel, statePath) as unknown[] | undefined) ?? [];
+      (getByPath(base.stateModel, statePath) as unknown[] | undefined) ?? [];
 
     const fragments = items.map((item, index) => {
       const repeatKey = repeat.key;
@@ -80,15 +96,7 @@ function renderElement(
 
       const childPath = resolveRepeatItemStatePath(statePath, index);
       const children = resolvedElement.children?.map((childKey) =>
-        renderElement(
-          childKey,
-          spec,
-          registry,
-          stateModel,
-          item,
-          index,
-          childPath,
-        ),
+        renderElement(childKey, spec, registry, base, item, index, childPath),
       );
 
       return (
@@ -106,7 +114,7 @@ function renderElement(
       childKey,
       spec,
       registry,
-      stateModel,
+      base,
       repeatItem,
       repeatIndex,
       repeatBasePath,
@@ -128,6 +136,8 @@ function buildDocument(
     registry: customRegistry,
     includeStandard = true,
     state = {},
+    functions,
+    directives,
   } = options;
 
   const mergedState: Record<string, unknown> = {
@@ -140,7 +150,11 @@ function buildDocument(
     ...customRegistry,
   };
 
-  const root = renderElement(spec.root, spec, registry, mergedState);
+  const root = renderElement(spec.root, spec, registry, {
+    stateModel: mergedState,
+    functions,
+    directives: directives ? createDirectiveRegistry(directives) : undefined,
+  });
   if (!root) {
     console.warn(
       `[json-render/react-email] Root element "${spec.root}" not found in spec.elements`,
