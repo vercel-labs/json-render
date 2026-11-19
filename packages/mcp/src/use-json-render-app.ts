@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import type { Spec } from "@json-render/core";
 import { App } from "@modelcontextprotocol/ext-apps";
+import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 
 /**
  * Options for the `useJsonRenderApp` hook.
@@ -38,27 +39,56 @@ export interface UseJsonRenderAppReturn {
   ) => Promise<void>;
 }
 
-interface ToolResultContent {
-  type: string;
-  text?: string;
+type ToolResultContent = CallToolResult["content"][number];
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function readSpec(value: unknown): Spec | null {
+  const spec = isRecord(value) && "spec" in value ? value.spec : value;
+  if (
+    spec &&
+    typeof spec === "object" &&
+    "root" in spec &&
+    typeof spec.root === "string" &&
+    "elements" in spec &&
+    isRecord(spec.elements)
+  ) {
+    return spec as Spec;
+  }
+  return null;
 }
 
 function parseSpecFromToolResult(result: {
   content?: ToolResultContent[];
+  structuredContent?: unknown;
+  isError?: boolean;
 }): Spec | null {
-  const textContent = result.content?.find(
-    (c: ToolResultContent) => c.type === "text",
-  );
-  if (!textContent?.text) return null;
-  try {
-    const parsed = JSON.parse(textContent.text);
-    if (parsed && typeof parsed === "object" && "spec" in parsed) {
-      return parsed.spec as Spec;
+  const text = result.content?.find((item) => item.type === "text")?.text;
+  if (text) {
+    try {
+      const spec = readSpec(JSON.parse(text));
+      if (spec) return spec;
+    } catch {
+      // A tool can send a text summary alongside its structured result.
     }
-    return parsed as Spec;
-  } catch {
+  }
+  if (result.isError) return null;
+  const spec = readSpec(result.structuredContent);
+  if (
+    !spec ||
+    !Object.hasOwn(spec.elements, spec.root) ||
+    !Object.values(spec.elements).every(
+      (element) =>
+        isRecord(element) &&
+        typeof element.type === "string" &&
+        isRecord(element.props),
+    )
+  ) {
     return null;
   }
+  return spec;
 }
 
 /**
