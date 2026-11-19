@@ -170,17 +170,77 @@ JSONRenderView(spec: spec, registry: NativeCatalog.registry())
 | Image | `src`, `alt`, `height` |
 | Progress | `value`, `max`, `label`, `tint` |
 | Button | `label`, `variant` (`primary`, `secondary`, `danger`), `icon`, `disabled` |
-| Switch | `label`, `description`, `checked` |
+| Toolbar | `label`, `gap` |
+| Menu | `label`, `icon`, `disabled` |
+| SegmentedPicker | `label`, `options` (objects with string `label` and `value`), `value`, `disabled` |
+| Input | `label`, `placeholder`, `value` |
+| Tabs | `options` (objects with string `label` and `value`, and optional `icon`), `value`, `height` |
+| Sheet | `title`, `presented` |
+| Slider | `label`, `value`, `min`, `max`, `step`, `tint`, `disabled` |
+| Switch | `label`, `description`, `checked`, `disabled` |
 | BarChart, LineChart | `title`, `data`, `xKey`, `yKey`, `tint`, `height` |
 | Separator | none |
 
-`icon` props are SF Symbols names, and `tint` is a named system color such as `blue`, `green`, or `orange`. Button emits `press` and Switch emits `change`. Bind `checked` with `$bindState` or `$bindItem` for two-way state. ListItem renders its children as trailing accessories, such as a Badge, a Button, or a Switch.
+`icon` props are SF Symbols names, and `tint` is a named system color such as `blue`, `green`, or `orange`. Button emits `press`. Switch, Input, SegmentedPicker, Slider, and Tabs emit `change`. Use `$bindState` or `$bindItem` for two-way state on Switch's `checked` and the other controls' `value`. Input displays read-only text until it receives a binding. Slider defaults to a range of 0 to 100. ListItem renders its children as trailing accessories. Menu renders its Button children as native menu actions.
+
+Tabs renders each tab's content from a named slot that matches the option's `value`. Set `height` in points when Tabs is nested inside a scroll view. Bind Sheet's `presented` prop to state and set it to `true` to show its children in a native sheet. Sheet emits `dismiss` when it closes.
 
 Each element fades in the first time it appears, so a streamed spec builds up smoothly. Pass `animatesAppearance: false` to turn this off.
 
 Grid keeps its columns at least 140 points wide and uses fewer columns in a narrow container. Apply `.jsonRenderTextScale(1.25)` to scale the catalog's text, icons, and controls, for example for a presentation.
 
 `Scripts/record-demo-streams.mjs` defines the same catalog with `defineCatalog` from `@json-render/core`, so `catalog.prompt()` produces a system prompt for it.
+
+### Liquid Glass appearance
+
+Set the appearance on the renderer or a parent view. The setting applies to
+`NativeCatalog.registry()` and can change while the same view is mounted.
+
+```swift
+import JSONRenderCatalog
+import JSONRenderCore
+import JSONRenderSwiftUI
+import SwiftUI
+
+struct Dashboard: View {
+    let spec: Spec
+    @State private var usesLiquidGlass = true
+
+    var body: some View {
+        VStack {
+            Toggle("Liquid Glass", isOn: $usesLiquidGlass)
+            JSONRenderView(spec: spec, registry: NativeCatalog.registry())
+                .jsonRenderCatalogAppearance(usesLiquidGlass ? .liquidGlass : .standard)
+        }
+    }
+}
+```
+
+On iOS 26 and macOS 26 or later, with Xcode 26 or later, standalone Button
+elements use system glass styles. Toolbar arranges native controls without
+adding a background in Liquid Glass mode. Switch, SegmentedPicker, and Slider
+use SwiftUI's native controls and follow the host app's system appearance and
+interaction animations. Menus, tabs, sheets, and text fields also use system
+controls. Top-level cards and metrics use system Liquid Glass surfaces. Cards
+nested inside another surface use a recessed fill, and standalone lists use
+system content material.
+Both appearances share component names, action handlers, and state bindings.
+Older toolchains and OS versions use the standard appearance.
+
+On macOS, run `swift/JSONRender/Scripts/run-macos-showcase.sh` from the
+repository root. The script links the app against the selected Xcode SDK and
+launches it as a Mac app. Use macOS 26 or later and the corresponding Xcode
+SDK to see the system glass sidebar and toolbar. Open **Plan a hike** to see
+a native sheet or choose **Controls** in the sidebar to try the bound slider
+and switch.
+
+To see the iPhone control shapes and floating tab bar, boot an iPhone simulator
+running iOS 26 or later and run `swift/JSONRender/Scripts/run-ios-showcase.sh`
+from the repository root. The same SwiftUI catalog uses the system appearance
+of each platform.
+
+Run `swift run JSONRenderStreamingDemo --liquid-glass` to replay the streaming
+examples in Liquid Glass mode.
 
 ## Streaming
 

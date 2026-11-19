@@ -202,38 +202,75 @@ extension EnvironmentValues {
     }
 }
 
+/// A background for lists and cards using the standard appearance.
+struct CardBackground: View {
+    var shadow = false
+    @Environment(\.jsonRenderCatalogAppearance) private var appearance
+
+    var body: some View {
+        let glass = appearance.usesLiquidGlass
+        let shape = RoundedRectangle(
+            cornerRadius: glass ? 18 : CatalogTheme.cornerRadius,
+            style: .continuous
+        )
+        let fill = glass ? AnyShapeStyle(.regularMaterial) : AnyShapeStyle(CatalogTheme.surface)
+        shape
+            .fill(fill)
+            .shadow(color: shadow && !glass ? .black.opacity(0.05) : .clear, radius: 1.5, y: 1)
+            .overlay(shape.strokeBorder(CatalogTheme.hairline, lineWidth: 1))
+    }
+}
+
 /// A rounded raised surface with a hairline border and a soft shadow.
 struct CardSurface: ViewModifier {
     var padding: CGFloat = 16
+    @Environment(\.jsonRenderCatalogAppearance) private var appearance
 
     func body(content: Content) -> some View {
-        content
+        surface(content
             .padding(padding)
             .frame(maxWidth: .infinity, alignment: .topLeading)
-            .background(
-                RoundedRectangle(cornerRadius: CatalogTheme.cornerRadius, style: .continuous)
-                    .fill(CatalogTheme.surface)
-                    .shadow(color: .black.opacity(0.05), radius: 1.5, y: 1)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: CatalogTheme.cornerRadius, style: .continuous)
-                    .strokeBorder(CatalogTheme.hairline, lineWidth: 1)
-            )
-            .environment(\.surfaceDepth, 1)
+            .environment(\.surfaceDepth, 1))
+    }
+
+    @ViewBuilder
+    private func surface(_ content: some View) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, macOS 26, *) {
+            content
+                .background {
+                    if !appearance.usesLiquidGlass {
+                        CardBackground(shadow: true)
+                    }
+                }
+                .glassEffect(
+                    appearance.usesLiquidGlass ? .regular : .identity,
+                    in: RoundedRectangle(cornerRadius: 22, style: .continuous)
+                )
+        } else {
+            content.background(CardBackground(shadow: true))
+        }
+        #else
+        content.background(CardBackground(shadow: true))
+        #endif
     }
 }
 
 /// A recessed rounded well, used for tiles inside a card.
 struct WellSurface: ViewModifier {
     var padding: CGFloat = 12
+    @Environment(\.jsonRenderCatalogAppearance) private var appearance
 
     func body(content: Content) -> some View {
         content
             .padding(padding)
             .frame(maxWidth: .infinity, alignment: .topLeading)
             .background(
-                RoundedRectangle(cornerRadius: CatalogTheme.cornerRadius - 3, style: .continuous)
-                    .fill(CatalogTheme.well)
+                RoundedRectangle(
+                    cornerRadius: appearance.usesLiquidGlass ? 14 : CatalogTheme.cornerRadius - 3,
+                    style: .continuous
+                )
+                .fill(CatalogTheme.well)
             )
     }
 }

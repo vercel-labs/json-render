@@ -161,6 +161,13 @@ function Dashboard({ spec }) {
 
 ## Renderers
 
+### SwiftUI (iOS and macOS)
+
+Use the [Swift package](swift/JSONRender/README.md) to render json-render specs
+as native SwiftUI views. Apply the
+[Liquid Glass appearance](swift/JSONRender/README.md#liquid-glass-appearance)
+to a native catalog view or its parent.
+
 ### React (UI)
 
 ```tsx
