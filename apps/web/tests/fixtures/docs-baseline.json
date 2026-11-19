@@ -1619,9 +1619,9 @@
       "title": "@json-render/shadcn",
       "metadataTitle": "@json-render/shadcn API | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/shadcn\")\n\n# @json-render/shadcn\n",
-      "sourceSha256": "1d49bfa1175e72c857b977e19d27edfa2a72f35116bafd2c8da624771a37a25f",
-      "bodySha256": "fe6b3f334b0971fef057ff58a201e7c1619a8b2d78d79adba8279c2554a3ce60",
-      "markdownSha256": "643b1629f02d63106f681051ff603760a307b2e11470a6308224750aacd9b591",
+      "sourceSha256": "4f912bae677b319f4095fb9036aaf3d51996fd4d08c30bc40909bcf321cafa6c",
+      "bodySha256": "487f219c08c6c6d8d034b474c41ec9c4027030d5c37d85746bb72006bfccef70",
+      "markdownSha256": "4c1d19d817e885a2bc669865fd5c3eb871817d7a82d106be5bbbf0cbe027fa15",
       "headings": [
         {
           "title": "Installation",
@@ -1679,9 +1679,9 @@
       "title": "@json-render/shadcn-svelte",
       "metadataTitle": "@json-render/shadcn-svelte API | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/shadcn-svelte\")\n\n# @json-render/shadcn-svelte\n",
-      "sourceSha256": "80cc6c14712a3ffc685bf383df8a9f8ec4b61e23d89c96ed37ea2ee44fe6c5c7",
-      "bodySha256": "961049524b843bb6f61f447df125cb0cf0b073217e5f4894b3a5c7ad961807df",
-      "markdownSha256": "e086cb3c66d79bb5a820dc9e14edf5a9fcc97889e338471883670391ebaf43a6",
+      "sourceSha256": "2fd0803562fe8e992f971a05b5ee6f35cc3626d5cdc7f640c52b94a3be695f8a",
+      "bodySha256": "c7a88e689ecccec569099f6bec8014fabe743d06c11c5ce77ee6882d7fafe05e",
+      "markdownSha256": "a23cd50f3633d61ed6c1f319383b1691fe13a0e49872415f37a444655d063b47",
       "headings": [
         {
           "title": "Installation",
