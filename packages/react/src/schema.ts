@@ -100,6 +100,38 @@ export const schema = defineSchema(
   },
 );
 
+// Initial state is part of the runtime spec. Keep the existing schema for
+// structured generation and add state to the Zod schema used by validators.
+type ZodObject = import("zod").ZodObject;
+const definition = schema.definition;
+const stateShape = (
+  defineSchema((s) => ({
+    spec: s.object({
+      state: { ...s.record(s.any()), ...s.optional() },
+    }),
+    catalog: s.object({}),
+  }))
+    .createCatalog({})
+    .zodSchema() as ZodObject
+).shape;
+const createGenerationCatalog = schema.createCatalog;
+schema.createCatalog = function <
+  TCatalog extends Parameters<typeof createGenerationCatalog>[0],
+>(this: ReactSchema, data: TCatalog) {
+  const catalog = (createGenerationCatalog<TCatalog>).call(this, data);
+  if (this.definition !== definition) return catalog;
+
+  // Reuse the component definitions captured by the original Zod object.
+  const generationSchema = catalog.zodSchema();
+  const objectSchema = generationSchema as typeof generationSchema & ZodObject;
+  let runtime: typeof generationSchema | undefined;
+  const runtimeSchema = () =>
+    (runtime ??= objectSchema.extend(stateShape) as typeof objectSchema);
+  catalog.validate = (spec) => runtimeSchema().safeParse(spec);
+  catalog.zodSchema = runtimeSchema;
+  return catalog;
+};
+
 /**
  * Type for the React schema
  */
