@@ -303,6 +303,8 @@ Use `findFormValue("email", params, state)` in action handlers to look up a defi
 
 The transform splits text blocks around spec data by emitting `text-end`/`text-start` pairs, ensuring the AI SDK creates separate text parts and preserving correct interleaving of prose and UI in `message.parts`.
 
+Leading whitespace on JSONL patch lines and `spec` fence delimiters is removed with those lines. Indentation and blank lines in ordinary text are preserved, including when input arrives across multiple chunks.
+
 ### State Store
 
 | Export | Purpose |
