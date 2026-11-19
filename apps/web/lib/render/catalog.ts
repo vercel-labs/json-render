@@ -1,6 +1,7 @@
 import { defineCatalog } from "@json-render/core";
 import { schema } from "@json-render/react/schema";
 import { z } from "zod";
+import { mapPropsSchema } from "./map-schema";
 
 /**
  * Web playground component catalog
@@ -290,7 +291,7 @@ export const playgroundCatalog = defineCatalog(schema, {
         suffix: z.string().nullable(),
       }),
       description:
-        "Key metric / stat display. Shows a large value with label and optional change indicator. Use for dashboard KPIs.",
+        'Key metric / stat display. Shows a large value with label and optional change indicator. Use for dashboard KPIs. value is the number only (e.g. "125,000"); put units or currency in prefix/suffix, never in both value and suffix.',
       example: {
         label: "Total Revenue",
         value: "125,000",
@@ -325,6 +326,27 @@ export const playgroundCatalog = defineCatalog(schema, {
         ),
       }),
       description: "Line chart with points",
+    },
+
+    // ── Maps ────────────────────────────────────────────────────────────
+    Map: {
+      props: mapPropsSchema,
+      events: ["markerPress"],
+      description:
+        "Interactive Mapbox map. Use for any place, location, travel, route, delivery-area or geographic prompt. Coordinates are {lng, lat} objects (longitude first); use accurate real-world coordinates for real places. markers: points with label and popup text. route: 2-10 waypoints, drawn along real roads (driving/walking/cycling). isochrone: area reachable from origin within each of up to 4 minute values. layers: GeoJSON FeatureCollections drawn as circle, line or fill. Set fitToContent:true to frame all markers/route/areas automatically. style: leave null for the default (Mapbox Standard at night); set satellite only when the user asks for satellite imagery. height: sm, md (default), lg. Bind on.markerPress for marker clicks.",
+      example: {
+        center: { lng: -122.4075, lat: 37.788 },
+        zoom: 14,
+        fitToContent: true,
+        markers: [
+          {
+            position: { lng: -122.4075, lat: 37.788 },
+            label: "Union Square",
+            popup: "Shopping and cafes",
+            color: null,
+          },
+        ],
+      },
     },
 
     // ── Form Inputs ─────────────────────────────────────────────────────
