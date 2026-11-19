@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { MockLanguageModelV3, MockProviderV3 } from "ai/test";
-import { z } from "zod";
+import { compactFixtureSchema } from "../../../packages/core/src/compact-test-encoder";
 import { createCompactResponse } from "./compact-response";
 import { compactGeneration } from "./render/compact";
 
@@ -50,55 +50,34 @@ function useModel(text: string, failure?: Error) {
 }
 
 describe("compact generation response", () => {
-  const fields = {
-    children: [],
-    slots: {},
-    visible: null,
-    on: null,
-    watch: null,
-    repeat: null,
-  };
   it.each([undefined, null])(
-    "accepts %s for defaulted props while streaming a nested layout",
+    "accepts %s for defaulted props while streaming",
     (empty) => {
       const document = {
         state: null,
-        root: {
-          ...fields,
-          type: "Stack",
-          props: {
-            direction: { value: "vertical" },
-            gap: { value: "md" },
-            align: empty === undefined ? null : { value: null },
-            justify: empty === undefined ? null : { value: null },
-          },
-          children: [
-            {
-              ...fields,
-              type: "Card",
-              props: {
-                title: { value: "Welcome" },
-                description: null,
-                maxWidth: null,
-                centered: null,
-              },
-              children: [
-                {
-                  ...fields,
-                  type: "Text",
-                  props: {
-                    text: "Hello",
-                    variant: empty === undefined ? null : { value: null },
-                  },
-                },
-              ],
-            },
+        root: [
+          "Stack",
+          [
+            { value: "vertical" },
+            { value: "md" },
+            ...(empty === undefined ? [] : [{ value: null }, { value: null }]),
           ],
-        },
+          [
+            [
+              "Card",
+              [{ value: "Welcome" }],
+              [
+                [
+                  "Text",
+                  ["Hello", ...(empty === undefined ? [] : [{ value: null }])],
+                ],
+              ],
+            ],
+          ],
+        ],
       };
       expect(
-        z.fromJSONSchema(compactGeneration.jsonSchema).safeParse(document)
-          .success,
+        compactFixtureSchema(compactGeneration).safeParse(document).success,
       ).toBe(true);
       const compiler = compactGeneration.createCompiler();
       for (const character of JSON.stringify(document))
@@ -111,31 +90,13 @@ describe("compact generation response", () => {
   );
 
   it.each([
-    { type: "Text", props: {} },
-    {
-      type: "Stack",
-      props: {
-        direction: null,
-        gap: null,
-        align: { value: "sideways" },
-        justify: null,
-      },
-    },
-    {
-      type: "Stack",
-      props: {
-        direction: null,
-        gap: null,
-        align: null,
-        justify: null,
-        invented: true,
-      },
-    },
-  ])("still rejects invalid component props: %j", (root) => {
-    const document = { state: null, root: { ...fields, ...root } };
+    ["Text", []],
+    ["Stack", [null, null, { value: "sideways" }], []],
+    ["Stack", [null, null, null, null, true], []],
+  ])("rejects invalid props %j", (...root) => {
+    const document = { state: null, root };
     expect(
-      z.fromJSONSchema(compactGeneration.jsonSchema).safeParse(document)
-        .success,
+      compactFixtureSchema(compactGeneration).safeParse(document).success,
     ).toBe(false);
     expect(() =>
       compactGeneration.createCompiler().push(JSON.stringify(document)),
@@ -145,11 +106,7 @@ describe("compact generation response", () => {
   it("streams exact model JSON into the real compiler and retains usage and follow-up context", async () => {
     const source = JSON.stringify({
       state: null,
-      root: {
-        ...fields,
-        type: "Text",
-        props: { text: "Updated\n雪", variant: { value: null } },
-      },
+      root: ["Text", ["Updated\n雪", { value: null }]],
     });
     const model = useModel(source);
     const previousSpec = {
@@ -184,8 +141,6 @@ describe("compact generation response", () => {
         e0: {
           type: "Text",
           props: { text: "Updated\n雪", variant: null },
-          children: [],
-          slots: {},
         },
       },
     });
@@ -206,7 +161,7 @@ describe("compact generation response", () => {
   });
 
   it("reports provider failure after a partial stream without claiming successful usage", async () => {
-    const source = '{"root":{"type":"Text","props":';
+    const source = '{"state":null,"root":["Text",';
     useModel(source, new Error("Provider failed"));
     const response = createCompactResponse(
       new Request("http://localhost/api/generate"),
