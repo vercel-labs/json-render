@@ -1,8 +1,21 @@
 # Changelog
 
-## 0.23.1
+## 0.23.2
 
 <!-- release:start -->
+
+### Bug Fixes
+
+- **Chat stream errors:** The `CardSpecError` thrown by `streamCard` for an invalid final spec now carries the posted message as `postedMessage`, so callers can edit or remove the partial card (#483)
+
+### Contributors
+
+- @Railly
+- @sachinmour
+
+<!-- release:end -->
+
+## 0.23.1
 
 ### Bug Fixes
 
@@ -15,8 +28,6 @@
 ### Contributors
 
 - @ctate
-
-<!-- release:end -->
 
 ## 0.23.0
 
