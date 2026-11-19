@@ -22,6 +22,7 @@ Set the required environment variables in `.env.local`:
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `AI_GATEWAY_API_KEY` | Yes | Vercel AI Gateway key (auto-authenticated on Vercel) |
+| `CHAT_SEARCH_PROVIDER` | No | Set to `parallel` for public web search through Unified MCP; unset keeps the existing search provider |
 | `AI_GATEWAY_MODEL` | No | Model identifier, defaults to `anthropic/claude-haiku-4.5` |
 | `KV_REST_API_URL` | No | Upstash Redis URL for rate limiting |
 | `KV_REST_API_TOKEN` | No | Upstash Redis token |
@@ -29,6 +30,14 @@ Set the required environment variables in `.env.local`:
 | `RATE_LIMIT_PER_DAY` | No | Defaults to `100` |
 
 Rate limiting is a no-op when the Upstash variables are not set.
+
+### Public web search with source cards
+
+Set `CHAT_SEARCH_PROVIDER=parallel` in `.env.local` and restart the server to use Parallel Unified MCP for the existing `webSearch` tool. Anonymous search requires no Parallel key and has lower rate limits; see [Parallel MCP setup](https://docs.parallel.ai/integrations/mcp/quickstart). The chat agent still requires AI Gateway authentication.
+
+Ask: "Find the official json-render Chat Example documentation and explain how it streams UI." The tool returns excerpts and original source URLs for the agent to cite. Source cards appear when the tool output arrives, alongside the existing text and UI stream. Cards accept HTTP(S) links, remove duplicate URLs within each result, and render titles as text.
+
+Parallel requests send a `json-render-chat` User-Agent and have a 30-second search timeout within a 55-second generation budget. Search failures return through the existing tool error result without switching providers. Upstash rate limiting still applies before generation. Clear `CHAT_SEARCH_PROVIDER` and restart to restore the default search behavior.
 
 ## Run
 
@@ -44,6 +53,8 @@ Requires global [`portless`](https://github.com/vercel-labs/portless). The `pred
 From the monorepo root, run `pnpm --filter example-chat check-types` and `pnpm turbo run build --filter=example-chat`.
 
 The type check also verifies that Streamdown and `@streamdown/code` resolve the same Shiki installation. The workspace dependency extension and scoped override keep their exported highlighting types compatible without relying on whichever Shiki version happens to be hoisted.
+
+Run `pnpm --filter example-chat test:search` for deterministic search-provider, source-link, and route rate-limit checks. These tests use service doubles and make no external requests.
 
 ## Files
 

@@ -9,10 +9,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint --max-warnings 0",
+    "test:search": "vitest run --config scripts/vitest.search.config.ts",
     "check-types": "node scripts/check-highlighter.mjs && tsc --noEmit"
   },
   "dependencies": {
     "@ai-sdk/gateway": "^3.0.13",
+    "@ai-sdk/mcp": "^1.0.104",
     "@ai-sdk/react": "^3.0.84",
     "@json-render/core": "workspace:*",
     "@json-render/react": "workspace:*",
