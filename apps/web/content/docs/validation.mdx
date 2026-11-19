@@ -69,50 +69,39 @@ Use `{ "$bindState": "/path" }` on the value prop for two-way binding. Validatio
 
 ## Custom Validation Functions
 
-Define custom validators in your catalog's `functions` field. The catalog itself is framework-agnostic — only the `schema` import varies by platform:
+Register custom validators with your renderer's validation provider. Each validator runs synchronously and returns a `boolean`.
 
-```typescript
-import { defineCatalog } from '@json-render/core';
-import { schema } from '@json-render/react/schema'; // or '@json-render/react-native/schema'
-import { z } from 'zod';
+In a field's `checks` array, set `type` to the validator's registered name. The validation result includes `message` when the validator returns `false`.
 
-const catalog = defineCatalog(schema, {
-  components: { /* ... */ },
-  functions: {
-    isValidPhone: {
-      description: 'Validates phone number format',
-    },
-    isUniqueEmail: {
-      description: 'Checks if email is not already registered',
-    },
-  },
-});
+```json
+{
+  "type": "isValidPhone",
+  "message": "Enter a valid phone number"
+}
 ```
 
 ## Usage with React
 
-In `@json-render/react`, use `ValidationProvider` to supply implementations for your custom validators:
+In React, pass the validators to `ValidationProvider` and render it inside `StateProvider`.
 
 ```tsx
-import { ValidationProvider } from '@json-render/react';
+import type { ReactNode } from 'react';
+import { StateProvider, ValidationProvider } from '@json-render/react';
 
-function App() {
-  const customValidators = {
-    isValidPhone: (value) => {
-      const phoneRegex = /^\+?[1-9]\d{1,14}$/;
-      return phoneRegex.test(value);
-    },
-    isUniqueEmail: async (value) => {
-      const response = await fetch(`/api/check-email?email=${value}`);
-      const { available } = await response.json();
-      return available;
-    },
-  };
+const customValidators = {
+  isValidPhone: (value: unknown) => {
+    const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+    return typeof value === 'string' && phoneRegex.test(value);
+  },
+};
 
+function App({ children }: { children: ReactNode }) {
   return (
-    <ValidationProvider customFunctions={customValidators}>
-      {/* Your UI */}
-    </ValidationProvider>
+    <StateProvider>
+      <ValidationProvider customFunctions={customValidators}>
+        {children}
+      </ValidationProvider>
+    </StateProvider>
   );
 }
 ```

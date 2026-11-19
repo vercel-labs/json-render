@@ -89,7 +89,7 @@ store.set("/count", 1);
   <!-- children -->
 </ValidationProvider>
 
-// type ValidationFunction = (value: unknown, args?: object) => boolean | Promise<boolean>;
+// type ValidationFunction = (value: unknown, args?: Record<string, unknown>) => boolean;
 ```
 
 ## defineRegistry
