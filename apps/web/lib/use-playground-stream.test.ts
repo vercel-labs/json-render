@@ -223,10 +223,8 @@ describe("playground model streaming", () => {
 });
 
 const compactPrefix =
-  '{\n  "state":null,"root": {"type":"Text","props":{"text":"雪 café","variant":{"value":null}}';
-const compactText =
-  compactPrefix +
-  ',"children":[],"slots":{},"visible":null,"on":null,"watch":null,"repeat":null }\n}\n';
+  '{\n  "state":null,"root":["Text",["雪 café",{"value":null}]';
+const compactText = compactPrefix + "]\n}\n";
 
 describe("compact playground streaming", () => {
   it("keeps YAML streaming and usage working", async () => {
@@ -372,7 +370,7 @@ describe("compact playground streaming", () => {
                     new TextEncoder().encode(
                       JSON.stringify({
                         __meta: "compact",
-                        text: ',"unknown":true}}',
+                        text: ',{"unknown":true}]}',
                       }),
                     ),
                   );
@@ -407,7 +405,7 @@ describe("compact playground streaming", () => {
         });
       expect(result.current.spec?.elements.e0?.props.text).toBe("雪 café");
       expect(result.current.rawLines.join("\n")).toBe(
-        compactPrefix + (failure === "invalid" ? ',"unknown":true}}' : ""),
+        compactPrefix + (failure === "invalid" ? ',{"unknown":true}]}' : ""),
       );
       expect(result.current.error).not.toBeNull();
       if (failure === "error")

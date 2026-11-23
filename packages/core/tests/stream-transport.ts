@@ -50,7 +50,7 @@ export function testCompactStream(
       const sending = stream.send("Create a UI");
       await vi.waitFor(() => expect(controller).toBeDefined());
       controller.enqueue(
-        '{"state":{"title":"雪"},"root":{"type":"Panel","props":{},"children":[{"type":"Text","props":{"text":{"$state":"/title"}}}',
+        '{"state":{"entries":[["title","雪"]]},"root":["Panel",[],[["Text",[{"$state":"/title"}]]',
       );
       await vi.waitFor(() =>
         expect(stream.spec()?.elements.e1?.props.text).toEqual({
@@ -58,7 +58,7 @@ export function testCompactStream(
         }),
       );
       expect(onComplete).not.toHaveBeenCalled();
-      for (const char of '],"slots":{"heading / title":[{"type":"Text","props":{"text":"Heading"}}]}}}')
+      for (const char of '],{"heading / title":[["Text",["Heading"]]]}]}')
         controller.enqueue(char);
       controller.close();
       await sending;
@@ -111,9 +111,7 @@ export function testCompactStream(
             new Response(
               new ReadableStream<string>({
                 start(c) {
-                  c.enqueue(
-                    '{"root":{"type":"Text","props":{"text":"Incomplete"}',
-                  );
+                  c.enqueue('{"state":null,"root":["Text",["Incomplete"]');
                   c.close();
                 },
               })

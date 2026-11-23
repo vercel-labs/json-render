@@ -3,5 +3,4 @@ import { playgroundCatalog } from "./catalog";
 
 export const compactGeneration = createCompactGeneration(
   playgroundCatalog.data,
-  { strict: true },
 );
