@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, expectTypeOf } from "vitest";
 import { z } from "zod";
 import { defineSchema, defineCatalog } from "./schema";
 import type { Spec } from "./types";
@@ -578,6 +578,9 @@ describe("catalog.validate", () => {
       // s.any() fields such as `visible` must not infer as unknown.
       const spec: Spec = result.data;
       expect(spec.root).toBe("card-1");
+      expectTypeOf<
+        (typeof result.data)["elements"][string]["type"]
+      >().toEqualTypeOf<"Text" | "Card">();
     }
   });
 
@@ -655,6 +658,77 @@ describe("catalog.validate", () => {
     expect(result.success).toBe(true);
     expect(result.data).toBeDefined();
     expect(result.data!.root).toBe("t");
+  });
+});
+
+describe("catalog reference types", () => {
+  const dynamicPath: string = "catalog.components";
+  const schema = defineSchema((s) => ({
+    spec: s.object({
+      component: s.ref("catalog.components"),
+      action: s.ref("catalog.actions"),
+      dynamic: s.ref(dynamicPath),
+      props: s.propsOf("catalog.components"),
+    }),
+    catalog: testSchema.definition.catalog,
+  }));
+
+  it("infers component and action names alongside dynamic references and props", () => {
+    const symbolKey = Symbol("metadata");
+    const catalog = defineCatalog(schema, {
+      components: {
+        Text: { props: z.object({ label: z.string() }) },
+        42: { props: z.object({ label: z.string() }) },
+        [symbolKey]: { props: z.object({}) },
+      },
+      actions: { submit: {} },
+    });
+
+    type CatalogSpec = typeof catalog._specType;
+    expectTypeOf<CatalogSpec["component"]>().toEqualTypeOf<"42" | "Text">();
+    expectTypeOf<CatalogSpec["action"]>().toEqualTypeOf<"submit">();
+    expectTypeOf<CatalogSpec["dynamic"]>().toEqualTypeOf<string>();
+    expectTypeOf<CatalogSpec["props"]>().toEqualTypeOf<
+      Record<string, unknown>
+    >();
+
+    expect(
+      catalog.validate({
+        component: "42",
+        action: "submit",
+        dynamic: "Text",
+        props: { label: { $state: "/name" } },
+      }).success,
+    ).toBe(true);
+  });
+
+  it("keeps string references when the catalog can be empty", () => {
+    type ComponentEntry = { props: z.ZodType };
+    const emptyCatalog = defineCatalog(schema, { components: {}, actions: {} });
+    const components: { Text?: ComponentEntry } = {};
+    const optionalCatalog = defineCatalog(schema, { components, actions: {} });
+    const numericComponents: Record<number, ComponentEntry> = {};
+    const numericCatalog = defineCatalog(schema, {
+      components: numericComponents,
+      actions: {},
+    });
+    const spec = {
+      component: "Text",
+      action: "submit",
+      dynamic: "Text",
+      props: {},
+    };
+
+    type EmptySpec = typeof emptyCatalog._specType;
+    type OptionalSpec = typeof optionalCatalog._specType;
+    type NumericSpec = typeof numericCatalog._specType;
+    expectTypeOf<EmptySpec["component"]>().toEqualTypeOf<string>();
+    expectTypeOf<EmptySpec["action"]>().toEqualTypeOf<string>();
+    expectTypeOf<OptionalSpec["component"]>().toEqualTypeOf<string>();
+    expectTypeOf<NumericSpec["component"]>().toEqualTypeOf<string>();
+    expect(emptyCatalog.validate(spec).success).toBe(true);
+    expect(optionalCatalog.validate(spec).success).toBe(true);
+    expect(numericCatalog.validate(spec).success).toBe(true);
   });
 });
 

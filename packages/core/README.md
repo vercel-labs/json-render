@@ -126,6 +126,20 @@ export const catalog = defineCatalog(schema, {
 });
 ```
 
+Derive a spec type for your catalog with `InferSpec`. Fields declared with
+`s.ref("catalog.components")` or `s.ref("catalog.actions")` use the names from
+a catalog with known required entries. For dynamic paths and catalogs that
+can be empty, the reference type is `string`.
+
+```typescript
+import type { InferSpec } from "@json-render/core";
+
+type CatalogSpec = InferSpec<typeof schema.definition, typeof catalog.data>;
+```
+
+For the React schema, `ReactSpec<typeof catalog.data>` from
+`@json-render/react/schema` uses the same inference.
+
 ### Generate AI Prompts
 
 ```typescript
