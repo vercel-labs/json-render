@@ -3395,9 +3395,9 @@
       "title": "Schemas",
       "metadataTitle": "Schemas | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/schemas\")\n\n# Schemas\n",
-      "sourceSha256": "2d5254a28c0cc6426676604e2639be01c817006883f77edfc2a2b7d1da994669",
-      "bodySha256": "fa48e1a922801038ae8a67da1791398492c77c144951c4983f944195ae5843ea",
-      "markdownSha256": "9e872add4b02389cddcac38110a012a973c03e845c2eb3c0b54fcfd59701950a",
+      "sourceSha256": "224a088839bc7d4e21ab28c3acf8f27b569e97727a9484a570301d876a4dc886",
+      "bodySha256": "3801edbe23616819177d0013a10a8406d8d76ca14ec333dff90dda1bf18748e5",
+      "markdownSha256": "e996487a1a09b3c5cef7882e6b412e1b57fb1e0fef7413ed0dbd6381ef19dc83",
       "headings": [
         {
           "title": "What is a Schema?",
