@@ -837,21 +837,17 @@ export function useChatUI({
           onPatch(patch) {
             hasSpec = true;
             applySpecPatch(currentSpec, patch);
+            // Detach state from the mutable accumulator so later patches cannot
+            // mutate published arrays without notifying StateProvider.
+            const spec: Spec = {
+              root: currentSpec.root,
+              elements: { ...currentSpec.elements },
+              ...(currentSpec.state
+                ? { state: structuredClone(currentSpec.state) }
+                : {}),
+            };
             setMessages((prev) =>
-              prev.map((m) =>
-                m.id === assistantId
-                  ? {
-                      ...m,
-                      spec: {
-                        root: currentSpec.root,
-                        elements: { ...currentSpec.elements },
-                        ...(currentSpec.state
-                          ? { state: { ...currentSpec.state } }
-                          : {}),
-                      },
-                    }
-                  : m,
-              ),
+              prev.map((m) => (m.id === assistantId ? { ...m, spec } : m)),
             );
           },
           onText(line) {
@@ -881,7 +877,7 @@ export function useChatUI({
                 root: currentSpec.root,
                 elements: { ...currentSpec.elements },
                 ...(currentSpec.state
-                  ? { state: { ...currentSpec.state } }
+                  ? { state: structuredClone(currentSpec.state) }
                   : {}),
               }
             : null,
