@@ -13,6 +13,7 @@ export const config = defineConfig({
         fontSize: "24.4px",
         letterSpacing: "-0.05em",
         lineHeight: 1,
+        transform: "translateY(0.5px)",
       }}
     >
       json-render
