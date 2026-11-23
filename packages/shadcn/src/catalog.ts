@@ -405,9 +405,11 @@ export const shadcnComponentDefinitions = {
     props: z.object({
       label: z.string(),
       href: z.string(),
+      target: z.enum(["_self", "_blank"]).nullable(),
     }),
     events: ["press"],
-    description: "Anchor link. Bind on.press for click handler.",
+    description:
+      "Anchor link. Set target to _blank to open in a new tab. Bind on.press for click handler.",
   },
 
   DropdownMenu: {
