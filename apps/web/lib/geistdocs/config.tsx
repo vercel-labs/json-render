@@ -5,7 +5,19 @@ export const config = defineConfig({
   title: "json-render",
   siteUrl,
   defaultLanguage: "en",
-  logo: <span className="font-medium">json-render</span>,
+  logo: (
+    <span
+      style={{
+        fontFamily: "var(--font-geist-sans), system-ui, sans-serif",
+        fontWeight: 600,
+        fontSize: "24.4px",
+        letterSpacing: "-0.05em",
+        lineHeight: 1,
+      }}
+    >
+      json-render
+    </span>
+  ),
   navbarActiveProduct: "json-render",
   navbarBrand: "labs",
   github: {
