@@ -1619,9 +1619,9 @@
       "title": "@json-render/shadcn",
       "metadataTitle": "@json-render/shadcn API | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/shadcn\")\n\n# @json-render/shadcn\n",
-      "sourceSha256": "1d49bfa1175e72c857b977e19d27edfa2a72f35116bafd2c8da624771a37a25f",
-      "bodySha256": "fe6b3f334b0971fef057ff58a201e7c1619a8b2d78d79adba8279c2554a3ce60",
-      "markdownSha256": "643b1629f02d63106f681051ff603760a307b2e11470a6308224750aacd9b591",
+      "sourceSha256": "5bafa679864081dbae86ba01b9a6142444291cad9eb5e342e60307e36746c12d",
+      "bodySha256": "1ae0eb62f88de65e548940d86012adcc1070a4fb2385cab10cfa3aeaa8156457",
+      "markdownSha256": "8aeea18f4d005579ae8e9fa4d50de4ea3ad3bae64c7b896cd7b42f503c3de139",
       "headings": [
         {
           "title": "Installation",
