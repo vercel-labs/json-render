@@ -101,6 +101,29 @@ describe("toCard", () => {
     expect(() => toCard(spec)).toThrow(/expected 3/);
   });
 
+  it("requires distinct resolved button ids within a repeated Actions group", () => {
+    const spec = clone();
+    spec.state = { requests: [{ id: "first" }, { id: "second" }] };
+    spec.elements.actions.repeat = { statePath: "/requests" };
+
+    expect(() => toCard(spec)).toThrow(/actions: duplicate Button id "ack"/);
+    expect(
+      toPartialCard(spec)?.children.map((child) => child.type),
+    ).not.toContain("actions");
+
+    spec.elements.ack.props.id = { $item: "id" };
+    const card = toCard(spec);
+    expect(cardToSlackBlocks(card as never)).toContainEqual(
+      expect.objectContaining({
+        type: "actions",
+        elements: [
+          expect.objectContaining({ action_id: "first" }),
+          expect.objectContaining({ action_id: "second" }),
+        ],
+      }),
+    );
+  });
+
   it("enforces platform limits only when they are passed", () => {
     const spec = clone();
     spec.elements.table2 = spec.elements.table;
