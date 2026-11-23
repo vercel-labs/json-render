@@ -16,6 +16,23 @@ export const truncateDirective = defineDirective({
     const suffix = raw.suffix ?? "...";
 
     if (text.length <= maxLength) return text;
-    return text.slice(0, maxLength) + suffix;
+
+    let limit = Math.trunc(maxLength) || 0;
+    if (limit < 0) {
+      // Negative slice limits are relative to the total code point count.
+      let total = 0;
+      for (const _ of text) total++;
+      limit = Math.max(0, total + limit);
+    }
+
+    // Stop at the cutoff without allocating an array for the entire input.
+    let end = 0;
+    let count = 0;
+    while (end < text.length && count < limit) {
+      end += text.codePointAt(end)! > 0xffff ? 2 : 1;
+      count++;
+    }
+    if (end === text.length && count <= maxLength) return text;
+    return text.slice(0, end) + suffix;
   },
 });
