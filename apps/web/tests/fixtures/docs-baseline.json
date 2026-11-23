@@ -9,7 +9,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/a2ui\")\n\n# A2UI Integration\n",
       "sourceSha256": "5f47b48ce4e66db4aa86c089f58dbbd980fe6f53da50c16fbb66033953e78263",
       "bodySha256": "d618964314ce40c1a659262a00b00a84a463bff988e631ee29114452da3e8e0d",
-      "markdownSha256": "5cc59d6dd4e0834f9208b20006a0c0d5c8718e7a3692b95bd8038583d8f24a1a",
+      "markdownSha256": "87075cf398c5e66cd794eb1871ad230cc93af229d7dc155c51f4741df86808ed",
       "headings": [
         {
           "title": "Native A2UI Support",
@@ -49,7 +49,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/adaptive-cards\")\n\n# Adaptive Cards Integration\n",
       "sourceSha256": "5b9a96d5ee5371bc46a5e84abeb8686802746fbf2386225e4885637611ba8d34",
       "bodySha256": "c42f3c8a3a707729c79ab7c05737944f239ec758377fed12b0f8ab007f7c292b",
-      "markdownSha256": "e2868f38487f0c847e70458ef1d47b9d6ff7a988c3e0b51c1bb3b62a90dcd33c",
+      "markdownSha256": "b154fb89b87dbeb970a463160e03f1ce340e325723014b0ba11a9f3a41427941",
       "headings": [
         {
           "title": "Adaptive Cards Overview",
@@ -89,7 +89,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/ag-ui\")\n\n# AG-UI Integration\n",
       "sourceSha256": "67c2622c98421fbafe5ceaef132194f8bca9998c458984a7443ad2d5207847a1",
       "bodySha256": "d5d392f37a8b88b2a6dcc20bcb41b32dcfe02eadbe6eaec0b56e805672bb93f6",
-      "markdownSha256": "8e389a89c84c476d970b32ac8b7cca20f0818391c0683b15c4f695c714ac4567",
+      "markdownSha256": "99ae28b8db718ac11377f61b90f19d93ee2645d7bc16ba97a5a159ea2c8707f9",
       "headings": [
         {
           "title": "What is AG-UI?",
@@ -133,7 +133,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/ai-sdk\")\n\n# AI SDK Integration\n",
       "sourceSha256": "cba59b7589464649bf7fd851996eed45d2452b44abf0a0f8152633fa9667f9f2",
       "bodySha256": "09763e85eb633ce011711bb1ea3f8d5fabc71ca0e1431475dc012c5063f0fdc8",
-      "markdownSha256": "564872db36fe70a98cc385160b17a5e3f4c4727d1ff25a0e675c120412ac71f0",
+      "markdownSha256": "1df7617685b50a88c606193591a26c60e5e5c0be76a13092111b8055bd36a12c",
       "headings": [
         {
           "title": "Installation",
@@ -193,7 +193,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/chat\")\n\n# @json-render/chat\n",
       "sourceSha256": "e6c62182d24c37750a52eb534afd021ae40790d9537dfb5c23a279a8be375a09",
       "bodySha256": "d2dc7310ca54dc94d5ddb019d95c09423da85a3c5b0023ea1e6320aff190e8c8",
-      "markdownSha256": "842d14eca7891296c5fa88c42e7d678c407920680abf68f364c172c46b76399a",
+      "markdownSha256": "7f514b2115efd69d2295720b14c8ff1685c8109e7cfbf40dd23514d817b6bd90",
       "headings": [
         {
           "title": "Install",
@@ -293,7 +293,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/core\")\n\n# @json-render/core\n",
       "sourceSha256": "526eb0ca589bb317b2924f3145e0161d4e14ad4183a2a8145a26b300335e6d5e",
       "bodySha256": "101701e7ee8f7ffe95367f04dbabb981c24b8be89501a71ea227f11f0a44163b",
-      "markdownSha256": "e3f637b4e7d8f8f27d686f9ea5e0a9feda1b719aaefdea4cfff6f892a4386ac9",
+      "markdownSha256": "0f83c1c668056ff0a8c1755ddf26dd1f4b366dea5e035d1233dac582c82b00a3",
       "headings": [
         {
           "title": "experimental_composeSpec",
@@ -505,7 +505,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/devtools\")\n\n# @json-render/devtools\n",
       "sourceSha256": "923cef62ad778655b84834ea09313c7cc3c27f42aebcad25c1282b8683f29b44",
       "bodySha256": "508b00089d9d8de668a15fdaf2e5b862bab8eab7c48ef4e8d8f548ef3862c755",
-      "markdownSha256": "7dcbb767d5daa925672b6558b110a90cb68a39b465bd3c7165a0e175e6211d2b",
+      "markdownSha256": "c14dce0098ce1153a92a1d3e346c4f0b1aac259fd20d6ad3af70fa6d2eb2a40a",
       "headings": [
         {
           "title": "Event Store",
@@ -577,7 +577,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/devtools-react\")\n\n# @json-render/devtools-react\n",
       "sourceSha256": "ef696a235254e22d73f98e1a9cc7fd634ec895233fbe8a4479557e08a7e2f717",
       "bodySha256": "418b966fd326f84dcc82da17efca7bdc1663f1686cdb1c8d15f448b568c95c78",
-      "markdownSha256": "c38be627dc6135f1481e12fc433139c950f6cbc1ccc336588d1e8e8e771ef5ab",
+      "markdownSha256": "1572bf8ae7c091effae7edb6056df652a0987330db88f4383996cec8b955f8d9",
       "headings": [
         {
           "title": "JsonRenderDevtools",
@@ -601,7 +601,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/devtools-solid\")\n\n# @json-render/devtools-solid\n",
       "sourceSha256": "753ff930b3e12173e131c26afc1201050eabc7556a989592f4f199fea9f936f1",
       "bodySha256": "3d07f5f5aa307b0ed9a8148664ca95d820ea1f5a8611ef033b4f275e1c15c006",
-      "markdownSha256": "8558800bc1ecb779d5c8cc599dab6038eb6243208f9e5275098ff03d9e233772",
+      "markdownSha256": "55a761eb910a1ccee4fdaea2e9f3aace758f59475d277ca1f9153e75411971db",
       "headings": [
         {
           "title": "JsonRenderDevtools",
@@ -621,7 +621,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/devtools-svelte\")\n\n# @json-render/devtools-svelte\n",
       "sourceSha256": "957a1fc1cb86869a8c25964c1a7a3b1edb1ef032e4c2d96c4865f96bc53f89b3",
       "bodySha256": "1f1473e091d74994650b46cf4027ac9c7126b73889f4078c689f46811dab8a88",
-      "markdownSha256": "5e8ff16fc85a4f1694a256326ccf86d49bab988c771a5b408402ad94294fb12e",
+      "markdownSha256": "a6c360e511a0da409c174b890378b8c48498d8ae5da77c8de47a5e05e1e8de2e",
       "headings": [
         {
           "title": "JsonRenderDevtools",
@@ -641,7 +641,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/devtools-vue\")\n\n# @json-render/devtools-vue\n",
       "sourceSha256": "42c4939d0199fd329dc3060d86d8c4c57f085ed7eaf29ddcf43cc60b56702274",
       "bodySha256": "f6a0deec7e65845dfacb2d7060bbaee35848028f8f341c877539f56c98f73fed",
-      "markdownSha256": "247e01155602035c36115420400c77ca5d60f4b587fd3a8bf6fdd6d792b78cb3",
+      "markdownSha256": "9513f2fc8e6eaabc6bf130a65a1480fc472dccaa86a2e2d5c50fd0d2e867a859",
       "headings": [
         {
           "title": "JsonRenderDevtools",
@@ -661,7 +661,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/directives\")\n\n# @json-render/directives\n",
       "sourceSha256": "71eb337b8feab01a100c7115d469fd1924aa9998eba39d2614932cb429e6d8bb",
       "bodySha256": "de3b063dc62c839276808ca5d8cd05c812460f8b4dba7803c57aba3398095edd",
-      "markdownSha256": "7eba58b9b5a9ed3a703149d978ac97d58545f5c43acc34a495935e9ee9d6058b",
+      "markdownSha256": "13e8929aa0c4ce81aa63cc1f54f988e589c4f037e292146f7e7b0c26312d52b3",
       "headings": [
         {
           "title": "Install",
@@ -721,7 +721,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/image\")\n\n# @json-render/image\n",
       "sourceSha256": "1028817240a11db9308494fad333aa7dd242717da3111d02005b8639e650771f",
       "bodySha256": "017b4c36ba26294499088e36febc382cb2b001524fb0aa70ee266e4884f28ccb",
-      "markdownSha256": "d09fb633b501ef0016b7fa94dc0b15177e90befc9de9b85f1e0fee5f29805cc5",
+      "markdownSha256": "bd44d3c20fc52bfebd685e396c4d40657ddb9ce8bab7d384dc607037c7bd8512",
       "headings": [
         {
           "title": "Install",
@@ -785,7 +785,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/ink\")\n\n# @json-render/ink\n",
       "sourceSha256": "fd176ef2df700a87c4d1d093d0aa2d8f928c34d7ee6a9130d0a278978b62ce92",
       "bodySha256": "1d4bfa48fd23ac1b7d9e3b564970245936a7129f1e44bef0a4038a2d234f6117",
-      "markdownSha256": "e6d8c4ea01377c78cc340c2c120dbc0628fe0d3663f71a503a849b25dd04042f",
+      "markdownSha256": "b73b21571f57e2e2e8f7ac8d06d03e6a3ce01e28818b6b24a55f574d1907e46f",
       "headings": [
         {
           "title": "Installation",
@@ -901,7 +901,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/jotai\")\n\n# @json-render/jotai\n",
       "sourceSha256": "674237b50c0f871fcb2cc9ec1ffa86406850e13dcec7141bd779c61caf2e2791",
       "bodySha256": "e733f9bd966a6a4241dcbeb485773b5bc48f84efbeb22225fb895f028c013d93",
-      "markdownSha256": "4507bfe8c53a70c9ada91c327f181bdefb1b8f26a5020c402f2ef86e8928861d",
+      "markdownSha256": "aa74424561a2c391e0ee086c566bf5e1bbb0d7eff761ac7eb6c1273ccc98dabf",
       "headings": [
         {
           "title": "Installation",
@@ -937,7 +937,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/mcp\")\n\n# @json-render/mcp\n",
       "sourceSha256": "5e4c315e6a9c363bea6d77bf64a8f5aa798caf2f763983d831e1317bb684ed4a",
       "bodySha256": "dc990fe9a19a66a68c3408e34bd2ddc8ac04fc714b0039f0c192709e65b33633",
-      "markdownSha256": "9772c7f3666aa846ba6a400f6f2f43a8d78da6c7e98b4f9f74ebb8698ea2e37f",
+      "markdownSha256": "5ca822dd3fb9062b7c778babb7ce6f73baf3145cb40156b42f6e1450a07f0cc1",
       "headings": [
         {
           "title": "Install",
@@ -1001,7 +1001,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/next\")\n\n# @json-render/next\n",
       "sourceSha256": "104cb9c60b856fda51cc2fc292cc54a5043ff6563f26765c7d162f8dc83faa72",
       "bodySha256": "1e11e6117f18a21ddf801858b39d74ef498a8351e6d33437963fc31b811d2e6b",
-      "markdownSha256": "aec28d2c95a96b3956354468c47ab58492712199fce4deacd71ebbddff51dd97",
+      "markdownSha256": "4b4a0e54d4e77007e478b07d1c3129b175db6c9b416cfe7d220197986a1ca1ce",
       "headings": [
         {
           "title": "Installation",
@@ -1081,7 +1081,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/react\")\n\n# @json-render/react\n",
       "sourceSha256": "ff4c6f3db3b9d4f0771647b959ddcc393abf6d34c0d2e3c30659039e310ca80b",
       "bodySha256": "56447f94b4178bc0d84953990438e2368f5495ce8b793b3511653f243258e0ed",
-      "markdownSha256": "8b4641f020565475af8274cbd7e4a040a5c69c60311165d92d0966f34beaa982",
+      "markdownSha256": "2528edc690b60c5dda7bd6231d4257b4ba651d8109876472a8249a6982c1932a",
       "headings": [
         {
           "title": "Providers",
@@ -1197,7 +1197,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/react-email\")\n\n# @json-render/react-email\n",
       "sourceSha256": "f08803e8d421df4adda8203a518a626f771b0f6b18ac517b48381f79131ea449",
       "bodySha256": "6a5346f5b5628ad14d6c93f83a0339f747be26ea6f91638db802f711579006fa",
-      "markdownSha256": "65fdb92a2355d412fcf464d32bf08ef7bb466e4866f9ea7d69a5a7269fc31450",
+      "markdownSha256": "c8cfb9152f021ba2244b66a55fb3376ac3d15720890d757d91902a920eb143d9",
       "headings": [
         {
           "title": "Install",
@@ -1269,7 +1269,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/react-native\")\n\n# @json-render/react-native\n",
       "sourceSha256": "11ab0716faeab4b32a12fdce9bcf675dbf96711f897d9fb2165c04f9944eb3cd",
       "bodySha256": "748a283fcf941916093611aa073b9356592253bc59a80d37b6a17e90c061886d",
-      "markdownSha256": "47f762b707223d573dc157055034ba3c60782fc3baf36d63d8a88b959006ee5c",
+      "markdownSha256": "0c36a1055586924cafc607e94880de173995ea2fd1739e7705ab316ec9fc9553",
       "headings": [
         {
           "title": "Standard Components",
@@ -1361,7 +1361,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/react-pdf\")\n\n# @json-render/react-pdf\n",
       "sourceSha256": "cc7edb8944a9c66c8412be14859cd0c075b5bdf258b15a1b1812386d75596a0b",
       "bodySha256": "173076c150cfad920e819c0bebd7acd550e5751971f4c25a2bfbd568fa55f334",
-      "markdownSha256": "7cb3704f2e24941dbfd2b9e615bc21d458ccaee35b5b798eaf5bbde2ae10581a",
+      "markdownSha256": "eecb366b7e6e129a81bbb8205396ea3c07183a19aac92b3771572474c02b18f5",
       "headings": [
         {
           "title": "Install",
@@ -1445,7 +1445,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/react-three-fiber\")\n\n# @json-render/react-three-fiber\n",
       "sourceSha256": "2f539d660ccfe52649a7642bb662cced390afd47ccb96cb7ce0efbbf73ba9ded",
       "bodySha256": "46119e127fbae3f80e2c47d5a5023669b782631fedafb9e003700ac87310544e",
-      "markdownSha256": "cd25a34c693a9172a2e83bd264c7507e796cf105dfcddff3b228a4b24f1a88cb",
+      "markdownSha256": "4558f7f95309f8a400053745c3b396760366ac47c3d054c2ad89c66ca989b56a",
       "headings": [
         {
           "title": "Installation",
@@ -1513,7 +1513,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/redux\")\n\n# @json-render/redux\n",
       "sourceSha256": "feb27249d21f70f5d578e46c175f12379c14e3c71542873a20458d2af7d9a24b",
       "bodySha256": "62b4a21257920e510e0e04f30fd9afafedac74fede84a527a21aa6048ccf36ea",
-      "markdownSha256": "d6729d0d5e38fe3eaffa40dd6f851eeb16b9a22078001cef49471f1f80bc6f78",
+      "markdownSha256": "231996dbfb8070e3f39717881c1e27c1d20e637bb3de78d2714a650b19ed9d00",
       "headings": [
         {
           "title": "Installation",
@@ -1545,7 +1545,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/remotion\")\n\n# @json-render/remotion\n",
       "sourceSha256": "df0f176aa33b5f20986f3289bcd93a7831e0e0b17f6c997e2ad0488a9645f4c1",
       "bodySha256": "80a2a7e748f50a282851ee542b738d72583db04d1b3dc5aaf93584a4b3e1a9f0",
-      "markdownSha256": "ed4d3d22f59fe18cb19877098268aa8da2d5434eaabfe98ae2b1de1d40b1a18e",
+      "markdownSha256": "17391a95dc4c644f053728bf41c1ff72002c5e0b95d24e7ed25eef2aa3ceef2f",
       "headings": [
         {
           "title": "schema",
@@ -1621,7 +1621,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/shadcn\")\n\n# @json-render/shadcn\n",
       "sourceSha256": "1d49bfa1175e72c857b977e19d27edfa2a72f35116bafd2c8da624771a37a25f",
       "bodySha256": "fe6b3f334b0971fef057ff58a201e7c1619a8b2d78d79adba8279c2554a3ce60",
-      "markdownSha256": "643b1629f02d63106f681051ff603760a307b2e11470a6308224750aacd9b591",
+      "markdownSha256": "dab4db640fb9d424d09c3ae0429553f0d2e79d4a18f551aa7f5139327dc264d3",
       "headings": [
         {
           "title": "Installation",
@@ -1681,7 +1681,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/shadcn-svelte\")\n\n# @json-render/shadcn-svelte\n",
       "sourceSha256": "80cc6c14712a3ffc685bf383df8a9f8ec4b61e23d89c96ed37ea2ee44fe6c5c7",
       "bodySha256": "961049524b843bb6f61f447df125cb0cf0b073217e5f4894b3a5c7ad961807df",
-      "markdownSha256": "e086cb3c66d79bb5a820dc9e14edf5a9fcc97889e338471883670391ebaf43a6",
+      "markdownSha256": "aef83c6df391670d8cd79eba3ecb0b541ffb9a740e3edfa5964ce156e8dc8578",
       "headings": [
         {
           "title": "Installation",
@@ -1809,7 +1809,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/svelte\")\n\n# @json-render/svelte\n",
       "sourceSha256": "99cd7cef6450efe1acefc63adfec229928b2f7befaa53f15de34da32a2d8cb1f",
       "bodySha256": "6cf92dc1b1afe8f6d57a06b2ec26da257c88de73a075cf26b7ea4b5ed3e741e0",
-      "markdownSha256": "c481932be48e8f35eb222fd28fdcabfcf2edc3d45eb9575860f9da83c9e99669",
+      "markdownSha256": "16b0da4032a16c83dc6603138d30c5f72518f63dc1248e83452bd1c43c029217",
       "headings": [
         {
           "title": "Installation",
@@ -1865,7 +1865,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\";\n\nexport const metadata = pageMetadata(\"docs/api/tanstack-start\");\n\n# @json-render/tanstack-start\n",
       "sourceSha256": "2e1d886d7b6adadd9f63c2a175deb2a5f12ab12adfd5821006d710f820b87a83",
       "bodySha256": "9566d95c908ba18445d25f5969ca112f50d17570ea4a5f7635bbacf751b12c61",
-      "markdownSha256": "eabdf0a752d1ff4adcd4ac3c361caf4c94d7f56bcebd15dd2f2419e4657334e4",
+      "markdownSha256": "969d540a6f871e6aa7c0c92020f920b01622d0b39573c2db752058b64feecdd1",
       "headings": [
         {
           "title": "Installation",
@@ -1925,7 +1925,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/vue\")\n\n# @json-render/vue\n",
       "sourceSha256": "d93d6bf91b5aee7b31cc775716096b2564edfd5c41b3b04c1c6fa50faf8ed571",
       "bodySha256": "10bb9139554c3dae0927a9a23f1fdd47b624207519a4e5849238a1a5b3812256",
-      "markdownSha256": "89da16610a601f10d0b651f6445eba2fb342dc7663527f766e08aef60925a398",
+      "markdownSha256": "d9238820234d92b3db0dc15a3f3356f82ff8709d1b56e27925eeef87cb50ddd3",
       "headings": [
         {
           "title": "Providers",
@@ -2013,7 +2013,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/xstate\")\n\n# @json-render/xstate\n",
       "sourceSha256": "0eb8019100793c5ee9ca352655636b4e2c661de76ec563c0bf07e5d62bc31fa3",
       "bodySha256": "b2bbb62fab9f76acaad6689b3a3355f9c2ccba221c7444bcab72223aece9d75d",
-      "markdownSha256": "601c3868f3377a5c9e2b99070e137e47182a675a757abf3fd666c6ffa6dd7a77",
+      "markdownSha256": "27121d9fb5ab49fb19c46abe4792a73dd86062db0727d534dd25aec20b0b2aad",
       "headings": [
         {
           "title": "Installation",
@@ -2045,7 +2045,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/yaml\")\n\n# @json-render/yaml\n",
       "sourceSha256": "797f552427da1e0107be781341999e68741bd65fe9620216a5046d920475be1f",
       "bodySha256": "f0bca6f7befb66c5397c2facaa00851e2ef98a0773138a858d67b8b2afdacb8f",
-      "markdownSha256": "a61124ef0f2b75b68a5a5666cfdd90382f3fec5e672b3262b0c92ad5e24918c4",
+      "markdownSha256": "6d1860b51217d80b9a58954c3207c1c31b3cfa24de9e988fc226571274e541ac",
       "headings": [
         {
           "title": "Prompt Generation",
@@ -2109,7 +2109,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/zustand\")\n\n# @json-render/zustand\n",
       "sourceSha256": "08a831399fe933770b5a1e34e62f20bba965519333419b78966f0a16cddd51b1",
       "bodySha256": "7bf82ca15ed53f54652c309387fc3fd9133c4c595b76a217f5a109986de256b9",
-      "markdownSha256": "fc680f0d9ac5daad213a942c42a92ea92f76c43e33f98d665c85a971e5904a41",
+      "markdownSha256": "e904d8a4a6ccf4d6de28c08b4ca10285aecc65dbb08709b9c752fffe45c3b599",
       "headings": [
         {
           "title": "Installation",
@@ -2145,7 +2145,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\";\nexport const metadata = pageMetadata(\"docs/catalog\");\n\n# Catalog\n",
       "sourceSha256": "e91bfd64d853e03c5c352257473ea3e1640be259d879bebee21867e32722caae",
       "bodySha256": "4c41c614ed69e10f0c1d2893960a341b650129c5d9b108461db0aa847940de35",
-      "markdownSha256": "cc2cdca558b0661a1c4dee12fe523bd19a9233593b996172813730228ef38738",
+      "markdownSha256": "3ba983e34e99ecc1b2f5a4b076f37a5d0016094cd6b3bb8777fc9952a33d7d4c",
       "headings": [
         {
           "title": "What is a Catalog?",
@@ -2177,7 +2177,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/changelog\")\n\n# Changelog\n",
       "sourceSha256": "b1a0a377cc3d4f3a5610dc0fbbf7983e83f77d4ecb66381d7b6012b7b78d15ce",
       "bodySha256": "551e3ccab1d5b434be6caf9082ca42fe953ca062a9fed20b584eccc17966bf62",
-      "markdownSha256": "5d7ce23100ae4be3e9b627d3a50b5aa51d9febfd4aef433073e3d2fd75e48f26",
+      "markdownSha256": "729f5256172cda23c68178a787380c79123226f7347038f0f391a26db60b3ad5",
       "headings": [
         {
           "title": "v0.21.0",
@@ -2621,7 +2621,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/code-export\")\n\n# Code Export\n",
       "sourceSha256": "5c74a30a9ab260c0f3c775bef4654ce7138ee66ef03c6e9bf40266dab69d3f8a",
       "bodySha256": "6934c117bb7cd5d40689df9aa82525761ed2f9b99c5956dbbe97341047b2f074",
-      "markdownSha256": "c9ece58d351eb98b6ef9b83adda0c65f229f8a9f34d0d591990d1c79713da4fe",
+      "markdownSha256": "f26d6cd1ef38dfab3685ba0b01024c88a7f29805390bdd5a3bf4a3e0bf1f027a",
       "headings": [
         {
           "title": "Overview",
@@ -2677,7 +2677,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/computed-values\")\n\n# Computed Values\n",
       "sourceSha256": "e55a624626d84d872b4810f6d3747898881c4dc811d8830e531efaf0feef1071",
       "bodySha256": "453914a4cae4956da073401a2343d8c665182a895e3e06348e5657acf0467f18",
-      "markdownSha256": "183ac788bf19b2b024cc34bc0c8a2cd7d93b8befc4227afefe373767fc450153",
+      "markdownSha256": "34e7b4965970daf037a251ce8867bde5a0094ddaaa9c91bae6efc8d701ae90a9",
       "headings": [
         {
           "title": "$template — String Interpolation",
@@ -2713,7 +2713,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/custom-schema\")\n\n# Custom Schema & Renderer\n",
       "sourceSha256": "36f8227138b8cb3ec395b3f9f4e32be3fe3a52f04e557b5c4dff225c7f191cbd",
       "bodySha256": "b49244cbfd74ce6951b85f05089be5db934fefc97b0d4080994f9989d22f79ef",
-      "markdownSha256": "440330cfd9e0de242d9a3722508fa41be9b841baaf4e019af058374f142291b3",
+      "markdownSha256": "4766dc565d629fb47c6f1af172f09b1e11c3a81d7889118f7dca2ec1b3e177c7",
       "headings": [
         {
           "title": "Overview",
@@ -2761,7 +2761,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/data-binding\")\n\n# Data Binding\n",
       "sourceSha256": "ffccda5226ebad40ec43e4a8a4e95d52128e0a525a767266b916c1cfa8ea867a",
       "bodySha256": "51ce521332a2e67a197c3263e2dc54fa1cad337d44be55a9cbe96f9861cdfc69",
-      "markdownSha256": "a1915aefc5af9cab386b6c4b3409625c35b9e51d754968056906c9605a59e51f",
+      "markdownSha256": "d67e2f9f349ae76906bfe724ad66a548d9a18f81c58e682cc13111f297ac472d",
       "headings": [
         {
           "title": "State Model",
@@ -2841,7 +2841,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/devtools\")\n\n# Devtools\n",
       "sourceSha256": "9171c67075cff7a82b0e78bc358ef627e4adf29ad33ce23c61dee0528dd1ae3e",
       "bodySha256": "b4d0851584d3d08f39a94e11efa660c7a63c79651f6697846420392f1d7056ad",
-      "markdownSha256": "98071771a6c26cc920691dba83bd6b21dfbb5ba41cf14bda54bf40208c1dfe8a",
+      "markdownSha256": "e53aada74aaa79dd09f4857a87931306c428929757107db8b4438b5a8a17cee3",
       "headings": [
         {
           "title": "Install",
@@ -2905,7 +2905,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/jev\")\n\n# Jev (Experimental)\n",
       "sourceSha256": "d3edbf07c488dd5b57b5f6d58db15b5de0cc71b70c511bf802dee5e825af7006",
       "bodySha256": "6ea6471dc05d51306ac6bb5161cebcb1b539183c68dce5016279ed5f38d77b72",
-      "markdownSha256": "d5581af3ef7809dd759f6873bd4d0b4177b199ee8ac5b79322d410de5b9be3b3",
+      "markdownSha256": "1e70f85231b6598d7590fb7c5d6c189b20e9d6c7bd04c374d5f22971831ea339",
       "headings": [
         {
           "title": "Why use it?",
@@ -2949,7 +2949,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/directives\")\n\n# Directives\n",
       "sourceSha256": "6beb76c381be7e23eea91a11e2346a4ac6d606f6b84d3a0a0678f085696ce515",
       "bodySha256": "5a1f3e0c4b28316865839d63cd9a9b78a98762085ead5910ec80e9aa4e1de15e",
-      "markdownSha256": "564746bc6c0855ae79cfa063d80ea2c381af63c4e58f0ab616810b3411b65432",
+      "markdownSha256": "9eb16da9161d936d05f9bd358c6f7a0fe011dee8f68ea5c208e679333067edf0",
       "headings": [
         {
           "title": "Overview",
@@ -2997,7 +2997,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/generation-modes\")\n\n# Generation Modes\n",
       "sourceSha256": "8ee1dcf6d1070041aa0b7f2509cdf67dcab2f3d7fd104b9ee610415f39e295f7",
       "bodySha256": "f08f71873ad51037bdc5c59489a0cbd5937aefa6f6d694a48ee0d87f20931f10",
-      "markdownSha256": "5e507344531458d2f61e41831563d3ca36c611287354a71e7b07d28fad5fe048",
+      "markdownSha256": "af26dc68303869ef83c664e9f4639d0d0357ad344583a3eac7cdd84dfa929a8a",
       "headings": [
         {
           "title": "Standalone Mode",
@@ -3101,7 +3101,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/migration\")\n\n# Migration Guide\n",
       "sourceSha256": "97430a735e73f824f2111fe8249803f0db0d174db3290d2c1ffd714ebf3156b7",
       "bodySha256": "7ab30b54f7ad372559a64e048936f084504725a9dca5bedd091107736328b1a7",
-      "markdownSha256": "eb9ce4dc986f1fd816f39a9fedca55242740a91be64567c82aa8e3ed06b25520",
+      "markdownSha256": "c0931599f67a915a2651b70753b801839de9e90dd84b504a41351fab6143a059",
       "headings": [
         {
           "title": "State Provider",
@@ -3169,7 +3169,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/openapi\")\n\n# OpenAPI Integration\n",
       "sourceSha256": "ecb338099c6f47e97711921e21940e59be68573bb36a33b483d6dcc4ff70f753",
       "bodySha256": "8663bf0b9962f553cf0ff9315ba158205156b93380f04c07e8048f60d2ae111a",
-      "markdownSha256": "cf63386b2e21bd165b3a03178f7706bef5c86abdf721e76857e75294171eb243",
+      "markdownSha256": "d70e39658dea46949d72521502d2417008657c82a6283a4b8199951d29ae106a",
       "headings": [
         {
           "title": "Why OpenAPI?",
@@ -3209,7 +3209,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs\")\n\n# Introduction\n",
       "sourceSha256": "3dc14fafd02b8a28766791efe52da560d7b7af2b10d5044e5bbe3d70e715fb99",
       "bodySha256": "208c84bd7c75844ec6a5d7c4eb8b074d45311b3716e9f6ce03fa55eb4e8c2f9c",
-      "markdownSha256": "75d7bdc9d21a90df0be5874fbf35f5857cb3128733b2573e5993fab1a3d6b68d",
+      "markdownSha256": "f55cd120b1c5f3b02382e9725c15e7cf6530bb768748f2c317711ee35f5b93b2",
       "headings": [
         {
           "title": "What is Generative UI?",
@@ -3249,7 +3249,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/quick-start\")\n\n# Quick Start\n",
       "sourceSha256": "3da45226be41bbd4734f4172641d31a60bc4be7466968bccb4178a876d4498f1",
       "bodySha256": "9ed11fe69a6d215e912c3a8210574504e0483029b117f3cebd27a1ea06e3216a",
-      "markdownSha256": "8b3879f48decbe9b53bccfd904ba52f5c309351fb4ba667e69c812aff5de570c",
+      "markdownSha256": "ead503750cdd188d74d2a4abdf7d7a43efe2e6ec1ca7b52a4cd059348b97f1af",
       "headings": [
         {
           "title": "1. Define your catalog",
@@ -3285,7 +3285,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\";\nexport const metadata = pageMetadata(\"docs/registry\");\n\n# Registry\n",
       "sourceSha256": "1cf5adbc8f51c0365aef7361ef003bdfb6d4f662342bd2039bf0e0671787a5fa",
       "bodySha256": "3e9558ccba64405a11b3c75c8500114e1c142d3b5656bd4dcd7d77440484211c",
-      "markdownSha256": "84650a486457e0cfef17f58fb0a12fe85cd2f6d3b554439a1ddc27a116b459bd",
+      "markdownSha256": "ef7119a1dd912c9428ae5c623d6643c3fa60b9262cea8a3723f041a6571fb1b4",
       "headings": [
         {
           "title": "@json-render/react",
@@ -3337,7 +3337,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\";\nexport const metadata = pageMetadata(\"docs/renderers\");\n\n# Renderers\n",
       "sourceSha256": "316613936dd01db8cd41b5a94e9ba05326e48fa501c5432b4f47eca08463cb49",
       "bodySha256": "c23123510fca30acf67c29a2a6417be3394b9e826e18571b4acfc00989cd8a62",
-      "markdownSha256": "c5c8f6b5aeb2ae9d09728f8d8ef107dc7cb7c7a19b274e325dc4a43482fc3e3e",
+      "markdownSha256": "ba2d7b0ba53a7b9c2856af21df5c3a3bb99c2661f93bd750ac08eaaf1e1ba5cc",
       "headings": [
         {
           "title": "React",
@@ -3397,7 +3397,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/schemas\")\n\n# Schemas\n",
       "sourceSha256": "2d5254a28c0cc6426676604e2639be01c817006883f77edfc2a2b7d1da994669",
       "bodySha256": "fa48e1a922801038ae8a67da1791398492c77c144951c4983f944195ae5843ea",
-      "markdownSha256": "9e872add4b02389cddcac38110a012a973c03e845c2eb3c0b54fcfd59701950a",
+      "markdownSha256": "90af253cc4c23fb24f8110b842e4bf3c1ea27c311fd3d11b7b892e79c9db0756",
       "headings": [
         {
           "title": "What is a Schema?",
@@ -3569,7 +3569,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\";\nexport const metadata = pageMetadata(\"docs/specs\");\n\n# Specs\n",
       "sourceSha256": "14a29e881fe4c1380a261b49534b1728a1d32e35d69ab5da86b1e40485554b65",
       "bodySha256": "c579395d773559efa78988e73544dea206b07f926557d187569d77133be1dc75",
-      "markdownSha256": "8a353073eb8d8dc10e0d37f11a7293314fd4a8bb4db893ac74651bd7bdef5433",
+      "markdownSha256": "24bae378fe3632c8b53e66fce4d4399bdc2c74d67721595148ddf7bb76962aaf",
       "headings": [
         {
           "title": "What is a Spec?",
@@ -3645,7 +3645,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/streaming\")\n\n# Streaming\n",
       "sourceSha256": "16a120c7ba25b4407b8df35999667b1bf29a4604a8e696f51d13bcaef84dfe0e",
       "bodySha256": "98d032cbeed5dae0502abd7669f77ae1dac182dab3a4166da3cf8a7c6bff6172",
-      "markdownSha256": "dbcd985a40aa790017707efa3de647c4f462a65d5f851ba82b9c91f40e801666",
+      "markdownSha256": "b1efbaed073881db64e3e370f23fdcce2130b77394ad3ad507ecc659a76461d5",
       "headings": [
         {
           "title": "SpecStream Format",
@@ -3697,7 +3697,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/validation\")\n\n# Validation\n",
       "sourceSha256": "023f28eda0c3f1cff87f74387a78a201b33ef0801d7e985699a532d584b90b46",
       "bodySha256": "91288bf5ee0354fb01a31c46f6438b8bcbd673721aba0f206a2dd3351661f040",
-      "markdownSha256": "8f9a24d4b6dc09dfeb0095ae8a97ef2fb0790fe278bcc00df7e38156bcae4b8a",
+      "markdownSha256": "8ba9794bdc392f79dd031a6c5039f3bab3630bf397e51d8d51c41f4fc2155aa9",
       "headings": [
         {
           "title": "Built-in Validators",
@@ -3753,7 +3753,7 @@
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/visibility\")\n\n# Visibility\n",
       "sourceSha256": "0353301975a5fe6eccb035a54e2444c0b15baa19d3db3f7070d6a7dbc0733d01",
       "bodySha256": "061c9c1a49bb2d274ea06b2c8c1419ad921499df937191659adfaa330d84f5fd",
-      "markdownSha256": "5948a0efc1414d1f0390b4a4ebd367877547ceb32a9837169193d504ad02e9e3",
+      "markdownSha256": "81b378fe106783d7e1b91ed1be1b159e706b69c2a56793d9cab3767dac75adcd",
       "headings": [
         {
           "title": "State-Based Visibility",

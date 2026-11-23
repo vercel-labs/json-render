@@ -6,6 +6,7 @@ import { request as httpRequest } from "node:http";
 import { request as httpsRequest } from "node:https";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
+import { mdxToCleanMarkdown } from "../lib/mdx-to-markdown.ts";
 
 const base = process.env.DOCS_TEST_URL;
 if (!base) throw new Error("Set DOCS_TEST_URL to a running production build.");
@@ -109,6 +110,55 @@ function negotiationHeaders(response, html = false) {
   assert.equal(response.headers.get("cdn-cache-control"), "no-store");
   assert.equal(response.headers.get("vercel-cdn-cache-control"), "no-store");
 }
+
+test("Markdown cleanup preserves fenced code while removing page-only MDX", () => {
+  const nestedExample = [
+    "````md",
+    "```tsx",
+    'import { Component } from "example";',
+    'export const element = <div className="sample" />;',
+    '<PackageInstall packages="in-code" />',
+    "```",
+    "`````",
+  ].join("\n");
+  const tildeExample = [
+    "~~~ts",
+    "```",
+    "~~~keep this line",
+    'export const content = "inside the code";',
+    "~~~",
+  ].join("\n");
+  const raw = [
+    'import { PackageInstall } from "site";',
+    'export const metadata = { title: "Example" };',
+    "",
+    nestedExample,
+    "",
+    tildeExample,
+    "",
+    '<div className="callout">',
+    "```html",
+    '<div className="literal code">',
+    "```",
+    "</div>",
+    '<PackageInstall packages="example" />',
+    "import outsideCode from 'site';",
+    "Still visible.",
+  ].join("\n");
+  const expected = [
+    nestedExample,
+    "",
+    tildeExample,
+    "",
+    "```bash",
+    "pnpm add example",
+    "```",
+    "",
+    "Still visible.",
+  ].join("\n");
+
+  assert.equal(mdxToCleanMarkdown(raw), expected);
+});
 
 for (const page of pages) {
   test(`${page.path}: content and existing anchors survive migration`, async () => {
