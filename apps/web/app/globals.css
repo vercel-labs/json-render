@@ -223,29 +223,3 @@ header .pointer-events-none.opacity-0 {
 #nd-page div:has(> [aria-live="polite"]) > div > .max-sm\:hidden {
   display: flex;
 }
-
-/* Vercel Labs lockup: match the OG card's slash and spacing at the 18px logo. */
-header span:has(> a[aria-label="Vercel Labs"]) {
-  gap: 0;
-}
-
-header a[aria-label="Vercel Labs"] + div {
-  width: 6.219px;
-  height: 14.8px;
-  margin-inline: 11px 7.7px;
-}
-
-header a[aria-label="Vercel Labs"] + div > svg {
-  display: none;
-}
-
-header a[aria-label="Vercel Labs"] + div::before {
-  content: "";
-  display: block;
-  width: 100%;
-  height: 100%;
-  background-color: currentColor;
-  clip-path: polygon(83.1% 0, 100% 0, 16.9% 100%, 0 100%);
-}
-
-

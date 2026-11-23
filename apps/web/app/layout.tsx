@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { GeistPixelSquare } from "geist/font/pixel";
 import "./globals.css";
+import "./header-lockup.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { DocsProvider } from "@/components/geistdocs-provider";
 import { Navbar } from "@vercel/geistdocs/navbar";
