@@ -285,9 +285,21 @@ function toChild(key: string, elements: Record<string, Element>): CardChild {
               },
       });
     }
-    case "Actions":
+    case "Actions": {
+      const buttons = children();
+      const ids = new Set<string>();
+      for (const button of buttons) {
+        if (button.type !== "Button") continue;
+        const id = button.props.id;
+        if (ids.has(id)) {
+          throw new CardSpecError([
+            `${key}: duplicate Button id ${JSON.stringify(id)}. Use a distinct id for each button in this Actions group.`,
+          ]);
+        }
+        ids.add(id);
+      }
       return build.actions(
-        children().map((b) =>
+        buttons.map((b) =>
           b.type === "LinkButton"
             ? build.linkButton({ label: b.props.label, url: b.props.url })
             : build.button({
@@ -298,6 +310,7 @@ function toChild(key: string, elements: Record<string, Element>): CardChild {
               }),
         ),
       );
+    }
     default:
       throw new CardSpecError([`${key}: ${el.type} cannot be nested here`]);
   }
