@@ -38,7 +38,7 @@ import { createMcpApp } from "@json-render/mcp";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import fs from "node:fs";
 
-const server = createMcpApp({
+const server = await createMcpApp({
   name: "My Dashboard",
   version: "1.0.0",
   catalog: myCatalog,
@@ -94,7 +94,7 @@ Register a json-render tool on an existing `McpServer`. Use this when you need t
 ```typescript
 import { registerJsonRenderTool } from "@json-render/mcp";
 
-registerJsonRenderTool(server, {
+await registerJsonRenderTool(server, {
   catalog,
   name: "render-ui",
   title: "Render UI",
@@ -110,7 +110,7 @@ Register the UI resource that serves the bundled HTML.
 ```typescript
 import { registerJsonRenderResource } from "@json-render/mcp";
 
-registerJsonRenderResource(server, {
+await registerJsonRenderResource(server, {
   resourceUri: "ui://render-ui/view.html",
   html: bundledHtml,
 });

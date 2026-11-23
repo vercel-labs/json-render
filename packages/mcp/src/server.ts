@@ -116,7 +116,7 @@ export async function registerJsonRenderResource(
  * ```ts
  * import { createMcpApp } from "@json-render/mcp";
  *
- * const server = createMcpApp({
+ * const server = await createMcpApp({
  *   name: "My Dashboard",
  *   version: "1.0.0",
  *   catalog: myCatalog,

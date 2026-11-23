@@ -12,6 +12,12 @@ MCP Apps integration for [json-render](https://github.com/vercel-labs/json-rende
 npm install @json-render/mcp @json-render/core @modelcontextprotocol/sdk
 ```
 
+The Quick Start below also uses React and shadcn.
+
+```bash
+npm install @json-render/react @json-render/shadcn react react-dom
+```
+
 ## Quick Start
 
 ### 1. Define your catalog
@@ -34,7 +40,7 @@ import { createMcpApp } from "@json-render/mcp";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import fs from "node:fs";
 
-const server = createMcpApp({
+const server = await createMcpApp({
   name: "My Dashboard",
   version: "1.0.0",
   catalog,
