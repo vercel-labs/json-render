@@ -520,6 +520,7 @@ Visibility conditions control when elements are shown. `VisibilityContext` is `{
 { "$state": "/path", "eq": value }             // equality
 { "$state": "/path", "neq": value }            // inequality
 { "$state": "/path", "gt": number }            // greater than
+{ "$value": expression, "gt": number }        // any prop expression (directive, $computed, ...)
 { "$item": "field" }                          // repeat item field
 { "$index": true, "gt": 0 }                   // repeat index
 [ condition, condition ]                       // implicit AND

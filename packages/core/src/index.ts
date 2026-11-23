@@ -12,6 +12,7 @@ export type {
   StateCondition,
   ItemCondition,
   IndexCondition,
+  ValueCondition,
   SingleCondition,
   AndCondition,
   OrCondition,
