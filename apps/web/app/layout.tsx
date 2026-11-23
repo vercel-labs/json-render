@@ -11,6 +11,8 @@ import { config } from "@/lib/geistdocs/config";
 import { DocsChat } from "@/components/docs-chat";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { homeOgTitle } from "@/lib/og-titles";
+import { versionedOgImage } from "@/lib/og-version";
 import { PAGE_TITLES } from "@/lib/page-titles";
 import { cookies } from "next/headers";
 import { isPreview, siteUrl, siteDescription } from "@/lib/site";
@@ -23,6 +25,8 @@ const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
 });
+
+const ogImage = versionedOgImage("/og", homeOgTitle);
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -56,7 +60,7 @@ export const metadata: Metadata = {
       "The Generative UI framework. Generate dashboards, widgets, and apps from prompts — safely constrained to components you define.",
     images: [
       {
-        url: "/og",
+        url: ogImage,
         width: 1200,
         height: 630,
         alt: "json-render - The Generative UI Framework",
@@ -68,7 +72,14 @@ export const metadata: Metadata = {
     title: "json-render | The Generative UI Framework",
     description:
       "The Generative UI framework. Generate dashboards, widgets, and apps from prompts — safely constrained to components you define.",
-    images: ["/og"],
+    images: [
+      {
+        url: ogImage,
+        width: 1200,
+        height: 630,
+        alt: "json-render - The Generative UI Framework",
+      },
+    ],
   },
   robots: {
     index: !isPreview,
