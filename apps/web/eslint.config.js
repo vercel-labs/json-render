@@ -10,4 +10,12 @@ export default [
       "react/prop-types": "off",
     },
   },
+  {
+    // OG cards are rendered by satori, which embeds assets with <img>; next/image
+    // is not available there.
+    files: ["app/og/**/*.tsx"],
+    rules: {
+      "@next/next/no-img-element": "off",
+    },
+  },
 ];

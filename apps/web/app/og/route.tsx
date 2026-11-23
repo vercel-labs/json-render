@@ -1,6 +1,8 @@
-import { getPageTitle, renderOgImage } from "./og-image";
+import { renderLabsOg } from "./labs-og";
 
 export async function GET() {
-  const title = getPageTitle("")!;
-  return renderOgImage(title);
+  return renderLabsOg({
+    product: "json-render",
+    title: "The generative UI framework",
+  });
 }
