@@ -266,7 +266,8 @@ export function useUIStream({
     async (prompt: string, context?: Record<string, unknown>) => {
       // Abort any existing request
       abortControllerRef.current?.abort();
-      abortControllerRef.current = new AbortController();
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
 
       setIsStreaming(true);
       setError(null);
@@ -290,8 +291,9 @@ export function useUIStream({
             context,
             currentSpec,
           }),
-          signal: abortControllerRef.current.signal,
+          signal: controller.signal,
         });
+        if (controller.signal.aborted) return;
 
         if (!response.ok) {
           // Try to parse JSON error response for better error messages
@@ -319,6 +321,7 @@ export function useUIStream({
 
         while (true) {
           const { done, value } = await reader.read();
+          if (controller.signal.aborted) return;
           if (done) break;
 
           buffer += decoder.decode(value, { stream: true });
@@ -359,14 +362,17 @@ export function useUIStream({
 
         onCompleteRef.current?.(currentSpec);
       } catch (err) {
-        if ((err as Error).name === "AbortError") {
+        if (controller.signal.aborted || (err as Error).name === "AbortError") {
           return;
         }
         const error = err instanceof Error ? err : new Error(String(err));
         setError(error);
         onErrorRef.current?.(error);
       } finally {
-        setIsStreaming(false);
+        if (abortControllerRef.current === controller) {
+          abortControllerRef.current = null;
+          setIsStreaming(false);
+        }
       }
     },
     [api],
@@ -765,7 +771,8 @@ export function useChatUI({
 
       // Abort any existing request
       abortControllerRef.current?.abort();
-      abortControllerRef.current = new AbortController();
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
 
       const userMessage: ChatMessage = {
         id: generateChatId(),
@@ -807,8 +814,9 @@ export function useChatUI({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ messages: historyForApi }),
-          signal: abortControllerRef.current.signal,
+          signal: controller.signal,
         });
+        if (controller.signal.aborted) return;
 
         if (!response.ok) {
           let errorMessage = `HTTP error: ${response.status}`;
@@ -866,6 +874,7 @@ export function useChatUI({
 
         while (true) {
           const { done, value } = await reader.read();
+          if (controller.signal.aborted) return;
           if (done) break;
           parser.push(decoder.decode(value, { stream: true }));
         }
@@ -888,7 +897,7 @@ export function useChatUI({
         };
         onCompleteRef.current?.(finalMessage);
       } catch (err) {
-        if ((err as Error).name === "AbortError") {
+        if (controller.signal.aborted || (err as Error).name === "AbortError") {
           return;
         }
         const resolvedError =
@@ -900,7 +909,10 @@ export function useChatUI({
         );
         onErrorRef.current?.(resolvedError);
       } finally {
-        setIsStreaming(false);
+        if (abortControllerRef.current === controller) {
+          abortControllerRef.current = null;
+          setIsStreaming(false);
+        }
       }
     },
     [api],
