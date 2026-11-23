@@ -5,5 +5,9 @@
   "compilerOptions": {
     "noEmit": true
   },
-  "include": ["src/schema.test.ts"]
+  "include": [
+    "src/schema.test.ts",
+    "src/compact-generation.test.ts",
+    "src/json-stream.test.ts"
+  ]
 }

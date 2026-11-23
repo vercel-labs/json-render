@@ -139,3 +139,7 @@ Nested lists can set `repeat.statePath` to `{ "$item": "field" }` to iterate an 
 - [API Reference](https://json-render.dev/docs/api/ink)
 - [Renderers Overview](https://json-render.dev/docs/renderers)
 - [Ink Chat Example](https://github.com/vercel-labs/json-render/tree/main/examples/ink-chat)
+
+## Compact streaming
+
+Use `createCompactGeneration(catalog.data)` from `@json-render/core` with a compatible structured-output provider. Pipe the decoded model text through `generation.createTransform()` on the server; the existing streaming hooks consume its standard JSONL output without new options. See the [streaming guide](https://json-render.dev/docs/streaming#compact-streaming).

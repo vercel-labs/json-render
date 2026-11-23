@@ -25,7 +25,7 @@ export interface CompositionSummary {
   estimatedCostUsd: number | null;
 }
 
-export type StreamFormat = "jsonl" | "yaml";
+export type StreamFormat = "jsonl" | "yaml" | "compact";
 
 export interface TokenUsage {
   promptTokens: number;
@@ -164,7 +164,7 @@ export function usePlaygroundStream({
 
       const previousSpec = context?.previousSpec as Spec | undefined;
       let currentSpec: Spec =
-        previousSpec && previousSpec.root
+        requestFormat !== "compact" && previousSpec && previousSpec.root
           ? structuredClone(previousSpec)
           : { root: "", elements: {} };
       setSpec(currentSpec);
@@ -201,7 +201,43 @@ export function usePlaygroundStream({
         const decoder = new TextDecoder();
         let buffer = "";
 
-        if (requestFormat === "yaml") {
+        if (requestFormat === "compact") {
+          const { compactGeneration } = await import("./render/compact");
+          const compiler = compactGeneration.createCompiler();
+          let accumulatedText = "";
+          const processRecord = (line: string) => {
+            if (!line.trim()) return;
+            const record = JSON.parse(line);
+            if (record.__meta === "compact") {
+              if (typeof record.text !== "string")
+                throw new Error("Invalid compact text delta");
+              accumulatedText += record.text;
+              rawLinesRef.current = [accumulatedText];
+              setRawLines([...rawLinesRef.current]);
+              currentSpec = compiler.push(record.text).result;
+              setSpec({ ...currentSpec });
+            } else if (record.__meta === "usage") {
+              const parsed = parseLine(line);
+              if (parsed?.type === "usage") setUsage(parsed.usage);
+            } else if (record.__meta === "error") {
+              throw new Error(record.message);
+            } else {
+              throw new Error("Invalid compact stream record");
+            }
+          };
+          while (true) {
+            const { done, value } = await reader.read();
+            controller.signal.throwIfAborted();
+            buffer += decoder.decode(value, { stream: !done });
+            const lines = buffer.split("\n");
+            buffer = lines.pop() ?? "";
+            for (const line of lines) processRecord(line);
+            if (done) break;
+          }
+          processRecord(buffer);
+          currentSpec = compiler.getResult();
+          setSpec({ ...currentSpec });
+        } else if (requestFormat === "yaml") {
           // ── YAML streaming ──
           let fenceState: FenceState = "outside";
           const compiler = createYamlStreamCompiler<Record<string, unknown>>();
