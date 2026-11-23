@@ -16,7 +16,7 @@ import JSONRenderSwiftUI
 public enum NativeCatalog {
     /// The catalog's component renderers keyed by name.
     public static var components: [String: ComponentDefinition<AnyView>] {
-        [
+        var definitions: [String: ComponentDefinition<AnyView>] = [
             "Card": ComponentDefinition { AnyView(CardView(context: $0)) },
             "Stack": ComponentDefinition { AnyView(StackView(context: $0)) },
             "Grid": ComponentDefinition { AnyView(GridView(context: $0)) },
@@ -30,11 +30,19 @@ public enum NativeCatalog {
             "Image": ComponentDefinition { AnyView(ImageView(props: $0.props)) },
             "Progress": ComponentDefinition { AnyView(ProgressBarView(props: $0.props)) },
             "Button": ComponentDefinition { AnyView(CatalogButton(context: $0)) },
+            "Toolbar": ComponentDefinition { AnyView(CatalogToolbar(context: $0)) },
+            "Menu": ComponentDefinition { AnyView(CatalogMenu(context: $0)) },
+            "SegmentedPicker": ComponentDefinition { AnyView(CatalogSegmentedPicker(context: $0)) },
+            "Tabs": ComponentDefinition { AnyView(CatalogTabs(context: $0)) },
+            "Sheet": ComponentDefinition { AnyView(CatalogSheet(context: $0)) },
+            "Slider": ComponentDefinition { AnyView(CatalogSlider(context: $0)) },
             "Switch": ComponentDefinition { AnyView(SwitchView(context: $0)) },
             "BarChart": ComponentDefinition { AnyView(ChartView(kind: .bar, props: $0.props)) },
             "LineChart": ComponentDefinition { AnyView(ChartView(kind: .line, props: $0.props)) },
             "Separator": ComponentDefinition { _ in AnyView(Divider().padding(.vertical, 2)) },
         ]
+        definitions["Input"] = BuiltInComponents.components["Input"]
+        return definitions
     }
 
     /// A registry with the catalog components plus app components and actions.
@@ -226,7 +234,7 @@ struct GridView: View {
         let columns = (context.props.number("columns") ?? 2).clampedInt(to: 1...6, fallback: 2)
         let spacing = CatalogTheme.gap(context.props["gap"], fallback: 12)
 
-        ColumnsLayout(columns: columns, spacing: spacing, minColumnWidth: 140 * textScale) {
+        let grid = ColumnsLayout(columns: columns, spacing: spacing, minColumnWidth: 140 * textScale) {
             ForEach(context.keyedChildren) { child in
                 child.view
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -234,6 +242,16 @@ struct GridView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+
+        #if compiler(>=6.2)
+        if #available(iOS 26, macOS 26, *) {
+            GlassEffectContainer(spacing: 0) { grid }
+        } else {
+            grid
+        }
+        #else
+        grid
+        #endif
     }
 }
 
@@ -555,12 +573,7 @@ struct ListView: View {
             .padding(.vertical, depth == 0 ? 4 : 0)
             .background {
                 if depth == 0 {
-                    RoundedRectangle(cornerRadius: CatalogTheme.cornerRadius, style: .continuous)
-                        .fill(CatalogTheme.surface)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: CatalogTheme.cornerRadius, style: .continuous)
-                                .strokeBorder(CatalogTheme.hairline, lineWidth: 1)
-                        )
+                    CardBackground()
                 }
             }
         }
@@ -795,14 +808,7 @@ struct CatalogButton: View {
         .controlSize(CatalogTheme.controlSize(scale: textScale, compact: isAccessory))
         .disabled(context.props.bool("disabled") ?? false)
 
-        switch variant {
-        case "primary":
-            button.buttonStyle(.borderedProminent)
-        case "danger":
-            button.buttonStyle(.bordered).tint(.red)
-        default:
-            button.buttonStyle(.bordered)
-        }
+        button.modifier(CatalogButtonStyle(variant: variant))
     }
 }
 
@@ -812,6 +818,7 @@ final class LocalToggleState: ObservableObject {
 
 struct SwitchView: View {
     let context: ComponentRenderContext<AnyView>
+    @Environment(\.jsonRenderCatalogAppearance) private var appearance
     @StateObject private var local = LocalToggleState()
     @Environment(\.isAccessory) private var isAccessory
     @Environment(\.jsonRenderTextScale) private var textScale
@@ -833,14 +840,30 @@ struct SwitchView: View {
             }
         )
 
-        if isAccessory {
-            Toggle(context.props.string("label") ?? "", isOn: isOn)
+        Group {
+            if appearance.usesLiquidGlass && !isAccessory {
+                Toggle(isOn: isOn) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(context.props.string("label") ?? "")
+                        if let description = context.props.string("description"), !description.isEmpty {
+                            Text(description).font(.caption).foregroundStyle(.secondary)
+                        }
+                    }
+                }
                 .toggleStyle(.switch)
-                .labelsHidden()
-                .controlSize(CatalogTheme.controlSize(scale: textScale, compact: true))
-        } else {
-            switchRow(isOn: isOn)
+                .controlSize(.large)
+                .accessibilityLabel(context.props.string("label") ?? "")
+                .accessibilityHint(context.props.string("description") ?? "")
+            } else if isAccessory {
+                Toggle(context.props.string("label") ?? "", isOn: isOn)
+                    .toggleStyle(.switch)
+                    .labelsHidden()
+                    .controlSize(CatalogTheme.controlSize(scale: textScale, compact: true))
+            } else {
+                switchRow(isOn: isOn)
+            }
         }
+        .disabled(context.props.bool("disabled") ?? false)
     }
 
     private func switchRow(isOn: Binding<Bool>) -> some View {
@@ -855,7 +878,7 @@ struct SwitchView: View {
                 }
             }
             Spacer(minLength: 8)
-            Toggle("", isOn: isOn)
+            Toggle(context.props.string("label") ?? "", isOn: isOn)
                 .toggleStyle(.switch)
                 .labelsHidden()
                 .controlSize(CatalogTheme.controlSize(scale: textScale, compact: true))

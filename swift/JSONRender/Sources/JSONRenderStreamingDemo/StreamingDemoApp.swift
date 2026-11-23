@@ -11,6 +11,17 @@ import JSONRenderCatalog
 /// The recordings in `Resources` hold real streamed responses with the time
 /// each chunk arrived. `Scripts/record-demo-streams.mjs` makes them.
 @main
+enum DemoEntryPoint {
+    @MainActor
+    static func main() {
+        if DemoOptions.current.showcase {
+            MacLiquidGlassShowcaseApp.main()
+        } else {
+            StreamingDemoApp.main()
+        }
+    }
+}
+
 struct StreamingDemoApp: App {
     @NSApplicationDelegateAdaptor(DemoAppDelegate.self) private var delegate
     @StateObject private var player = StreamPlayer(options: .current)
@@ -21,6 +32,7 @@ struct StreamingDemoApp: App {
             DemoView(player: player, toaster: toaster)
         }
         .windowStyle(.hiddenTitleBar)
+        .windowToolbarStyle(.unified)
         .defaultSize(width: DemoOptions.current.width, height: DemoOptions.current.height)
         .commands {
             CommandMenu("Demo") {
@@ -56,6 +68,7 @@ final class DemoAppDelegate: NSObject, NSApplicationDelegate {
         DispatchQueue.main.async {
             guard let window = NSApp.windows.first else { return }
             let options = DemoOptions.current
+            guard !options.showcase else { return }
             window.setContentSize(NSSize(width: options.width, height: options.height))
             if let origin = options.origin, let screen = window.screen ?? NSScreen.main {
                 let y = screen.frame.maxY - origin.y - window.frame.height
@@ -79,6 +92,8 @@ struct DemoOptions {
     var autoplay = false
     var startDelay = 1.0
     var appearance: String?
+    var catalogAppearance: NativeCatalogAppearance = .standard
+    var showcase = false
     /// Pauses the replay after this many patches, for still frames.
     var stopAfter: Int?
     /// Playback speed. 1 replays the recorded timing.
@@ -108,6 +123,8 @@ struct DemoOptions {
             case "--autoplay": autoplay = true
             case "--delay": startDelay = iterator.next().flatMap(Double.init) ?? startDelay
             case "--appearance": appearance = iterator.next()
+            case "--liquid-glass": catalogAppearance = .liquidGlass
+            case "--liquid-glass-showcase": showcase = true
             case "--stop-after": stopAfter = iterator.next().flatMap(Int.init)
             case "--speed": speed = iterator.next().flatMap(Double.init) ?? speed
             case "--first-token": firstTokenDelay = iterator.next().flatMap(Double.init) ?? firstTokenDelay
@@ -419,6 +436,7 @@ struct DemoView: View {
                                 animation: .spring(response: 0.35, dampingFraction: 0.9)
                             )
                             .jsonRenderTextScale(scale)
+                            .jsonRenderCatalogAppearance(player.options.catalogAppearance)
                             .id(player.runID)
                             .padding(.horizontal, 28)
                             .padding(.top, 24)
@@ -736,7 +754,7 @@ struct ToastView: View {
         .shadow(color: .black.opacity(0.15), radius: 12, y: 4)
     }
 }
-#else
+#elseif !os(iOS)
 @main
 struct StreamingDemoApp {
     static func main() {

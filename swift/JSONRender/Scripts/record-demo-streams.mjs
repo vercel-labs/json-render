@@ -211,11 +211,109 @@ export const catalog = defineCatalog(schema, {
       description: "Push button. Bind on.press to an action.",
       example: { label: "Save", variant: "primary" },
     },
+    Toolbar: {
+      props: z.object({ label: z.string().nullable(), gap }),
+      slots: ["default"],
+      description:
+        "Groups toolbar controls such as Button, Menu, and SegmentedPicker.",
+      example: { label: "Map actions", gap: "sm" },
+    },
+    Menu: {
+      props: z.object({
+        label: z.string(),
+        icon: symbol,
+        disabled: z.boolean().nullable(),
+      }),
+      slots: ["default"],
+      description: "Native menu of Button actions.",
+      example: { label: "More", icon: "ellipsis" },
+    },
+    SegmentedPicker: {
+      props: z.object({
+        label: z.string(),
+        value: z.string().nullable(),
+        options: z.array(z.object({ label: z.string(), value: z.string() })),
+        disabled: z.boolean().nullable(),
+      }),
+      events: ["change"],
+      description:
+        "Native segmented control. Bind value with $bindState to store the selected option.",
+      example: {
+        label: "Period",
+        value: "week",
+        options: [
+          { label: "Week", value: "week" },
+          { label: "Month", value: "month" },
+        ],
+      },
+    },
+    Input: {
+      props: z.object({
+        label: z.string().nullable(),
+        placeholder: z.string().nullable(),
+        value: z.string().nullable(),
+      }),
+      events: ["change"],
+      description: "Text field. Bind value with $bindState to accept edits.",
+      example: { label: "Name", placeholder: "Enter a name" },
+    },
+    Tabs: {
+      props: z.object({
+        value: z.string().nullable(),
+        height: z.number().nullable(),
+        options: z.array(
+          z.object({
+            label: z.string(),
+            value: z.string(),
+            icon: symbol,
+          }),
+        ),
+      }),
+      slots: ["overview", "settings"],
+      events: ["change"],
+      description:
+        "Native tab view. Put each page in a named slot whose name matches its option value. Bind value to store the selected tab.",
+      example: {
+        value: "overview",
+        height: 380,
+        options: [
+          { label: "Overview", value: "overview", icon: "map" },
+          { label: "Settings", value: "settings", icon: "gearshape" },
+        ],
+      },
+    },
+    Sheet: {
+      props: z.object({
+        title: z.string().nullable(),
+        presented: z.boolean().nullable(),
+      }),
+      slots: ["default"],
+      events: ["dismiss"],
+      description:
+        "System sheet with child views. Bind presented to state, then open it with a Button that sets that state to true.",
+      example: { title: "Plan a hike" },
+    },
+    Slider: {
+      props: z.object({
+        label: z.string(),
+        value: z.number().nullable(),
+        min: z.number().nullable(),
+        max: z.number().nullable(),
+        step: z.number().nullable(),
+        disabled: z.boolean().nullable(),
+        tint,
+      }),
+      events: ["change"],
+      description:
+        "Native slider. Bind value with $bindState to store the number.",
+      example: { label: "Search radius", value: 8, min: 1, max: 15, step: 1 },
+    },
     Switch: {
       props: z.object({
         label: z.string(),
         description: z.string().nullable(),
         checked: z.boolean().nullable(),
+        disabled: z.boolean().nullable(),
       }),
       events: ["change"],
       description:
