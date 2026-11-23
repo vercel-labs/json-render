@@ -1,0 +1,74 @@
+---
+title: "Jetpack Compose"
+description: "Render json-render specs with app-registered Jetpack Compose components on Android."
+---
+
+The Jetpack Compose library renders specs on Android API 23 and newer. Each element type maps to a composable in your app's registry.
+
+## Installation
+
+In your app's Gradle settings, include the `android` directory of a json-render checkout. The build requires JDK 17 or newer and Android SDK 36.
+
+```kotlin
+includeBuild("../json-render/android") {
+    dependencySubstitution {
+        substitute(module("com.vercel.jsonrender:compose")).using(project(":compose"))
+    }
+}
+```
+
+Enable Compose in your app module and add `implementation("com.vercel.jsonrender:compose")` to its dependencies.
+
+## Spec.decode
+
+`Spec.decode(source)` decodes a full spec from a JSON string. Its return value contains the root key, element map, and initial state. The decoder ignores unknown fields. Use `validateSpec(source, componentTypes)` to check a complete spec for missing references, cycles, and optional component registration before rendering.
+
+## JsonRender
+
+Call `JsonRender(spec)` from a composable to render the spec with the foundation registry. Pass `registry` to supply your own component types, or combine your custom components with `FoundationComponents`.
+
+```kotlin
+@Composable
+fun StatusScreen() {
+    JsonRender(
+        spec = Spec.decode(
+            """{"root":"message","elements":{"message":{"type":"Text","props":{"text":"Ready"}}}}"""
+        ),
+    )
+}
+```
+
+Apps own state and dispatch. Pass an updated `state` to re-render state-dependent props and visibility. The `onStateChange` callback receives a JSON Pointer and a JSON value. You can apply them to the current state with `state.withStateValue(path, value)`. The `onAction` callback receives an action name, resolved parameters, and the original binding.
+
+## ComponentContext
+
+A `ComponentRegistry` maps a spec type name to a composable that receives a `ComponentContext`.
+
+- Read resolved props from `context.props`.
+- Use `context.RenderChildren()` and `context.RenderSlot(name)` to render nested elements.
+- Use `context.emit(event)` to dispatch an event's actions.
+- Use `context.write(prop, value)` to request a write to a `$bindState` or `$bindItem` prop.
+
+## FoundationComponents
+
+- Layout — `Column`, `Row`, `Stack`, `Grid`, `Spacer`, `Divider`, and `Separator`.
+- Content — `Text`, `Heading`, `Card`, `Badge`, `Alert`, `Metric`, `List`, `ListItem`, `Image`, `Progress`, `ProgressBar`, `BarChart`, and `LineChart`.
+- Controls — `Button`, `Input`, `Select`, `Switch`, `Toggle`, and `Checkbox`.
+
+Supply `LocalJsonRenderImagePainter` to render a painter for each image source your app accepts. `Image` otherwise reserves space and exposes its alternative text.
+
+## Expressions and watches
+
+The renderer resolves visibility, array repeats, state and item references, bindings, templates, and conditional props. Pass an `ExpressionRegistry` with functions for `$computed` and custom directive handlers. A custom directive receives its source JSON object and a context that can resolve nested values.
+
+An element's `watch` maps state paths to actions. A watch records an initial value and emits actions when that value changes. The renderer caps consecutive watch dispatches at 64 by default. Set `watchCascadeLimit` to adjust the cap.
+
+## ActionDispatcher
+
+Call the suspend function `dispatch(binding)` from an app coroutine to run a named handler or the built-in `setState`, `pushState`, and `removeState` actions. Provide state access callbacks and optional handlers for confirmation and navigation. `pushState` expands `$id` tokens into unique IDs. Custom actions support `onSuccess` and `onError` follow-ups.
+
+## SpecStreamCompiler
+
+Pass chunks of newline-delimited JSON patches to `push(chunk)`. `currentSpec()` returns a renderable partial spec when its root is available. `finish()` applies the last line if the stream ends without a newline. Invalid and oversized patches leave the compiler's previous result available.
+
+See the [Android package guide](https://github.com/vercel-labs/json-render/tree/main/android) for a custom registry example.
