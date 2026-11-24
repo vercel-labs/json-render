@@ -83,6 +83,7 @@ export const docsNavigation: NavSection[] = [
       { title: "@json-render/shadcn", href: "/docs/api/shadcn" },
       { title: "@json-render/shadcn-svelte", href: "/docs/api/shadcn-svelte" },
       { title: "@json-render/react-native", href: "/docs/api/react-native" },
+      { title: "Jetpack Compose", href: "/docs/api/jetpack-compose" },
       { title: "@json-render/image", href: "/docs/api/image" },
       { title: "@json-render/remotion", href: "/docs/api/remotion" },
       { title: "@json-render/ink", href: "/docs/api/ink" },
@@ -114,6 +115,10 @@ export const docsNavigation: NavSection[] = [
       { title: "@json-render/zustand", href: "/docs/api/zustand" },
       { title: "@json-render/jotai", href: "/docs/api/jotai" },
       { title: "@json-render/xstate", href: "/docs/api/xstate" },
+      {
+        title: "Material 3 Expressive",
+        href: "/docs/api/material3-expressive",
+      },
       { title: "@json-render/yaml", href: "/docs/api/yaml" },
     ],
   },

@@ -894,6 +894,50 @@
       ]
     },
     {
+      "path": "/docs/api/jetpack-compose",
+      "file": "content/docs/api/jetpack-compose.mdx",
+      "title": "Jetpack Compose",
+      "metadataTitle": "Jetpack Compose API | json-render",
+      "prefix": "",
+      "sourceSha256": "bd2192d3202b438f7534d0fc513aea2ed2b09437a3ad30eea6933cfa36d42371",
+      "bodySha256": "bd2192d3202b438f7534d0fc513aea2ed2b09437a3ad30eea6933cfa36d42371",
+      "markdownSha256": "70da61414472f2c513126e30ac860ce15bbe4477fd99338a71544089e06c42e9",
+      "headings": [
+        {
+          "title": "Installation",
+          "id": "installation"
+        },
+        {
+          "title": "Spec.decode",
+          "id": "specdecode"
+        },
+        {
+          "title": "JsonRender",
+          "id": "jsonrender"
+        },
+        {
+          "title": "ComponentContext",
+          "id": "componentcontext"
+        },
+        {
+          "title": "FoundationComponents",
+          "id": "foundationcomponents"
+        },
+        {
+          "title": "Expressions and watches",
+          "id": "expressions-and-watches"
+        },
+        {
+          "title": "ActionDispatcher",
+          "id": "actiondispatcher"
+        },
+        {
+          "title": "SpecStreamCompiler",
+          "id": "specstreamcompiler"
+        }
+      ]
+    },
+    {
       "path": "/docs/api/jotai",
       "file": "content/docs/api/jotai.mdx",
       "title": "@json-render/jotai",
@@ -926,6 +970,42 @@
         {
           "title": "Re-exports",
           "id": "re-exports"
+        }
+      ]
+    },
+    {
+      "path": "/docs/api/material3-expressive",
+      "file": "content/docs/api/material3-expressive.mdx",
+      "title": "Material 3 Expressive",
+      "metadataTitle": "Material 3 Expressive API | json-render",
+      "prefix": "",
+      "sourceSha256": "12fa5ffb881596f56be39a8da15f190b2f403362deaaf96c3cc0d6148d7c606a",
+      "bodySha256": "12fa5ffb881596f56be39a8da15f190b2f403362deaaf96c3cc0d6148d7c606a",
+      "markdownSha256": "a6e99c16590ccfe3e2aef770b0e71916f96107ecf15666f5387620bd09494b98",
+      "headings": [
+        {
+          "title": "Render a spec",
+          "id": "render-a-spec"
+        },
+        {
+          "title": "Components",
+          "id": "components"
+        },
+        {
+          "title": "Layout and content",
+          "id": "layout-and-content"
+        },
+        {
+          "title": "Controls",
+          "id": "controls"
+        },
+        {
+          "title": "Navigation and overlays",
+          "id": "navigation-and-overlays"
+        },
+        {
+          "title": "Progress and charts",
+          "id": "progress-and-charts"
         }
       ]
     },
