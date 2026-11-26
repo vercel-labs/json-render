@@ -191,9 +191,9 @@
       "title": "@json-render/chat",
       "metadataTitle": "@json-render/chat API | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/chat\")\n\n# @json-render/chat\n",
-      "sourceSha256": "e6c62182d24c37750a52eb534afd021ae40790d9537dfb5c23a279a8be375a09",
-      "bodySha256": "d2dc7310ca54dc94d5ddb019d95c09423da85a3c5b0023ea1e6320aff190e8c8",
-      "markdownSha256": "842d14eca7891296c5fa88c42e7d678c407920680abf68f364c172c46b76399a",
+      "sourceSha256": "8beffdcd3166c0b2c4f48e97ea5cace348dc9eb7d36e7b5fc1e0a921d7a338a4",
+      "bodySha256": "40787bb2be7545580a34b4145ce5c66b229a3fc2298d563505a25afe709ee6f9",
+      "markdownSha256": "c3fa5254b114ec2bc7e82321e2cd846ba56e229dfd141db46cd10ce9b37ab1db",
       "headings": [
         {
           "title": "Install",
@@ -210,6 +210,10 @@
         {
           "title": "toCard",
           "id": "tocard"
+        },
+        {
+          "title": "Portable composition",
+          "id": "portable-composition"
         },
         {
           "title": "State and repeat",
