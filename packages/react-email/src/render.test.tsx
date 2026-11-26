@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import type { Spec } from "@json-render/core";
 import { renderToHtml, renderToPlainText } from "./render";
 import { examples } from "./__fixtures__/examples";
@@ -404,4 +404,70 @@ describe("example specs", () => {
       });
     });
   }
+});
+
+// =============================================================================
+// Warnings for content that would be dropped silently
+// =============================================================================
+
+describe("dropped content warnings", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it("warns on an unknown component type", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    await renderToHtml(
+      minimalSpec({ x: { type: "Nope", props: {}, children: [] } }),
+    );
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('"Nope"'));
+  });
+
+  it("warns when a standard leaf component has children", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    await renderToHtml(
+      minimalSpec({
+        link: {
+          type: "Link",
+          props: { text: "Site", href: "https://x.com", style: null },
+          children: ["img"],
+        },
+        img: {
+          type: "Image",
+          props: {
+            src: "https://x.com/a.png",
+            alt: null,
+            width: null,
+            height: null,
+            style: null,
+          },
+          children: [],
+        },
+      }),
+    );
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('"Link" does not render children'),
+    );
+  });
+
+  it("does not warn for a custom override that renders children", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const html = await renderToHtml(
+      minimalSpec({
+        link: { type: "Link", props: { text: "Site" }, children: ["t"] },
+        t: {
+          type: "Text",
+          props: { text: "inner", style: null },
+          children: [],
+        },
+      }),
+      { registry: { Link: ({ children }) => <a>{children}</a> } },
+    );
+    expect(html).toContain("inner");
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it("does not warn for a valid spec", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    await renderToHtml(examples[0]!.spec);
+    expect(warn).not.toHaveBeenCalled();
+  });
 });
