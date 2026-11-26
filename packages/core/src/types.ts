@@ -105,13 +105,22 @@ export interface FlatElement<
  * `not` inverts the final result of whichever operator (or truthiness
  * check) is used.
  */
+/**
+ * Operand of a numeric comparison: a number, a `{ $state }` reference, or a
+ * custom directive (e.g. `{ "$count": ... }`) resolved at evaluation time.
+ */
+type NumericOperand =
+  | number
+  | { $state: string }
+  | { [directive: `$${string}`]: unknown };
+
 type ComparisonOperators = {
   eq?: unknown;
   neq?: unknown;
-  gt?: number | { $state: string };
-  gte?: number | { $state: string };
-  lt?: number | { $state: string };
-  lte?: number | { $state: string };
+  gt?: NumericOperand;
+  gte?: NumericOperand;
+  lt?: NumericOperand;
+  lte?: NumericOperand;
   not?: true;
 };
 
