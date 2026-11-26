@@ -219,6 +219,7 @@ function specToNested(spec: Spec): Record<string, unknown> {
 }
 
 const EXAMPLE_PROMPTS = [
+  "Coffee shops near Union Square on a map",
   "Recipe card with rating and ingredients",
   "Order receipt with item list and total",
   "Team member profile card",
@@ -462,6 +463,7 @@ export function Demo({
             start: "next start",
           },
           dependencies: {
+            ...(components.has("Map") ? { "mapbox-gl": "^3.34.2" } : {}),
             next: "^16.1.3",
             react: "^19.2.3",
             "react-dom": "^19.2.3",
@@ -874,6 +876,70 @@ export function Rating({ label, value = 0, max = 5 }: RatingProps) {
   );
 }
 `,
+      Map: `"use client";
+
+import { useEffect, useRef } from "react";
+import mapboxgl from "mapbox-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
+
+// Simplified export: camera, style and markers. Routes, isochrones and
+// GeoJSON layers are rendered in the json-render playground only.
+const STYLES: Record<string, string> = {
+  standard: "mapbox://styles/mapbox/standard",
+  satellite: "mapbox://styles/mapbox/standard-satellite",
+};
+
+interface LngLat {
+  lng: number;
+  lat: number;
+}
+
+interface MapProps {
+  style?: string;
+  center: LngLat;
+  zoom: number;
+  pitch?: number;
+  bearing?: number;
+  height?: "sm" | "md" | "lg";
+  fitToContent?: boolean;
+  markers?: { position: LngLat; label?: string | null; popup?: string | null; color?: string | null }[];
+}
+
+export function Map({ style = "standard", center, zoom, pitch = 0, bearing = 0, height = "md", fitToContent, markers = [] }: MapProps) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!ref.current) return;
+    mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "";
+    const map = new mapboxgl.Map({
+      container: ref.current,
+      style: STYLES[style] ?? STYLES.standard,
+      config: (STYLES[style] ?? STYLES.standard) === STYLES.standard ? { basemap: { lightPreset: "night" } } : undefined,
+      center: [center.lng, center.lat],
+      zoom,
+      pitch,
+      bearing,
+    });
+    const bounds = new mapboxgl.LngLatBounds();
+    for (const m of markers) {
+      const marker = new mapboxgl.Marker({ color: m.color ?? undefined })
+        .setLngLat([m.position.lng, m.position.lat])
+        .addTo(map);
+      if (m.label || m.popup) {
+        marker.setPopup(new mapboxgl.Popup({ offset: 24 }).setText([m.label, m.popup].filter(Boolean).join(": ")));
+      }
+      bounds.extend([m.position.lng, m.position.lat]);
+    }
+    if (fitToContent && markers.length > 1) {
+      map.fitBounds(bounds, { padding: 48, maxZoom: 16, duration: 0 });
+    }
+    return () => map.remove();
+  }, [style, center, zoom, pitch, bearing, fitToContent, markers]);
+
+  const heightClass = height === "sm" ? "h-56" : height === "lg" ? "h-[28rem]" : "h-80";
+  return <div ref={ref} className={\`w-full rounded-lg border border-border overflow-hidden \${heightClass}\`} />;
+}
+`,
       Form: `"use client";
 
 import { ReactNode } from "react";
@@ -944,7 +1010,11 @@ This app was generated from a json-render UI tree.
 npm install
 npm run dev
 \`\`\`
-
+${
+  components.has("Map")
+    ? "\nThe Map component needs a Mapbox public token. Set `NEXT_PUBLIC_MAPBOX_TOKEN` in `.env.local` (get one at https://account.mapbox.com/access-tokens/).\n"
+    : ""
+}
 Open [http://localhost:3000](http://localhost:3000) to view.
 `,
     });

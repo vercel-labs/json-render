@@ -99,6 +99,7 @@ import {
 } from "@/components/ui/tabs";
 import { Toggle } from "@/components/ui/toggle";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { MapboxMap } from "@/components/ui/mapbox-map";
 import {
   Tooltip as TooltipPrimitive,
   TooltipContent,
@@ -797,6 +798,12 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
             ? "\u2193"
             : "";
 
+      // Word units ("miles", "hours") get a space; "%" or "K" stay attached.
+      const suffix =
+        props.suffix && /^[A-Za-z]{2,}/.test(props.suffix)
+          ? ` ${props.suffix}`
+          : props.suffix;
+
       return (
         <div className="space-y-1">
           <div className="text-sm text-muted-foreground">{props.label}</div>
@@ -804,7 +811,7 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
             <span className="text-2xl font-semibold tracking-tight tabular-nums">
               {props.prefix}
               {props.value}
-              {props.suffix}
+              {suffix}
             </span>
             {props.change && (
               <span className={`text-sm font-medium ${changeColor}`}>
@@ -996,6 +1003,12 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
         </div>
       );
     },
+
+    // ── Maps ──────────────────────────────────────────────────────────
+
+    Map: ({ props, emit }) => (
+      <MapboxMap {...props} onMarkerPress={() => emit("markerPress")} />
+    ),
 
     // ── Form Inputs ───────────────────────────────────────────────────
 
