@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import type { Spec } from "@json-render/core";
+import { defineDirective, type Spec } from "@json-render/core";
+import { z } from "zod";
 import { renderToHtml, renderToPlainText } from "./render";
 import { examples } from "./__fixtures__/examples";
 
@@ -404,4 +405,41 @@ describe("example specs", () => {
       });
     });
   }
+});
+
+// =============================================================================
+// $computed functions and custom directives
+// =============================================================================
+
+describe("functions and directives", () => {
+  const spec = (text: unknown) =>
+    minimalSpec({
+      text: { type: "Text", props: { text, style: null }, children: [] },
+    });
+
+  it("resolves $computed with the functions option", async () => {
+    const html = await renderToHtml(
+      spec({ $computed: "shout", args: { value: "hola" } }),
+      {
+        functions: { shout: (args) => `${String(args.value).toUpperCase()}!` },
+      },
+    );
+    expect(html).toContain("HOLA!");
+  });
+
+  it("resolves custom directives with the directives option", async () => {
+    const double = defineDirective({
+      name: "$double",
+      schema: z.object({ $double: z.number() }),
+      resolve: (v) => String((v as { $double: number }).$double * 2),
+    });
+    const html = await renderToHtml(spec({ $double: 21 }), {
+      directives: [double],
+    });
+    const text = await renderToPlainText(spec({ $double: 21 }), {
+      directives: [double],
+    });
+    expect(html).toContain("42");
+    expect(text).toContain("42");
+  });
 });
