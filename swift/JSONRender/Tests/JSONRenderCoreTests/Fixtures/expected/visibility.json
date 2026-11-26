@@ -1,0 +1,42 @@
+{
+  "component": "Column",
+  "props": {},
+  "children": [
+    {
+      "component": "Text",
+      "props": {
+        "text": "always"
+      }
+    },
+    {
+      "component": "Text",
+      "props": {
+        "text": "tab home"
+      }
+    },
+    {
+      "component": "Text",
+      "props": {
+        "text": "count > 3"
+      }
+    },
+    {
+      "component": "Text",
+      "props": {
+        "text": "and"
+      }
+    },
+    {
+      "component": "Text",
+      "props": {
+        "text": "or"
+      }
+    },
+    {
+      "component": "Text",
+      "props": {
+        "text": "compare to state"
+      }
+    }
+  ]
+}

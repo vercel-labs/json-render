@@ -155,6 +155,29 @@ export function recordUsage(events: EventStore, usage: TokenUsage): void {
   events.push({ kind: "stream-usage", at: Date.now(), usage });
 }
 
+/** Deep-copies JSON part data, reading through framework proxies, so replaying parts never mutates them. */
+function cloneJson<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
+}
+
+/**
+ * Type guard that validates a data part payload looks like a valid
+ * {@link SpecDataPart} before we cast it. Malformed payloads are skipped.
+ */
+function isSpecDataPart(data: unknown): data is SpecDataPart {
+  if (typeof data !== "object" || data === null) return false;
+  const obj = data as Record<string, unknown>;
+  switch (obj.type) {
+    case "patch":
+      return typeof obj.patch === "object" && obj.patch !== null;
+    case "flat":
+    case "nested":
+      return typeof obj.spec === "object" && obj.spec !== null;
+    default:
+      return false;
+  }
+}
+
 /**
  * Replay every `SPEC_DATA_PART` in `parts` and return the resulting spec,
  * or `null` if the message has no UI. Mirrors the framework-side
@@ -171,17 +194,17 @@ export function extractSpecFromParts(
   for (const part of parts) {
     if (!part || typeof part !== "object") continue;
     if (part.type !== SPEC_DATA_PART_TYPE) continue;
-    const data = part.data as SpecDataPart | undefined;
-    if (!data) continue;
+    const data = part.data;
+    if (!isSpecDataPart(data)) continue;
     if (data.type === "patch") {
       hasSpec = true;
-      applySpecPatch(spec, data.patch);
+      applySpecPatch(spec, cloneJson(data.patch));
     } else if (data.type === "flat") {
       hasSpec = true;
-      Object.assign(spec, data.spec);
+      Object.assign(spec, cloneJson(data.spec));
     } else if (data.type === "nested") {
       hasSpec = true;
-      Object.assign(spec, nestedToFlat(data.spec));
+      Object.assign(spec, nestedToFlat(cloneJson(data.spec)));
     }
   }
   return hasSpec ? spec : null;

@@ -86,7 +86,23 @@ The target is any object with Chat SDK's `post(card)` method that returns a mess
   </tbody>
 </table>
 
-If the final spec is invalid, `streamCard` throws `CardSpecError` after the partial message is visible, so you can retry or edit the message.
+If the final spec is invalid, `streamCard` throws `CardSpecError` after the partial message is visible. Its `postedMessage` property holds that message, so you can retry or edit it. `postedMessage` is undefined when nothing was posted. Other errors, such as a failed text stream or a rejected edit, propagate unchanged.
+
+```typescript
+import { CardSpecError, streamCard } from "@json-render/chat";
+
+try {
+  await streamCard(thread, result.textStream, { limits });
+} catch (error) {
+  if (error instanceof CardSpecError && error.postedMessage) {
+    await error.postedMessage.edit(errorCard(error.issues));
+  } else {
+    throw error;
+  }
+}
+```
+
+`errorCard` stands for your own function that builds a card from a list of issues.
 
 ## toCard
 

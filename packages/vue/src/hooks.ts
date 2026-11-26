@@ -503,6 +503,11 @@ function isSpecDataPart(data: unknown): data is SpecDataPart {
   }
 }
 
+/** Deep-copies JSON part data, reading through framework proxies, so replaying parts never mutates them. */
+function cloneJson<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
+}
+
 /**
  * Build a `Spec` by replaying all spec data parts from a message's
  * parts array. Returns `null` if no spec data parts are present.
@@ -521,13 +526,13 @@ export function buildSpecFromParts(parts: DataPart[]): Spec | null {
       const payload = part.data;
       if (payload.type === "patch") {
         hasSpec = true;
-        applySpecPatch(spec, payload.patch);
+        applySpecPatch(spec, cloneJson(payload.patch));
       } else if (payload.type === "flat") {
         hasSpec = true;
-        Object.assign(spec, payload.spec);
+        Object.assign(spec, cloneJson(payload.spec));
       } else if (payload.type === "nested") {
         hasSpec = true;
-        const flat = nestedToFlat(payload.spec);
+        const flat = nestedToFlat(cloneJson(payload.spec));
         Object.assign(spec, flat);
       }
     }

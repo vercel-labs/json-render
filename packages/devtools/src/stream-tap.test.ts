@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 import type { SpecDataPart } from "@json-render/core";
 import { SPEC_DATA_PART_TYPE } from "@json-render/core";
 import { createEventStore } from "./event-store";
-import { recordEvent, scanMessageParts } from "./stream-tap";
+import {
+  extractSpecFromParts,
+  recordEvent,
+  scanMessageParts,
+} from "./stream-tap";
 
 describe("scanMessageParts", () => {
   it("emits stream-patch events for spec data parts", () => {
@@ -74,5 +78,43 @@ describe("recordEvent", () => {
       name: "foo",
     });
     expect(store.size()).toBe(1);
+  });
+});
+
+describe("extractSpecFromParts replay", () => {
+  it("returns the same spec when the same parts are replayed twice", () => {
+    const patch = (op: Record<string, unknown>) => ({
+      type: "data-spec",
+      data: { type: "patch", patch: op },
+    });
+    const parts = [
+      patch({ op: "add", path: "/root", value: "main" }),
+      patch({ op: "add", path: "/state/posts", value: [] }),
+      patch({ op: "add", path: "/state/posts/0", value: { id: "1" } }),
+      patch({ op: "add", path: "/state/posts/1", value: { id: "2" } }),
+      patch({
+        op: "add",
+        path: "/elements/main",
+        value: { type: "Card", props: {}, children: [] },
+      }),
+      patch({ op: "add", path: "/elements/main/children/-", value: "child" }),
+    ];
+
+    const first = extractSpecFromParts(parts);
+    const second = extractSpecFromParts(parts);
+
+    expect(second).toEqual(first);
+    expect(second?.state?.posts).toEqual([{ id: "1" }, { id: "2" }]);
+    expect(second?.elements.main?.children).toEqual(["child"]);
+  });
+
+  it("skips malformed spec parts instead of throwing", () => {
+    const parts = [
+      { type: SPEC_DATA_PART_TYPE, data: { type: "flat" } },
+      { type: SPEC_DATA_PART_TYPE, data: { type: "nested" } },
+    ];
+
+    expect(() => extractSpecFromParts(parts)).not.toThrow();
+    expect(extractSpecFromParts(parts)).toBeNull();
   });
 });

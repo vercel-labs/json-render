@@ -1,0 +1,57 @@
+{
+  "root": "card",
+  "elements": {
+    "card": {
+      "type": "Card",
+      "props": {
+        "title": "User Profile",
+        "description": null,
+        "maxWidth": "md",
+        "centered": null
+      },
+      "children": ["stack"]
+    },
+    "stack": {
+      "type": "Stack",
+      "props": {
+        "direction": "vertical",
+        "gap": "md",
+        "align": null,
+        "justify": null
+      },
+      "children": ["heading", "text", "badges", "sep", "progress"]
+    },
+    "heading": {
+      "type": "Heading",
+      "props": { "text": "Jane Cooper", "level": "h2" }
+    },
+    "text": {
+      "type": "Text",
+      "props": {
+        "text": "Senior software engineer based in San Francisco. Passionate about building accessible, high-performance web applications.",
+        "variant": "muted"
+      }
+    },
+    "badges": {
+      "type": "Stack",
+      "props": {
+        "direction": "horizontal",
+        "gap": "sm",
+        "align": null,
+        "justify": null
+      },
+      "children": ["b1", "b2", "b3"]
+    },
+    "b1": {
+      "type": "Badge",
+      "props": { "text": "TypeScript", "variant": "default" }
+    },
+    "b2": { "type": "Badge", "props": { "text": "React", "variant": "secondary" } },
+    "b3": { "type": "Badge", "props": { "text": "Node.js", "variant": "outline" } },
+    "sep": { "type": "Separator", "props": { "orientation": null } },
+    "progress": {
+      "type": "Progress",
+      "props": { "value": 72, "max": 100, "label": "Profile completion" }
+    }
+  }
+}

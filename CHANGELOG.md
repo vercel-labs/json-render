@@ -1,8 +1,64 @@
 # Changelog
 
-## 0.22.0
+## 0.23.2
 
 <!-- release:start -->
+
+### Bug Fixes
+
+- **Chat stream errors:** The `CardSpecError` thrown by `streamCard` for an invalid final spec now carries the posted message as `postedMessage`, so callers can edit or remove the partial card (#483)
+
+### Contributors
+
+- @Railly
+- @sachinmour
+
+<!-- release:end -->
+
+## 0.23.1
+
+### Bug Fixes
+
+- **Swift render tree limits:** Bound the child ids a build holds, so a spec that lists the same child many times with a long state value stops at a limit instead of holding a copy of that value once per child. Bound the issues the validator reports and the message bytes they hold, and end a shortened result with one `specTooComplex` issue that keeps its severity, so a spec whose only dropped issues were warnings stays valid (#477)
+
+### Improvements
+
+- **Swift package installation:** Made the repository root a Swift package, so Xcode and SwiftPM can add `JSONRender` by URL from 0.23.1 on, with the `JSONRenderCore`, `JSONRenderSwiftUI`, and `JSONRenderCatalog` products. The nested package at `swift/JSONRender` remains for local checkouts (#478)
+
+### Contributors
+
+- @ctate
+
+## 0.23.0
+
+### New Features
+
+- **Swift package and SwiftUI renderer:** Added a `JSONRender` Swift package with a `JSONRenderCore` model for specs, streaming, state, expressions, actions, visibility, and validation, a `JSONRenderSwiftUI` renderer with built-in views, a native catalog, and macOS and streaming example apps. Conformance fixtures compare the Swift render tree with the React renderer, and CI builds and tests the package (#470)
+
+### Bug Fixes
+
+- **Spec replay:** Deep-copy message parts before replaying so repeated replays no longer mutate the parts or duplicate state items and children in React, Vue, Solid, Svelte, and Devtools. Devtools also skips malformed spec parts instead of crashing (#453)
+- **Spec fences:** Reset unfinished spec fences at text block boundaries so prose after an interrupted fence is no longer dropped by the core and YAML transforms (#426)
+- **Code generation:** Emit string props as JSX expressions so quotes, backslashes, and newlines survive code export (#427)
+- **Email validation:** Ignore surrounding whitespace in the email validator, matching the URL and required checks (#430)
+- **Numeric validation:** Accept numeric strings for `min` and `max`, using the same parser and rules as the `numeric` check (#429)
+
+### Documentation
+
+- Corrected the **Next.js quick start** to use `getPageData` from `createNextApp` and to move `NextAppProvider` into a client layout (#428)
+
+### Contributors
+
+- @ctate
+- @Railly
+- @lahfir
+- @kevin9327
+- @ken8203
+- @KennyMcSimpson
+- @WhyTan00
+- @Jassi2004
+
+## 0.22.0
 
 ### New Features
 
@@ -12,8 +68,6 @@
 ### Contributors
 
 - @Railly
-
-<!-- release:end -->
 
 ## 0.21.4
 

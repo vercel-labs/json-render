@@ -1,0 +1,79 @@
+{
+  "root": "col",
+  "state": {
+    "tab": "home",
+    "count": 5,
+    "role": "admin",
+    "flag": true,
+    "zero": 0
+  },
+  "elements": {
+    "col": {
+      "type": "Column",
+      "props": {},
+      "children": ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"]
+    },
+    "a": {
+      "type": "Text",
+      "props": { "text": "always" }
+    },
+    "b": {
+      "type": "Text",
+      "props": { "text": "tab home" },
+      "visible": { "$state": "/tab", "eq": "home" }
+    },
+    "c": {
+      "type": "Text",
+      "props": { "text": "hidden" },
+      "visible": { "$state": "/tab", "eq": "other" }
+    },
+    "d": {
+      "type": "Text",
+      "props": { "text": "count > 3" },
+      "visible": { "$state": "/count", "gt": 3 }
+    },
+    "e": {
+      "type": "Text",
+      "props": { "text": "count <= 3" },
+      "visible": { "$state": "/count", "lte": 3 }
+    },
+    "f": {
+      "type": "Text",
+      "props": { "text": "not admin" },
+      "visible": { "$state": "/role", "eq": "admin", "not": true }
+    },
+    "g": {
+      "type": "Text",
+      "props": { "text": "and" },
+      "visible": [
+        { "$state": "/flag", "eq": true },
+        { "$state": "/count", "gte": 5 }
+      ]
+    },
+    "h": {
+      "type": "Text",
+      "props": { "text": "or" },
+      "visible": {
+        "$or": [
+          { "$state": "/tab", "eq": "settings" },
+          { "$state": "/role", "eq": "admin" }
+        ]
+      }
+    },
+    "i": {
+      "type": "Text",
+      "props": { "text": "boolean false" },
+      "visible": false
+    },
+    "j": {
+      "type": "Text",
+      "props": { "text": "compare to state" },
+      "visible": { "$state": "/count", "gte": { "$state": "/count" } }
+    },
+    "k": {
+      "type": "Text",
+      "props": { "text": "truthy zero" },
+      "visible": { "$state": "/zero" }
+    }
+  }
+}

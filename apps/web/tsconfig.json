@@ -9,7 +9,9 @@
     "paths": {
       "@/*": ["./*"],
       "@/.source/*": ["./.source/*"]
-    }
+    },
+    // The shared OG card module indexes font tables directly; keep it verbatim.
+    "noUncheckedIndexedAccess": false
   },
   "include": [
     "**/*.ts",

@@ -191,9 +191,9 @@
       "title": "@json-render/chat",
       "metadataTitle": "@json-render/chat API | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/chat\")\n\n# @json-render/chat\n",
-      "sourceSha256": "3a9f899ef422b3ab9d455c487dd1fefd270ed2f3beacd8ed317760e76cfa96bf",
-      "bodySha256": "1cc4d6b0d457dfd9015006bbb3b634ba69339f295fec4083de36284f5cef0e3f",
-      "markdownSha256": "8b2a4804944a73d668f8a9ac77a523e955363ae90e079d1733d142f7b33be278",
+      "sourceSha256": "8beffdcd3166c0b2c4f48e97ea5cace348dc9eb7d36e7b5fc1e0a921d7a338a4",
+      "bodySha256": "40787bb2be7545580a34b4145ce5c66b229a3fc2298d563505a25afe709ee6f9",
+      "markdownSha256": "c3fa5254b114ec2bc7e82321e2cd846ba56e229dfd141db46cd10ce9b37ab1db",
       "headings": [
         {
           "title": "Install",
@@ -231,9 +231,9 @@
       "title": "@json-render/codegen",
       "metadataTitle": "@json-render/codegen API | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/codegen\")\n\n# @json-render/codegen\n",
-      "sourceSha256": "ffe7c5b39084d393a6706d18cf40c8b5b0fa654d46bc89771f6e6a3a79102be5",
-      "bodySha256": "89f627bc21e5fafae1e498d9e9369a93b30f9b24eb4539dac5d69ac03e61b180",
-      "markdownSha256": "3ecfc1393d0538ac49c34e0daf5c95aa716238f0dad4b711871d6f82fefe66eb",
+      "sourceSha256": "93f839b115c34b5579839fa41ddf213e4686d67e24848f441b3f207e5d06aa2e",
+      "bodySha256": "2cf9c68336610d0172ba0861d4a1be2c4135eafb2eaa443c95145a7641d4d6de",
+      "markdownSha256": "0339143131892d7312249f256afc6f4b3a290ec7e0e6a209438d90d6b9d351ad",
       "headings": [
         {
           "title": "Tree Traversal",
@@ -1003,9 +1003,9 @@
       "title": "@json-render/next",
       "metadataTitle": "@json-render/next API | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/api/next\")\n\n# @json-render/next\n",
-      "sourceSha256": "fcb2b5aac8a6849e3c744d008eca96e196f68683dd0e7b35a8fa3b405561e5cd",
-      "bodySha256": "47e1c83be544eb7fcfa821721f4068c04bab23a17ef2fc52066378eef018967d",
-      "markdownSha256": "5ebc68fd21f16599a5b5331013af4c8ba00f0461b1ce03ac047589d2a84f6d19",
+      "sourceSha256": "104cb9c60b856fda51cc2fc292cc54a5043ff6563f26765c7d162f8dc83faa72",
+      "bodySha256": "1e11e6117f18a21ddf801858b39d74ef498a8351e6d33437963fc31b811d2e6b",
+      "markdownSha256": "aec28d2c95a96b3956354468c47ab58492712199fce4deacd71ebbddff51dd97",
       "headings": [
         {
           "title": "Installation",
@@ -2179,9 +2179,9 @@
       "title": "Changelog",
       "metadataTitle": "Changelog | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/changelog\")\n\n# Changelog\n",
-      "sourceSha256": "9daa4f520e7e6b3bb7ba7a61c8a59da57025ffb4ce7b18a8473d0c0701147d9c",
-      "bodySha256": "3685a93fc98281fbf41743c5a1c3ce53a7f4e37076212f8d215cd0c5865376bd",
-      "markdownSha256": "2c7312a3b832c194494f72d40a547bb7468c9061c7d6b90846afaf8ead91e69a",
+      "sourceSha256": "b1a0a377cc3d4f3a5610dc0fbbf7983e83f77d4ecb66381d7b6012b7b78d15ce",
+      "bodySha256": "551e3ccab1d5b434be6caf9082ca42fe953ca062a9fed20b584eccc17966bf62",
+      "markdownSha256": "5d7ce23100ae4be3e9b627d3a50b5aa51d9febfd4aef433073e3d2fd75e48f26",
       "headings": [
         {
           "title": "v0.21.0",
@@ -2623,9 +2623,9 @@
       "title": "Code Export",
       "metadataTitle": "Code Export | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/code-export\")\n\n# Code Export\n",
-      "sourceSha256": "c88b4f674179a1b726453b2769d309cdf55d567e9821d9c542737cbbb8320da7",
-      "bodySha256": "deff258ad189742aa53a43477c719dff4e5128735ae015d382c3fd77abff2f82",
-      "markdownSha256": "8cd8e759040c6bc140f18192a2dfb0a98f50050eb0ac6dc816c1f5efb348997c",
+      "sourceSha256": "5c74a30a9ab260c0f3c775bef4654ce7138ee66ef03c6e9bf40266dab69d3f8a",
+      "bodySha256": "6934c117bb7cd5d40689df9aa82525761ed2f9b99c5956dbbe97341047b2f074",
+      "markdownSha256": "c9ece58d351eb98b6ef9b83adda0c65f229f8a9f34d0d591990d1c79713da4fe",
       "headings": [
         {
           "title": "Overview",
@@ -3699,9 +3699,9 @@
       "title": "Validation",
       "metadataTitle": "Validation | json-render",
       "prefix": "import { pageMetadata } from \"@/lib/page-metadata\"\nexport const metadata = pageMetadata(\"docs/validation\")\n\n# Validation\n",
-      "sourceSha256": "1008c30b0dd2f3914dbba090919ca977adda9126a3620e8ec8686be7cde8d2cc",
-      "bodySha256": "0cc68073de28e6da40645c0420328e22cef7031d43594c963a6a6b3e3af7b7ad",
-      "markdownSha256": "6640ad40ee2e16325cb2696db4bce794a65b341bb2654a7abd2f06ae07f3455f",
+      "sourceSha256": "023f28eda0c3f1cff87f74387a78a201b33ef0801d7e985699a532d584b90b46",
+      "bodySha256": "91288bf5ee0354fb01a31c46f6438b8bcbd673721aba0f206a2dd3351661f040",
+      "markdownSha256": "8f9a24d4b6dc09dfeb0095ae8a97ef2fb0790fe278bcc00df7e38156bcae4b8a",
       "headings": [
         {
           "title": "Built-in Validators",

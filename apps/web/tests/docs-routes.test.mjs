@@ -129,7 +129,11 @@ for (const page of pages) {
       page.metadataTitle,
     );
     assert.equal(meta(html, "og:url"), `${origin}${page.path}`);
-    assert.equal(meta(html, "og:image"), `${origin}/og${page.path}`);
+    const ogImage = new URL(meta(html, "og:image"), origin);
+    assert.equal(ogImage.origin, origin);
+    assert.equal(ogImage.pathname, `/og${page.path}`);
+    assert.match(ogImage.searchParams.get("v") ?? "", /^[0-9a-f]{8}$/);
+    assert.equal(meta(html, "twitter:image"), ogImage.href);
     assert.equal(html.match(/<h1(?:\s|>)/g)?.length, 1);
     assert.equal((meta(html, "robots") ?? "").includes("noindex"), noindex);
     if (noindex)

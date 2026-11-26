@@ -223,4 +223,3 @@ header .pointer-events-none.opacity-0 {
 #nd-page div:has(> [aria-live="polite"]) > div > .max-sm\:hidden {
   display: flex;
 }
-
