@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling>=1.32.4,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "json-render"
+version = "0.21.0a0"
+description = "Experimental Python authoring of json-render UI specs"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+dependencies = ["jsonschema>=4.26.0,<5", "referencing>=0.37.0,<1"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Typing :: Typed",
+]
+
+[project.urls]
+Repository = "https://github.com/vercel-labs/json-render"
+Issues = "https://github.com/vercel-labs/json-render/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/json_render"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "examples", "README.md", "pyproject.toml"]

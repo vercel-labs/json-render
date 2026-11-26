@@ -311,6 +311,35 @@ Specs can come from various sources:
 - **API Response** — Server returns specs based on user/context
 - **Static Files** — Pre-built specs for known UI patterns
 
+## Python Authoring (Experimental)
+
+Python backends can author flat UI specs with the experimental source package.
+Install it from a repository checkout with `python -m pip install ./packages/python`.
+It is not published to PyPI and its API may change.
+
+```python
+from json_render import Element, Spec
+
+spec = Spec("greeting", {
+    "greeting": Element("Text", props={"text": "Hello from Python"})
+})
+print(spec.to_json())
+```
+
+Send the JSON to the existing frontend renderer and matching component registry.
+`Spec` checks root, child, and named-slot references; `Element` supports top-level
+event/watch bindings with `ActionBinding`, visibility, slots, and repeat settings.
+Python serialization preserves false, empty, null, and Unicode values and rejects
+non-finite numbers. It does not render UI, evaluate expressions, execute actions,
+or replace frontend validation.
+
+For schema checks, `Catalog.from_file("catalog.schema.json").validate(spec)` uses
+the JSON Schema exported by the application's TypeScript catalog. The current
+React export omits runtime `on`, `watch`, and `state` fields and is lenient about
+props with multiple components; validation follows that export exactly. See the
+[Python package README](https://github.com/vercel-labs/json-render/tree/main/packages/python)
+for API details, export limitations, and development commands.
+
 ## Next
 
 Learn about [catalogs](/docs/catalog) — the vocabulary of components available in your specs.
