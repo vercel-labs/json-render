@@ -5,29 +5,45 @@ import React, {
   type ReactNode,
 } from "react";
 import {
+  createDirectiveRegistry,
   evaluateVisibility,
+  type ComputedFunction,
+  type DirectiveDefinition,
+  type PropResolutionContext,
   type VisibilityCondition,
-  type VisibilityContext as CoreVisibilityContext,
 } from "@json-render/core";
 import { useStateStore } from "./state";
 
 export interface VisibilityContextValue {
   isVisible: (condition: VisibilityCondition | undefined) => boolean;
-  ctx: CoreVisibilityContext;
+  ctx: PropResolutionContext;
 }
 
 const VisibilityContext = createContext<VisibilityContextValue | null>(null);
 
 export interface VisibilityProviderProps {
+  /** Named functions for `$computed` expressions in props */
+  functions?: Record<string, ComputedFunction>;
+  /** Custom directives for user-defined `$`-prefixed dynamic values */
+  directives?: DirectiveDefinition[];
   children: ReactNode;
 }
 
-export function VisibilityProvider({ children }: VisibilityProviderProps) {
+export function VisibilityProvider({
+  functions,
+  directives,
+  children,
+}: VisibilityProviderProps) {
   const { state } = useStateStore();
 
-  const ctx: CoreVisibilityContext = useMemo(
-    () => ({ stateModel: state }),
-    [state],
+  const directiveRegistry = useMemo(
+    () => (directives ? createDirectiveRegistry(directives) : undefined),
+    [directives],
+  );
+
+  const ctx: PropResolutionContext = useMemo(
+    () => ({ stateModel: state, functions, directives: directiveRegistry }),
+    [state, functions, directiveRegistry],
   );
 
   const isVisible = useMemo(

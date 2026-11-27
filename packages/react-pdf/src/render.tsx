@@ -4,8 +4,15 @@ import {
   renderToStream as pdfRenderToStream,
   render as pdfRender,
 } from "@react-pdf/renderer";
-import type { Spec, UIElement } from "@json-render/core";
+import type {
+  ComputedFunction,
+  DirectiveDefinition,
+  DirectiveRegistry,
+  Spec,
+  UIElement,
+} from "@json-render/core";
 import {
+  createDirectiveRegistry,
   resolveElementProps,
   resolveRepeatItemStatePath,
   resolveRepeatStatePath,
@@ -24,6 +31,10 @@ export interface RenderOptions {
   registry?: RenderComponentRegistry;
   includeStandard?: boolean;
   state?: Record<string, unknown>;
+  /** Named functions for `$computed` expressions in props */
+  functions?: Record<string, ComputedFunction>;
+  /** Custom directives for user-defined `$`-prefixed dynamic values */
+  directives?: DirectiveDefinition[];
 }
 
 const noopEmit = () => {};
@@ -33,6 +44,8 @@ function renderElement(
   spec: Spec,
   registry: RenderComponentRegistry,
   stateModel: Record<string, unknown>,
+  functions: Record<string, ComputedFunction> | undefined,
+  directives: DirectiveRegistry | undefined,
   repeatItem?: unknown,
   repeatIndex?: number,
   repeatBasePath?: string,
@@ -45,6 +58,8 @@ function renderElement(
     repeatItem,
     repeatIndex,
     repeatBasePath,
+    functions,
+    directives,
   };
 
   if (element.visible !== undefined) {
@@ -88,6 +103,8 @@ function renderElement(
           spec,
           registry,
           stateModel,
+          functions,
+          directives,
           item,
           index,
           childPath,
@@ -110,6 +127,8 @@ function renderElement(
       spec,
       registry,
       stateModel,
+      functions,
+      directives,
       repeatItem,
       repeatIndex,
       repeatBasePath,
@@ -131,6 +150,8 @@ function buildDocument(
     registry: customRegistry,
     includeStandard = true,
     state = {},
+    functions,
+    directives,
   } = options;
 
   const mergedState: Record<string, unknown> = {
@@ -143,7 +164,18 @@ function buildDocument(
     ...customRegistry,
   };
 
-  const root = renderElement(spec.root, spec, registry, mergedState);
+  const directiveRegistry = directives
+    ? createDirectiveRegistry(directives)
+    : undefined;
+
+  const root = renderElement(
+    spec.root,
+    spec,
+    registry,
+    mergedState,
+    functions,
+    directiveRegistry,
+  );
   return root ?? <></>;
 }
 
