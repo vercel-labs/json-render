@@ -977,6 +977,12 @@ export interface MixedStreamParser {
  * incoming chunks, splits them into lines, and classifies each line as either
  * a JSONL patch (via `parseSpecStreamLine`) or plain text.
  *
+ * `onText` receives the text exactly as `createJsonRenderTransform` streams it,
+ * line breaks included: prose lines arrive with their trailing newline, blank
+ * lines arrive as a single `"\n"`, and the ```spec fence lines are swallowed
+ * together with their own newline. Concatenating the `onText` arguments
+ * therefore reproduces the transform's prose for the same input.
+ *
  * @example
  * const parser = createMixedStreamParser({
  *   onText: (text) => appendToMessage(text),
@@ -998,7 +1004,8 @@ export function createMixedStreamParser(
   function processLine(line: string): void {
     const trimmed = line.trim();
 
-    // Fence detection
+    // Fence detection: the fence lines, and the newline that ends them, are
+    // part of the protocol rather than of the prose.
     if (!inSpecFence && trimmed.startsWith("```spec")) {
       inSpecFence = true;
       return;
@@ -1008,22 +1015,28 @@ export function createMixedStreamParser(
       return;
     }
 
-    if (!trimmed) return;
-
     if (inSpecFence) {
-      const patch = parseSpecStreamLine(trimmed);
-      if (patch) {
-        callbacks.onPatch(patch);
+      if (trimmed) {
+        const patch = parseSpecStreamLine(trimmed);
+        if (patch) {
+          callbacks.onPatch(patch);
+        }
       }
       return;
     }
 
-    // Outside fence: heuristic mode
+    // Outside the fence: a blank line is a paragraph break, which the transform
+    // emits as "\n"; any other non-patch line keeps its own newline.
+    if (!trimmed) {
+      callbacks.onText("\n");
+      return;
+    }
+
     const patch = parseSpecStreamLine(trimmed);
     if (patch) {
       callbacks.onPatch(patch);
     } else {
-      callbacks.onText(line);
+      callbacks.onText(line + "\n");
     }
   }
 
@@ -1041,12 +1054,140 @@ export function createMixedStreamParser(
     },
 
     flush(): void {
-      if (buffer.trim()) {
-        processLine(buffer);
-      }
+      // Mirrors the transform's flushBuffer: an unterminated line is classified
+      // the same way a complete one would be, but keeps its own bytes (no added
+      // newline), because it never had one to begin with.
+      if (!buffer) return;
+      const text = buffer;
       buffer = "";
+      const trimmed = text.trim();
+      if (inSpecFence) {
+        if (trimmed) {
+          const patch = parseSpecStreamLine(trimmed);
+          if (patch) {
+            callbacks.onPatch(patch);
+          }
+        }
+        return;
+      }
+      const patch = parseSpecStreamLine(trimmed);
+      if (patch) {
+        callbacks.onPatch(patch);
+      } else {
+        callbacks.onText(text);
+      }
     },
   };
+}
+
+// =============================================================================
+// Splitting a complete string the same way the transform streams it
+// =============================================================================
+
+/** A prose segment produced by {@link splitSpecText}. */
+export interface SpecTextSegment {
+  type: "text";
+  /** The prose exactly as `createJsonRenderTransform` would stream it. */
+  text: string;
+}
+
+/** A patch segment produced by {@link splitSpecText}. */
+export interface SpecPatchSegment {
+  type: "patch";
+  patch: SpecStreamLine;
+}
+
+/** A segment produced by {@link splitSpecText}, in document order. */
+export type SpecSegment = SpecTextSegment | SpecPatchSegment;
+
+/**
+ * The result of {@link splitSpecText}.
+ *
+ * `invalid` holds the lines that sat inside a ```spec fence but did not parse
+ * as a patch; the transform drops them, and so does `segments`.
+ */
+export interface SplitSpecTextResult {
+  segments: SpecSegment[];
+  invalid: string[];
+}
+
+/**
+ * Split a complete text into the prose and patch segments that
+ * `createJsonRenderTransform` would stream for it.
+ *
+ * Use this when the raw transcript is stored and later re-split (e.g. on a
+ * conversation reload): concatenating the text segments gives exactly the prose
+ * the user saw live. Adjacent prose is merged into one segment.
+ *
+ * @example
+ * splitSpecText("Here.\n\n```spec\n{\"op\":\"add\",\"path\":\"/root\",\"value\":\"x\"}\n```\n\nBye.")
+ * // segments: [{ type: "text", text: "Here.\n\n" },
+ * //            { type: "patch", patch: {...} },
+ * //            { type: "text", text: "\nBye.\n" }]
+ */
+export function splitSpecText(text: string): SplitSpecTextResult {
+  const segments: SpecSegment[] = [];
+  const invalid: string[] = [];
+  let inSpecFence = false;
+
+  const appendText = (chunk: string): void => {
+    if (!chunk) return;
+    const last = segments[segments.length - 1];
+    if (last && last.type === "text") {
+      last.text += chunk;
+      return;
+    }
+    segments.push({ type: "text", text: chunk });
+  };
+
+  const lines = text.split("\n");
+  // A trailing newline does not open a new line of its own.
+  const lastIndex = lines.length - 1;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]!;
+    const terminated = i < lastIndex;
+    const trimmed = line.trim();
+
+    if (!inSpecFence && trimmed.startsWith(SPEC_FENCE_OPEN)) {
+      inSpecFence = true;
+      continue;
+    }
+    if (inSpecFence && trimmed === SPEC_FENCE_CLOSE) {
+      inSpecFence = false;
+      continue;
+    }
+
+    if (inSpecFence) {
+      if (trimmed) {
+        const patch = parseSpecStreamLine(trimmed);
+        if (patch) {
+          segments.push({ type: "patch", patch });
+        } else {
+          invalid.push(line);
+        }
+      }
+      continue;
+    }
+
+    if (!terminated) {
+      appendText(line);
+      continue;
+    }
+
+    if (!trimmed) {
+      appendText("\n");
+      continue;
+    }
+
+    const patch = parseSpecStreamLine(trimmed);
+    if (patch) {
+      segments.push({ type: "patch", patch });
+    } else {
+      appendText(line + "\n");
+    }
+  }
+
+  return { segments, invalid };
 }
 
 // =============================================================================
