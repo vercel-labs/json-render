@@ -1,0 +1,1 @@
+{"compilerOptions": {"declaration": false, "declarationMap": false, "paths": {"@/*": ["./*"]}, "plugins": [{ "name": "next" }]}, "exclude": ["node_modules"], "extends": "../../packages/typescript-config/nextjs.json", "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"]}
